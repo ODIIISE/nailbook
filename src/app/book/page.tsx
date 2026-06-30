@@ -1,26 +1,28 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Header } from "@/components/layout/header";
 import { Card } from "@/components/ui/card";
-import { ArrowRight } from "lucide-react";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { TimeSlots } from "@/components/booking/time-slots";
 import { CustomerForm } from "@/components/booking/customer-form";
 import { OtpVerify } from "@/components/booking/otp-verify";
 import { BookingConfirm } from "@/components/booking/booking-confirm";
+import { AddonSelect } from "@/components/booking/addon-select";
 import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import type { Booking } from "@/lib/mock-data";
 
-type BookingStep = "date" | "time" | "info" | "otp" | "confirmed";
+type BookingStep = "date" | "addon" | "time" | "info" | "otp" | "confirmed";
 
 export default function BookPage() {
   const router = useRouter();
-  const { salon, workingHours, services, bookings, addBooking } = useSalon();
+  const searchParams = useSearchParams();
+  const { salon, workingHours, services, addons, bookings, addBooking } = useSalon();
   const [step, setStep] = useState<BookingStep>("date");
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState("");
@@ -29,7 +31,36 @@ export default function BookPage() {
   const [bookingId, setBookingId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    const serviceId = searchParams.get("service");
+    const stepParam = searchParams.get("step");
+    if (serviceId) {
+      setSelectedServiceId(serviceId);
+      if (stepParam === "addon") {
+        setStep("addon");
+      }
+    }
+  }, [searchParams]);
+
   const selectedService = services.find((s) => s.id === selectedServiceId);
+
+  const totalDuration = useMemo(() => {
+    if (!selectedService) return 0;
+    const addonsDuration = selectedAddons.reduce((sum, id) => {
+      const addon = addons.find((a) => a.id === id);
+      return sum + (addon?.duration_minutes || 0);
+    }, 0);
+    return selectedService.duration_minutes + addonsDuration;
+  }, [selectedService, selectedAddons, addons]);
+
+  const totalPrice = useMemo(() => {
+    if (!selectedService) return 0;
+    const addonsPrice = selectedAddons.reduce((sum, id) => {
+      const addon = addons.find((a) => a.id === id);
+      return sum + (addon?.price || 0);
+    }, 0);
+    return selectedService.price + addonsPrice;
+  }, [selectedService, selectedAddons, addons]);
 
   const timeSlots = useMemo(() => {
     if (!selectedDate || !selectedService) return [];
@@ -45,17 +76,44 @@ export default function BookPage() {
     return generateTimeSlots(
       workingHours,
       selectedDate,
-      selectedService.duration_minutes,
+      totalDuration,
       salon.slot_interval_minutes,
       salon.slot_buffer_minutes,
       dayBookings,
       []
     );
-  }, [selectedDate, selectedService, workingHours, salon]);
+  }, [selectedDate, selectedService, totalDuration, workingHours, salon, bookings]);
 
   const bookedDates = useMemo(() => {
     return [...new Set(bookings.filter((b) => b.status === "confirmed").map((b) => b.date_gregorian))];
   }, [bookings]);
+
+  const handleSelectService = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
+    const service = services.find((s) => s.id === serviceId);
+    if (service && service.addon_ids.length > 0) {
+      setStep("addon");
+    } else {
+      setStep("date");
+    }
+  };
+
+  const handleAddonToggle = useCallback((addonId: string) => {
+    setSelectedAddons((prev) =>
+      prev.includes(addonId)
+        ? prev.filter((id) => id !== addonId)
+        : [...prev, addonId]
+    );
+  }, []);
+
+  const handleAddonContinue = useCallback(() => {
+    setStep("date");
+  }, []);
+
+  const handleAddonSkip = useCallback(() => {
+    setSelectedAddons([]);
+    setStep("date");
+  }, []);
 
   const handleSelectDate = useCallback((date: Date) => {
     setSelectedDate(date);
@@ -82,13 +140,14 @@ export default function BookPage() {
         setBookingId(id);
 
         const [h, m] = selectedTime!.split(":").map(Number);
-        const endMinutes = h * 60 + m + selectedService.duration_minutes;
+        const endMinutes = h * 60 + m + totalDuration;
         const endH = Math.floor(endMinutes / 60);
         const endM = endMinutes % 60;
 
         const newBooking: Booking = {
           id,
           service_id: selectedService.id,
+          selected_addons: selectedAddons,
           customer_name: customerName,
           customer_phone: customerPhone,
           date: "",
@@ -108,7 +167,7 @@ export default function BookPage() {
       }
       setIsLoading(false);
     }, 1000);
-  }, [selectedDate, selectedService, selectedTime, customerName, customerPhone, addBooking]);
+  }, [selectedDate, selectedService, selectedTime, customerName, customerPhone, addBooking, selectedAddons, totalDuration]);
 
   const handleResendOtp = useCallback(() => {
     setOtpError("");
@@ -116,61 +175,35 @@ export default function BookPage() {
 
   const stepTitles: Record<BookingStep, string> = {
     date: "انتخاب تاریخ",
+    addon: "آپشن‌ها",
     time: "انتخاب ساعت",
     info: "اطلاعات شما",
     otp: "تایید شماره",
     confirmed: "تایید نهایی",
   };
 
+  const goBack = () => {
+    const steps: BookingStep[] = ["addon", "date", "time", "info", "otp"];
+    const idx = steps.indexOf(step);
+    if (idx > 0) setStep(steps[idx - 1]);
+    else router.push("/");
+  };
+
   return (
     <div className="min-h-screen bg-warm-white">
-      <div className="sticky top-0 z-10 bg-warm-white/95 backdrop-blur-sm border-b border-border">
-        <div className="mx-auto max-w-lg px-4 py-3">
-          <div className="flex items-center gap-3">
-            {step !== "date" && step !== "confirmed" && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  const steps: BookingStep[] = ["date", "time", "info", "otp"];
-                  const idx = steps.indexOf(step);
-                  if (idx > 0) setStep(steps[idx - 1]);
-                  else router.push("/");
-                }}
-              >
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            )}
-            {step === "confirmed" ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => router.push("/")}
-              >
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            ) : null}
-            <div>
-              <h1 className="font-semibold text-foreground">
-                {stepTitles[step]}
-              </h1>
-              {selectedService && (
-                <p className="text-xs text-muted-foreground">
-                  {selectedService.name}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <Header
+        showBack={step !== "confirmed"}
+        title={stepTitles[step]}
+        subtitle={selectedService?.name}
+      />
 
       <div className="mx-auto max-w-lg px-4 py-6 space-y-4">
-        {selectedService && step !== "date" && step !== "confirmed" && (
+        {selectedService && step !== "date" && step !== "addon" && step !== "confirmed" && (
           <Card className="p-3 bg-rose/5 border-rose/20">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{selectedService.name}</span>
               <span className="text-rose font-bold">
-                {selectedService.price.toLocaleString("fa-IR")} تومان
+                {totalPrice.toLocaleString("fa-IR")} تومان
               </span>
             </div>
           </Card>
@@ -185,7 +218,7 @@ export default function BookPage() {
                   <Card
                     key={service.id}
                     className="p-4 cursor-pointer hover:shadow-md transition-all"
-                    onClick={() => setSelectedServiceId(service.id)}
+                    onClick={() => handleSelectService(service.id)}
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -210,6 +243,16 @@ export default function BookPage() {
               />
             )}
           </>
+        )}
+
+        {step === "addon" && selectedService && (
+          <AddonSelect
+            addons={addons.filter((a) => selectedService.addon_ids.includes(a.id))}
+            selectedAddons={selectedAddons}
+            onToggle={handleAddonToggle}
+            onContinue={handleAddonContinue}
+            onSkip={handleAddonSkip}
+          />
         )}
 
         {step === "time" && selectedDate && (
@@ -240,8 +283,8 @@ export default function BookPage() {
             serviceName={selectedService.name}
             date={selectedDate}
             time={selectedTime}
-            duration={selectedService.duration_minutes}
-            price={selectedService.price}
+            duration={totalDuration}
+            price={totalPrice}
             customerName={customerName}
             bookingId={bookingId}
           />

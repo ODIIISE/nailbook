@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { MOCK_SALON, MOCK_SERVICES, MOCK_BOOKINGS } from "@/lib/mock-data";
-import type { SalonInfo, Service, Booking } from "@/lib/mock-data";
+import { MOCK_SALON, MOCK_SERVICES, MOCK_BOOKINGS, MOCK_ADDONS } from "@/lib/mock-data";
+import type { SalonInfo, Service, Booking, Addon } from "@/lib/mock-data";
 import type { WorkingHours } from "@/lib/slots";
 
 interface SalonContextType {
@@ -10,10 +10,12 @@ interface SalonContextType {
   workingHours: WorkingHours;
   specificDaysOff: string[];
   services: Service[];
+  addons: Addon[];
   bookings: Booking[];
   updateWorkingHours: (hours: WorkingHours) => void;
   updateSpecificDaysOff: (daysOff: string[]) => void;
   updateServices: (services: Service[]) => void;
+  updateAddons: (addons: Addon[]) => void;
   addBooking: (booking: Booking) => void;
 }
 
@@ -25,6 +27,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   );
   const [specificDaysOff, setSpecificDaysOff] = useState<string[]>([]);
   const [services, setServices] = useState<Service[]>(MOCK_SERVICES);
+  const [addons, setAddons] = useState<Addon[]>(MOCK_ADDONS);
   const [bookings, setBookings] = useState<Booking[]>(MOCK_BOOKINGS);
 
   const addBooking = (booking: Booking) => {
@@ -38,10 +41,12 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         workingHours,
         specificDaysOff,
         services,
+        addons,
         bookings,
         updateWorkingHours: setWorkingHours,
         updateSpecificDaysOff: setSpecificDaysOff,
         updateServices: setServices,
+        updateAddons: setAddons,
         addBooking,
       }}
     >

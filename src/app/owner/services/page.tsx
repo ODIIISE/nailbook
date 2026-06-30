@@ -8,7 +8,7 @@ import { useSalon } from "@/lib/salon-context";
 
 export default function OwnerServicesPage() {
   const router = useRouter();
-  const { services, updateServices } = useSalon();
+  const { services, addons, updateServices, updateAddons } = useSalon();
 
   return (
     <div className="min-h-screen bg-warm-white">
@@ -24,7 +24,12 @@ export default function OwnerServicesPage() {
       </div>
 
       <div className="mx-auto max-w-lg px-4 py-6">
-        <ServiceManager services={services} onUpdate={updateServices} />
+        <ServiceManager
+          services={services}
+          addons={addons}
+          onUpdateServices={updateServices}
+          onUpdateAddons={updateAddons}
+        />
       </div>
     </div>
   );

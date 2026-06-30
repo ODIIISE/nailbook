@@ -13,6 +13,14 @@ export interface SalonInfo {
   slot_interval_minutes: number;
 }
 
+export interface Addon {
+  id: string;
+  name: string;
+  price: number;
+  duration_minutes: number;
+  is_active: boolean;
+}
+
 export interface Service {
   id: string;
   name: string;
@@ -21,11 +29,13 @@ export interface Service {
   price: number;
   is_active: boolean;
   sort_order: number;
+  addon_ids: string[];
 }
 
 export interface Booking {
   id: string;
   service_id: string;
+  selected_addons: string[];
   customer_name: string;
   customer_phone: string;
   date: string;
@@ -70,6 +80,15 @@ export const MOCK_SALON: SalonInfo = {
   slot_interval_minutes: 30,
 };
 
+export const MOCK_ADDONS: Addon[] = [
+  { id: "a1", name: "طراحی ساده", price: 50000, duration_minutes: 10, is_active: true },
+  { id: "a2", name: "سنگ ناخن", price: 30000, duration_minutes: 5, is_active: true },
+  { id: "a3", name: "کروم ناخن", price: 40000, duration_minutes: 5, is_active: true },
+  { id: "a4", name: "فرنچ رنگی", price: 30000, duration_minutes: 5, is_active: true },
+  { id: "a5", name: "نگین فرنچ", price: 40000, duration_minutes: 10, is_active: true },
+  { id: "a6", name: "لاک ژل پا", price: 100000, duration_minutes: 15, is_active: true },
+];
+
 export const MOCK_SERVICES: Service[] = [
   {
     id: "1",
@@ -79,6 +98,7 @@ export const MOCK_SERVICES: Service[] = [
     price: 350000,
     is_active: true,
     sort_order: 1,
+    addon_ids: ["a1", "a2", "a3"],
   },
   {
     id: "2",
@@ -88,6 +108,7 @@ export const MOCK_SERVICES: Service[] = [
     price: 450000,
     is_active: true,
     sort_order: 2,
+    addon_ids: ["a4", "a5"],
   },
   {
     id: "3",
@@ -97,6 +118,7 @@ export const MOCK_SERVICES: Service[] = [
     price: 600000,
     is_active: true,
     sort_order: 3,
+    addon_ids: [],
   },
   {
     id: "4",
@@ -106,6 +128,7 @@ export const MOCK_SERVICES: Service[] = [
     price: 400000,
     is_active: true,
     sort_order: 4,
+    addon_ids: ["a6"],
   },
   {
     id: "5",
@@ -115,6 +138,7 @@ export const MOCK_SERVICES: Service[] = [
     price: 300000,
     is_active: true,
     sort_order: 5,
+    addon_ids: [],
   },
 ];
 
@@ -125,6 +149,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: "b1",
     service_id: "1",
+    selected_addons: [],
     customer_name: "سارا کریمی",
     customer_phone: "09121111111",
     date: "1404-04-05",
@@ -138,6 +163,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: "b2",
     service_id: "2",
+    selected_addons: [],
     customer_name: "مایا رضایی",
     customer_phone: "09122222222",
     date: "1404-04-05",
@@ -151,6 +177,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: "b3",
     service_id: "3",
+    selected_addons: [],
     customer_name: "نیلوفر عباسی",
     customer_phone: "09123333333",
     date: "1404-04-05",
@@ -164,6 +191,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: "b4",
     service_id: "4",
+    selected_addons: [],
     customer_name: "الناز محمدی",
     customer_phone: "09124444444",
     date: "1404-04-06",
@@ -177,6 +205,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: "b5",
     service_id: "5",
+    selected_addons: [],
     customer_name: "زهرا حسینی",
     customer_phone: "09125555555",
     date: "1404-04-06",

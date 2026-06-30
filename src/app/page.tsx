@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Header } from "@/components/layout/header";
 import { Hero } from "@/components/landing/hero";
 import { NextAvailable } from "@/components/landing/next-available";
 import { ServiceCard } from "@/components/landing/service-card";
 import { TrustSignals } from "@/components/landing/trust-signals";
 import { ContactButtons } from "@/components/landing/contact-buttons";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
 import { MOCK_TOTAL_BOOKINGS } from "@/lib/mock-data";
 import { getNearestAvailableSlot } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
@@ -30,7 +33,11 @@ export default function HomePage() {
   }, [workingHours, salon]);
 
   const handleSelectService = (service: Service) => {
-    router.push(`/book?service=${service.id}`);
+    if (service.addon_ids.length > 0) {
+      router.push(`/book?service=${service.id}&step=addon`);
+    } else {
+      router.push(`/book?service=${service.id}`);
+    }
   };
 
   const handleBookNow = () => {
@@ -39,6 +46,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-warm-white">
+      <Header />
+
       <Hero salon={salon} />
 
       <NextAvailable
@@ -49,8 +58,8 @@ export default function HomePage() {
 
       <div className="px-4 mb-6">
         <div className="mx-auto max-w-lg">
-          <h2 className="text-lg font-bold text-foreground mb-3">خدمات ما</h2>
-          <div className="space-y-3">
+          <h2 className="text-lg font-bold text-foreground mb-4">خدمات ما</h2>
+          <div className="space-y-4">
             {services
               .filter((s) => s.is_active)
               .sort((a, b) => a.sort_order - b.sort_order)
@@ -62,6 +71,14 @@ export default function HomePage() {
                 />
               ))}
           </div>
+
+          <Button
+            className="w-full mt-6 h-12 bg-rose hover:bg-rose/90 text-white text-base font-semibold"
+            onClick={handleBookNow}
+          >
+            رزرو کن
+            <ChevronLeft className="h-5 w-5 mr-2" />
+          </Button>
         </div>
       </div>
 

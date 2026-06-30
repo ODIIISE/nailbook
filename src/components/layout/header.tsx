@@ -1,0 +1,157 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Menu,
+  X,
+  ArrowRight,
+  Phone,
+  AtSign,
+  MapPin,
+  Clock,
+  User,
+  Calendar,
+} from "lucide-react";
+import { useSalon } from "@/lib/salon-context";
+
+interface HeaderProps {
+  showBack?: boolean;
+  title?: string;
+  subtitle?: string;
+}
+
+export function Header({ showBack = false, title, subtitle }: HeaderProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { salon } = useSalon();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const isHome = pathname === "/";
+
+  return (
+    <>
+      <div className="sticky top-0 z-30 bg-warm-white/95 backdrop-blur-sm border-b border-border">
+        <div className="mx-auto max-w-lg px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {showBack && !isHome ? (
+              <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+            ) : null}
+            {title ? (
+              <div>
+                <h1 className="font-semibold text-foreground">{title}</h1>
+                {subtitle && (
+                  <p className="text-xs text-muted-foreground">{subtitle}</p>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xl">💅</span>
+                <span className="font-bold text-foreground text-sm">{salon.name}</span>
+              </div>
+            )}
+          </div>
+          <Button variant="ghost" size="icon" onClick={() => setMenuOpen(true)}>
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+
+      {menuOpen && (
+        <div className="fixed inset-0 z-50">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMenuOpen(false)}
+          />
+          <div className="absolute top-0 right-0 h-full w-72 bg-warm-white shadow-xl">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-6">
+                <span className="font-bold text-foreground">{salon.name}</span>
+                <Button variant="ghost" size="icon" onClick={() => setMenuOpen(false)}>
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+
+              <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    router.push("/");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary text-right transition-colors"
+                >
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">صفحه اصلی</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    router.push("/book");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary text-right transition-colors"
+                >
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">رزرو نوبت</span>
+                </button>
+
+                <Separator className="my-3" />
+
+                <button
+                  onClick={() => {
+                    router.push("/owner/login");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary text-right transition-colors"
+                >
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">ورود مدیر</span>
+                </button>
+
+                <Separator className="my-3" />
+
+                <a
+                  href={`tel:${salon.phone}`}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary text-right transition-colors"
+                >
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm" dir="ltr">{salon.phone}</span>
+                </a>
+
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary text-right transition-colors"
+                >
+                  <AtSign className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">اینستاگرام</span>
+                </a>
+
+                <Separator className="my-3" />
+
+                <div className="px-3 py-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">{salon.address}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">
+                      شنبه تا چهارشنبه · ۱۰:۰۰ - ۱۸:۰۰
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
