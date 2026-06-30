@@ -133,7 +133,7 @@ function ServicesTab({
     <div className="space-y-4 mt-4">
       {!isAdding && !editingId && (
         <Button
-          className="w-full bg-rose hover:bg-rose/90 text-white"
+          className="w-full bg-navy hover:bg-navy/90 text-white rounded-xl"
           onClick={() => setIsAdding(true)}
         >
           <Plus className="h-4 w-4 ml-1" />
@@ -180,7 +180,7 @@ function ServicesTab({
             </div>
           </div>
           <div className="flex gap-2">
-            <Button size="sm" onClick={handleAdd} className="bg-rose hover:bg-rose/90 text-white">
+            <Button size="sm" onClick={handleAdd} className="bg-navy hover:bg-navy/90 text-white rounded-xl">
               ذخیره
             </Button>
             <Button size="sm" variant="outline" onClick={() => setIsAdding(false)}>
@@ -258,7 +258,7 @@ function ServicesTab({
                         onClick={() => handleToggleAddon(service.id, addon.id)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                           assigned
-                            ? "bg-rose text-white"
+                            ? "bg-navy text-white"
                             : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                         }`}
                       >
@@ -337,7 +337,7 @@ function AddonsTab({
     <div className="space-y-4 mt-4">
       {!isAdding && !editingId && (
         <Button
-          className="w-full bg-rose hover:bg-rose/90 text-white"
+          className="w-full bg-navy hover:bg-navy/90 text-white rounded-xl"
           onClick={() => setIsAdding(true)}
         >
           <Plus className="h-4 w-4 ml-1" />
@@ -379,7 +379,7 @@ function AddonsTab({
             </div>
           </div>
           <div className="flex gap-2">
-            <Button size="sm" onClick={handleAdd} className="bg-rose hover:bg-rose/90 text-white">
+            <Button size="sm" onClick={handleAdd} className="bg-navy hover:bg-navy/90 text-white rounded-xl">
               ذخیره
             </Button>
             <Button size="sm" variant="outline" onClick={() => setIsAdding(false)}>

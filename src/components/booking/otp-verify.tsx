@@ -80,7 +80,7 @@ export function OtpVerify({ phone, onVerify, onResend, isLoading, error }: OtpVe
 
       <Button
         onClick={() => onVerify(digits.join(""))}
-        className="w-full bg-rose hover:bg-rose/90 text-white"
+        className="w-full bg-navy hover:bg-navy/90 text-white rounded-xl"
         disabled={isLoading || digits.some((d) => !d)}
       >
         {isLoading ? "در حال تایید..." : "تایید"}

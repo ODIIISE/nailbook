@@ -83,7 +83,7 @@ export function CustomerForm({ onSubmit, isLoading }: CustomerFormProps) {
 
         <Button
           type="submit"
-          className="w-full bg-rose hover:bg-rose/90 text-white"
+          className="w-full bg-navy hover:bg-navy/90 text-white rounded-xl"
           disabled={isLoading}
         >
           {isLoading ? "در حال ارسال..." : "ارسال کد تایید"}

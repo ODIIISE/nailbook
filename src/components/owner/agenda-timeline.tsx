@@ -150,7 +150,7 @@ export function AgendaTimeline({
           })}
 
           <div
-            className="absolute right-14 left-2 h-[2px] bg-rose z-20 pointer-events-none"
+            className="absolute right-14 left-2 h-[2px] bg-navy z-20 pointer-events-none"
             style={{
               top: ((new Date().getHours() * 60 + new Date().getMinutes() - START_HOUR * 60) / 60) * HOUR_HEIGHT,
             }}

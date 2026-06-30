@@ -114,7 +114,7 @@ export function AddonSelect({
       <div className="mt-4 flex gap-3">
         <Button
           onClick={onContinue}
-          className="flex-1 bg-rose hover:bg-rose/90 text-white"
+          className="flex-1 bg-navy hover:bg-navy/90 text-white rounded-xl"
         >
           ادامه
         </Button>

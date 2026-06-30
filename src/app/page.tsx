@@ -73,7 +73,7 @@ export default function HomePage() {
           </div>
 
           <Button
-            className="w-full mt-6 h-12 bg-rose hover:bg-rose/90 text-white text-base font-semibold"
+            className="w-full mt-6 h-12 bg-navy hover:bg-navy/90 text-white rounded-xl text-base font-semibold"
             onClick={handleBookNow}
           >
             رزرو کن

@@ -14,7 +14,7 @@ export function Hero({ salon }: HeroProps) {
       <div className="absolute inset-0 bg-gradient-to-b from-rose/10 to-transparent" />
       <div className="relative px-4 pt-8 pb-6">
         <div className="mx-auto max-w-lg text-center">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-rose/10 text-3xl">
+          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-navy/10 text-3xl">
             💅
           </div>
           <h1 className="mb-2 text-2xl font-bold text-foreground">
