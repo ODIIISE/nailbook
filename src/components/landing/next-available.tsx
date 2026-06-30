@@ -19,13 +19,13 @@ export function NextAvailable({ date, time, onBookNow }: NextAvailableProps) {
 
   return (
     <div className="px-4 mb-6">
-      <div className="mx-auto max-w-lg relative overflow-hidden rounded-2xl bg-gradient-to-br from-navy to-navy/80 p-[1px]">
+      <div className="mx-auto max-w-lg relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-[1px]">
         <div className="rounded-2xl bg-warm-white p-4">
           <div className="flex items-center gap-2 mb-3">
-            <div className="flex items-center justify-center h-6 w-6 rounded-full bg-navy/10">
-              <Sparkles className="h-3.5 w-3.5 text-navy" />
+            <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
             </div>
-            <span className="text-xs font-medium text-navy">نزدیک‌ترین زمان موجود</span>
+            <span className="text-xs font-medium text-primary">نزدیک‌ترین زمان موجود</span>
           </div>
 
           <div className="flex items-center justify-between gap-4">
@@ -50,7 +50,7 @@ export function NextAvailable({ date, time, onBookNow }: NextAvailableProps) {
 
             <Button
               onClick={onBookNow}
-              className="h-11 px-5 bg-navy hover:bg-navy/90 text-white rounded-xl font-semibold text-sm gap-2"
+              className="h-11 px-5 bg-primary hover:bg-primary/90 text-white rounded-xl font-semibold text-sm gap-2"
             >
               رزرو کن
               <ChevronLeft className="h-4 w-4" />

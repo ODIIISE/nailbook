@@ -136,8 +136,8 @@ export function JalaliCalendar({
               onClick={() => !isDisabled && onSelectDate(d.date)}
               className={`
                 relative h-10 rounded-lg text-sm font-medium transition-all
-                ${d.isSelected ? "bg-navy text-white shadow-md" : ""}
-                ${!d.isSelected && d.isWorkingDay && !d.isPast && !d.isFullyBooked ? "hover:bg-navy/10 text-foreground cursor-pointer" : ""}
+                ${d.isSelected ? "bg-primary text-white shadow-md" : ""}
+                ${!d.isSelected && d.isWorkingDay && !d.isPast && !d.isFullyBooked ? "hover:bg-primary/10 text-foreground cursor-pointer" : ""}
                 ${isDisabled && !d.isSelected ? "text-muted-foreground/40 cursor-not-allowed" : ""}
                 ${d.isFullyBooked && !d.isSelected ? "line-through" : ""}
               `}

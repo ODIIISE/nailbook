@@ -137,7 +137,7 @@ export default function OwnerDashboard() {
             <p className="text-xs text-muted-foreground">نوبت امروز</p>
           </Card>
           <Card className="p-4 text-center">
-            <p className="text-2xl font-bold text-navy">
+            <p className="text-2xl font-bold text-primary">
               {toPersianDigits(todayStats.revenue.toLocaleString("fa-IR"))}
             </p>
             <p className="text-xs text-muted-foreground">درآمد امروز (تومان)</p>

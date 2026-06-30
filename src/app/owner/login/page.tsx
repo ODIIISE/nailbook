@@ -39,7 +39,7 @@ export default function OwnerLoginPage() {
     <div className="min-h-screen bg-warm-white flex items-center justify-center px-4">
       <Card className="w-full max-w-sm p-6">
         <div className="text-center mb-6">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-navy/10 text-2xl">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl">
             💅
           </div>
           <h1 className="text-xl font-bold text-foreground">ورود مدیر</h1>
@@ -80,7 +80,7 @@ export default function OwnerLoginPage() {
           )}
 
           <Button
-            className="w-full bg-navy hover:bg-navy/90 text-white rounded-xl"
+            className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl"
             disabled={isLoading}
             onClick={handleLogin}
           >

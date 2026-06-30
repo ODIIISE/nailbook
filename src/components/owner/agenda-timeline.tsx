@@ -98,18 +98,18 @@ export function AgendaTimeline({
                 style={{ top: style.top, height: style.height }}
                 onClick={() => onSelectBooking(booking)}
               >
-                <div className="h-full rounded-lg bg-navy/10 border border-navy/30 p-2 hover:bg-navy/15 transition-colors overflow-hidden">
+                <div className="h-full rounded-lg bg-primary/10 border border-primary/30 p-2 hover:bg-primary/15 transition-colors overflow-hidden">
                   <div className="flex items-center gap-1 mb-0.5">
-                    <User className="h-3 w-3 text-navy shrink-0" />
-                    <span className="text-xs font-semibold text-navy truncate">
+                    <User className="h-3 w-3 text-primary shrink-0" />
+                    <span className="text-xs font-semibold text-primary truncate">
                       {booking.customer_name}
                     </span>
                   </div>
-                  <p className="text-[10px] text-navy/70 truncate">
+                  <p className="text-[10px] text-primary/70 truncate">
                     {booking.service?.name}
                   </p>
                   {style.height > 40 && (
-                    <p className="text-[10px] text-navy/50 mt-0.5">
+                    <p className="text-[10px] text-primary/50 mt-0.5">
                       {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
                     </p>
                   )}
@@ -150,7 +150,7 @@ export function AgendaTimeline({
           })}
 
           <div
-            className="absolute right-14 left-2 h-[2px] bg-navy z-20 pointer-events-none"
+            className="absolute right-14 left-2 h-[2px] bg-primary z-20 pointer-events-none"
             style={{
               top: ((new Date().getHours() * 60 + new Date().getMinutes() - START_HOUR * 60) / 60) * HOUR_HEIGHT,
             }}

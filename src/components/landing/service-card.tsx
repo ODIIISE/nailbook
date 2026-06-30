@@ -13,7 +13,7 @@ interface ServiceCardProps {
 export function ServiceCard({ service, onSelect }: ServiceCardProps) {
   return (
     <Card
-      className="p-5 rounded-2xl cursor-pointer transition-all hover:shadow-md hover:border-navy/20 active:scale-[0.98]"
+      className="p-5 rounded-2xl cursor-pointer transition-all hover:shadow-md hover:border-primary/20 active:scale-[0.98]"
       onClick={() => onSelect(service)}
     >
       <div className="flex items-center gap-4">
@@ -28,7 +28,7 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
             <span className="text-[13px] text-muted-foreground">
               {toPersianDigits(service.duration_minutes)} دقیقه
             </span>
-            <span className="text-base font-bold text-navy">
+            <span className="text-base font-bold text-primary">
               {toPersianDigits(service.price.toLocaleString("fa-IR"))} تومان
             </span>
           </div>

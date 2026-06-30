@@ -41,7 +41,7 @@ export function AddonSelect({
   return (
     <Card className="mx-auto max-w-lg p-4">
       <div className="flex items-center gap-2 mb-4">
-        <Puzzle className="h-5 w-5 text-navy" />
+        <Puzzle className="h-5 w-5 text-primary" />
         <h3 className="font-semibold text-foreground">آپشن‌های اضافی</h3>
       </div>
       <p className="text-sm text-muted-foreground mb-4">
@@ -57,7 +57,7 @@ export function AddonSelect({
               onClick={() => onToggle(addon.id)}
               className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all ${
                 isSelected
-                  ? "bg-navy/10 border border-navy/30"
+                  ? "bg-primary/10 border border-primary/30"
                   : "bg-secondary/50 border border-transparent hover:bg-secondary"
               }`}
             >
@@ -65,7 +65,7 @@ export function AddonSelect({
                 <div
                   className={`h-5 w-5 rounded-md flex items-center justify-center border transition-all ${
                     isSelected
-                      ? "bg-navy border-navy text-white"
+                      ? "bg-primary border-primary text-white"
                       : "border-border"
                   }`}
                 >
@@ -78,7 +78,7 @@ export function AddonSelect({
                   </p>
                 </div>
               </div>
-              <span className="text-sm font-bold text-navy">
+              <span className="text-sm font-bold text-primary">
                 +{toPersianDigits(addon.price.toLocaleString("fa-IR"))} تومان
               </span>
             </div>
@@ -87,16 +87,16 @@ export function AddonSelect({
       </div>
 
       {selectedAddons.length > 0 && (
-        <div className="mt-4 p-3 rounded-lg bg-navy/5 border border-navy/20">
+        <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">آپشن‌های انتخابی</span>
-            <Badge variant="secondary" className="bg-navy/10 text-navy">
+            <Badge variant="secondary" className="bg-primary/10 text-primary">
               {toPersianDigits(selectedAddons.length)} مورد
             </Badge>
           </div>
           <div className="flex items-center justify-between text-sm mt-1">
             <span className="text-muted-foreground">هزینه اضافی</span>
-            <span className="font-bold text-navy">
+            <span className="font-bold text-primary">
               +{toPersianDigits(totalPrice.toLocaleString("fa-IR"))} تومان
             </span>
           </div>
@@ -114,7 +114,7 @@ export function AddonSelect({
       <div className="mt-4 flex gap-3">
         <Button
           onClick={onContinue}
-          className="flex-1 bg-navy hover:bg-navy/90 text-white rounded-xl"
+          className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl"
         >
           ادامه
         </Button>

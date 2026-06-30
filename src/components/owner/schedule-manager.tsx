@@ -129,7 +129,7 @@ export function ScheduleManager({
           size="sm"
           onClick={handleSave}
           disabled={!hasChanges}
-          className="bg-navy hover:bg-navy/90 text-white rounded-xl"
+          className="bg-primary hover:bg-primary/90 text-white rounded-xl"
         >
           <Save className="h-4 w-4 ml-1" />
           ذخیره

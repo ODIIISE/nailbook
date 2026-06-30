@@ -38,9 +38,9 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot }: TimeSlots
             className={`
               h-12 rounded-lg text-sm font-medium transition-all
               ${selectedSlot === slot.time
-                ? "bg-navy text-white shadow-md"
+                ? "bg-primary text-white shadow-md"
                 : slot.available
-                  ? "bg-secondary hover:bg-navy/10 text-foreground"
+                  ? "bg-secondary hover:bg-primary/10 text-foreground"
                   : "bg-muted text-muted-foreground/40 cursor-not-allowed line-through"
               }
             `}

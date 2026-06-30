@@ -104,7 +104,7 @@ END:VCALENDAR`;
           </div>
           <div className="flex items-center justify-between border-t pt-2">
             <span className="text-muted-foreground">هزینه</span>
-            <span className="font-bold text-navy">
+            <span className="font-bold text-primary">
               {toPersianDigits(price.toLocaleString("fa-IR"))} تومان
             </span>
           </div>

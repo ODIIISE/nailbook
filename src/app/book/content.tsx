@@ -193,10 +193,10 @@ export default function BookContent() {
 
       <div className="mx-auto max-w-lg px-4 py-6 space-y-4">
         {selectedService && step !== "date" && step !== "addon" && step !== "confirmed" && (
-          <Card className="p-3 bg-navy/5 border-navy/20">
+          <Card className="p-3 bg-primary/5 border-primary/20">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{selectedService.name}</span>
-              <span className="text-navy font-bold">
+              <span className="text-primary font-bold">
                 {toPersianDigits(totalPrice.toLocaleString("fa-IR"))} تومان
               </span>
             </div>
@@ -221,7 +221,7 @@ export default function BookContent() {
                           {toPersianDigits(service.duration_minutes)} دقیقه
                         </p>
                       </div>
-                      <span className="font-bold text-navy">
+                      <span className="font-bold text-primary">
                         {toPersianDigits(service.price.toLocaleString("fa-IR"))} تومان
                       </span>
                     </div>

@@ -25,10 +25,10 @@ function getWorkingHoursText(hours: Record<string, { open: string; close: string
 export function Hero({ salon }: HeroProps) {
   return (
     <div className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-navy/10 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent" />
       <div className="relative px-4 pt-8 pb-6">
         <div className="mx-auto max-w-lg text-center">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-navy/10 text-3xl">
+          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-3xl">
             💅
           </div>
           <h1 className="mb-2 text-2xl font-bold text-foreground">
@@ -39,15 +39,15 @@ export function Hero({ salon }: HeroProps) {
           </p>
           <Card className="p-3 bg-card/80 backdrop-blur-sm">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4 shrink-0 text-navy" />
+              <MapPin className="h-4 w-4 shrink-0 text-primary" />
               <span>{salon.address}</span>
             </div>
             <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Phone className="h-4 w-4 shrink-0 text-navy" />
+              <Phone className="h-4 w-4 shrink-0 text-primary" />
               <span dir="ltr">{salon.phone}</span>
             </div>
             <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4 shrink-0 text-navy" />
+              <Clock className="h-4 w-4 shrink-0 text-primary" />
               <span>{getWorkingHoursText(salon.working_hours)}</span>
             </div>
           </Card>
