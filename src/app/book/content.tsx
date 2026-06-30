@@ -123,7 +123,6 @@ export default function BookContent() {
   const handleSelectDate = useCallback((date: Date) => {
     setSelectedDate(date);
     setSelectedTime(null);
-    setStep("time");
   }, []);
 
   const handleSelectTime = useCallback((time: string) => {
