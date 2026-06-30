@@ -192,10 +192,10 @@ export default function BookContent() {
 
       <div className="mx-auto max-w-lg px-4 py-6 space-y-4">
         {selectedService && step !== "date" && step !== "addon" && step !== "confirmed" && (
-          <Card className="p-3 bg-rose/5 border-rose/20">
+          <Card className="p-3 bg-navy/5 border-navy/20">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{selectedService.name}</span>
-              <span className="text-rose font-bold">
+              <span className="text-navy font-bold">
                 {totalPrice.toLocaleString("fa-IR")} تومان
               </span>
             </div>
@@ -220,7 +220,7 @@ export default function BookContent() {
                           {service.duration_minutes} دقیقه
                         </p>
                       </div>
-                      <span className="font-bold text-rose">
+                      <span className="font-bold text-navy">
                         {service.price.toLocaleString("fa-IR")} تومان
                       </span>
                     </div>
@@ -280,6 +280,7 @@ export default function BookContent() {
             price={totalPrice}
             customerName={customerName}
             bookingId={bookingId}
+            phone={salon.phone}
           />
         )}
       </div>

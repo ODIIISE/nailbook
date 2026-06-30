@@ -98,7 +98,7 @@ export function OtpVerify({ phone, onVerify, onResend, isLoading, error }: OtpVe
               setCountdown(60);
               onResend();
             }}
-            className="text-rose"
+            className="text-navy"
           >
             ارسال مجدد کد
           </Button>

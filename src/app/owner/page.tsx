@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AgendaTimeline } from "@/components/owner/agenda-timeline";
 import { BlockTimeModal } from "@/components/owner/block-time-modal";
-import { MOCK_SERVICES } from "@/lib/mock-data";
+
 import { toPersianDigits, formatJalaliDate, gregorianToJalali } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 
@@ -137,7 +137,7 @@ export default function OwnerDashboard() {
             <p className="text-xs text-muted-foreground">نوبت امروز</p>
           </Card>
           <Card className="p-4 text-center">
-            <p className="text-2xl font-bold text-rose">
+            <p className="text-2xl font-bold text-navy">
               {toPersianDigits(todayStats.revenue.toLocaleString("fa-IR"))}
             </p>
             <p className="text-xs text-muted-foreground">درآمد امروز (تومان)</p>

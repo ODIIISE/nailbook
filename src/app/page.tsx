@@ -10,14 +10,14 @@ import { TrustSignals } from "@/components/landing/trust-signals";
 import { ContactButtons } from "@/components/landing/contact-buttons";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
-import { MOCK_TOTAL_BOOKINGS } from "@/lib/mock-data";
+
 import { getNearestAvailableSlot } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import type { Service } from "@/lib/mock-data";
 
 export default function HomePage() {
   const router = useRouter();
-  const { salon, workingHours, services } = useSalon();
+  const { salon, workingHours, services, bookings } = useSalon();
   const [nearestSlot, setNearestSlot] = useState<{ date: Date; time: string } | null>(null);
 
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <TrustSignals totalBookings={MOCK_TOTAL_BOOKINGS} />
+      <TrustSignals totalBookings={bookings.length || 527} />
       <ContactButtons phone={salon.phone} />
 
       <footer className="px-4 py-6 text-center">

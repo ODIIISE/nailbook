@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Save, Copy } from "lucide-react";
-import { toPersianDigits } from "@/lib/jalali";
+import { toPersianDigits, gregorianToJalali, jalaliToGregorian, getJalaliMonthDays, getJalaliMonthName } from "@/lib/jalali";
 import type { WorkingHours } from "@/lib/slots";
 
 const IRAN_WEEK_DAYS = [
@@ -94,23 +94,20 @@ export function ScheduleManager({
 
   const getJalaliDatesForMonth = (monthOffset: number = 0) => {
     const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + monthOffset;
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const jalali = gregorianToJalali(now);
+    const targetMonth = jalali.jm + monthOffset;
+    const targetYear = targetMonth > 12 ? jalali.jy + 1 : jalali.jy;
+    const normalizedMonth = targetMonth > 12 ? targetMonth - 12 : targetMonth;
+    const daysInMonth = getJalaliMonthDays(targetYear, normalizedMonth);
     const dates: Array<{ date: Date; dateStr: string; label: string }> = [];
 
     for (let d = 1; d <= daysInMonth; d++) {
-      const date = new Date(year, month, d);
+      const date = jalaliToGregorian(targetYear, normalizedMonth, d);
       const dateStr = date.toISOString().split("T")[0];
-      const day = date.getDate();
-      const monthNames = [
-        "ژانویه", "فوریه", "مارس", "آوریل", "مه", "ژوئن",
-        "ژوئیه", "اوت", "سپتامبر", "اکتبر", "نوامبر", "دسامبر",
-      ];
       dates.push({
         date,
         dateStr,
-        label: `${toPersianDigits(day)} ${monthNames[month]}`,
+        label: `${toPersianDigits(d)} ${getJalaliMonthName(normalizedMonth)}`,
       });
     }
     return dates;

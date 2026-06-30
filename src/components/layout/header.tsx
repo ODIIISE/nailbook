@@ -143,7 +143,14 @@ export function Header({ showBack = false, title, subtitle }: HeaderProps) {
                   <div className="flex items-center gap-2">
                     <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">
-                      شنبه تا چهارشنبه · ۱۰:۰۰ - ۱۸:۰۰
+                      {(() => {
+                        const hours = salon.working_hours;
+                        const active = Object.entries(hours).filter(([,v]) => v !== null);
+                        if (!active.length) return "تعطیل";
+                        const map: Record<string,string> = {sat:"شنبه",sun:"یکشنبه",mon:"دوشنبه",tue:"سه‌شنبه",wed:"چهارشنبه",thu:"پنجشنبه",fri:"جمعه"};
+                        const days = active.map(([k]) => map[k]).filter(Boolean);
+                        return `${days[0]} تا ${days[days.length-1]} · ${active[0][1]!.open.slice(0,5)} - ${active[0][1]!.close.slice(0,5)}`;
+                      })()}
                     </span>
                   </div>
                 </div>

@@ -15,6 +15,7 @@ interface BookingConfirmProps {
   price: number;
   customerName: string;
   bookingId: string;
+  phone?: string;
 }
 
 export function BookingConfirm({
@@ -22,6 +23,7 @@ export function BookingConfirm({
   date,
   time,
   duration,
+  phone = "09121234567",
   price,
   customerName,
   bookingId,
@@ -132,7 +134,7 @@ END:VCALENDAR`;
           اشتراک‌گذاری
         </Button>
         <a
-          href={`https://wa.me/989121234567?text=${encodeURIComponent(`رزرو نوبت ناخن\n${serviceName}\n${shortDate} ساعت ${formattedTime}`)}`}
+          href={`https://wa.me/98${phone.slice(1)}?text=${encodeURIComponent(`رزرو نوبت ناخن\n${serviceName}\n${shortDate} ساعت ${formattedTime}`)}`}
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
