@@ -1,9 +1,22 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { MOCK_SALON, MOCK_SERVICES, MOCK_BOOKINGS, MOCK_ADDONS } from "@/lib/mock-data";
 import type { SalonInfo, Service, Booking, Addon } from "@/lib/mock-data";
 import type { WorkingHours } from "@/lib/slots";
+import {
+  fetchSalonInfo,
+  fetchServices,
+  fetchAddons,
+  fetchBookings,
+  upsertService,
+  deleteService,
+  upsertAddon,
+  deleteAddon,
+  insertBooking,
+  updateWorkingHours as saveWorkingHours,
+  fetchWorkingHours,
+} from "@/lib/supabase/data";
 
 interface SalonContextType {
   salon: SalonInfo;
@@ -21,24 +34,8 @@ interface SalonContextType {
 
 const SalonContext = createContext<SalonContextType | null>(null);
 
-function loadFromStorage<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function saveToStorage(key: string, value: unknown) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {}
-}
-
 export function SalonProvider({ children }: { children: ReactNode }) {
+  const [salon, setSalon] = useState<SalonInfo>(MOCK_SALON);
   const [workingHours, setWorkingHours] = useState<WorkingHours>(MOCK_SALON.working_hours);
   const [specificDaysOff, setSpecificDaysOff] = useState<string[]>([]);
   const [services, setServices] = useState<Service[]>(MOCK_SERVICES);
@@ -47,59 +44,94 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setWorkingHours(loadFromStorage("nb_working_hours", MOCK_SALON.working_hours));
-    setSpecificDaysOff(loadFromStorage("nb_days_off", []));
-    setServices(loadFromStorage("nb_services", MOCK_SERVICES));
-    setAddons(loadFromStorage("nb_addons", MOCK_ADDONS));
-    setBookings(loadFromStorage("nb_bookings", MOCK_BOOKINGS));
-    setLoaded(true);
+    async function load() {
+      try {
+        const [salonData, servicesData, addonsData, bookingsData, hoursData] = await Promise.all([
+          fetchSalonInfo(),
+          fetchServices(),
+          fetchAddons(),
+          fetchBookings(),
+          fetchWorkingHours(),
+        ]);
+        if (salonData) setSalon(salonData);
+        if (servicesData.length) setServices(servicesData);
+        if (addonsData.length) setAddons(addonsData);
+        if (bookingsData.length) setBookings(bookingsData);
+        if (hoursData) {
+          setWorkingHours(hoursData.working_hours);
+          setSpecificDaysOff(hoursData.specific_days_off || []);
+        }
+      } catch {}
+      setLoaded(true);
+    }
+    load();
   }, []);
 
-  useEffect(() => {
-    if (!loaded) return;
-    saveToStorage("nb_working_hours", workingHours);
-  }, [workingHours, loaded]);
+  const handleUpdateWorkingHours = useCallback(async (hours: WorkingHours) => {
+    setWorkingHours(hours);
+    await saveWorkingHours(hours, specificDaysOff);
+  }, [specificDaysOff]);
 
-  useEffect(() => {
-    if (!loaded) return;
-    saveToStorage("nb_days_off", specificDaysOff);
-  }, [specificDaysOff, loaded]);
+  const handleUpdateSpecificDaysOff = useCallback(async (daysOff: string[]) => {
+    setSpecificDaysOff(daysOff);
+    await saveWorkingHours(workingHours, daysOff);
+  }, [workingHours]);
 
-  useEffect(() => {
-    if (!loaded) return;
-    saveToStorage("nb_services", services);
-  }, [services, loaded]);
+  const handleUpdateServices = useCallback(async (newServices: Service[]) => {
+    setServices(newServices);
+    for (const s of newServices) {
+      await upsertService(s);
+    }
+  }, []);
 
-  useEffect(() => {
-    if (!loaded) return;
-    saveToStorage("nb_addons", addons);
-  }, [addons, loaded]);
+  const handleUpdateAddons = useCallback(async (newAddons: Addon[]) => {
+    setAddons(newAddons);
+    for (const a of newAddons) {
+      await upsertAddon(a);
+    }
+  }, []);
 
-  useEffect(() => {
-    if (!loaded) return;
-    saveToStorage("nb_bookings", bookings);
-  }, [bookings, loaded]);
-
-  const addBooking = (booking: Booking) => {
+  const handleAddBooking = useCallback(async (booking: Booking) => {
     setBookings((prev) => [...prev, booking]);
-  };
+    await insertBooking(booking);
+  }, []);
 
-  if (!loaded) return null;
+  if (!loaded) {
+    return (
+      <SalonContext.Provider
+        value={{
+          salon: MOCK_SALON,
+          workingHours: MOCK_SALON.working_hours,
+          specificDaysOff: [],
+          services: MOCK_SERVICES,
+          addons: MOCK_ADDONS,
+          bookings: MOCK_BOOKINGS,
+          updateWorkingHours: async () => {},
+          updateSpecificDaysOff: async () => {},
+          updateServices: async () => {},
+          updateAddons: async () => {},
+          addBooking: async () => {},
+        }}
+      >
+        {children}
+      </SalonContext.Provider>
+    );
+  }
 
   return (
     <SalonContext.Provider
       value={{
-        salon: MOCK_SALON,
+        salon,
         workingHours,
         specificDaysOff,
         services,
         addons,
         bookings,
-        updateWorkingHours: setWorkingHours,
-        updateSpecificDaysOff: setSpecificDaysOff,
-        updateServices: setServices,
-        updateAddons: setAddons,
-        addBooking,
+        updateWorkingHours: handleUpdateWorkingHours,
+        updateSpecificDaysOff: handleUpdateSpecificDaysOff,
+        updateServices: handleUpdateServices,
+        updateAddons: handleUpdateAddons,
+        addBooking: handleAddBooking,
       }}
     >
       {children}

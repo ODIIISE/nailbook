@@ -19,8 +19,19 @@ CREATE TABLE IF NOT EXISTS salon_info (
     "thu": null,
     "fri": null
   }'::jsonb,
+  specific_days_off JSONB DEFAULT '[]'::jsonb,
   slot_buffer_minutes INT DEFAULT 15,
   slot_interval_minutes INT DEFAULT 30,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Addons (standalone list)
+CREATE TABLE IF NOT EXISTS addons (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  price NUMERIC NOT NULL DEFAULT 0,
+  duration_minutes INT NOT NULL DEFAULT 5,
+  is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -33,6 +44,7 @@ CREATE TABLE IF NOT EXISTS services (
   price NUMERIC NOT NULL DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   sort_order INT DEFAULT 0,
+  addon_ids JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -40,6 +52,7 @@ CREATE TABLE IF NOT EXISTS services (
 CREATE TABLE IF NOT EXISTS bookings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   service_id UUID REFERENCES services(id),
+  selected_addons JSONB DEFAULT '[]'::jsonb,
   customer_name TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
   date TEXT NOT NULL,
@@ -82,15 +95,26 @@ CREATE INDEX IF NOT EXISTS idx_soft_locks_date ON soft_locks(date_gregorian);
 CREATE INDEX IF NOT EXISTS idx_soft_locks_active ON soft_locks(released, expires_at);
 CREATE INDEX IF NOT EXISTS idx_verification_phone ON verification_codes(phone);
 
--- Seed demo data
+-- Seed salon info
 INSERT INTO salon_info (name, description, phone, address) VALUES
-  ('ناخن‌های سوفی', 'استودیوی تخصصی ناخن با بیش از ۵ سال تجربه', '09121234567', 'خیابان ولیعصر، نبش کوچه گل، پلاک ۱۲، تهران')
+  ('ناخن‌های سوفی', 'استودیوی تخصصی ناخن با بیش از ۵ سال تجربه در ارائه بهترین خدمات ناخن', '09121234567', 'خیابان ولیعصر، نبش کوچه گل، پلاک ۱۲، تهران')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO services (name, description, duration_minutes, price, sort_order) VALUES
-  ('ژلیش ناخن', 'ماندگاری بالا و براقیت فوق‌العاده', 45, 350000, 1),
-  ('فرنچ ناخن', 'کلاسیک و شیک، مناسب هر موقعیت', 60, 450000, 2),
-  ('طراحی ناخن', 'طراحی سفارشی با بهترین مواد', 90, 600000, 3),
-  ('پدیکور', 'مراقبت کامل پا + لاک', 60, 400000, 4),
-  ('ترمیم ناخن', 'ترمیم و بازسازی ناخن آسیب‌دیده', 45, 300000, 5)
+-- Seed addons
+INSERT INTO addons (id, name, price, duration_minutes, is_active) VALUES
+  ('a1', 'طراحی ساده', 50000, 10, true),
+  ('a2', 'سنگ ناخن', 30000, 5, true),
+  ('a3', 'کروم ناخن', 40000, 5, true),
+  ('a4', 'فرنچ رنگی', 30000, 5, true),
+  ('a5', 'نگین فرنچ', 40000, 10, true),
+  ('a6', 'لاک ژل پا', 100000, 15, true)
+ON CONFLICT DO NOTHING;
+
+-- Seed services
+INSERT INTO services (id, name, description, duration_minutes, price, sort_order, addon_ids) VALUES
+  ('1', 'ژلیش ناخن', 'ماندگاری بالا و براقیت فوق‌العاده', 45, 350000, 1, '["a1","a2","a3"]'::jsonb),
+  ('2', 'فرنچ ناخن', 'کلاسیک و شیک، مناسب هر موقعیت', 60, 450000, 2, '["a4","a5"]'::jsonb),
+  ('3', 'طراحی ناخن', 'طراحی سفارشی با بهترین مواد', 90, 600000, 3, '[]'::jsonb),
+  ('4', 'پدیکور', 'مراقبت کامل پا + لاک', 60, 400000, 4, '["a6"]'::jsonb),
+  ('5', 'ترمیم ناخن', 'ترمیم و بازسازی ناخن آسیب‌دیده', 45, 300000, 5, '[]'::jsonb)
 ON CONFLICT DO NOTHING;
