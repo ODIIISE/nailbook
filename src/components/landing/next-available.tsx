@@ -18,30 +18,33 @@ export function NextAvailable({ date, time, onBookNow }: NextAvailableProps) {
   const weekday = getJalaliWeekdayName(date);
 
   return (
-    <div className="px-4 mb-6">
-      <div className="mx-auto max-w-lg relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-[1px]">
-        <div className="rounded-2xl bg-warm-white p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
+    <div className="px-4 mb-8">
+      <div className="mx-auto max-w-lg rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 p-[1.5px] shadow-[var(--shadow-elevated)]">
+        <div className="rounded-3xl bg-card p-5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="flex items-center justify-center h-7 w-7 rounded-xl bg-primary/10">
+              <Sparkles className="h-4 w-4 text-primary" />
             </div>
-            <span className="text-xs font-medium text-primary">نزدیک‌ترین زمان موجود</span>
+            <span className="text-sm font-semibold text-primary">نزدیک‌ترین زمان موجود</span>
           </div>
 
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-foreground tracking-tight">
+              <div className="flex items-baseline gap-2.5">
+                <span className="text-3xl font-bold text-foreground tracking-tight">
                   {toPersianDigits(jalali.jd)}
                 </span>
-                <span className="text-sm font-medium text-muted-foreground">
-                  {formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd).split(" ").slice(1).join(" ")}
-                </span>
+                <div>
+                  <span className="text-sm font-medium text-muted-foreground block">
+                    {formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd).split(" ").slice(1).join(" ")}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{weekday}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-sm text-muted-foreground">{weekday}</span>
-                <span className="text-muted-foreground">·</span>
-                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              <div className="flex items-center gap-1.5 mt-2.5">
+                <div className="flex items-center justify-center h-5 w-5 rounded-md bg-muted">
+                  <Clock className="h-3 w-3 text-muted-foreground" />
+                </div>
                 <span className="text-sm font-semibold text-foreground">
                   {formatJalaliTime(time)}
                 </span>
@@ -50,7 +53,7 @@ export function NextAvailable({ date, time, onBookNow }: NextAvailableProps) {
 
             <Button
               onClick={onBookNow}
-              className="h-11 px-5 bg-primary hover:bg-primary/90 text-white rounded-xl font-semibold text-sm gap-2"
+              className="h-12 px-6 rounded-2xl font-semibold text-sm gap-2 shadow-md"
             >
               رزرو کن
               <ChevronLeft className="h-4 w-4" />

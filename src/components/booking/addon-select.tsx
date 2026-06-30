@@ -55,10 +55,10 @@ export function AddonSelect({
             <div
               key={addon.id}
               onClick={() => onToggle(addon.id)}
-              className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all ${
+              className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all shadow-[var(--shadow-card)] ${
                 isSelected
                   ? "bg-primary/10 border border-primary/30"
-                  : "bg-secondary/50 border border-transparent hover:bg-secondary"
+                  : "bg-card border border-transparent hover:shadow-[var(--shadow-elevated)]"
               }`}
             >
               <div className="flex items-center gap-3">
