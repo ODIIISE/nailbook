@@ -30,6 +30,7 @@ interface SalonContextType {
   updateServices: (services: Service[]) => void;
   updateAddons: (addons: Addon[]) => void;
   addBooking: (booking: Booking) => void;
+  refreshBookings: () => Promise<void>;
 }
 
 const SalonContext = createContext<SalonContextType | null>(null);
@@ -96,6 +97,11 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     await insertBooking(booking);
   }, []);
 
+  const refreshBookings = useCallback(async () => {
+    const data = await fetchBookings();
+    if (data.length) setBookings(data);
+  }, []);
+
   if (!loaded) {
     return (
       <SalonContext.Provider
@@ -111,6 +117,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           updateServices: async () => {},
           updateAddons: async () => {},
           addBooking: async () => {},
+          refreshBookings: async () => {},
         }}
       >
         {children}
@@ -132,6 +139,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         updateServices: handleUpdateServices,
         updateAddons: handleUpdateAddons,
         addBooking: handleAddBooking,
+        refreshBookings,
       }}
     >
       {children}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,11 +21,18 @@ interface BlockedTime {
 
 export default function OwnerDashboard() {
   const router = useRouter();
-  const { bookings, services } = useSalon();
+  const { bookings, services, refreshBookings } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>([]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshBookings();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [refreshBookings]);
 
   const dayBookings = useMemo(() => {
     const dateStr = currentDate.toISOString().split("T")[0];
