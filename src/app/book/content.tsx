@@ -136,8 +136,8 @@ export default function BookContent() {
     setIsLoading(true);
     setTimeout(() => {
       if (code.length === 4 && selectedDate && selectedService) {
-        const id = `BK-${Date.now().toString(36).toUpperCase()}`;
-        setBookingId(id);
+        const id = crypto.randomUUID();
+        setBookingId(`BK-${Date.now().toString(36).toUpperCase()}`);
 
         const [h, m] = selectedTime!.split(":").map(Number);
         const endMinutes = h * 60 + m + totalDuration;
@@ -152,8 +152,8 @@ export default function BookContent() {
           customer_phone: customerPhone,
           date: "",
           date_gregorian: selectedDate.toISOString().split("T")[0],
-          start_time: selectedTime!,
-          end_time: `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`,
+          start_time: `${selectedTime}:00`,
+          end_time: `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`,
           status: "confirmed",
           phone_verified: true,
           created_at: new Date().toISOString(),
