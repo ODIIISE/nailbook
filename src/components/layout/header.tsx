@@ -15,6 +15,7 @@ import {
   Clock,
   User,
   Calendar,
+  Sparkles,
 } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 
@@ -51,7 +52,7 @@ export function Header({ showBack = false, title, subtitle }: HeaderProps) {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="text-xl">💅</span>
+                <Sparkles className="h-5 w-5 text-primary" />
                 <span className="font-bold text-foreground text-sm">{salon.name}</span>
               </div>
             )}

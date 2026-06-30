@@ -59,7 +59,7 @@ export default function HomePage() {
       <div className="px-4 mb-6">
         <div className="mx-auto max-w-lg">
           <h2 className="text-lg font-bold text-foreground mb-4">خدمات ما</h2>
-          <div className="space-y-4">
+          <div className="space-y-4 animate-stagger">
             {services
               .filter((s) => s.is_active)
               .sort((a, b) => a.sort_order - b.sort_order)

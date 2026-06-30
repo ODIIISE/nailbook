@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { MapPin, Phone, Clock } from "lucide-react";
+import { MapPin, Phone, Clock, Sparkles } from "lucide-react";
 import type { SalonInfo } from "@/lib/mock-data";
 
 interface HeroProps {
@@ -27,28 +27,41 @@ export function Hero({ salon }: HeroProps) {
     <div className="relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent" />
       <div className="relative px-4 pt-8 pb-6">
-        <div className="mx-auto max-w-lg text-center">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-3xl">
-            💅
+        <div className="mx-auto max-w-lg text-center animate-stagger">
+          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 animate-spring">
+            <Sparkles className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="mb-2 text-2xl font-bold text-foreground">
+          <h1 className="mb-2 text-h1 text-foreground">
             {salon.name}
           </h1>
-          <p className="mb-4 text-sm text-muted-foreground leading-relaxed">
+          {salon.slogan && (
+            <p className="mb-2 text-body text-primary font-medium">
+              {salon.slogan}
+            </p>
+          )}
+          <p className="mb-4 text-body text-muted-foreground leading-relaxed">
             {salon.description}
           </p>
-          <Card className="p-3 bg-card/80 backdrop-blur-sm">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4 shrink-0 text-primary" />
-              <span>{salon.address}</span>
-            </div>
-            <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Phone className="h-4 w-4 shrink-0 text-primary" />
-              <span dir="ltr">{salon.phone}</span>
-            </div>
-            <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4 shrink-0 text-primary" />
-              <span>{getWorkingHoursText(salon.working_hours)}</span>
+          <Card className="p-4 bg-card/80 backdrop-blur-sm">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-body text-muted-foreground">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <MapPin className="h-4 w-4 text-primary" />
+                </div>
+                <span>{salon.address}</span>
+              </div>
+              <div className="flex items-center gap-3 text-body text-muted-foreground">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Phone className="h-4 w-4 text-primary" />
+                </div>
+                <span dir="ltr">{salon.phone}</span>
+              </div>
+              <div className="flex items-center gap-3 text-body text-muted-foreground">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Clock className="h-4 w-4 text-primary" />
+                </div>
+                <span>{getWorkingHoursText(salon.working_hours)}</span>
+              </div>
             </div>
           </Card>
         </div>

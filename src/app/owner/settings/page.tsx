@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
-import { Save, Camera, Phone, FileText } from "lucide-react";
+import { Save, Camera, Phone, FileText, Sparkles } from "lucide-react";
 
 export default function OwnerSettingsPage() {
   const { salon, updateSalon } = useSalon();
@@ -46,8 +46,8 @@ export default function OwnerSettingsPage() {
         <Card className="p-5">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-3xl">
-                💅
+              <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="h-8 w-8 text-primary" />
               </div>
               <button className="absolute -bottom-1 -left-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md">
                 <Camera className="h-4 w-4" />

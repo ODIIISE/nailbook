@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Sparkles } from "lucide-react";
 
 export default function OwnerLoginPage() {
   const router = useRouter();
@@ -39,8 +40,8 @@ export default function OwnerLoginPage() {
     <div className="min-h-screen bg-warm-white flex items-center justify-center px-4">
       <Card className="w-full max-w-sm p-6">
         <div className="text-center mb-6">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl">
-            💅
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 animate-spring">
+            <Sparkles className="h-7 w-7 text-primary" />
           </div>
           <h1 className="text-xl font-bold text-foreground">ورود مدیر</h1>
           <p className="text-sm text-muted-foreground mt-1">

@@ -72,15 +72,15 @@ END:VCALENDAR`;
   };
 
   return (
-    <Card className="mx-auto max-w-lg p-6 text-center">
+    <Card className="mx-auto max-w-lg p-6 text-center animate-spring">
       <div className="mb-4">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
-          <CheckCircle className="h-10 w-10 text-green-500" />
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10 animate-spring">
+          <CheckCircle className="h-10 w-10 text-success" />
         </div>
       </div>
 
-      <h2 className="text-xl font-bold text-foreground mb-1">رزرو شما تایید شد!</h2>
-      <p className="text-sm text-muted-foreground mb-6">
+      <h2 className="text-h2 text-foreground mb-1">رزرو شما تایید شد!</h2>
+      <p className="text-body text-muted-foreground mb-6">
         {customerName} عزیز، نوبت شما ثبت شد
       </p>
 
