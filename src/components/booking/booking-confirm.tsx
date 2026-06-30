@@ -15,6 +15,8 @@ interface BookingConfirmProps {
   price: number;
   customerName: string;
   bookingId: string;
+  salonName?: string;
+  salonAddress?: string;
   phone?: string;
 }
 
@@ -23,47 +25,44 @@ export function BookingConfirm({
   date,
   time,
   duration,
-  phone = "09121234567",
   price,
   customerName,
   bookingId,
+  salonName = "استدیو تخصصی ناخن فورهند",
+  salonAddress = "مشهد، نبش صارمی ۳۸/۱۲، پلاک ۷۷",
+  phone = "09308681363",
 }: BookingConfirmProps) {
   const jalali = gregorianToJalali(date);
   const shortDate = formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd);
   const formattedTime = formatJalaliTime(time);
   const shortId = bookingId.slice(-4).toUpperCase();
 
-  const handleAddToCalendar = () => {
+  const handleAddToGoogleCalendar = () => {
     const [h, m] = time.split(":").map(Number);
     const start = new Date(date);
-    start.setHours(h, m, 0);
+    start.setHours(h, m, 0, 0);
     const end = new Date(start);
     end.setMinutes(end.getMinutes() + duration);
 
-    const formatCalDate = (d: Date) =>
-      d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    const formatGCDate = (d: Date) => {
+      const pad = (n: number) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    };
 
-    const ics = `BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-DTSTART:${formatCalDate(start)}
-DTEND:${formatCalDate(end)}
-SUMMARY:${serviceName} - ناخن‌های سوفی
-DESCRIPTION:رزرو شماره ${shortId}
-END:VEVENT
-END:VCALENDAR`;
+    const params = new URLSearchParams({
+      action: "TEMPLATE",
+      text: `${serviceName} - ${salonName}`,
+      dates: `${formatGCDate(start)}/${formatGCDate(end)}`,
+      details: `رزرو شماره: ${shortId}\nهزینه: ${toPersianDigits(price.toLocaleString("fa-IR"))} تومان\nنام: ${customerName}`,
+      location: salonAddress,
+    });
 
-    const blob = new Blob([ics], { type: "text/calendar" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `booking-${shortId}.ics`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const url = `https://calendar.google.com/calendar/render?${params.toString()}`;
+    window.open(url, "_blank");
   };
 
   const handleShare = async () => {
-    const text = `رزرو ناخن تایید شد! 💅\n${serviceName}\n${shortDate} - ساعت ${formattedTime}\nناخن‌های سوفی`;
+    const text = `رزرو ناخن تایید شد!\n${serviceName}\n${shortDate} - ساعت ${formattedTime}\n${salonName}`;
     if (navigator.share) {
       await navigator.share({ text });
     } else {
@@ -118,12 +117,11 @@ END:VCALENDAR`;
 
       <div className="space-y-3">
         <Button
-          variant="outline"
           className="w-full"
-          onClick={handleAddToCalendar}
+          onClick={handleAddToGoogleCalendar}
         >
           <Calendar className="h-4 w-4 ml-2" />
-          افزودن به تقویم
+          افزودن به تقویم گوگل
         </Button>
         <Button
           variant="outline"
