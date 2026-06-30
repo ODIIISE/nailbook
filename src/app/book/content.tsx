@@ -128,7 +128,7 @@ export default function BookContent() {
   }, []);
 
   const handleSelectTime = useCallback((time: string) => {
-    setSelectedTime(time);
+    setSelectedTime((prev) => (prev === time ? null : time));
   }, []);
 
   const handleCustomerSubmit = useCallback((name: string, phone: string) => {
