@@ -61,10 +61,10 @@ export interface SoftLock {
 
 export const MOCK_SALON: SalonInfo = {
   id: "1",
-  name: "ناخن‌های سوفی",
-  description: "استودیوی تخصصی ناخن با بیش از ۵ سال تجربه در ارائه بهترین خدمات ناخن",
-  phone: "09121234567",
-  address: "خیابان ولیعصر، نبش کوچه گل، پلاک ۱۲، تهران",
+  name: "استدیو تخصصی ناخن فورهند",
+  description: "Forehand Nail Studio — استدیو تخصصی ناخن در مشهد",
+  phone: "09308681363",
+  address: "مشهد، نبش صارمی ۳۸/۱۲، پلاک ۷۷",
   hero_image_url: null,
   logo_url: null,
   working_hours: {
