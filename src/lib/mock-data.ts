@@ -73,7 +73,7 @@ export const MOCK_SALON: SalonInfo = {
     mon: { open: "10:00", close: "18:00" },
     tue: { open: "10:00", close: "18:00" },
     wed: { open: "10:00", close: "18:00" },
-    thu: null,
+    thu: { open: "10:00", close: "18:00" },
     fri: null,
   },
   slot_buffer_minutes: 15,

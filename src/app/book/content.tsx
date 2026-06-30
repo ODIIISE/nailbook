@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Card } from "@/components/ui/card";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
+import { toPersianDigits } from "@/lib/jalali";
 import { TimeSlots } from "@/components/booking/time-slots";
 import { CustomerForm } from "@/components/booking/customer-form";
 import { OtpVerify } from "@/components/booking/otp-verify";
@@ -196,7 +197,7 @@ export default function BookContent() {
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{selectedService.name}</span>
               <span className="text-navy font-bold">
-                {totalPrice.toLocaleString("fa-IR")} تومان
+                {toPersianDigits(totalPrice.toLocaleString("fa-IR"))} تومان
               </span>
             </div>
           </Card>
@@ -217,11 +218,11 @@ export default function BookContent() {
                       <div>
                         <h3 className="font-semibold">{service.name}</h3>
                         <p className="text-sm text-muted-foreground">
-                          {service.duration_minutes} دقیقه
+                          {toPersianDigits(service.duration_minutes)} دقیقه
                         </p>
                       </div>
                       <span className="font-bold text-navy">
-                        {service.price.toLocaleString("fa-IR")} تومان
+                        {toPersianDigits(service.price.toLocaleString("fa-IR"))} تومان
                       </span>
                     </div>
                   </Card>
