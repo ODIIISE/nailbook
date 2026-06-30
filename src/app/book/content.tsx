@@ -3,7 +3,9 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Header } from "@/components/layout/header";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ChevronLeft } from "lucide-react";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { toPersianDigits } from "@/lib/jalali";
 import { TimeSlots } from "@/components/booking/time-slots";
@@ -90,8 +92,8 @@ export default function BookContent() {
   }, [selectedDate, selectedService, totalDuration, workingHours, salon, bookings]);
 
   const bookedDates = useMemo(() => {
-    return [...new Set(bookings.filter((b) => b.status === "confirmed").map((b) => b.date_gregorian))];
-  }, [bookings]);
+    return [];
+  }, []);
 
   const handleSelectService = (serviceId: string) => {
     setSelectedServiceId(serviceId);
@@ -127,7 +129,6 @@ export default function BookContent() {
 
   const handleSelectTime = useCallback((time: string) => {
     setSelectedTime(time);
-    setStep("info");
   }, []);
 
   const handleCustomerSubmit = useCallback((name: string, phone: string) => {
@@ -245,6 +246,15 @@ export default function BookContent() {
                   selectedSlot={selectedTime}
                   onSelectSlot={handleSelectTime}
                 />
+                {selectedTime && (
+                  <Button
+                    onClick={() => setStep("info")}
+                    className="w-full h-12"
+                  >
+                    ادامه
+                    <ChevronLeft className="h-5 w-5 mr-2" />
+                  </Button>
+                )}
               </div>
             )}
           </>
