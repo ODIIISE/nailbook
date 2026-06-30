@@ -1,17 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Card } from "@/components/ui/card";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import {
   getJalaliDate,
   jalaliToGregorian,
-  getJalaliMonthDays,
-  getJalaliMonthName,
   toPersianDigits,
-  PERSIAN_WEEKDAYS,
   gregorianToJalali,
+  getJalaliWeekdayName,
 } from "@/lib/jalali";
 import { getIranWeekDay } from "@/lib/slots";
 import type { WorkingHours } from "@/lib/slots";
@@ -23,43 +20,39 @@ interface JalaliCalendarProps {
   onSelectDate: (date: Date) => void;
 }
 
+const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
+
 export function JalaliCalendar({
   workingHours,
   bookedDates,
   selectedDate,
   onSelectDate,
 }: JalaliCalendarProps) {
-  const today = getJalaliDate();
-  const [currentMonth, setCurrentMonth] = useState(today.month);
-  const [currentYear, setCurrentYear] = useState(today.year);
-
-  const daysInMonth = getJalaliMonthDays(currentYear, currentMonth);
-
-  const firstDayDate = jalaliToGregorian(currentYear, currentMonth, 1);
-  const firstDayJs = firstDayDate.getDay();
-  const iranFirstDay = firstDayJs === 6 ? 0 : firstDayJs === 5 ? 6 : firstDayJs - 1;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const days = useMemo(() => {
     const result: Array<{
-      day: number;
       date: Date;
+      dayNum: number;
+      weekday: string;
       isWorkingDay: boolean;
       isFullyBooked: boolean;
-      isPast: boolean;
+      isToday: boolean;
       isSelected: boolean;
+      jalaliDay: number;
+      jalaliMonth: number;
     }> = [];
 
-    for (let i = 1; i <= daysInMonth; i++) {
-      const date = jalaliToGregorian(currentYear, currentMonth, i);
+    for (let i = 0; i < 14; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
       const dayKey = getIranWeekDay(date);
       const isWorkingDay = workingHours[dayKey] !== null;
-
       const dateStr = date.toISOString().split("T")[0];
       const isFullyBooked = bookedDates.includes(dateStr);
-
-      const now = new Date();
-      now.setHours(0, 0, 0, 0);
-      const isPast = date < now;
+      const jalali = gregorianToJalali(date);
 
       const isSelected =
         selectedDate &&
@@ -68,103 +61,80 @@ export function JalaliCalendar({
         selectedDate.getDate() === date.getDate();
 
       result.push({
-        day: i,
         date,
+        dayNum: date.getDate(),
+        weekday: PERSIAN_WEEKDAYS_SHORT[
+          date.getDay() === 6 ? 0 : date.getDay() === 5 ? 6 : date.getDay() - 1
+        ],
         isWorkingDay,
         isFullyBooked,
-        isPast,
+        isToday: i === 0,
         isSelected: !!isSelected,
+        jalaliDay: jalali.jd,
+        jalaliMonth: jalali.jm,
       });
     }
     return result;
-  }, [currentYear, currentMonth, daysInMonth, workingHours, bookedDates, selectedDate]);
+  }, [workingHours, bookedDates, selectedDate]);
 
-  const prevMonth = () => {
-    if (currentMonth === 1) {
-      setCurrentMonth(12);
-      setCurrentYear(currentYear - 1);
-    } else {
-      setCurrentMonth(currentMonth - 1);
+  useEffect(() => {
+    if (scrollRef.current) {
+      const selectedEl = scrollRef.current.querySelector("[data-selected='true']");
+      if (selectedEl) {
+        selectedEl.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      }
     }
-  };
-
-  const nextMonth = () => {
-    if (currentMonth === 12) {
-      setCurrentMonth(1);
-      setCurrentYear(currentYear + 1);
-    } else {
-      setCurrentMonth(currentMonth + 1);
-    }
-  };
+  }, [selectedDate]);
 
   return (
-    <Card className="mx-auto max-w-lg p-4">
-      <div className="flex items-center justify-between mb-4">
-        <Button variant="ghost" size="icon" onClick={prevMonth}>
-          <ChevronRight className="h-5 w-5" />
-        </Button>
-        <h3 className="font-semibold text-foreground">
-          {getJalaliMonthName(currentMonth)} {toPersianDigits(currentYear)}
-        </h3>
-        <Button variant="ghost" size="icon" onClick={nextMonth}>
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-7 gap-1 mb-2">
-        {PERSIAN_WEEKDAYS.map((day) => (
-          <div
-            key={day}
-            className="text-center text-xs font-medium text-muted-foreground py-1"
-          >
-            {day}
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-7 gap-1">
-        {Array.from({ length: iranFirstDay }).map((_, i) => (
-          <div key={`empty-${i}`} />
-        ))}
-        {days.map((d) => {
-          const isDisabled = d.isPast || !d.isWorkingDay || d.isFullyBooked;
-
-          return (
-            <button
-              key={d.day}
-              disabled={isDisabled}
-              onClick={() => !isDisabled && onSelectDate(d.date)}
-              className={`
-                relative h-10 rounded-lg text-sm font-medium transition-all
-                ${d.isSelected ? "bg-primary text-white shadow-md" : ""}
-                ${!d.isSelected && d.isWorkingDay && !d.isPast && !d.isFullyBooked ? "hover:bg-primary/10 text-foreground cursor-pointer" : ""}
-                ${isDisabled && !d.isSelected ? "text-muted-foreground/40 cursor-not-allowed" : ""}
-                ${d.isFullyBooked && !d.isSelected ? "line-through" : ""}
-              `}
-            >
-              {toPersianDigits(d.day)}
-              {d.isWorkingDay && !d.isPast && !d.isFullyBooked && !d.isSelected && (
-                <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-green-500" />
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-full bg-green-500" />
-          روز کاری
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-full bg-muted-foreground/40" />
-          تعطیل
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-full bg-destructive" />
-          تکمیل
+    <div className="mx-auto max-w-lg">
+      <div className="relative">
+        <div
+          ref={scrollRef}
+          className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 px-1 -mx-1"
+          style={{ scrollSnapType: "x mandatory" }}
+        >
+          {days.map((d, i) => {
+            const isDisabled = !d.isWorkingDay || d.isFullyBooked;
+            return (
+              <button
+                key={i}
+                data-selected={d.isSelected}
+                disabled={isDisabled}
+                onClick={() => !isDisabled && onSelectDate(d.date)}
+                style={{ scrollSnapAlign: "center" }}
+                className={`
+                  flex-shrink-0 w-[68px] flex flex-col items-center py-3 px-2 rounded-2xl transition-all duration-200
+                  focus-visible:ring-3 focus-visible:ring-primary/50 focus-visible:outline-none
+                  ${d.isSelected
+                    ? "bg-primary text-white shadow-lg shadow-primary/25 scale-105"
+                    : isDisabled
+                      ? "bg-muted/30 text-muted-foreground/30 cursor-not-allowed"
+                      : "bg-card hover:bg-primary/5 text-foreground cursor-pointer active:scale-95"
+                  }
+                  ${d.isToday && !d.isSelected ? "ring-2 ring-primary/30" : ""}
+                `}
+              >
+                <span className={`text-xs font-medium ${d.isSelected ? "text-white/70" : "text-muted-foreground"}`}>
+                  {d.weekday}
+                </span>
+                <span className="text-lg font-bold mt-0.5">
+                  {toPersianDigits(d.jalaliDay)}
+                </span>
+                {d.isToday && !d.isSelected && (
+                  <span className="text-[10px] font-medium text-primary mt-0.5">امروز</span>
+                )}
+                {d.isWorkingDay && !d.isFullyBooked && !d.isSelected && !isDisabled && (
+                  <span className="h-1 w-1 rounded-full bg-success mt-1" />
+                )}
+                {d.isFullyBooked && !d.isSelected && (
+                  <span className="text-[10px] text-destructive mt-0.5">تکمیل</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

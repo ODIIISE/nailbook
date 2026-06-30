@@ -175,9 +175,9 @@ export default function BookContent() {
   }, []);
 
   const stepTitles: Record<BookingStep, string> = {
-    date: "انتخاب تاریخ",
+    date: "انتخاب زمان",
     addon: "آپشن‌ها",
-    time: "انتخاب ساعت",
+    time: "انتخاب زمان",
     info: "اطلاعات شما",
     otp: "تایید شماره",
     confirmed: "تایید نهایی",
@@ -206,22 +206,22 @@ export default function BookContent() {
         {step === "date" && (
           <>
             {!selectedServiceId ? (
-              <div className="space-y-3">
-                <h2 className="text-lg font-bold text-foreground">خدمت مورد نظر</h2>
+              <div className="space-y-3 animate-stagger">
+                <h2 className="text-h2 text-foreground">خدمت مورد نظر</h2>
                 {services.filter((s) => s.is_active).map((service) => (
                   <Card
                     key={service.id}
-                    className="p-4 cursor-pointer hover:shadow-md transition-all"
+                    className="p-4 cursor-pointer hover:shadow-[var(--shadow-elevated)] transition-all duration-150 active:scale-[0.98]"
                     onClick={() => handleSelectService(service.id)}
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-semibold">{service.name}</h3>
-                        <p className="text-sm text-muted-foreground">
+                        <h3 className="text-h3">{service.name}</h3>
+                        <p className="text-caption text-muted-foreground mt-1">
                           {toPersianDigits(service.duration_minutes)} دقیقه
                         </p>
                       </div>
-                      <span className="font-bold text-primary">
+                      <span className="text-body font-bold text-primary">
                         {toPersianDigits(service.price.toLocaleString("fa-IR"))} تومان
                       </span>
                     </div>
@@ -229,12 +229,20 @@ export default function BookContent() {
                 ))}
               </div>
             ) : (
-              <JalaliCalendar
-                workingHours={workingHours}
-                bookedDates={bookedDates}
-                selectedDate={selectedDate}
-                onSelectDate={handleSelectDate}
-              />
+              <div className="space-y-5">
+                <JalaliCalendar
+                  workingHours={workingHours}
+                  bookedDates={bookedDates}
+                  selectedDate={selectedDate}
+                  onSelectDate={handleSelectDate}
+                />
+                <TimeSlots
+                  date={selectedDate}
+                  slots={timeSlots}
+                  selectedSlot={selectedTime}
+                  onSelectSlot={handleSelectTime}
+                />
+              </div>
             )}
           </>
         )}
@@ -246,15 +254,6 @@ export default function BookContent() {
             onToggle={handleAddonToggle}
             onContinue={handleAddonContinue}
             onSkip={handleAddonSkip}
-          />
-        )}
-
-        {step === "time" && selectedDate && (
-          <TimeSlots
-            date={selectedDate}
-            slots={timeSlots}
-            selectedSlot={selectedTime}
-            onSelectSlot={handleSelectTime}
           />
         )}
 
