@@ -21,7 +21,7 @@ interface BlockedTime {
 
 export default function OwnerDashboard() {
   const router = useRouter();
-  const { bookings, services, refreshBookings } = useSalon();
+  const { salon, bookings, services, refreshBookings } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
@@ -98,10 +98,17 @@ export default function OwnerDashboard() {
         <div className="mx-auto max-w-lg px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="font-bold text-foreground">ناخن‌های سوفی</h1>
+              <h1 className="font-bold text-foreground">{salon.name}</h1>
               <p className="text-xs text-muted-foreground">داشبورد مدیر</p>
             </div>
             <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => router.push("/owner/settings")}
+              >
+                تنظیمات
+              </Button>
               <Button
                 size="sm"
                 variant="outline"
@@ -115,13 +122,6 @@ export default function OwnerDashboard() {
                 onClick={() => router.push("/owner/services")}
               >
                 خدمات
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => router.push("/")}
-              >
-                سایت
               </Button>
             </div>
           </div>

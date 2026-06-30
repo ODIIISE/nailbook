@@ -8,6 +8,7 @@ export async function fetchSalonInfo(): Promise<SalonInfo | null> {
     id: data.id,
     name: data.name,
     description: data.description,
+    slogan: data.slogan || "",
     phone: data.phone,
     address: data.address,
     hero_image_url: data.hero_image_url,

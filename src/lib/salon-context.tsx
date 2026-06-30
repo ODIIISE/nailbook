@@ -29,6 +29,7 @@ interface SalonContextType {
   updateSpecificDaysOff: (daysOff: string[]) => void;
   updateServices: (services: Service[]) => void;
   updateAddons: (addons: Addon[]) => void;
+  updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
   addBooking: (booking: Booking) => void;
   refreshBookings: () => Promise<void>;
 }
@@ -102,6 +103,12 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     if (data.length) setBookings(data);
   }, []);
 
+  const handleUpdateSalon = useCallback(async (updates: Partial<SalonInfo>) => {
+    setSalon((prev) => ({ ...prev, ...updates }));
+    const { updateSalonInfo } = await import("@/lib/supabase/data");
+    await updateSalonInfo(updates);
+  }, []);
+
   if (!loaded) {
     return (
       <SalonContext.Provider
@@ -116,6 +123,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           updateSpecificDaysOff: async () => {},
           updateServices: async () => {},
           updateAddons: async () => {},
+          updateSalon: async () => {},
           addBooking: async () => {},
           refreshBookings: async () => {},
         }}
@@ -138,6 +146,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         updateSpecificDaysOff: handleUpdateSpecificDaysOff,
         updateServices: handleUpdateServices,
         updateAddons: handleUpdateAddons,
+        updateSalon: handleUpdateSalon,
         addBooking: handleAddBooking,
         refreshBookings,
       }}

@@ -2,6 +2,7 @@ export interface SalonInfo {
   id: string;
   name: string;
   description: string;
+  slogan: string;
   phone: string;
   address: string;
   hero_image_url: string | null;
@@ -63,6 +64,7 @@ export const MOCK_SALON: SalonInfo = {
   id: "1",
   name: "استدیو تخصصی ناخن فورهند",
   description: "Forehand Nail Studio — استدیو تخصصی ناخن در مشهد",
+  slogan: "زیبایی ناخن، اعتماد به نفس شما",
   phone: "09308681363",
   address: "مشهد، نبش صارمی ۳۸/۱۲، پلاک ۷۷",
   hero_image_url: null,
