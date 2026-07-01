@@ -21,7 +21,7 @@ export default function OwnerLoginPage() {
     setError("");
 
     setTimeout(() => {
-      if (email === "sophie@nailbook.ir" && password === "123456") {
+      if (email === "FarzanehOR" && password === "0920653367") {
         document.cookie = "owner_session=true; path=/owner";
         router.push("/owner");
       } else {
@@ -57,7 +57,7 @@ export default function OwnerLoginPage() {
               onKeyDown={handleKeyDown}
               className="mt-1"
               dir="ltr"
-              placeholder="sophie@nailbook.ir"
+              placeholder="FarzanehOR"
             />
           </div>
           <div>
@@ -86,7 +86,7 @@ export default function OwnerLoginPage() {
         </div>
 
         <p className="mt-4 text-[13px] text-muted-foreground text-center">
-          دمو: sophie@nailbook.ir / 123456
+          دمو: FarzanehOR / 0920653367
         </p>
       </div>
     </div>
