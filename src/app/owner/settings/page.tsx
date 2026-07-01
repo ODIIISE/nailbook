@@ -1,23 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
-import { Save, Camera, Phone, FileText, Sparkles } from "lucide-react";
+import { Save, Camera, Phone, FileText, Sparkles, Trash2 } from "lucide-react";
 
 export default function OwnerSettingsPage() {
   const { salon, updateSalon } = useSalon();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState(salon.name);
   const [slogan, setSlogan] = useState(salon.slogan || "");
   const [description, setDescription] = useState(salon.description);
   const [phone, setPhone] = useState(salon.phone);
   const [address, setAddress] = useState(salon.address);
+  const [avatarUrl, setAvatarUrl] = useState(salon.logo_url || "");
   const [saving, setSaving] = useState(false);
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("حجم فایل بیشتر از ۲ مگابایت است");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      setAvatarUrl(result);
+      toast.success("عکس آپلود شد");
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -28,6 +48,7 @@ export default function OwnerSettingsPage() {
         description,
         phone,
         address,
+        logo_url: avatarUrl,
       });
       toast.success("تغییرات ذخیره شد");
     } catch {
@@ -38,25 +59,49 @@ export default function OwnerSettingsPage() {
 
   return (
     <div className="px-4 py-4 space-y-6">
-        {/* Avatar / Logo */}
         <Card className="p-5">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
-                <Sparkles className="h-8 w-8 text-primary" />
-              </div>
-              <button className="absolute -bottom-1 -left-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={salon.name}
+                  className="h-20 w-20 rounded-full object-cover"
+                />
+              ) : (
+                <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Sparkles className="h-8 w-8 text-primary" />
+                </div>
+              )}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-1 -left-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors"
+              >
                 <Camera className="h-4 w-4" />
               </button>
             </div>
-            <div>
+            <div className="flex-1">
               <p className="font-semibold text-foreground">{salon.name}</p>
               <p className="text-sm text-muted-foreground">لوگوی سالن</p>
+              {avatarUrl && (
+                <button
+                  onClick={() => setAvatarUrl("")}
+                  className="text-xs text-destructive mt-1 hover:underline"
+                >
+                  حذف عکس
+                </button>
+              )}
             </div>
           </div>
         </Card>
 
-        {/* Basic Info */}
         <Card className="p-5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <FileText className="h-4 w-4 text-primary" />
@@ -65,36 +110,20 @@ export default function OwnerSettingsPage() {
 
           <div>
             <Label className="text-caption">نام سالن</Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1"
-              placeholder="نام سالن"
-            />
+            <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" placeholder="نام سالن" />
           </div>
 
           <div>
             <Label className="text-caption">شعار تبلیغاتی</Label>
-            <Input
-              value={slogan}
-              onChange={(e) => setSlogan(e.target.value)}
-              className="mt-1"
-              placeholder="مثلاً: زیبایی ناخن، اعتماد به نفس شما"
-            />
+            <Input value={slogan} onChange={(e) => setSlogan(e.target.value)} className="mt-1" placeholder="مثلاً: زیبایی ناخن، اعتماد به نفس شما" />
           </div>
 
           <div>
             <Label className="text-caption">توضیحات</Label>
-            <Input
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="mt-1"
-              placeholder="توضیح کوتاه درباره سالن"
-            />
+            <Input value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" placeholder="توضیح کوتاه درباره سالن" />
           </div>
         </Card>
 
-        {/* Contact Info */}
         <Card className="p-5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Phone className="h-4 w-4 text-primary" />
@@ -103,32 +132,16 @@ export default function OwnerSettingsPage() {
 
           <div>
             <Label className="text-caption">شماره موبایل</Label>
-            <Input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="mt-1"
-              dir="ltr"
-              placeholder="09121234567"
-            />
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" dir="ltr" placeholder="09121234567" />
           </div>
 
           <div>
             <Label className="text-caption">آدرس</Label>
-            <Input
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="mt-1"
-              placeholder="آدرس سالن"
-            />
+            <Input value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1" placeholder="آدرس سالن" />
           </div>
         </Card>
 
-        {/* Save Button */}
-        <Button
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full h-12"
-        >
+        <Button onClick={handleSave} disabled={saving} className="w-full h-12">
           <Save className="h-5 w-5 ml-2" />
           {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
         </Button>

@@ -5,11 +5,22 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Save, Copy } from "lucide-react";
-import { toPersianDigits, gregorianToJalali, jalaliToGregorian, getJalaliMonthDays, getJalaliMonthName } from "@/lib/jalali";
+import {
+  toPersianDigits,
+  gregorianToJalali,
+  jalaliToGregorian,
+  getJalaliMonthDays,
+  getJalaliMonthName,
+} from "@/lib/jalali";
 import type { WorkingHours } from "@/lib/slots";
+
+interface ScheduleManagerProps {
+  workingHours: WorkingHours;
+  specificDaysOff: string[];
+  onSave: (hours: WorkingHours, daysOff: string[]) => void;
+}
 
 const IRAN_WEEK_DAYS = [
   { key: "sat", label: "شنبه" },
@@ -21,10 +32,70 @@ const IRAN_WEEK_DAYS = [
   { key: "fri", label: "جمعه" },
 ];
 
-interface ScheduleManagerProps {
-  workingHours: WorkingHours;
-  specificDaysOff: string[];
-  onSave: (hours: WorkingHours, daysOff: string[]) => void;
+const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
+const JS_TO_IRAN_DAY = [6, 0, 1, 2, 3, 4, 5];
+
+function JalaliMonthGrid({
+  year,
+  month,
+  daysOff,
+  onToggleDayOff,
+}: {
+  year: number;
+  month: number;
+  daysOff: string[];
+  onToggleDayOff: (dateStr: string) => void;
+}) {
+  const daysInMonth = getJalaliMonthDays(year, month);
+  const firstDayDate = jalaliToGregorian(year, month, 1);
+  const firstDayJs = firstDayDate.getDay();
+  const iranFirstDay = JS_TO_IRAN_DAY[firstDayJs];
+
+  return (
+    <Card className="p-4">
+      <p className="text-sm font-medium text-foreground mb-2">
+        {getJalaliMonthName(month)} {toPersianDigits(year)}
+      </p>
+      <div className="grid grid-cols-7 gap-1 mb-1">
+        {PERSIAN_WEEKDAYS_SHORT.map((day) => (
+          <div key={day} className="text-center text-[10px] font-medium text-muted-foreground py-1">
+            {day}
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {Array.from({ length: iranFirstDay }).map((_, i) => (
+          <div key={`empty-${i}`} />
+        ))}
+        {Array.from({ length: daysInMonth }).map((_, i) => {
+          const d = i + 1;
+          const date = jalaliToGregorian(year, month, d);
+          const dateStr = date.toISOString().split("T")[0];
+          const isOff = daysOff.includes(dateStr);
+          const isToday =
+            date.toDateString() === new Date().toDateString();
+
+          return (
+            <button
+              key={d}
+              onClick={() => onToggleDayOff(dateStr)}
+              className={`
+                h-8 rounded-lg text-xs font-medium transition-all
+                ${isOff
+                  ? "bg-destructive text-white"
+                  : isToday
+                    ? "bg-primary/10 text-primary ring-1 ring-primary/30"
+                    : "bg-secondary hover:bg-primary/10 text-foreground"
+                }
+              `}
+            >
+              {toPersianDigits(d)}
+            </button>
+          );
+        })}
+      </div>
+    </Card>
+  );
 }
 
 export function ScheduleManager({
@@ -39,13 +110,11 @@ export function ScheduleManager({
   const toggleDay = (key: string) => {
     const current = hours[key];
     const newHours = { ...hours };
-
     if (current === null) {
       newHours[key] = { open: "10:00", close: "18:00" };
     } else {
       newHours[key] = null;
     }
-
     setHours(newHours);
     setHasChanges(true);
   };
@@ -53,26 +122,16 @@ export function ScheduleManager({
   const updateTime = (key: string, field: "open" | "close", value: string) => {
     const current = hours[key];
     if (!current) return;
-
-    const newHours = {
-      ...hours,
-      [key]: { ...current, [field]: value },
-    };
-    setHours(newHours);
+    setHours({ ...hours, [key]: { ...current, [field]: value } });
     setHasChanges(true);
   };
 
   const applyToAll = (sourceKey: string) => {
     const source = hours[sourceKey];
     if (!source) return;
-
     const newHours: WorkingHours = {};
     for (const day of IRAN_WEEK_DAYS) {
-      if (hours[day.key] !== null) {
-        newHours[day.key] = { ...source };
-      } else {
-        newHours[day.key] = null;
-      }
+      newHours[day.key] = hours[day.key] !== null ? { ...source } : null;
     }
     setHours(newHours);
     setHasChanges(true);
@@ -80,9 +139,7 @@ export function ScheduleManager({
 
   const toggleSpecificDayOff = (dateStr: string) => {
     setDaysOff((prev) =>
-      prev.includes(dateStr)
-        ? prev.filter((d) => d !== dateStr)
-        : [...prev, dateStr]
+      prev.includes(dateStr) ? prev.filter((d) => d !== dateStr) : [...prev, dateStr]
     );
     setHasChanges(true);
   };
@@ -92,29 +149,12 @@ export function ScheduleManager({
     setHasChanges(false);
   };
 
-  const getJalaliDatesForMonth = (monthOffset: number = 0) => {
-    const now = new Date();
-    const jalali = gregorianToJalali(now);
-    const targetMonth = jalali.jm + monthOffset;
-    const targetYear = targetMonth > 12 ? jalali.jy + 1 : jalali.jy;
-    const normalizedMonth = targetMonth > 12 ? targetMonth - 12 : targetMonth;
-    const daysInMonth = getJalaliMonthDays(targetYear, normalizedMonth);
-    const dates: Array<{ date: Date; dateStr: string; label: string }> = [];
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = jalaliToGregorian(targetYear, normalizedMonth, d);
-      const dateStr = date.toISOString().split("T")[0];
-      dates.push({
-        date,
-        dateStr,
-        label: `${toPersianDigits(d)} ${getJalaliMonthName(normalizedMonth)}`,
-      });
-    }
-    return dates;
-  };
-
-  const currentMonthDates = getJalaliDatesForMonth(0);
-  const nextMonthDates = getJalaliDatesForMonth(1);
+  const now = new Date();
+  const jalali = gregorianToJalali(now);
+  const currentMonth = jalali.jm;
+  const currentYear = jalali.jy;
+  const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+  const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
 
   return (
     <div className="space-y-6">
@@ -125,12 +165,7 @@ export function ScheduleManager({
             روزهای فعال را تنظیم کنید
           </p>
         </div>
-        <Button
-          size="sm"
-          onClick={handleSave}
-          disabled={!hasChanges}
-          className="bg-primary hover:bg-primary/90 text-white rounded-xl"
-        >
+        <Button size="sm" onClick={handleSave} disabled={!hasChanges} className="bg-primary text-white">
           <Save className="h-4 w-4 ml-1" />
           ذخیره
         </Button>
@@ -145,13 +180,8 @@ export function ScheduleManager({
             <Card key={day.key} className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <Switch
-                    checked={isActive}
-                    onCheckedChange={() => toggleDay(day.key)}
-                  />
-                  <span className="font-medium text-foreground">
-                    {day.label}
-                  </span>
+                  <Switch checked={isActive} onCheckedChange={() => toggleDay(day.key)} />
+                  <span className="font-medium text-foreground">{day.label}</span>
                 </div>
                 {isActive && (
                   <Button
@@ -173,9 +203,7 @@ export function ScheduleManager({
                     <Input
                       type="time"
                       value={dayHours.open}
-                      onChange={(e) =>
-                        updateTime(day.key, "open", e.target.value)
-                      }
+                      onChange={(e) => updateTime(day.key, "open", e.target.value)}
                       className="mt-1 text-center"
                       dir="ltr"
                     />
@@ -185,9 +213,7 @@ export function ScheduleManager({
                     <Input
                       type="time"
                       value={dayHours.close}
-                      onChange={(e) =>
-                        updateTime(day.key, "close", e.target.value)
-                      }
+                      onChange={(e) => updateTime(day.key, "close", e.target.value)}
                       className="mt-1 text-center"
                       dir="ltr"
                     />
@@ -200,87 +226,48 @@ export function ScheduleManager({
       </div>
 
       <div>
-        <h3 className="font-semibold text-foreground mb-1">روزهای تعطیل خاص</h3>
+        <h3 className="font-semibold text-foreground mb-1">روزهای تعطیل</h3>
         <p className="text-xs text-muted-foreground mb-3">
-          تاریخ‌های خاصی را به عنوان روز تعطیل انتخاب کنید
+          روی روزها کلیک کنید تا تعطیل شوند
         </p>
 
-        <Card className="p-4">
-          <p className="text-sm font-medium text-foreground mb-2">ماه جاری</p>
-          <div className="grid grid-cols-7 gap-1">
-            {currentMonthDates.map((d) => {
-              const isOff = daysOff.includes(d.dateStr);
-              return (
-                <button
-                  key={d.dateStr}
-                  onClick={() => toggleSpecificDayOff(d.dateStr)}
-                  className={`
-                    h-8 rounded text-xs font-medium transition-all
-                    ${isOff
-                      ? "bg-destructive text-white"
-                      : "bg-secondary hover:bg-rose/10 text-foreground"
-                    }
-                  `}
-                >
-                  {toPersianDigits(d.date.getDate())}
-                </button>
-              );
-            })}
-          </div>
-          <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <span className="h-2 w-2 rounded-full bg-destructive" />
-              روز تعطیل
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="h-2 w-2 rounded-full bg-secondary" />
-              روز کاری
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 mt-3">
-          <p className="text-sm font-medium text-foreground mb-2">ماه آینده</p>
-          <div className="grid grid-cols-7 gap-1">
-            {nextMonthDates.map((d) => {
-              const isOff = daysOff.includes(d.dateStr);
-              return (
-                <button
-                  key={d.dateStr}
-                  onClick={() => toggleSpecificDayOff(d.dateStr)}
-                  className={`
-                    h-8 rounded text-xs font-medium transition-all
-                    ${isOff
-                      ? "bg-destructive text-white"
-                      : "bg-secondary hover:bg-rose/10 text-foreground"
-                    }
-                  `}
-                >
-                  {toPersianDigits(d.date.getDate())}
-                </button>
-              );
-            })}
-          </div>
-        </Card>
+        <div className="space-y-4">
+          <JalaliMonthGrid
+            year={currentYear}
+            month={currentMonth}
+            daysOff={daysOff}
+            onToggleDayOff={toggleSpecificDayOff}
+          />
+          <JalaliMonthGrid
+            year={nextYear}
+            month={nextMonth}
+            daysOff={daysOff}
+            onToggleDayOff={toggleSpecificDayOff}
+          />
+        </div>
 
         {daysOff.length > 0 && (
-          <Card className="p-4 mt-3">
-            <p className="text-sm font-medium text-foreground mb-2">
-              روزهای تعطیل انتخاب شده ({toPersianDigits(daysOff.length)})
+          <div className="mt-3">
+            <p className="text-xs text-muted-foreground mb-2">
+              {toPersianDigits(daysOff.length)} روز تعطیل انتخاب شده
             </p>
-            <div className="flex flex-wrap gap-2">
-              {daysOff.sort().map((d) => (
-                <Badge
+            <div className="flex flex-wrap gap-1">
+              {daysOff.sort().slice(0, 10).map((d) => (
+                <button
                   key={d}
-                  variant="secondary"
-                  className="cursor-pointer hover:bg-destructive/10"
                   onClick={() => toggleSpecificDayOff(d)}
+                  className="px-2 py-0.5 rounded text-[10px] bg-destructive/10 text-destructive hover:bg-destructive/20"
                 >
                   {d} ×
-                </Badge>
+                </button>
               ))}
+              {daysOff.length > 10 && (
+                <span className="text-[10px] text-muted-foreground self-center">
+                  +{toPersianDigits(daysOff.length - 10)} مورد دیگر
+                </span>
+              )}
             </div>
-          </Card>
+          </div>
         )}
       </div>
     </div>
