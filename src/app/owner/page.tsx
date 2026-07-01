@@ -242,45 +242,22 @@ export default function OwnerDashboard() {
         />
 
         {selectedBooking && (
-          <Card className="p-4">
-            <h3 className="font-semibold mb-2">جزئیات نوبت</h3>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">نام</span>
-                <span>{selectedBooking.customer_name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">تلفن</span>
-                <span dir="ltr">{selectedBooking.customer_phone}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">ساعت</span>
-                <span>{selectedBooking.start_time} - {selectedBooking.end_time}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">وضعیت</span>
-                <Badge variant={selectedBooking.status === "confirmed" ? "default" : "secondary"}>
-                  {selectedBooking.status === "confirmed" ? "تایید شده" : selectedBooking.status}
-                </Badge>
-              </div>
-            </div>
-            <div className="mt-3 flex gap-2">
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => setSelectedBooking(null)}
-              >
-                لغو نوبت
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setSelectedBooking(null)}
-              >
-                بستن
-              </Button>
-            </div>
-          </Card>
+          <BookingModal
+            booking={selectedBooking}
+            isPaid={paidBookings.has(selectedBooking.id)}
+            onTogglePaid={() => {
+              setPaidBookings((prev) => {
+                const next = new Set(prev);
+                if (next.has(selectedBooking.id)) {
+                  next.delete(selectedBooking.id);
+                } else {
+                  next.add(selectedBooking.id);
+                }
+                return next;
+              });
+            }}
+            onClose={() => setSelectedBooking(null)}
+          />
         )}
       </div>
     </div>
