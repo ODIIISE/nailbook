@@ -33,7 +33,7 @@ const IRAN_WEEK_DAYS = [
 ];
 
 const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
-const JS_TO_IRAN_DAY = [6, 0, 1, 2, 3, 4, 5];
+const JS_TO_IRAN_DAY = [1, 2, 3, 4, 5, 6, 0];
 
 function JalaliMonthGrid({
   year,
