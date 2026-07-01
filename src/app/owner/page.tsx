@@ -5,20 +5,18 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { AgendaTimeline } from "@/components/owner/agenda-timeline";
 import { BlockTimeModal } from "@/components/owner/block-time-modal";
 import { BookingModal } from "@/components/owner/booking-modal";
-import { Menu, X, Settings, Clock, Briefcase, Home, LogOut } from "lucide-react";
-import { toPersianDigits, formatJalaliDate, gregorianToJalali } from "@/lib/jalali";
+import { EarningsModal } from "@/components/owner/earnings-modal";
+import { Calendar, Clock, Briefcase, Settings, ChevronLeft } from "lucide-react";
+import { toPersianDigits, gregorianToJalali } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 
 interface BlockedTime {
-  id: string;
   date_gregorian: string;
   start_time: string;
   end_time: string;
-  reason: string;
 }
 
 export default function OwnerDashboard() {
@@ -27,8 +25,8 @@ export default function OwnerDashboard() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [paidBookings, setPaidBookings] = useState<Set<string>>(new Set());
+  const [showEarnings, setShowEarnings] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -52,19 +50,28 @@ export default function OwnerDashboard() {
     return blockedTimes.filter((b) => b.date_gregorian === dateStr);
   }, [currentDate, blockedTimes]);
 
-  const todayStats = useMemo(() => {
-    const today = new Date().toISOString().split("T")[0];
+  const accounting = useMemo(() => {
+    const today = currentDate.toISOString().split("T")[0];
     const todayBookings = bookings.filter(
       (b) => b.date_gregorian === today && b.status === "confirmed"
     );
-    return {
-      count: todayBookings.length,
-      revenue: todayBookings.reduce((sum, b) => {
-        const service = services.find((s) => s.id === b.service_id);
-        return sum + (service?.price || 0);
-      }, 0),
-    };
-  }, [bookings, services]);
+
+    const paid = todayBookings
+      .filter((b) => paidBookings.has(b.id))
+      .reduce((sum, b) => {
+        const svc = services.find((s) => s.id === b.service_id);
+        return sum + (svc?.price || 0);
+      }, 0);
+
+    const unpaid = todayBookings
+      .filter((b) => !paidBookings.has(b.id))
+      .reduce((sum, b) => {
+        const svc = services.find((s) => s.id === b.service_id);
+        return sum + (svc?.price || 0);
+      }, 0);
+
+    return { paid, unpaid, total: paid + unpaid };
+  }, [currentDate, bookings, services, paidBookings]);
 
   const prevDay = () => {
     const d = new Date(currentDate);
@@ -80,12 +87,7 @@ export default function OwnerDashboard() {
 
   const handleBlockTime = (startTime: string, endTime: string, reason: string) => {
     const dateStr = currentDate.toISOString().split("T")[0];
-    const newBlock = {
-      date_gregorian: dateStr,
-      start_time: startTime,
-      end_time: endTime,
-    };
-    updateBlockedTimes([...blockedTimes, newBlock]);
+    updateBlockedTimes([...blockedTimes, { date_gregorian: dateStr, start_time: startTime, end_time: endTime }]);
     setShowBlockTime(false);
   };
 
@@ -94,142 +96,50 @@ export default function OwnerDashboard() {
   };
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen pb-20">
       <div className="sticky top-0 z-10 glass-strong h-14">
         <div className="mx-auto max-w-lg px-4 h-full flex items-center justify-between">
-          <h1 className="text-[17px] font-bold text-foreground">{salon.name}</h1>
-          <Button variant="ghost" size="icon-sm" onClick={() => setMenuOpen(true)}>
-            <Menu className="h-5 w-5" />
+          <div className="flex items-center gap-2">
+            <h1 className="text-[17px] font-bold text-foreground">{salon.name}</h1>
+            <Badge variant="secondary" className="text-[10px]">
+              {toPersianDigits(dayBookings.length)} نوبت
+            </Badge>
+          </div>
+          <Button variant="ghost" size="icon-sm" onClick={() => setShowBlockTime(true)}>
+            <span className="text-[13px] font-bold text-primary">+ مسدود</span>
           </Button>
         </div>
       </div>
 
-      {menuOpen && (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setMenuOpen(false)} />
-          <div className="absolute top-0 right-0 h-full w-72 glass-strong rounded-l-3xl">
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-[17px] font-bold text-foreground">منو</span>
-                <Button variant="ghost" size="icon-sm" onClick={() => setMenuOpen(false)}>
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-
-              <div className="space-y-0.5">
-                <button
-                  onClick={() => { router.push("/"); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"
-                >
-                  <Home className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-[15px]">صفحه اصلی</span>
-                </button>
-
-                <Separator className="my-2 bg-white/20" />
-
-                <button
-                  onClick={() => { router.push("/owner/settings"); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"
-                >
-                  <Settings className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-[15px]">تنظیمات</span>
-                </button>
-
-                <button
-                  onClick={() => { router.push("/owner/schedule"); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"
-                >
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-[15px]">ساعات کاری</span>
-                </button>
-
-                <button
-                  onClick={() => { router.push("/owner/services"); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"
-                >
-                  <Briefcase className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-[15px]">مدیریت خدمات</span>
-                </button>
-
-                <Separator className="my-2 bg-white/20" />
-
-                <button
-                  onClick={() => {
-                    document.cookie = "owner_session=; path=/owner; max-age=0";
-                    router.push("/owner/login");
-                    setMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-red-500/10 text-right transition-colors"
-                >
-                  <LogOut className="h-4 w-4 text-red-500" />
-                  <span className="text-[15px] text-red-500">خروج</span>
-                </button>
-              </div>
+      <div className="mx-auto max-w-lg px-4 py-4 space-y-4">
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[13px] font-bold text-foreground">حساب امروز</span>
+            <Button variant="ghost" size="icon-sm" onClick={() => setShowEarnings(true)}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center">
+              <p className="text-[13px] text-muted-foreground">پرداخت شده</p>
+              <p className="text-[15px] font-bold text-success">
+                {toPersianDigits(accounting.paid.toLocaleString("fa-IR"))}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-[13px] text-muted-foreground">پرداخت نشده</p>
+              <p className="text-[15px] font-bold text-destructive">
+                {toPersianDigits(accounting.unpaid.toLocaleString("fa-IR"))}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-[13px] text-muted-foreground">کل</p>
+              <p className="text-[15px] font-bold text-foreground">
+                {toPersianDigits(accounting.total.toLocaleString("fa-IR"))}
+              </p>
             </div>
           </div>
-        </div>
-      )}
-
-      <div className="mx-auto max-w-lg px-4 py-4 space-y-4">
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1"
-            onClick={() => router.push("/owner/settings")}
-          >
-            تنظیمات
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1"
-            onClick={() => router.push("/owner/schedule")}
-          >
-            ساعات کاری
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1"
-            onClick={() => router.push("/owner/services")}
-          >
-            خدمات
-          </Button>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">
-              {toPersianDigits(todayStats.count)}
-            </p>
-            <p className="text-xs text-muted-foreground">نوبت امروز</p>
-          </Card>
-          <Card className="p-4 text-center">
-            <p className="text-2xl font-bold text-primary">
-              {toPersianDigits(todayStats.revenue.toLocaleString("fa-IR"))}
-            </p>
-            <p className="text-xs text-muted-foreground">درآمد امروز (تومان)</p>
-          </Card>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-foreground">برنامه</h2>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setShowBlockTime(!showBlockTime)}
-          >
-            + مسدود کردن زمان
-          </Button>
-        </div>
-
-        {showBlockTime && (
-          <BlockTimeModal
-            date={currentDate}
-            onBlock={handleBlockTime}
-            onCancel={() => setShowBlockTime(false)}
-          />
-        )}
+        </Card>
 
         <AgendaTimeline
           bookings={dayBookings}
@@ -241,26 +151,77 @@ export default function OwnerDashboard() {
           onSelectBooking={setSelectedBooking}
           onRemoveBlock={handleRemoveBlock}
         />
-
-        {selectedBooking && (
-          <BookingModal
-            booking={selectedBooking}
-            isPaid={paidBookings.has(selectedBooking.id)}
-            onTogglePaid={() => {
-              setPaidBookings((prev) => {
-                const next = new Set(prev);
-                if (next.has(selectedBooking.id)) {
-                  next.delete(selectedBooking.id);
-                } else {
-                  next.add(selectedBooking.id);
-                }
-                return next;
-              });
-            }}
-            onClose={() => setSelectedBooking(null)}
-          />
-        )}
       </div>
+
+      <div className="fixed bottom-0 left-0 right-0 z-20 glass-strong border-t border-border">
+        <div className="mx-auto max-w-lg flex">
+          <button
+            onClick={() => router.push("/owner")}
+            className="flex-1 flex flex-col items-center gap-1 py-3 text-primary"
+          >
+            <Calendar className="h-5 w-5" />
+            <span className="text-[10px] font-bold">زمان‌بندی</span>
+          </button>
+          <button
+            onClick={() => router.push("/owner/schedule")}
+            className="flex-1 flex flex-col items-center gap-1 py-3 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Clock className="h-5 w-5" />
+            <span className="text-[10px] font-bold">ساعات کاری</span>
+          </button>
+          <button
+            onClick={() => router.push("/owner/services")}
+            className="flex-1 flex flex-col items-center gap-1 py-3 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Briefcase className="h-5 w-5" />
+            <span className="text-[10px] font-bold">خدمات</span>
+          </button>
+          <button
+            onClick={() => router.push("/owner/settings")}
+            className="flex-1 flex flex-col items-center gap-1 py-3 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Settings className="h-5 w-5" />
+            <span className="text-[10px] font-bold">تنظیمات</span>
+          </button>
+        </div>
+      </div>
+
+      {showBlockTime && (
+        <BlockTimeModal
+          date={currentDate}
+          onBlock={handleBlockTime}
+          onCancel={() => setShowBlockTime(false)}
+        />
+      )}
+
+      {selectedBooking && (
+        <BookingModal
+          booking={selectedBooking}
+          isPaid={paidBookings.has(selectedBooking.id)}
+          onTogglePaid={() => {
+            setPaidBookings((prev) => {
+              const next = new Set(prev);
+              if (next.has(selectedBooking.id)) {
+                next.delete(selectedBooking.id);
+              } else {
+                next.add(selectedBooking.id);
+              }
+              return next;
+            });
+          }}
+          onClose={() => setSelectedBooking(null)}
+        />
+      )}
+
+      {showEarnings && (
+        <EarningsModal
+          bookings={bookings}
+          services={services}
+          paidBookings={paidBookings}
+          currentDate={currentDate}
+          onClose={() => setShowEarnings(false)}
+        />
+      )}
     </div>
   );
 }
