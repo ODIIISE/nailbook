@@ -13,7 +13,7 @@ interface ServiceCardProps {
 export function ServiceCard({ service, onSelect }: ServiceCardProps) {
   return (
     <Card
-      className="p-5 rounded-2xl cursor-pointer transition-all duration-150 hover:shadow-[var(--shadow-elevated)] hover:border-primary/20 active:scale-[0.98] focus-visible:ring-3 focus-visible:ring-primary/50"
+      className="p-5 rounded-2xl cursor-pointer transition-all duration-150 hover:border-primary/20 active:scale-[0.98] focus-visible:ring-3 focus-visible:ring-primary/50"
       onClick={() => onSelect(service)}
       role="button"
       tabIndex={0}
