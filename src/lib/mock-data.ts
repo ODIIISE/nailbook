@@ -45,6 +45,7 @@ export interface Booking {
   end_time: string;
   status: "pending" | "confirmed" | "completed" | "cancelled";
   phone_verified: boolean;
+  paid: boolean;
   created_at: string;
   service?: Service;
 }

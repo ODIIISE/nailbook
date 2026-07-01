@@ -98,33 +98,36 @@ export function AgendaTimeline({
                 style={{ top: style.top, height: style.height }}
                 onClick={() => onSelectBooking(booking)}
               >
-                <div className="h-full rounded-lg bg-primary/10 border border-primary/30 p-2 hover:bg-primary/15 transition-colors overflow-hidden">
+                <div className="h-full rounded-md bg-primary/10 border border-primary/30 p-1.5 hover:bg-primary/15 transition-colors overflow-hidden">
                   <div className="flex items-center justify-between mb-0.5">
-                    <div className="flex items-center gap-1">
-                      <User className="h-3 w-3 text-primary shrink-0" />
-                      <span className="text-xs font-semibold text-primary truncate">
+                    <div className="flex items-center gap-1 min-w-0">
+                      <User className="h-2.5 w-2.5 text-primary shrink-0" />
+                      <span className="text-[10px] font-semibold text-primary truncate">
                         {booking.customer_name}
                       </span>
                     </div>
-                    <Badge variant="default" className="text-[9px] px-1.5 py-0 h-4">
-                      {booking.status === "confirmed" ? "تایید شده" : "در انتظار"}
+                    <Badge
+                      variant={booking.paid ? "default" : "secondary"}
+                      className={`text-[8px] px-1 py-0 h-3.5 ${booking.paid ? "bg-success text-white" : "bg-destructive/10 text-destructive"}`}
+                    >
+                      {booking.paid ? "پرداخت شده" : "پرداخت نشده"}
                     </Badge>
                   </div>
-                  <p className="text-[10px] text-primary/70 truncate">
+                  <p className="text-[9px] text-primary/70 truncate">
                     {booking.service?.name}
                   </p>
-                  {style.height > 45 && (
+                  {style.height > 40 && (
                     <div className="flex items-center justify-between mt-0.5">
-                      <p className="text-[10px] text-primary/50">
+                      <p className="text-[9px] text-primary/50">
                         {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
                       </p>
-                      <p className="text-[10px] font-bold text-primary/70">
+                      <p className="text-[9px] font-bold text-primary/70">
                         {toPersianDigits(price.toLocaleString("fa-IR"))}
                       </p>
                     </div>
                   )}
-                  {style.height > 65 && (
-                    <p className="text-[9px] text-primary/40 mt-0.5">
+                  {style.height > 55 && (
+                    <p className="text-[8px] text-primary/40 mt-0.5">
                       {toPersianDigits(booking.service?.duration_minutes || 0)} دقیقه
                     </p>
                   )}

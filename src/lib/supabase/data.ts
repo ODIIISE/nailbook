@@ -96,6 +96,7 @@ export async function fetchBookings(): Promise<Booking[]> {
     end_time: b.end_time,
     status: b.status,
     phone_verified: b.phone_verified,
+    paid: b.paid || false,
     created_at: b.created_at,
   }));
 }

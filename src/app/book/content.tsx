@@ -171,6 +171,7 @@ export default function BookContent() {
         end_time: `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`,
         status: "confirmed",
         phone_verified: true,
+        paid: false,
         created_at: new Date().toISOString(),
         service: selectedService,
       };
