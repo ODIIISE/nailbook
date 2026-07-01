@@ -1,0 +1,23 @@
+const FA_TO_EN: Record<string, string> = {
+  "۰": "0", "۱": "1", "۲": "2", "۳": "3", "۴": "4",
+  "۵": "5", "۶": "6", "۷": "7", "۸": "8", "۹": "9",
+};
+
+const EN_TO_FA: Record<string, string> = {
+  "0": "۰", "1": "۱", "2": "۲", "3": "۳", "4": "۴",
+  "5": "۵", "6": "۶", "7": "۷", "8": "۸", "9": "۹",
+};
+
+export function normalizeDigits(input: string): string {
+  return input
+    .split("")
+    .map((ch) => FA_TO_EN[ch] || ch)
+    .join("");
+}
+
+export function displayDigits(input: string): string {
+  return input
+    .split("")
+    .map((ch) => EN_TO_FA[ch] || ch)
+    .join("");
+}

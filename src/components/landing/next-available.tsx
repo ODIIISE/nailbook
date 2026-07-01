@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Clock, Sparkles } from "lucide-react";
-import { formatJalaliDateShort, formatJalaliTime, toPersianDigits, getJalaliWeekdayName } from "@/lib/jalali";
+import { formatJalaliDateShort, formatJalaliTime, toPersianDigits, getJalaliWeekdayFullName } from "@/lib/jalali";
 import { gregorianToJalali } from "@/lib/jalali";
 
 interface NextAvailableProps {
@@ -15,39 +15,49 @@ export function NextAvailable({ date, time, onBookNow }: NextAvailableProps) {
   if (!date || !time) return null;
 
   const jalali = gregorianToJalali(date);
-  const weekday = getJalaliWeekdayName(date);
+  const weekday = getJalaliWeekdayFullName(date);
+  const monthName = formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd).split(" ").slice(1).join(" ");
 
   return (
     <div className="px-4 mb-6">
-      <div className="mx-auto max-w-lg glass rounded-3xl p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="h-4 w-4 text-foreground" />
-          <span className="text-[13px] font-bold text-foreground uppercase tracking-wider">نزدیک‌ترین زمان</span>
+      <div className="mx-auto max-w-lg glass rounded-3xl p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center justify-center h-7 w-7 rounded-full bg-foreground/5">
+            <Sparkles className="h-4 w-4 text-foreground" />
+          </div>
+          <span className="text-[13px] font-bold text-foreground uppercase tracking-wider">نزدیک‌ترین زمان موجود</span>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="text-center">
-              <span className="text-[36px] font-extrabold text-foreground leading-none block">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-baseline gap-3 mb-3">
+              <span className="text-[44px] font-extrabold text-foreground leading-none tracking-tight">
                 {toPersianDigits(jalali.jd)}
               </span>
-              <span className="text-[11px] text-muted-foreground">
-                {formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd).split(" ").slice(1).join(" ")}
-              </span>
+              <div>
+                <span className="text-[17px] font-bold text-foreground block">
+                  {monthName}
+                </span>
+                <span className="text-[15px] text-muted-foreground">{weekday}</span>
+              </div>
             </div>
-            <div className="h-10 w-px bg-white/30" />
-            <div>
-              <span className="text-[15px] font-bold text-foreground block">{weekday}</span>
-              <div className="flex items-center gap-1 mt-0.5">
-                <Clock className="h-3 w-3 text-muted-foreground" />
-                <span className="text-[13px] text-muted-foreground">{formatJalaliTime(time)}</span>
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center h-8 w-8 rounded-xl bg-foreground/5">
+                <Clock className="h-4 w-4 text-foreground" />
+              </div>
+              <div>
+                <span className="text-[17px] font-bold text-foreground">
+                  {formatJalaliTime(time)}
+                </span>
+                <span className="text-[13px] text-muted-foreground mr-2">ساعت</span>
               </div>
             </div>
           </div>
 
-          <Button onClick={onBookNow} size="sm">
+          <Button onClick={onBookNow} className="h-12 px-6 rounded-full">
             رزرو کن
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-5 w-5" />
           </Button>
         </div>
       </div>

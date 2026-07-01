@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { toPersianDigits } from "@/lib/jalali";
 import {
   Menu,
   X,
@@ -111,7 +112,7 @@ export function Header({ showBack = false, title, subtitle }: HeaderProps) {
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"
                 >
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-[15px]" dir="ltr">{salon.phone}</span>
+                  <span className="text-[15px]" dir="ltr">{toPersianDigits(salon.phone)}</span>
                 </a>
 
                 <a

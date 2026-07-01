@@ -75,6 +75,7 @@ export function CustomerForm({ onSubmit, isLoading }: CustomerFormProps) {
             placeholder="۰۹۱۲۱۲۳۴۵۶۷"
             dir="ltr"
             className="mt-1 text-left"
+            displayFarsi
           />
           {errors.phone && (
             <p className="mt-1 text-xs text-destructive">{errors.phone}</p>

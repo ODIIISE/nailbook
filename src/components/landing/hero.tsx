@@ -1,6 +1,7 @@
 "use client";
 
 import { MapPin, Phone, Clock, Sparkles } from "lucide-react";
+import { toPersianDigits } from "@/lib/jalali";
 import type { SalonInfo } from "@/lib/mock-data";
 
 interface HeroProps {
@@ -50,7 +51,7 @@ export function Hero({ salon }: HeroProps) {
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/50">
                 <Phone className="h-4 w-4 text-foreground" />
               </div>
-              <span dir="ltr">{salon.phone}</span>
+              <span dir="ltr">{toPersianDigits(salon.phone)}</span>
             </div>
             <div className="flex items-center gap-3 text-[15px] text-foreground">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/50">

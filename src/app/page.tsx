@@ -87,7 +87,7 @@ export default function HomePage() {
 
       <footer className="px-4 py-6 text-center">
         <p className="text-xs text-muted-foreground">
-          ساخته شده با ❤️ برای ناخن‌های سوفی
+          ساخته شده با ❤️ برای Forehand Nail Studio
         </p>
       </footer>
     </div>

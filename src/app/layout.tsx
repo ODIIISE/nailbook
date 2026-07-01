@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ناخن‌های سوفی | رزرو آنلاین",
-  description: "رزرو آنلاین نوبت ناخن با یک لینک. سریع، ساده، بدون دردسر.",
+  title: "Forehand Nail Studio | رزرو آنلاین",
+  description: "Forehand Nail Studio — رزرو آنلاین نوبت ناخن در مشهد",
   manifest: "/manifest.json",
 };
 
