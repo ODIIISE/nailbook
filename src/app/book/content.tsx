@@ -15,6 +15,7 @@ import { BookingConfirm } from "@/components/booking/booking-confirm";
 import { AddonSelect } from "@/components/booking/addon-select";
 import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
+import { useAuth } from "@/lib/auth-context";
 import type { Booking } from "@/lib/mock-data";
 
 type BookingStep = "date" | "addon" | "time" | "info" | "otp" | "confirmed";
@@ -23,6 +24,7 @@ export default function BookContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { salon, workingHours, services, addons, bookings, blockedTimes, addBooking } = useSalon();
+  const { sendCode, verifyCode } = useAuth();
   const [step, setStep] = useState<BookingStep>("date");
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
@@ -132,48 +134,53 @@ export default function BookContent() {
     setSelectedTime((prev) => (prev === time ? null : time));
   }, []);
 
-  const handleCustomerSubmit = useCallback((name: string, phone: string) => {
+  const handleCustomerSubmit = useCallback(async (name: string, phone: string) => {
     setCustomerName(name);
     setCustomerPhone(phone);
-    setStep("otp");
-  }, []);
-
-  const handleOtpVerify = useCallback((code: string) => {
     setIsLoading(true);
-    setTimeout(() => {
-      if (code.length === 4 && selectedDate && selectedService) {
-        const id = crypto.randomUUID();
-        setBookingId(`BK-${Date.now().toString(36).toUpperCase()}`);
+    const sent = await sendCode(phone);
+    setIsLoading(false);
+    if (sent) {
+      setStep("otp");
+    }
+  }, [sendCode]);
 
-        const [h, m] = selectedTime!.split(":").map(Number);
-        const endMinutes = h * 60 + m + totalDuration;
-        const endH = Math.floor(endMinutes / 60);
-        const endM = endMinutes % 60;
+  const handleOtpVerify = useCallback(async (code: string) => {
+    setIsLoading(true);
+    const verified = await verifyCode(customerPhone, code);
+    setIsLoading(false);
 
-        const newBooking: Booking = {
-          id,
-          service_id: selectedService.id,
-          selected_addons: selectedAddons,
-          customer_name: customerName,
-          customer_phone: customerPhone,
-          date: "",
-          date_gregorian: selectedDate.toISOString().split("T")[0],
-          start_time: `${selectedTime}:00`,
-          end_time: `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`,
-          status: "confirmed",
-          phone_verified: true,
-          created_at: new Date().toISOString(),
-          service: selectedService,
-        };
+    if (verified && selectedDate && selectedService) {
+      const id = crypto.randomUUID();
+      setBookingId(`BK-${Date.now().toString(36).toUpperCase()}`);
 
-        addBooking(newBooking);
-        setStep("confirmed");
-      } else {
-        setOtpError("کد تایید صحیح نیست");
-      }
-      setIsLoading(false);
-    }, 1000);
-  }, [selectedDate, selectedService, selectedTime, customerName, customerPhone, addBooking, selectedAddons, totalDuration]);
+      const [h, m] = selectedTime!.split(":").map(Number);
+      const endMinutes = h * 60 + m + totalDuration;
+      const endH = Math.floor(endMinutes / 60);
+      const endM = endMinutes % 60;
+
+      const newBooking: Booking = {
+        id,
+        service_id: selectedService.id,
+        selected_addons: selectedAddons,
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        date: "",
+        date_gregorian: selectedDate.toISOString().split("T")[0],
+        start_time: `${selectedTime}:00`,
+        end_time: `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`,
+        status: "confirmed",
+        phone_verified: true,
+        created_at: new Date().toISOString(),
+        service: selectedService,
+      };
+
+      addBooking(newBooking);
+      setStep("confirmed");
+    } else {
+      setOtpError("کد تایید نادرست یا منقضی شده");
+    }
+  }, [customerPhone, selectedDate, selectedService, selectedTime, customerName, addBooking, selectedAddons, totalDuration, verifyCode]);
 
   const handleResendOtp = useCallback(() => {
     setOtpError("");
