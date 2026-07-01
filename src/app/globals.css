@@ -137,8 +137,6 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    background: linear-gradient(135deg, #FFB4A2 0%, #E5989B 25%, #B5838D 50%, #6D6875 100%);
-    background-attachment: fixed;
   }
   html {
     @apply font-sans;
@@ -147,19 +145,15 @@
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+  background: #FFFFFF;
+  border: 1px solid #E8E8ED;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .glass-strong {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+  background: #FFFFFF;
+  border-bottom: 1px solid #E8E8ED;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 @layer utilities {
