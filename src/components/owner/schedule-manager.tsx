@@ -176,7 +176,8 @@ export function ScheduleManager({
                       onChange={(e) =>
                         updateTime(day.key, "open", e.target.value)
                       }
-                      className="mt-1"
+                      className="mt-1 text-center"
+                      dir="ltr"
                     />
                   </div>
                   <div>
@@ -187,7 +188,8 @@ export function ScheduleManager({
                       onChange={(e) =>
                         updateTime(day.key, "close", e.target.value)
                       }
-                      className="mt-1"
+                      className="mt-1 text-center"
+                      dir="ltr"
                     />
                   </div>
                 </div>

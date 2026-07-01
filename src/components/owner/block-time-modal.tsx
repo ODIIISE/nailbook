@@ -36,7 +36,8 @@ export function BlockTimeModal({ date, onBlock, onCancel }: BlockTimeModalProps)
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="mt-1"
+              className="mt-1 text-center"
+              dir="ltr"
             />
           </div>
           <div>
@@ -46,7 +47,8 @@ export function BlockTimeModal({ date, onBlock, onCancel }: BlockTimeModalProps)
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="mt-1"
+              className="mt-1 text-center"
+              dir="ltr"
             />
           </div>
         </div>

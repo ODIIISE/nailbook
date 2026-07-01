@@ -16,6 +16,7 @@ function Switch({ checked, onCheckedChange, disabled, className }: SwitchProps) 
       role="switch"
       aria-checked={checked}
       disabled={disabled}
+      dir="ltr"
       onClick={() => onCheckedChange(!checked)}
       className={cn(
         "relative inline-flex h-[28px] w-[48px] shrink-0 cursor-pointer items-center rounded-full p-[3px] transition-all duration-200 outline-none",
