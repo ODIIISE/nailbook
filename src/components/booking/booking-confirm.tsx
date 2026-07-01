@@ -57,8 +57,7 @@ export function BookingConfirm({
       location: salonAddress,
     });
 
-    const url = `https://calendar.google.com/calendar/render?${params.toString()}`;
-    window.open(url, "_blank");
+    window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, "_blank");
   };
 
   const handleShare = async () => {
@@ -71,63 +70,56 @@ export function BookingConfirm({
   };
 
   return (
-    <Card className="mx-auto max-w-lg p-6 text-center animate-spring">
+    <Card className="mx-auto max-w-lg p-6 text-center animate-scale">
       <div className="mb-4">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10 animate-spring">
-          <CheckCircle className="h-10 w-10 text-success" />
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success/10">
+          <CheckCircle className="h-8 w-8 text-success" />
         </div>
       </div>
 
-      <h2 className="text-h2 text-foreground mb-1">رزرو شما تایید شد!</h2>
-      <p className="text-body text-muted-foreground mb-6">
+      <h2 className="text-h1 text-foreground mb-1">رزرو تایید شد!</h2>
+      <p className="text-[15px] text-muted-foreground mb-5">
         {customerName} عزیز، نوبت شما ثبت شد
       </p>
 
-      <Card className="p-4 mb-6 text-right">
-        <div className="space-y-2">
+      <Card className="p-4 mb-5 text-right">
+        <div className="space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">خدمت</span>
-            <span className="font-semibold">{serviceName}</span>
+            <span className="text-[13px] text-muted-foreground">خدمت</span>
+            <span className="text-[15px] font-bold">{serviceName}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">تاریخ</span>
-            <span className="font-semibold">{shortDate}</span>
+            <span className="text-[13px] text-muted-foreground">تاریخ</span>
+            <span className="text-[15px] font-bold">{shortDate}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">ساعت</span>
-            <span className="font-semibold">{formattedTime}</span>
+            <span className="text-[13px] text-muted-foreground">ساعت</span>
+            <span className="text-[15px] font-bold">{formattedTime}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">مدت</span>
-            <span className="font-semibold">{toPersianDigits(duration)} دقیقه</span>
+            <span className="text-[13px] text-muted-foreground">مدت</span>
+            <span className="text-[15px] font-bold">{toPersianDigits(duration)} دقیقه</span>
           </div>
-          <div className="flex items-center justify-between border-t pt-2">
-            <span className="text-muted-foreground">هزینه</span>
-            <span className="font-bold text-primary">
+          <div className="flex items-center justify-between border-t border-border pt-2.5">
+            <span className="text-[13px] text-muted-foreground">هزینه</span>
+            <span className="text-[17px] font-bold text-primary">
               {toPersianDigits(price.toLocaleString("fa-IR"))} تومان
             </span>
           </div>
         </div>
-        <div className="mt-3 pt-3 border-t">
-          <Badge variant="outline" className="text-xs">
+        <div className="mt-3 pt-3 border-t border-border">
+          <Badge variant="outline" className="text-[13px]">
             کد رهگیری: #{shortId}
           </Badge>
         </div>
       </Card>
 
-      <div className="space-y-3">
-        <Button
-          className="w-full"
-          onClick={handleAddToGoogleCalendar}
-        >
+      <div className="space-y-2.5">
+        <Button className="w-full" onClick={handleAddToGoogleCalendar}>
           <Calendar className="h-4 w-4 ml-2" />
           افزودن به تقویم گوگل
         </Button>
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={handleShare}
-        >
+        <Button variant="outline" className="w-full" onClick={handleShare}>
           <Share2 className="h-4 w-4 ml-2" />
           اشتراک‌گذاری
         </Button>

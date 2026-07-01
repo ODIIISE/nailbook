@@ -1,6 +1,5 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
 import { MapPin, Phone, Clock, Sparkles } from "lucide-react";
 import type { SalonInfo } from "@/lib/mock-data";
 
@@ -24,46 +23,44 @@ function getWorkingHoursText(hours: Record<string, { open: string; close: string
 
 export function Hero({ salon }: HeroProps) {
   return (
-    <div className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/8 via-primary/3 to-transparent" />
-      <div className="relative px-4 pt-10 pb-8">
-        <div className="mx-auto max-w-lg text-center animate-stagger">
-          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 animate-scale">
-            <Sparkles className="h-8 w-8 text-primary" />
+    <div className="relative">
+      <div className="relative">
+        <img
+          src="https://picsum.photos/seed/nailsalon/800/400"
+          alt={salon.name}
+          className="w-full h-48 object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute bottom-4 left-4 right-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <span className="text-[13px] font-bold text-white/80 uppercase tracking-wider">رزرو آنلاین</span>
           </div>
-          <h1 className="text-display text-foreground mb-2">
-            {salon.name}
-          </h1>
+          <h1 className="text-display text-white mb-1">{salon.name}</h1>
           {salon.slogan && (
-            <p className="mb-2 text-body-lg text-primary font-semibold">
-              {salon.slogan}
-            </p>
+            <p className="text-[15px] text-white/80">{salon.slogan}</p>
           )}
-          <p className="mb-6 text-body text-muted-foreground leading-relaxed max-w-sm mx-auto">
-            {salon.description}
-          </p>
-          <Card className="p-5 bg-card/80 backdrop-blur-sm">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 text-body text-muted-foreground">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                  <MapPin className="h-4 w-4 text-primary" />
-                </div>
-                <span>{salon.address}</span>
-              </div>
-              <div className="flex items-center gap-3 text-body text-muted-foreground">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                  <Phone className="h-4 w-4 text-primary" />
-                </div>
-                <span dir="ltr">{salon.phone}</span>
-              </div>
-              <div className="flex items-center gap-3 text-body text-muted-foreground">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                  <Clock className="h-4 w-4 text-primary" />
-                </div>
-                <span>{getWorkingHoursText(salon.working_hours)}</span>
-              </div>
-            </div>
-          </Card>
+        </div>
+      </div>
+
+      <div className="px-4 py-4">
+        <p className="text-[15px] text-muted-foreground leading-relaxed mb-4">
+          {salon.description}
+        </p>
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 text-[15px] text-foreground">
+            <MapPin className="h-4 w-4 text-primary shrink-0" />
+            <span>{salon.address}</span>
+          </div>
+          <div className="flex items-center gap-3 text-[15px] text-foreground">
+            <Phone className="h-4 w-4 text-primary shrink-0" />
+            <span dir="ltr">{salon.phone}</span>
+          </div>
+          <div className="flex items-center gap-3 text-[15px] text-foreground">
+            <Clock className="h-4 w-4 text-primary shrink-0" />
+            <span>{getWorkingHoursText(salon.working_hours)}</span>
+          </div>
         </div>
       </div>
     </div>

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
   Menu,
@@ -35,29 +34,29 @@ export function Header({ showBack = false, title, subtitle }: HeaderProps) {
 
   return (
     <>
-      <div className="sticky top-0 z-30 bg-warm-white/95 backdrop-blur-sm border-b border-border">
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="mx-auto max-w-lg px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {showBack && !isHome ? (
-              <Button variant="ghost" size="icon" onClick={() => router.back()}>
+              <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
                 <ArrowRight className="h-5 w-5" />
               </Button>
             ) : null}
             {title ? (
               <div>
-                <h1 className="font-semibold text-foreground">{title}</h1>
+                <h1 className="text-[17px] font-bold text-foreground">{title}</h1>
                 {subtitle && (
-                  <p className="text-xs text-muted-foreground">{subtitle}</p>
+                  <p className="text-[13px] text-muted-foreground">{subtitle}</p>
                 )}
               </div>
             ) : (
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
-                <span className="font-bold text-foreground text-sm">{salon.name}</span>
+                <span className="text-[17px] font-bold text-foreground">{salon.name}</span>
               </div>
             )}
           </div>
-          <Button variant="ghost" size="icon" onClick={() => setMenuOpen(true)}>
+          <Button variant="ghost" size="icon-sm" onClick={() => setMenuOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
         </div>
@@ -69,81 +68,72 @@ export function Header({ showBack = false, title, subtitle }: HeaderProps) {
             className="absolute inset-0 bg-black/40"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="absolute top-0 right-0 h-full w-72 bg-warm-white shadow-xl">
+          <div className="absolute top-0 right-0 h-full w-72 bg-background border-l border-border">
             <div className="p-4">
               <div className="flex items-center justify-between mb-6">
-                <span className="font-bold text-foreground">{salon.name}</span>
-                <Button variant="ghost" size="icon" onClick={() => setMenuOpen(false)}>
+                <span className="text-[17px] font-bold text-foreground">{salon.name}</span>
+                <Button variant="ghost" size="icon-sm" onClick={() => setMenuOpen(false)}>
                   <X className="h-5 w-5" />
                 </Button>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 <button
-                  onClick={() => {
-                    router.push("/");
-                    setMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary text-right transition-colors"
+                  onClick={() => { router.push("/"); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors"
                 >
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">صفحه اصلی</span>
+                  <span className="text-[15px]">صفحه اصلی</span>
                 </button>
 
                 <button
-                  onClick={() => {
-                    router.push("/book");
-                    setMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary text-right transition-colors"
+                  onClick={() => { router.push("/book"); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors"
                 >
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">رزرو نوبت</span>
+                  <span className="text-[15px]">رزرو نوبت</span>
                 </button>
 
-                <Separator className="my-3" />
+                <Separator className="my-2" />
 
                 <button
-                  onClick={() => {
-                    router.push("/owner/login");
-                    setMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary text-right transition-colors"
+                  onClick={() => { router.push("/owner/login"); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors"
                 >
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">ورود مدیر</span>
+                  <span className="text-[15px]">ورود مدیر</span>
                 </button>
 
-                <Separator className="my-3" />
+                <Separator className="my-2" />
 
                 <a
                   href={`tel:${salon.phone}`}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary text-right transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors"
                 >
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm" dir="ltr">{salon.phone}</span>
+                  <span className="text-[15px]" dir="ltr">{salon.phone}</span>
                 </a>
 
                 <a
                   href="https://instagram.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary text-right transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors"
                 >
                   <AtSign className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">اینستاگرام</span>
+                  <span className="text-[15px]">اینستاگرام</span>
                 </a>
 
-                <Separator className="my-3" />
+                <Separator className="my-2" />
 
                 <div className="px-3 py-2">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-1.5">
                     <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">{salon.address}</span>
+                    <span className="text-[13px] text-muted-foreground">{salon.address}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[13px] text-muted-foreground">
                       {(() => {
                         const hours = salon.working_hours;
                         const active = Object.entries(hours).filter(([,v]) => v !== null);

@@ -16,8 +16,8 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot }: TimeSlots
   if (!date) {
     return (
       <Card className="mx-auto max-w-lg p-8 text-center">
-        <Clock className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" />
-        <p className="text-body text-muted-foreground">تاریخ را انتخاب کنید</p>
+        <Clock className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
+        <p className="text-[15px] text-muted-foreground">تاریخ را انتخاب کنید</p>
       </Card>
     );
   }
@@ -25,34 +25,33 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot }: TimeSlots
   if (slots.length === 0) {
     return (
       <Card className="mx-auto max-w-lg p-8 text-center">
-        <Ban className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" />
-        <p className="text-body text-muted-foreground">ساعتی موجود نیست</p>
-        <p className="text-caption text-muted-foreground/50 mt-1">تاریخ دیگری انتخاب کنید</p>
+        <Ban className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
+        <p className="text-[15px] text-muted-foreground">ساعتی موجود نیست</p>
+        <p className="text-[13px] text-muted-foreground/50 mt-1">تاریخ دیگری انتخاب کنید</p>
       </Card>
     );
   }
 
   const availableCount = slots.filter((s) => s.available).length;
-  const takenCount = slots.filter((s) => s.booked).length;
 
   return (
     <div className="mx-auto max-w-lg">
       <div className="flex items-center justify-between mb-3 px-1">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-primary" />
-            <span className="text-caption text-muted-foreground"> موجود</span>
+            <span className="h-2 w-2 rounded-full bg-primary" />
+            <span className="text-[13px] text-muted-foreground">موجود</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
-            <span className="text-caption text-muted-foreground">رزرو شده</span>
+            <span className="h-2 w-2 rounded-full bg-border" />
+            <span className="text-[13px] text-muted-foreground">رزرو شده</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-destructive/50" />
-            <span className="text-caption text-muted-foreground">غیرفعال</span>
+            <span className="h-2 w-2 rounded-full bg-destructive/50" />
+            <span className="text-[13px] text-muted-foreground">غیرفعال</span>
           </div>
         </div>
-        <span className="text-caption text-muted-foreground">
+        <span className="text-[13px] text-muted-foreground">
           {toPersianDigits(availableCount)} موجود
         </span>
       </div>
@@ -72,28 +71,19 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot }: TimeSlots
               onClick={() => slot.available && onSelectSlot(slot.time)}
               aria-label={`${formattedTime} ${isFree ? "موجود" : isTaken ? "رزرو شده" : isLocked ? "قفل شده" : ""}`}
               className={`
-                relative h-14 rounded-xl text-sm font-medium transition-all duration-150 flex flex-col items-center justify-center gap-0.5
-                focus-visible:ring-3 focus-visible:ring-primary/50 focus-visible:outline-none
+                h-10 rounded-full text-[13px] font-bold transition-all duration-150
+                focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none
                 ${isSelected
-                  ? "bg-primary text-white shadow-lg shadow-primary/25 scale-105 ring-2 ring-primary/30"
+                  ? "bg-primary text-white"
                   : isFree
-                    ? "bg-card border border-primary/20 text-foreground hover:bg-primary/5 hover:border-primary/40 active:scale-95 cursor-pointer shadow-[var(--shadow-card)]"
+                    ? "bg-primary/10 text-primary hover:bg-primary/20 active:scale-95 cursor-pointer"
                     : isTaken
-                      ? "bg-muted/60 text-muted-foreground/50 cursor-not-allowed line-through"
-                      : "bg-destructive/5 text-destructive/40 cursor-not-allowed border border-destructive/10"
+                      ? "bg-muted text-muted-foreground/40 cursor-not-allowed line-through"
+                      : "bg-destructive/5 text-destructive/40 cursor-not-allowed"
                 }
               `}
             >
-              <span className="text-sm font-semibold">{formattedTime}</span>
-              {isSelected && (
-                <Check className="h-3 w-3 text-white" />
-              )}
-              {isTaken && !isSelected && (
-                <span className="text-[9px] text-muted-foreground/40">رزرو شده</span>
-              )}
-              {isLocked && !isSelected && (
-                <span className="text-[9px] text-destructive/40">قفل</span>
-              )}
+              {formattedTime}
             </button>
           );
         })}
