@@ -18,7 +18,7 @@ function Switch({ checked, onCheckedChange, disabled, className }: SwitchProps) 
       disabled={disabled}
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        "relative inline-flex h-7 w-[52px] shrink-0 cursor-pointer items-center rounded-full p-[3px] transition-colors duration-150 outline-none",
+        "relative inline-flex h-7 w-[52px] shrink-0 cursor-pointer items-center rounded-full p-[3px] transition-colors duration-200 outline-none",
         checked ? "bg-primary" : "bg-muted",
         disabled && "cursor-not-allowed opacity-50",
         className
@@ -26,7 +26,7 @@ function Switch({ checked, onCheckedChange, disabled, className }: SwitchProps) 
     >
       <span
         className={cn(
-          "block h-[22px] w-[22px] rounded-full bg-white shadow-md transition-transform duration-150",
+          "block h-[22px] w-[22px] rounded-full bg-white shadow-md transition-transform duration-200",
           checked ? "translate-x-[-25px]" : "translate-x-0"
         )}
       />

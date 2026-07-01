@@ -13,7 +13,7 @@ interface ServiceCardProps {
 export function ServiceCard({ service, onSelect }: ServiceCardProps) {
   return (
     <Card
-      className="p-5 rounded-2xl cursor-pointer transition-all duration-150 hover:border-primary/20 active:scale-[0.98] focus-visible:ring-3 focus-visible:ring-primary/50"
+      className="p-5 cursor-pointer transition-all duration-200 hover:border-primary/30 hover:shadow-[var(--shadow-elevated)] active:scale-[0.98] focus-visible:ring-3 focus-visible:ring-primary/50"
       onClick={() => onSelect(service)}
       role="button"
       tabIndex={0}
@@ -33,13 +33,13 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
               <Clock className="h-3.5 w-3.5" />
               <span>{toPersianDigits(service.duration_minutes)} دقیقه</span>
             </div>
-            <span className="text-body font-bold text-primary">
+            <span className="text-body-lg font-bold text-primary">
               {toPersianDigits(service.price.toLocaleString("fa-IR"))} تومان
             </span>
           </div>
         </div>
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted transition-colors group-hover:bg-primary/10">
-          <ChevronLeft className="h-5 w-5 text-muted-foreground" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 transition-colors group-hover:bg-primary/20">
+          <ChevronLeft className="h-5 w-5 text-primary" />
         </div>
       </div>
     </Card>

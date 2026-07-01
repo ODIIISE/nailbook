@@ -19,32 +19,32 @@ export function NextAvailable({ date, time, onBookNow }: NextAvailableProps) {
 
   return (
     <div className="px-4 mb-8">
-      <div className="mx-auto max-w-lg rounded-2xl border border-primary/20 bg-card p-5">
+      <div className="mx-auto max-w-lg rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-5">
         <div className="flex items-center gap-2.5 mb-4">
           <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary/10">
             <Sparkles className="h-4 w-4 text-primary" />
           </div>
-          <span className="text-sm font-semibold text-primary">نزدیک‌ترین زمان موجود</span>
+          <span className="text-caption font-semibold text-primary uppercase tracking-wider">نزدیک‌ترین زمان موجود</span>
         </div>
 
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-baseline gap-2.5">
-              <span className="text-3xl font-bold text-foreground tracking-tight">
+              <span className="text-[40px] font-extrabold text-foreground tracking-tight leading-none">
                 {toPersianDigits(jalali.jd)}
               </span>
               <div>
-                <span className="text-sm font-medium text-muted-foreground block">
+                <span className="text-sm font-semibold text-muted-foreground block">
                   {formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd).split(" ").slice(1).join(" ")}
                 </span>
                 <span className="text-xs text-muted-foreground">{weekday}</span>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 mt-2.5">
+            <div className="flex items-center gap-1.5 mt-3">
               <div className="flex items-center justify-center h-5 w-5 rounded-md bg-muted">
                 <Clock className="h-3 w-3 text-muted-foreground" />
               </div>
-              <span className="text-sm font-semibold text-foreground">
+              <span className="text-sm font-bold text-foreground">
                 {formatJalaliTime(time)}
               </span>
             </div>
@@ -52,7 +52,7 @@ export function NextAvailable({ date, time, onBookNow }: NextAvailableProps) {
 
           <Button
             onClick={onBookNow}
-            className="h-12 px-6 rounded-xl font-semibold text-sm gap-2"
+            className="h-12 px-6 rounded-xl font-bold text-sm gap-2"
           >
             رزرو کن
             <ChevronLeft className="h-4 w-4" />
