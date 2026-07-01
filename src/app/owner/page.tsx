@@ -91,41 +91,39 @@ export default function OwnerDashboard() {
 
   return (
     <div className="min-h-screen ">
-      <div className="sticky top-0 z-10 /95 backdrop-blur-sm border-b border-border">
-        <div className="mx-auto max-w-lg px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="font-bold text-foreground">{salon.name}</h1>
-              <p className="text-xs text-muted-foreground">داشبورد مدیر</p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => router.push("/owner/settings")}
-              >
-                تنظیمات
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => router.push("/owner/schedule")}
-              >
-                ساعات کاری
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => router.push("/owner/services")}
-              >
-                خدمات
-              </Button>
-            </div>
-          </div>
+      <div className="sticky top-0 z-10 glass-strong h-14">
+        <div className="mx-auto max-w-lg px-4 h-full flex items-center justify-center">
+          <h1 className="text-[17px] font-bold text-foreground">{salon.name}</h1>
         </div>
       </div>
 
       <div className="mx-auto max-w-lg px-4 py-4 space-y-4">
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            onClick={() => router.push("/owner/settings")}
+          >
+            تنظیمات
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            onClick={() => router.push("/owner/schedule")}
+          >
+            ساعات کاری
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            onClick={() => router.push("/owner/services")}
+          >
+            خدمات
+          </Button>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <Card className="p-4 text-center">
             <p className="text-2xl font-bold text-foreground">

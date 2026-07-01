@@ -35,8 +35,8 @@ export function Header({ showBack = false, title, subtitle }: HeaderProps) {
 
   return (
     <>
-      <div className="sticky top-0 z-30 glass-strong">
-        <div className="mx-auto max-w-lg px-4 py-3 flex items-center justify-between">
+      <div className="sticky top-0 z-30 glass-strong h-14">
+        <div className="mx-auto max-w-lg px-4 h-full flex items-center justify-between">
           <div className="flex items-center gap-3">
             {showBack && !isHome ? (
               <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
