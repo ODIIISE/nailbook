@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,8 +8,10 @@ import { AgendaTimeline } from "@/components/owner/agenda-timeline";
 import { BlockTimeModal } from "@/components/owner/block-time-modal";
 import { BookingModal } from "@/components/owner/booking-modal";
 import { EarningsModal } from "@/components/owner/earnings-modal";
-import { Calendar, Clock, Briefcase, Settings, ChevronLeft } from "lucide-react";
-import { toPersianDigits, gregorianToJalali } from "@/lib/jalali";
+import { ManualReserveModal } from "@/components/owner/manual-reserve-modal";
+import { DateStrip } from "@/components/owner/date-strip";
+import { ChevronLeft, Plus } from "lucide-react";
+import { toPersianDigits } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 
 interface BlockedTime {
@@ -20,10 +21,10 @@ interface BlockedTime {
 }
 
 export default function OwnerDashboard() {
-  const router = useRouter();
-  const { salon, bookings, services, blockedTimes, updateBlockedTimes, refreshBookings } = useSalon();
+  const { salon, bookings, services, blockedTimes, updateBlockedTimes, addBooking, refreshBookings } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
+  const [showManualReserve, setShowManualReserve] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [paidBookings, setPaidBookings] = useState<Set<string>>(new Set());
   const [showEarnings, setShowEarnings] = useState(false);
@@ -73,18 +74,6 @@ export default function OwnerDashboard() {
     return { paid, unpaid, total: paid + unpaid };
   }, [currentDate, bookings, services, paidBookings]);
 
-  const prevDay = () => {
-    const d = new Date(currentDate);
-    d.setDate(d.getDate() - 1);
-    setCurrentDate(d);
-  };
-
-  const nextDay = () => {
-    const d = new Date(currentDate);
-    d.setDate(d.getDate() + 1);
-    setCurrentDate(d);
-  };
-
   const handleBlockTime = (startTime: string, endTime: string, reason: string) => {
     const dateStr = currentDate.toISOString().split("T")[0];
     updateBlockedTimes([...blockedTimes, { date_gregorian: dateStr, start_time: startTime, end_time: endTime }]);
@@ -95,23 +84,64 @@ export default function OwnerDashboard() {
     updateBlockedTimes(blockedTimes.filter((b) => b.start_time !== id || b.date_gregorian !== currentDate.toISOString().split("T")[0]));
   };
 
+  const handleManualReserve = (data: {
+    customer_name: string;
+    customer_phone: string;
+    service_id: string;
+    start_time: string;
+    end_time: string;
+  }) => {
+    const dateStr = currentDate.toISOString().split("T")[0];
+    const service = services.find((s) => s.id === data.service_id);
+
+    addBooking({
+      id: crypto.randomUUID(),
+      service_id: data.service_id,
+      selected_addons: [],
+      customer_name: data.customer_name,
+      customer_phone: data.customer_phone,
+      date: "",
+      date_gregorian: dateStr,
+      start_time: data.start_time + ":00",
+      end_time: data.end_time + ":00",
+      status: "confirmed",
+      phone_verified: true,
+      paid: false,
+      created_at: new Date().toISOString(),
+      service,
+    });
+
+    setShowManualReserve(false);
+  };
+
   return (
-    <div className="min-h-screen pb-20">
-      <div className="sticky top-0 z-10 glass-strong h-14">
-        <div className="mx-auto max-w-lg px-4 h-full flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h1 className="text-[17px] font-bold text-foreground">{salon.name}</h1>
-            <Badge variant="secondary" className="text-[10px]">
-              {toPersianDigits(dayBookings.length)} نوبت
-            </Badge>
-          </div>
-          <Button variant="ghost" size="icon-sm" onClick={() => setShowBlockTime(true)}>
-            <span className="text-[13px] font-bold text-primary">+ مسدود</span>
+    <>
+      <div className="px-4 py-4 space-y-4">
+        <DateStrip
+          workingHours={salon.working_hours}
+          selectedDate={currentDate}
+          onSelectDate={setCurrentDate}
+        />
+
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => setShowBlockTime(true)}
+          >
+            <Plus className="h-4 w-4 ml-1" />
+            مسدود کردن زمان
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => setShowManualReserve(true)}
+          >
+            <Plus className="h-4 w-4 ml-1" />
+            رزرو دستی
           </Button>
         </div>
-      </div>
 
-      <div className="mx-auto max-w-lg px-4 py-4 space-y-4">
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[13px] font-bold text-foreground">حساب امروز</span>
@@ -146,44 +176,11 @@ export default function OwnerDashboard() {
           blockedTimes={dayBlockedTimes}
           date={currentDate}
           paidBookings={paidBookings}
-          onPrevDay={prevDay}
-          onNextDay={nextDay}
+          onPrevDay={() => {}}
+          onNextDay={() => {}}
           onSelectBooking={setSelectedBooking}
           onRemoveBlock={handleRemoveBlock}
         />
-      </div>
-
-      <div className="fixed bottom-0 left-0 right-0 z-20 glass-strong border-t border-border">
-        <div className="mx-auto max-w-lg flex">
-          <button
-            onClick={() => router.push("/owner")}
-            className="flex-1 flex flex-col items-center gap-1 py-3 text-primary"
-          >
-            <Calendar className="h-5 w-5" />
-            <span className="text-[10px] font-bold">زمان‌بندی</span>
-          </button>
-          <button
-            onClick={() => router.push("/owner/schedule")}
-            className="flex-1 flex flex-col items-center gap-1 py-3 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Clock className="h-5 w-5" />
-            <span className="text-[10px] font-bold">ساعات کاری</span>
-          </button>
-          <button
-            onClick={() => router.push("/owner/services")}
-            className="flex-1 flex flex-col items-center gap-1 py-3 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Briefcase className="h-5 w-5" />
-            <span className="text-[10px] font-bold">خدمات</span>
-          </button>
-          <button
-            onClick={() => router.push("/owner/settings")}
-            className="flex-1 flex flex-col items-center gap-1 py-3 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Settings className="h-5 w-5" />
-            <span className="text-[10px] font-bold">تنظیمات</span>
-          </button>
-        </div>
       </div>
 
       {showBlockTime && (
@@ -191,6 +188,15 @@ export default function OwnerDashboard() {
           date={currentDate}
           onBlock={handleBlockTime}
           onCancel={() => setShowBlockTime(false)}
+        />
+      )}
+
+      {showManualReserve && (
+        <ManualReserveModal
+          date={currentDate}
+          services={services}
+          onReserve={handleManualReserve}
+          onClose={() => setShowManualReserve(false)}
         />
       )}
 
@@ -222,6 +228,6 @@ export default function OwnerDashboard() {
           onClose={() => setShowEarnings(false)}
         />
       )}
-    </div>
+    </>
   );
 }

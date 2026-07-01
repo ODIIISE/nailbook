@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Header } from "@/components/layout/header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,10 +37,7 @@ export default function OwnerSettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <Header showBack title="تنظیمات" subtitle="مدیریت اطلاعات سالن" />
-
-      <div className="mx-auto max-w-lg px-4 py-6 space-y-6">
+    <div className="px-4 py-4 space-y-6">
         {/* Avatar / Logo */}
         <Card className="p-5">
           <div className="flex items-center gap-4">
@@ -136,7 +132,6 @@ export default function OwnerSettingsPage() {
           <Save className="h-5 w-5 ml-2" />
           {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
         </Button>
-      </div>
     </div>
   );
 }
