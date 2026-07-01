@@ -34,7 +34,7 @@ export function Header({ showBack = false, title, subtitle }: HeaderProps) {
 
   return (
     <>
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
+      <div className="sticky top-0 z-30 glass-strong">
         <div className="mx-auto max-w-lg px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {showBack && !isHome ? (
@@ -51,7 +51,7 @@ export function Header({ showBack = false, title, subtitle }: HeaderProps) {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
+                <Sparkles className="h-5 w-5 text-foreground" />
                 <span className="text-[17px] font-bold text-foreground">{salon.name}</span>
               </div>
             )}
@@ -65,10 +65,10 @@ export function Header({ showBack = false, title, subtitle }: HeaderProps) {
       {menuOpen && (
         <div className="fixed inset-0 z-50">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="absolute top-0 right-0 h-full w-72 bg-background border-l border-border">
+          <div className="absolute top-0 right-0 h-full w-72 glass-strong rounded-l-3xl">
             <div className="p-4">
               <div className="flex items-center justify-between mb-6">
                 <span className="text-[17px] font-bold text-foreground">{salon.name}</span>
@@ -80,7 +80,7 @@ export function Header({ showBack = false, title, subtitle }: HeaderProps) {
               <div className="space-y-0.5">
                 <button
                   onClick={() => { router.push("/"); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"
                 >
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-[15px]">صفحه اصلی</span>
@@ -88,27 +88,27 @@ export function Header({ showBack = false, title, subtitle }: HeaderProps) {
 
                 <button
                   onClick={() => { router.push("/book"); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"
                 >
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-[15px]">رزرو نوبت</span>
                 </button>
 
-                <Separator className="my-2" />
+                <Separator className="my-2 bg-white/20" />
 
                 <button
                   onClick={() => { router.push("/owner/login"); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"
                 >
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span className="text-[15px]">ورود مدیر</span>
                 </button>
 
-                <Separator className="my-2" />
+                <Separator className="my-2 bg-white/20" />
 
                 <a
                   href={`tel:${salon.phone}`}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"
                 >
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <span className="text-[15px]" dir="ltr">{salon.phone}</span>
@@ -118,13 +118,13 @@ export function Header({ showBack = false, title, subtitle }: HeaderProps) {
                   href="https://instagram.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"
                 >
                   <AtSign className="h-4 w-4 text-muted-foreground" />
                   <span className="text-[15px]">اینستاگرام</span>
                 </a>
 
-                <Separator className="my-2" />
+                <Separator className="my-2 bg-white/20" />
 
                 <div className="px-3 py-2">
                   <div className="flex items-center gap-2 mb-1.5">

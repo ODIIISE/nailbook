@@ -19,23 +19,23 @@ export function NextAvailable({ date, time, onBookNow }: NextAvailableProps) {
 
   return (
     <div className="px-4 mb-6">
-      <div className="mx-auto max-w-lg border border-border rounded-2xl p-4">
+      <div className="mx-auto max-w-lg glass rounded-3xl p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="h-4 w-4 text-primary" />
-          <span className="text-[13px] font-bold text-primary uppercase tracking-wider">نزدیک‌ترین زمان</span>
+          <Sparkles className="h-4 w-4 text-foreground" />
+          <span className="text-[13px] font-bold text-foreground uppercase tracking-wider">نزدیک‌ترین زمان</span>
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div className="text-center">
-              <span className="text-[28px] font-extrabold text-foreground leading-none block">
+              <span className="text-[36px] font-extrabold text-foreground leading-none block">
                 {toPersianDigits(jalali.jd)}
               </span>
               <span className="text-[11px] text-muted-foreground">
                 {formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd).split(" ").slice(1).join(" ")}
               </span>
             </div>
-            <div className="h-8 w-px bg-border" />
+            <div className="h-10 w-px bg-white/30" />
             <div>
               <span className="text-[15px] font-bold text-foreground block">{weekday}</span>
               <div className="flex items-center gap-1 mt-0.5">

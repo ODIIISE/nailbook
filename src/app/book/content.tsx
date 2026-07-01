@@ -188,7 +188,7 @@ export default function BookContent() {
   };
 
   return (
-    <div className="min-h-screen bg-warm-white">
+    <div className="min-h-screen min-h-screen">
       <Header
         showBack={step !== "confirmed"}
         title={stepTitles[step]}

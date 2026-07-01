@@ -1,7 +1,6 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { Clock, Ban, Check } from "lucide-react";
+import { Clock, Ban } from "lucide-react";
 import { toPersianDigits } from "@/lib/jalali";
 import type { TimeSlot } from "@/lib/slots";
 
@@ -15,20 +14,20 @@ interface TimeSlotsProps {
 export function TimeSlots({ date, slots, selectedSlot, onSelectSlot }: TimeSlotsProps) {
   if (!date) {
     return (
-      <Card className="mx-auto max-w-lg p-8 text-center">
+      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center">
         <Clock className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
         <p className="text-[15px] text-muted-foreground">تاریخ را انتخاب کنید</p>
-      </Card>
+      </div>
     );
   }
 
   if (slots.length === 0) {
     return (
-      <Card className="mx-auto max-w-lg p-8 text-center">
+      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center">
         <Ban className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
         <p className="text-[15px] text-muted-foreground">ساعتی موجود نیست</p>
         <p className="text-[13px] text-muted-foreground/50 mt-1">تاریخ دیگری انتخاب کنید</p>
-      </Card>
+      </div>
     );
   }
 
@@ -39,11 +38,11 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot }: TimeSlots
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-primary" />
+            <span className="h-2 w-2 rounded-full bg-foreground" />
             <span className="text-[13px] text-muted-foreground">موجود</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-border" />
+            <span className="h-2 w-2 rounded-full bg-white/30" />
             <span className="text-[13px] text-muted-foreground">رزرو شده</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -71,15 +70,15 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot }: TimeSlots
               onClick={() => slot.available && onSelectSlot(slot.time)}
               aria-label={`${formattedTime} ${isFree ? "موجود" : isTaken ? "رزرو شده" : isLocked ? "قفل شده" : ""}`}
               className={`
-                h-10 rounded-full text-[13px] font-bold transition-all duration-150
-                focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none
+                h-11 rounded-full text-[13px] font-bold transition-all duration-200
+                focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:outline-none
                 ${isSelected
-                  ? "bg-primary text-white"
+                  ? "bg-foreground text-background shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
                   : isFree
-                    ? "bg-primary/10 text-primary hover:bg-primary/20 active:scale-95 cursor-pointer"
+                    ? "glass hover:bg-white/60 text-foreground active:scale-95 cursor-pointer"
                     : isTaken
-                      ? "bg-muted text-muted-foreground/40 cursor-not-allowed line-through"
-                      : "bg-destructive/5 text-destructive/40 cursor-not-allowed"
+                      ? "bg-white/20 text-muted-foreground/40 cursor-not-allowed line-through"
+                      : "bg-destructive/10 text-destructive/40 cursor-not-allowed"
                 }
               `}
             >

@@ -93,8 +93,8 @@ export default function OwnerDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-warm-white">
-      <div className="sticky top-0 z-10 bg-warm-white/95 backdrop-blur-sm border-b border-border">
+    <div className="min-h-screen ">
+      <div className="sticky top-0 z-10 /95 backdrop-blur-sm border-b border-border">
         <div className="mx-auto max-w-lg px-4 py-3">
           <div className="flex items-center justify-between">
             <div>

@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
-import { toast } from "sonner";
+
+const salon = { name: "استدیو تخصصی ناخن فورهند" };
 
 export default function OwnerLoginPage() {
   const router = useRouter();
@@ -36,15 +36,15 @@ export default function OwnerLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <Card className="w-full max-w-sm p-6">
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-sm glass rounded-3xl p-6 animate-scale">
         <div className="text-center mb-6">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Sparkles className="h-6 w-6 text-primary" />
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/50">
+            <Sparkles className="h-6 w-6 text-foreground" />
           </div>
           <h1 className="text-h1 text-foreground">ورود مدیر</h1>
           <p className="text-[13px] text-muted-foreground mt-1">
-            {salon?.name || "ناخن‌های سوفی"}
+            {salon.name}
           </p>
         </div>
 
@@ -88,9 +88,7 @@ export default function OwnerLoginPage() {
         <p className="mt-4 text-[13px] text-muted-foreground text-center">
           دمو: sophie@nailbook.ir / 123456
         </p>
-      </Card>
+      </div>
     </div>
   );
 }
-
-const salon = { name: "استدیو تخصصی ناخن فورهند" };

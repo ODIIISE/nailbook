@@ -16,50 +16,48 @@ function getWorkingHoursText(hours: Record<string, { open: string; close: string
     wed: "چهارشنبه", thu: "پنجشنبه", fri: "جمعه",
   };
   const dayNames = activeDays.map(([k]) => daysMap[k]).filter(Boolean);
-  const startDay = dayNames[0];
-  const endDay = dayNames[dayNames.length - 1];
-  return `${startDay} تا ${endDay} · ${firstDay.open.slice(0, 5)} تا ${firstDay.close.slice(0, 5)}`;
+  return `${dayNames[0]} تا ${dayNames[dayNames.length - 1]} · ${firstDay.open.slice(0, 5)} تا ${firstDay.close.slice(0, 5)}`;
 }
 
 export function Hero({ salon }: HeroProps) {
   return (
-    <div className="relative">
-      <div className="relative">
-        <img
-          src="https://picsum.photos/seed/nailsalon/800/400"
-          alt={salon.name}
-          className="w-full h-48 object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <span className="text-[13px] font-bold text-white/80 uppercase tracking-wider">رزرو آنلاین</span>
-          </div>
-          <h1 className="text-display text-white mb-1">{salon.name}</h1>
-          {salon.slogan && (
-            <p className="text-[15px] text-white/80">{salon.slogan}</p>
-          )}
+    <div className="px-4 pt-8 pb-6">
+      <div className="mx-auto max-w-lg text-center animate-stagger">
+        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl glass">
+          <Sparkles className="h-8 w-8 text-foreground" />
         </div>
-      </div>
-
-      <div className="px-4 py-4">
-        <p className="text-[15px] text-muted-foreground leading-relaxed mb-4">
+        <h1 className="text-display text-foreground mb-2">
+          {salon.name}
+        </h1>
+        {salon.slogan && (
+          <p className="mb-2 text-body-lg text-foreground/70 font-medium">
+            {salon.slogan}
+          </p>
+        )}
+        <p className="mb-6 text-body text-muted-foreground leading-relaxed max-w-sm mx-auto">
           {salon.description}
         </p>
 
-        <div className="space-y-3">
-          <div className="flex items-center gap-3 text-[15px] text-foreground">
-            <MapPin className="h-4 w-4 text-primary shrink-0" />
-            <span>{salon.address}</span>
-          </div>
-          <div className="flex items-center gap-3 text-[15px] text-foreground">
-            <Phone className="h-4 w-4 text-primary shrink-0" />
-            <span dir="ltr">{salon.phone}</span>
-          </div>
-          <div className="flex items-center gap-3 text-[15px] text-foreground">
-            <Clock className="h-4 w-4 text-primary shrink-0" />
-            <span>{getWorkingHoursText(salon.working_hours)}</span>
+        <div className="glass rounded-3xl p-5">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-[15px] text-foreground">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/50">
+                <MapPin className="h-4 w-4 text-foreground" />
+              </div>
+              <span>{salon.address}</span>
+            </div>
+            <div className="flex items-center gap-3 text-[15px] text-foreground">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/50">
+                <Phone className="h-4 w-4 text-foreground" />
+              </div>
+              <span dir="ltr">{salon.phone}</span>
+            </div>
+            <div className="flex items-center gap-3 text-[15px] text-foreground">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/50">
+                <Clock className="h-4 w-4 text-foreground" />
+              </div>
+              <span>{getWorkingHoursText(salon.working_hours)}</span>
+            </div>
           </div>
         </div>
       </div>
