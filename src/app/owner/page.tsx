@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AgendaTimeline } from "@/components/owner/agenda-timeline";
 import { BlockTimeModal } from "@/components/owner/block-time-modal";
+import { BookingModal } from "@/components/owner/booking-modal";
 import { Menu, X, Settings, Clock, Briefcase, Home, LogOut } from "lucide-react";
 import { toPersianDigits, formatJalaliDate, gregorianToJalali } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
@@ -27,6 +28,7 @@ export default function OwnerDashboard() {
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [paidBookings, setPaidBookings] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const interval = setInterval(() => {

@@ -3,7 +3,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, ChevronLeft, Clock, User, Ban } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { ChevronRight, ChevronLeft, Clock, User, Ban, X } from "lucide-react";
 import { toPersianDigits, formatJalaliDate, gregorianToJalali } from "@/lib/jalali";
 import type { Booking } from "@/lib/mock-data";
 
@@ -45,7 +47,6 @@ export function AgendaTimeline({
   const formattedDate = formatJalaliDate(jalali.jy, jalali.jm, jalali.jd);
 
   const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR);
-
   const totalHeight = hours.length * HOUR_HEIGHT;
 
   const getBlockStyle = (startTime: string, endTime: string) => {
