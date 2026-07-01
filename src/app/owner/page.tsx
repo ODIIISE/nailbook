@@ -235,6 +235,7 @@ export default function OwnerDashboard() {
           bookings={dayBookings}
           blockedTimes={dayBlockedTimes}
           date={currentDate}
+          paidBookings={paidBookings}
           onPrevDay={prevDay}
           onNextDay={nextDay}
           onSelectBooking={setSelectedBooking}

@@ -19,6 +19,7 @@ interface AgendaTimelineProps {
   bookings: Booking[];
   blockedTimes: BlockedTime[];
   date: Date;
+  paidBookings: Set<string>;
   onPrevDay: () => void;
   onNextDay: () => void;
   onSelectBooking: (booking: Booking) => void;
@@ -38,6 +39,7 @@ export function AgendaTimeline({
   bookings,
   blockedTimes,
   date,
+  paidBookings,
   onPrevDay,
   onNextDay,
   onSelectBooking,
@@ -107,10 +109,10 @@ export function AgendaTimeline({
                       </span>
                     </div>
                     <Badge
-                      variant={booking.paid ? "default" : "secondary"}
-                      className={`text-[8px] px-1 py-0 h-3.5 ${booking.paid ? "bg-success text-white" : "bg-destructive/10 text-destructive"}`}
+                      variant={paidBookings.has(booking.id) ? "default" : "secondary"}
+                      className={`text-[8px] px-1 py-0 h-3.5 ${paidBookings.has(booking.id) ? "bg-success text-white" : "bg-destructive/10 text-destructive"}`}
                     >
-                      {booking.paid ? "پرداخت شده" : "پرداخت نشده"}
+                      {paidBookings.has(booking.id) ? "پرداخت شده" : "پرداخت نشده"}
                     </Badge>
                   </div>
                   <p className="text-[9px] text-primary/70 truncate">
