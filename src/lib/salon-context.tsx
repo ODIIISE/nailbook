@@ -25,11 +25,13 @@ interface SalonContextType {
   services: Service[];
   addons: Addon[];
   bookings: Booking[];
+  blockedTimes: Array<{ date_gregorian: string; start_time: string; end_time: string }>;
   updateWorkingHours: (hours: WorkingHours) => void;
   updateSpecificDaysOff: (daysOff: string[]) => void;
   updateServices: (services: Service[]) => void;
   updateAddons: (addons: Addon[]) => void;
   updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
+  updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => void;
   addBooking: (booking: Booking) => void;
   refreshBookings: () => Promise<void>;
 }
@@ -43,6 +45,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   const [services, setServices] = useState<Service[]>(MOCK_SERVICES);
   const [addons, setAddons] = useState<Addon[]>(MOCK_ADDONS);
   const [bookings, setBookings] = useState<Booking[]>(MOCK_BOOKINGS);
+  const [blockedTimes, setBlockedTimes] = useState<Array<{ date_gregorian: string; start_time: string; end_time: string }>>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -119,11 +122,13 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           services: MOCK_SERVICES,
           addons: MOCK_ADDONS,
           bookings: MOCK_BOOKINGS,
+          blockedTimes: [],
           updateWorkingHours: async () => {},
           updateSpecificDaysOff: async () => {},
           updateServices: async () => {},
           updateAddons: async () => {},
           updateSalon: async () => {},
+          updateBlockedTimes: () => {},
           addBooking: async () => {},
           refreshBookings: async () => {},
         }}
@@ -142,11 +147,13 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         services,
         addons,
         bookings,
+        blockedTimes,
         updateWorkingHours: handleUpdateWorkingHours,
         updateSpecificDaysOff: handleUpdateSpecificDaysOff,
         updateServices: handleUpdateServices,
         updateAddons: handleUpdateAddons,
         updateSalon: handleUpdateSalon,
+        updateBlockedTimes: setBlockedTimes,
         addBooking: handleAddBooking,
         refreshBookings,
       }}

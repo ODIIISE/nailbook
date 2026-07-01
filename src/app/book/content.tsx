@@ -22,7 +22,7 @@ type BookingStep = "date" | "addon" | "time" | "info" | "otp" | "confirmed";
 export default function BookContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { salon, workingHours, services, addons, bookings, addBooking } = useSalon();
+  const { salon, workingHours, services, addons, bookings, blockedTimes, addBooking } = useSalon();
   const [step, setStep] = useState<BookingStep>("date");
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
@@ -71,14 +71,15 @@ export default function BookContent() {
 
   const timeSlots = useMemo(() => {
     if (!selectedDate || !selectedService) return [];
+    const dateStr = selectedDate.toISOString().split("T")[0];
     const dayBookings = bookings.filter(
-      (b) =>
-        b.date_gregorian === selectedDate.toISOString().split("T")[0] &&
-        b.status === "confirmed"
+      (b) => b.date_gregorian === dateStr && b.status === "confirmed"
     ).map((b) => ({
       start_time: b.start_time,
       end_time: b.end_time,
     }));
+
+    const dayBlocked = blockedTimes.filter((b) => b.date_gregorian === dateStr);
 
     return generateTimeSlots(
       workingHours,
@@ -87,9 +88,9 @@ export default function BookContent() {
       salon.slot_interval_minutes,
       salon.slot_buffer_minutes,
       dayBookings,
-      []
+      dayBlocked
     );
-  }, [selectedDate, selectedService, totalDuration, workingHours, salon, bookings]);
+  }, [selectedDate, selectedService, totalDuration, workingHours, salon, bookings, blockedTimes]);
 
   const bookedDates = useMemo(() => {
     return [];

@@ -79,7 +79,7 @@ export const MOCK_SALON: SalonInfo = {
     fri: null,
   },
   slot_buffer_minutes: 15,
-  slot_interval_minutes: 30,
+  slot_interval_minutes: 15,
 };
 
 export const MOCK_ADDONS: Addon[] = [

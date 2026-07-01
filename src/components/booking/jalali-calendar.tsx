@@ -40,7 +40,7 @@ export function JalaliCalendar({
       jalaliDay: number;
     }> = [];
 
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
 

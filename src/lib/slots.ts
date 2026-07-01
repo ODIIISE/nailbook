@@ -7,6 +7,8 @@ export interface TimeSlot {
   available: boolean;
   booked: boolean;
   locked: boolean;
+  suggested: boolean;
+  score: number;
 }
 
 const IRAN_WEEK_DAYS = ["sat", "sun", "mon", "tue", "wed", "thu", "fri"];
@@ -16,6 +18,45 @@ export function getIranWeekDay(date: Date): string {
   return IRAN_WEEK_DAYS[jsDay === 6 ? 0 : jsDay === 5 ? 6 : jsDay - 1];
 }
 
+function calculateSlotScore(
+  slotMinutes: number,
+  serviceDurationMinutes: number,
+  bufferMinutes: number,
+  existingBookings: Array<{ start_time: string; end_time: string }>
+): number {
+  let score = 1;
+
+  const slotEnd = slotMinutes + serviceDurationMinutes;
+
+  for (const booking of existingBookings) {
+    const [bStartH, bStartM] = booking.start_time.split(":").map(Number);
+    const [bEndH, bEndM] = booking.end_time.split(":").map(Number);
+    const bStart = bStartH * 60 + bStartM;
+    const bEnd = bEndH * 60 + bEndM;
+
+    const distanceToStart = Math.abs(slotMinutes - bStart);
+    const distanceToEnd = Math.abs(slotEnd - bEnd);
+
+    if (distanceToStart <= 120 || distanceToEnd <= 120) {
+      score += 10;
+    }
+
+    if (slotMinutes === bEnd + bufferMinutes || slotEnd + bufferMinutes === bStart) {
+      score += 20;
+    }
+
+    if (slotMinutes > bEnd && slotMinutes < bEnd + bufferMinutes + 30) {
+      score += 15;
+    }
+  }
+
+  if (existingBookings.length === 0) {
+    score = 1;
+  }
+
+  return score;
+}
+
 export function generateTimeSlots(
   workingHours: WorkingHours,
   date: Date,
@@ -23,12 +64,16 @@ export function generateTimeSlots(
   slotIntervalMinutes: number,
   bufferMinutes: number,
   existingBookings: Array<{ start_time: string; end_time: string }>,
-  activeLocks: Array<{ start_time: string; expires_at: string }>
+  activeLocks: Array<{ start_time: string; end_time?: string; expires_at?: string }>
 ): TimeSlot[] {
   const dayKey = getIranWeekDay(date);
   const dayHours = workingHours[dayKey];
 
   if (!dayHours) return [];
+
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
   const slots: TimeSlot[] = [];
   const [openH, openM] = dayHours.open.split(":").map(Number);
@@ -38,14 +83,13 @@ export function generateTimeSlots(
   const closeMinutes = closeH * 60 + closeM;
 
   for (let m = openMinutes; m + serviceDurationMinutes <= closeMinutes; m += slotIntervalMinutes) {
+    if (isToday && m < nowMinutes) continue;
+
     const slotStartH = Math.floor(m / 60);
     const slotStartM = m % 60;
     const slotEndMinutes = m + serviceDurationMinutes;
-    const slotEndH = Math.floor(slotEndMinutes / 60);
-    const slotEndM = slotEndMinutes % 60;
 
     const slotStart = `${String(slotStartH).padStart(2, "0")}:${String(slotStartM).padStart(2, "0")}`;
-    const slotEnd = `${String(slotEndH).padStart(2, "0")}:${String(slotEndM).padStart(2, "0")}`;
 
     const bufferedEndMinutes = slotEndMinutes + bufferMinutes;
 
@@ -58,20 +102,35 @@ export function generateTimeSlots(
     });
 
     const isLocked = activeLocks.some((l) => {
-      if (new Date(l.expires_at) < new Date()) return false;
+      if (l.expires_at && new Date(l.expires_at) < new Date()) return false;
       const [lStartH, lStartM] = l.start_time.split(":").map(Number);
       const lStart = lStartH * 60 + lStartM;
-      const lEnd = lStart + serviceDurationMinutes;
+      const lEnd = l.end_time
+        ? (() => { const [h, m] = l.end_time!.split(":").map(Number); return h * 60 + m; })()
+        : lStart + serviceDurationMinutes;
       return m < lEnd && bufferedEndMinutes > lStart;
     });
 
+    const available = !isBooked && !isLocked;
+    const score = available ? calculateSlotScore(m, serviceDurationMinutes, bufferMinutes, existingBookings) : 0;
+
     slots.push({
       time: slotStart,
-      available: !isBooked && !isLocked,
+      available,
       booked: isBooked,
       locked: isLocked,
+      suggested: score >= 10,
+      score,
     });
   }
+
+  slots.sort((a, b) => {
+    if (a.available && !b.available) return -1;
+    if (!a.available && b.available) return 1;
+    if (a.suggested && !b.suggested) return -1;
+    if (!a.suggested && b.suggested) return 1;
+    return a.time.localeCompare(b.time);
+  });
 
   return slots;
 }
@@ -90,43 +149,9 @@ export function getNearestAvailableSlot(
     const checkDate = new Date(now);
     checkDate.setDate(checkDate.getDate() + dayOffset);
 
-    if (dayOffset === 0) {
-      const nowMinutes = now.getHours() * 60 + now.getMinutes();
-      const dayBookings = existingBookings.filter(
-        (b) => b.date_gregorian === checkDate.toISOString().split("T")[0]
-      );
-      const dayLocks = activeLocks.filter(
-        (l) => l.date_gregorian === checkDate.toISOString().split("T")[0]
-      );
-
-      const dayKey = getIranWeekDay(checkDate);
-      const dayHours = workingHours[dayKey];
-      if (!dayHours) continue;
-
-      const [openH, openM] = dayHours.open.split(":").map(Number);
-      const openMinutes = openH * 60 + openM;
-
-      if (nowMinutes >= openMinutes) {
-        const slots = generateTimeSlots(
-          workingHours,
-          checkDate,
-          serviceDurationMinutes,
-          slotIntervalMinutes,
-          bufferMinutes,
-          dayBookings,
-          dayLocks
-        );
-        const available = slots.find((s) => s.available && parseInt(s.time.replace(":", "")) * 1 >= nowMinutes);
-        if (available) return { date: checkDate, time: available.time };
-      }
-    }
-
-    const dayBookings = existingBookings.filter(
-      (b) => b.date_gregorian === checkDate.toISOString().split("T")[0]
-    );
-    const dayLocks = activeLocks.filter(
-      (l) => l.date_gregorian === checkDate.toISOString().split("T")[0]
-    );
+    const dateStr = checkDate.toISOString().split("T")[0];
+    const dayBookings = existingBookings.filter((b) => b.date_gregorian === dateStr);
+    const dayLocks = activeLocks.filter((l) => l.date_gregorian === dateStr);
 
     const slots = generateTimeSlots(
       workingHours,
@@ -137,8 +162,9 @@ export function getNearestAvailableSlot(
       dayBookings,
       dayLocks
     );
-    const available = slots.find((s) => s.available);
-    if (available) return { date: checkDate, time: available.time };
+
+    const best = slots.find((s) => s.available);
+    if (best) return { date: checkDate, time: best.time };
   }
 
   return null;

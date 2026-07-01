@@ -8,11 +8,9 @@ import { toPersianDigits, formatJalaliDate, gregorianToJalali } from "@/lib/jala
 import type { Booking } from "@/lib/mock-data";
 
 interface BlockedTime {
-  id: string;
   date_gregorian: string;
   start_time: string;
   end_time: string;
-  reason: string;
 }
 
 interface AgendaTimelineProps {
@@ -118,20 +116,19 @@ export function AgendaTimeline({
             );
           })}
 
-          {blockedTimes.map((block) => {
+          {blockedTimes.map((block, index) => {
             const style = getBlockStyle(block.start_time, block.end_time);
             return (
               <div
-                key={block.id}
+                key={`block-${index}`}
                 className="absolute right-14 left-2 cursor-pointer z-10"
                 style={{ top: style.top, height: style.height }}
-                onClick={() => onRemoveBlock(block.id)}
               >
                 <div className="h-full rounded-lg bg-amber-50 border border-amber-300/50 p-2 hover:bg-amber-100 transition-colors overflow-hidden">
                   <div className="flex items-center gap-1 mb-0.5">
                     <Ban className="h-3 w-3 text-amber-600 shrink-0" />
                     <span className="text-xs font-semibold text-amber-800 truncate">
-                      {block.reason}
+                      استراحت
                     </span>
                   </div>
                   {style.height > 30 && (

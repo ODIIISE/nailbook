@@ -21,11 +21,10 @@ interface BlockedTime {
 
 export default function OwnerDashboard() {
   const router = useRouter();
-  const { salon, bookings, services, refreshBookings } = useSalon();
+  const { salon, bookings, services, blockedTimes, updateBlockedTimes, refreshBookings } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
-  const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -77,19 +76,17 @@ export default function OwnerDashboard() {
 
   const handleBlockTime = (startTime: string, endTime: string, reason: string) => {
     const dateStr = currentDate.toISOString().split("T")[0];
-    const newBlock: BlockedTime = {
-      id: Date.now().toString(),
+    const newBlock = {
       date_gregorian: dateStr,
       start_time: startTime,
       end_time: endTime,
-      reason: reason || "استراحت",
     };
-    setBlockedTimes((prev) => [...prev, newBlock]);
+    updateBlockedTimes([...blockedTimes, newBlock]);
     setShowBlockTime(false);
   };
 
   const handleRemoveBlock = (id: string) => {
-    setBlockedTimes((prev) => prev.filter((b) => b.id !== id));
+    updateBlockedTimes(blockedTimes.filter((b) => b.start_time !== id || b.date_gregorian !== currentDate.toISOString().split("T")[0]));
   };
 
   return (
