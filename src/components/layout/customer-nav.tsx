@@ -10,8 +10,8 @@ export function CustomerNav() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-border/30">
-      <div className="mx-auto max-w-lg flex px-2 pb-1">
+    <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-border/30" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+      <div className="mx-auto max-w-lg flex px-2 pb-2">
         {[
           { path: "/", icon: Home, label: "خانه" },
           { path: "/services", icon: Scissors, label: "خدمات" },
