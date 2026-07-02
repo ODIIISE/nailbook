@@ -2,8 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Puzzle, Check } from "lucide-react";
+import { Puzzle, Check, ChevronLeft } from "lucide-react";
 import { toPersianDigits } from "@/lib/jalali";
 import type { Addon } from "@/lib/mock-data";
 
@@ -12,7 +11,6 @@ interface AddonSelectProps {
   selectedAddons: string[];
   onToggle: (addonId: string) => void;
   onContinue: () => void;
-  onSkip: () => void;
 }
 
 export function AddonSelect({
@@ -20,7 +18,6 @@ export function AddonSelect({
   selectedAddons,
   onToggle,
   onContinue,
-  onSkip,
 }: AddonSelectProps) {
   const activeAddons = addons.filter((a) => a.is_active);
 
@@ -28,23 +25,13 @@ export function AddonSelect({
     return null;
   }
 
-  const totalPrice = selectedAddons.reduce((sum, id) => {
-    const addon = activeAddons.find((a) => a.id === id);
-    return sum + (addon?.price || 0);
-  }, 0);
-
-  const totalDuration = selectedAddons.reduce((sum, id) => {
-    const addon = activeAddons.find((a) => a.id === id);
-    return sum + (addon?.duration_minutes || 0);
-  }, 0);
-
   return (
-    <Card className="mx-auto max-w-lg p-4">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="mx-auto max-w-lg space-y-4">
+      <div className="flex items-center gap-2 mb-2">
         <Puzzle className="h-5 w-5 text-primary" />
         <h3 className="font-semibold text-foreground">آپشن‌های اضافی</h3>
       </div>
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="text-sm text-muted-foreground">
         خدمات اضافی را به نوبت خود اضافه کنید
       </p>
 
@@ -55,21 +42,21 @@ export function AddonSelect({
             <div
               key={addon.id}
               onClick={() => onToggle(addon.id)}
-              className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all shadow-[var(--shadow-card)] ${
+              className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all duration-200 active:scale-[0.98] ${
                 isSelected
-                  ? "bg-primary/10 border border-primary/30"
-                  : "bg-card border border-transparent hover:shadow-[var(--shadow-elevated)]"
+                  ? "glass border border-primary/30 shadow-card"
+                  : "glass border border-border/50 hover:border-primary/20"
               }`}
             >
               <div className="flex items-center gap-3">
                 <div
-                  className={`h-5 w-5 rounded-md flex items-center justify-center border transition-all ${
+                  className={`h-5 w-5 rounded-full flex items-center justify-center border-2 transition-all ${
                     isSelected
-                      ? "bg-primary border-primary text-white"
-                      : "border-border"
+                      ? "border-primary bg-primary"
+                      : "border-muted-foreground/40"
                   }`}
                 >
-                  {isSelected && <Check className="h-3.5 w-3.5" />}
+                  {isSelected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
                 </div>
                 <div>
                   <span className="text-sm font-medium">{addon.name}</span>
@@ -86,46 +73,13 @@ export function AddonSelect({
         })}
       </div>
 
-      {selectedAddons.length > 0 && (
-        <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">آپشن‌های انتخابی</span>
-            <Badge variant="secondary" className="bg-primary/10 text-primary">
-              {toPersianDigits(selectedAddons.length)} مورد
-            </Badge>
-          </div>
-          <div className="flex items-center justify-between text-sm mt-1">
-            <span className="text-muted-foreground">هزینه اضافی</span>
-            <span className="font-bold text-primary">
-              +{toPersianDigits(totalPrice.toLocaleString("fa-IR"))} تومان
-            </span>
-          </div>
-          {totalDuration > 0 && (
-            <div className="flex items-center justify-between text-sm mt-1">
-              <span className="text-muted-foreground">زمان اضافی</span>
-              <span className="text-foreground">
-                +{toPersianDigits(totalDuration)} دقیقه
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="mt-4 flex gap-3">
-        <Button
-          onClick={onContinue}
-          className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl"
-        >
-          ادامه
-        </Button>
-        <Button
-          variant="outline"
-          onClick={onSkip}
-          className="flex-1"
-        >
-          رد شدن
-        </Button>
-      </div>
-    </Card>
+      <Button
+        onClick={onContinue}
+        className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-xl text-base font-semibold"
+      >
+        انتخاب زمان
+        <ChevronLeft className="h-5 w-5 mr-2" />
+      </Button>
+    </div>
   );
 }

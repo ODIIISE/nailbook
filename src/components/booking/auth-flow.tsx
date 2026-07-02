@@ -15,9 +15,10 @@ interface AuthFlowProps {
 
 export function AuthFlow({ onComplete }: AuthFlowProps) {
   const { checkPhone, createPin, verifyPin } = useAuth();
-  const [step, setStep] = useState<"phone" | "create-pin" | "verify-pin" | "name">("phone");
+  const [step, setStep] = useState<"phone" | "create-pin" | "confirm-pin" | "verify-pin" | "name">("phone");
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
+  const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [attemptsLeft, setAttemptsLeft] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +55,16 @@ export function AuthFlow({ onComplete }: AuthFlowProps) {
     setStep("create-pin");
   };
 
-  const handleCreatePin = async (pin: string) => {
+  const handleCreatePin = (enteredPin: string) => {
+    setPin(enteredPin);
+    setStep("confirm-pin");
+  };
+
+  const handleConfirmPin = async (confirmPin: string) => {
+    if (pin !== confirmPin) {
+      setError("رمزها مطابقت ندارند");
+      return;
+    }
     setIsLoading(true);
     setError("");
     const result = await createPin(phone, pin, name);
@@ -67,10 +77,10 @@ export function AuthFlow({ onComplete }: AuthFlowProps) {
     }
   };
 
-  const handleVerifyPin = async (pin: string) => {
+  const handleVerifyPin = async (verifyPinCode: string) => {
     setIsLoading(true);
     setError("");
-    const result = await verifyPin(phone, pin);
+    const result = await verifyPin(phone, verifyPinCode);
     setIsLoading(false);
 
     if (result.success) {
@@ -158,7 +168,7 @@ export function AuthFlow({ onComplete }: AuthFlowProps) {
         {step === "create-pin" && (
           <div className="space-y-4">
             <div className="text-center mb-4">
-              <h2 className="text-h1 text-foreground">ساخت کد عضویت</h2>
+              <h2 className="text-h1 text-foreground">ساخت رمز</h2>
               <p className="text-[13px] text-muted-foreground mt-1">
                 یک کد ۴ رقمی برای ورودهای بعدی بسازید
               </p>
@@ -173,6 +183,23 @@ export function AuthFlow({ onComplete }: AuthFlowProps) {
             <p className="text-[11px] text-muted-foreground text-center">
               این کد برای ورودهای بعدی استفاده می‌شود
             </p>
+          </div>
+        )}
+
+        {step === "confirm-pin" && (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <h2 className="text-h1 text-foreground">تکرار رمز</h2>
+              <p className="text-[13px] text-muted-foreground mt-1">
+                رمز خود را دوباره وارد کنید
+              </p>
+            </div>
+
+            <PinInput onComplete={handleConfirmPin} disabled={isLoading} />
+
+            {error && (
+              <p className="text-[13px] text-destructive text-center mt-2">{error}</p>
+            )}
           </div>
         )}
 

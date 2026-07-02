@@ -5,10 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { CustomerNav } from "@/components/layout/customer-nav";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { ChevronLeft } from "lucide-react";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
-import { toPersianDigits } from "@/lib/jalali";
 import { TimeSlots } from "@/components/booking/time-slots";
 import { CustomerForm } from "@/components/booking/customer-form";
 import { AuthFlow } from "@/components/booking/auth-flow";
@@ -19,14 +17,14 @@ import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
 import type { Booking } from "@/lib/mock-data";
 
-type BookingStep = "date" | "addon" | "time" | "info" | "auth" | "confirmed";
+type BookingStep = "addon" | "date" | "info" | "pin" | "receipt";
 
 export default function BookContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { salon, workingHours, services, addons, bookings, blockedTimes, addBooking } = useSalon();
   const { user } = useAuth();
-  const [step, setStep] = useState<BookingStep>("date");
+  const [step, setStep] = useState<BookingStep>("addon");
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
@@ -42,14 +40,16 @@ export default function BookContent() {
 
   useEffect(() => {
     const serviceId = searchParams.get("service");
-    const stepParam = searchParams.get("step");
     if (serviceId) {
       setSelectedServiceId(serviceId);
-      if (stepParam === "addon") {
+      const service = services.find((s) => s.id === serviceId);
+      if (service && service.addon_ids.length > 0) {
         setStep("addon");
+      } else {
+        setStep("date");
       }
     }
-  }, [searchParams]);
+  }, [searchParams, services]);
 
   const selectedService = services.find((s) => s.id === selectedServiceId);
 
@@ -94,20 +94,6 @@ export default function BookContent() {
     );
   }, [selectedDate, selectedService, totalDuration, workingHours, salon, bookings, blockedTimes]);
 
-  const bookedDates = useMemo(() => {
-    return [];
-  }, []);
-
-  const handleSelectService = (serviceId: string) => {
-    setSelectedServiceId(serviceId);
-    const service = services.find((s) => s.id === serviceId);
-    if (service && service.addon_ids.length > 0) {
-      setStep("addon");
-    } else {
-      setStep("date");
-    }
-  };
-
   const handleAddonToggle = useCallback((addonId: string) => {
     setSelectedAddons((prev) =>
       prev.includes(addonId)
@@ -117,11 +103,6 @@ export default function BookContent() {
   }, []);
 
   const handleAddonContinue = useCallback(() => {
-    setStep("date");
-  }, []);
-
-  const handleAddonSkip = useCallback(() => {
-    setSelectedAddons([]);
     setStep("date");
   }, []);
 
@@ -143,22 +124,32 @@ export default function BookContent() {
     setSelectedTime(null);
   }, []);
 
-  const handleCustomerSubmit = useCallback(async (name: string, phone: string) => {
-    setCustomerName(name);
-    setCustomerPhone(phone);
+  const handleDateContinue = useCallback(() => {
     if (user) {
-      handleAuthComplete();
+      setCustomerName(user.name);
+      setCustomerPhone(user.phone);
+      handleCreateBooking();
     } else {
-      setStep("auth");
+      setStep("info");
     }
   }, [user]);
 
-  const handleAuthComplete = useCallback(() => {
-    if (selectedDate && selectedService) {
+  const handleCustomerSubmit = useCallback(async (name: string, phone: string) => {
+    setCustomerName(name);
+    setCustomerPhone(phone);
+    setStep("pin");
+  }, []);
+
+  const handlePinComplete = useCallback(() => {
+    handleCreateBooking();
+  }, []);
+
+  const handleCreateBooking = useCallback(() => {
+    if (selectedDate && selectedService && selectedTime) {
       const id = crypto.randomUUID();
       setBookingId(`BK-${Date.now().toString(36).toUpperCase()}`);
 
-      const [h, m] = selectedTime!.split(":").map(Number);
+      const [h, m] = selectedTime.split(":").map(Number);
       const endMinutes = h * 60 + m + totalDuration;
       const endH = Math.floor(endMinutes / 60);
       const endM = endMinutes % 60;
@@ -181,118 +172,78 @@ export default function BookContent() {
       };
 
       addBooking(newBooking);
-      setStep("confirmed");
+      setStep("receipt");
     }
   }, [selectedDate, selectedService, selectedTime, customerName, customerPhone, addBooking, selectedAddons, totalDuration]);
 
   const stepTitles: Record<BookingStep, string> = {
-    date: "انتخاب زمان",
     addon: "آپشن‌ها",
-    time: "انتخاب ساعت",
+    date: "انتخاب زمان",
     info: "اطلاعات شما",
-    auth: "ورود",
-    confirmed: "تایید نهایی",
+    pin: "ساخت رمز",
+    receipt: "تایید نهایی",
   };
 
   const goBack = () => {
-    const steps: BookingStep[] = ["date", "addon", "info", "auth"];
+    const steps: BookingStep[] = ["addon", "date", "info", "pin"];
     const idx = steps.indexOf(step);
     if (idx > 0) setStep(steps[idx - 1]);
-    else router.push("/");
+    else router.push("/services");
   };
 
   return (
-    <div className="min-h-screen min-h-screen">
+    <div className="min-h-screen">
       <Header
-        showBack={step !== "confirmed"}
+        showBack={step !== "receipt"}
         title={stepTitles[step]}
         subtitle={selectedService?.name}
-        onBack={step !== "confirmed" ? goBack : undefined}
+        onBack={step !== "receipt" ? goBack : undefined}
       />
 
       <div className="mx-auto max-w-lg px-4 py-6 space-y-4">
-        {selectedService && step !== "date" && step !== "addon" && step !== "confirmed" && (
-          <Card className="p-3 bg-primary/5 border-primary/20 shadow-card">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">{selectedService.name}</span>
-              <span className="text-primary font-bold">
-                {toPersianDigits(totalPrice.toLocaleString("fa-IR"))} تومان
-              </span>
-            </div>
-          </Card>
-        )}
-
-        {step === "date" && (
-          <>
-            {!selectedServiceId ? (
-              <div className="space-y-3 animate-stagger">
-                <h2 className="text-h2 text-foreground">خدمت مورد نظر</h2>
-                {services.filter((s) => s.is_active).map((service) => (
-                  <Card
-                    key={service.id}
-                    className="p-4 cursor-pointer hover:shadow-[var(--shadow-elevated)] transition-all duration-150 active:scale-[0.98]"
-                    onClick={() => handleSelectService(service.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-h3">{service.name}</h3>
-                        <p className="text-caption text-muted-foreground mt-1">
-                          {toPersianDigits(service.duration_minutes)} دقیقه
-                        </p>
-                      </div>
-                      <span className="text-body font-bold text-primary">
-                        {toPersianDigits(service.price.toLocaleString("fa-IR"))} تومان
-                      </span>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-5">
-                <JalaliCalendar
-                  selectedDate={selectedDate}
-                  onSelectDate={handleSelectDate}
-                />
-                <TimeSlots
-                  date={selectedDate}
-                  slots={timeSlots}
-                  selectedSlot={selectedTime}
-                  onSelectSlot={handleSelectTime}
-                  onGoToNextDay={handleGoToNextDay}
-                />
-                {selectedTime && (
-                  <Button
-                    onClick={() => setStep("info")}
-                    className="w-full h-12"
-                  >
-                    ادامه
-                    <ChevronLeft className="h-5 w-5 mr-2" />
-                  </Button>
-                )}
-              </div>
-            )}
-          </>
-        )}
-
         {step === "addon" && selectedService && (
           <AddonSelect
             addons={addons.filter((a) => selectedService.addon_ids.includes(a.id))}
             selectedAddons={selectedAddons}
             onToggle={handleAddonToggle}
             onContinue={handleAddonContinue}
-            onSkip={handleAddonSkip}
           />
+        )}
+
+        {step === "date" && (
+          <div className="space-y-5">
+            <JalaliCalendar
+              selectedDate={selectedDate}
+              onSelectDate={handleSelectDate}
+            />
+            <TimeSlots
+              date={selectedDate}
+              slots={timeSlots}
+              selectedSlot={selectedTime}
+              onSelectSlot={handleSelectTime}
+              onGoToNextDay={handleGoToNextDay}
+            />
+            {selectedTime && (
+              <Button
+                onClick={handleDateContinue}
+                className="w-full h-12"
+              >
+                وارد کردن اطلاعات
+                <ChevronLeft className="h-5 w-5 mr-2" />
+              </Button>
+            )}
+          </div>
         )}
 
         {step === "info" && (
           <CustomerForm onSubmit={handleCustomerSubmit} isLoading={isLoading} />
         )}
 
-        {step === "auth" && (
-          <AuthFlow onComplete={handleAuthComplete} />
+        {step === "pin" && (
+          <AuthFlow onComplete={handlePinComplete} />
         )}
 
-        {step === "confirmed" && selectedService && selectedDate && selectedTime && (
+        {step === "receipt" && selectedService && selectedDate && selectedTime && (
           <BookingConfirm
             serviceName={selectedService.name}
             date={selectedDate}
@@ -302,7 +253,7 @@ export default function BookContent() {
             customerName={customerName}
             bookingId={bookingId}
             phone={salon.phone}
-           />
+          />
         )}
       </div>
 

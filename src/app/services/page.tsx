@@ -12,11 +12,7 @@ export default function ServicesPage() {
   const { services } = useSalon();
 
   const handleSelectService = (service: Service) => {
-    if (service.addon_ids.length > 0) {
-      router.push(`/book?service=${service.id}&step=addon`);
-    } else {
-      router.push(`/book?service=${service.id}`);
-    }
+    router.push(`/book?service=${service.id}`);
   };
 
   const activeServices = services
