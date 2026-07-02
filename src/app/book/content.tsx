@@ -36,7 +36,6 @@ export default function BookContent() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [otpError, setOtpError] = useState<string>("");
   const [bookingId, setBookingId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
