@@ -9,40 +9,42 @@ export function CustomerNav() {
   const router = useRouter();
   const { salon } = useSalon();
 
+  const isActive = (path: string) => pathname === path;
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-20 glass-strong border-t border-border/50">
       <div className="mx-auto max-w-lg flex">
         <button
           onClick={() => router.push("/")}
           className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${
-            pathname === "/" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            isActive("/") ? "text-primary" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <Home className="h-5 w-5" />
           <span className="text-[10px] font-bold">خانه</span>
         </button>
         <button
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/services")}
           className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${
-            pathname === "/" ? "text-muted-foreground" : "text-muted-foreground hover:text-foreground"
+            isActive("/services") ? "text-primary" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <Scissors className="h-5 w-5" />
           <span className="text-[10px] font-bold">خدمات</span>
         </button>
         <button
-          onClick={() => router.push("/book")}
+          onClick={() => router.push("/bookings")}
           className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${
-            pathname === "/book" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            isActive("/bookings") || pathname.startsWith("/book") ? "text-primary" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <CalendarCheck className="h-5 w-5" />
           <span className="text-[10px] font-bold">نوبت‌های من</span>
         </button>
         <button
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/profile")}
           className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${
-            "text-muted-foreground hover:text-foreground"
+            isActive("/profile") ? "text-primary" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <User className="h-5 w-5" />
