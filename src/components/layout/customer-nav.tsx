@@ -10,7 +10,7 @@ export function CustomerNav() {
   const { salon } = useSalon();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-20 glass-strong border-t border-border">
+    <div className="fixed bottom-0 left-0 right-0 z-20 glass-strong border-t border-border/50">
       <div className="mx-auto max-w-lg flex">
         <button
           onClick={() => router.push("/")}

@@ -203,7 +203,7 @@ export default function BookContent() {
 
       <div className="mx-auto max-w-lg px-4 py-6 space-y-4">
         {selectedService && step !== "date" && step !== "addon" && step !== "confirmed" && (
-          <Card className="p-3 bg-primary/5 border-primary/20">
+          <Card className="p-3 bg-primary/5 border-primary/20 shadow-card">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{selectedService.name}</span>
               <span className="text-primary font-bold">

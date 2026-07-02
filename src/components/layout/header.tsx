@@ -70,7 +70,7 @@ export function Header({ showBack = false, title, subtitle, onBack }: HeaderProp
             className="absolute inset-0 bg-black/20 backdrop-blur-sm"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="absolute top-0 right-0 h-full w-72 glass-strong rounded-l-3xl">
+          <div className="absolute top-0 right-0 h-full w-72 glass-strong rounded-l-3xl shadow-elevated">
             <div className="p-4">
               <div className="flex items-center justify-between mb-6">
                 <span className="text-[17px] font-bold text-foreground">{salon.name}</span>

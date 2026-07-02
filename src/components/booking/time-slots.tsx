@@ -18,7 +18,7 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot }: TimeSlots
 
   if (!date) {
     return (
-      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center">
+      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center shadow-card">
         <Clock className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
         <p className="text-[15px] text-muted-foreground">تاریخ را انتخاب کنید</p>
       </div>
@@ -29,7 +29,7 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot }: TimeSlots
 
   if (availableSlots.length === 0) {
     return (
-      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center">
+      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center shadow-card">
         <Ban className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
         <p className="text-[15px] text-muted-foreground">ساعتی موجود نیست</p>
         <p className="text-[13px] text-muted-foreground/50 mt-1">تاریخ دیگری انتخاب کنید</p>

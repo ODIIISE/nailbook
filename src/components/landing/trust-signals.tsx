@@ -11,7 +11,7 @@ interface TrustSignalsProps {
 export function TrustSignals({ totalBookings }: TrustSignalsProps) {
   return (
     <div className="px-4 mb-6">
-      <Card className="mx-auto max-w-lg p-4 bg-card/80 backdrop-blur-sm">
+      <Card className="mx-auto max-w-lg p-4 glass shadow-card">
         <div className="text-center">
           <p className="text-sm text-muted-foreground mb-2">اعتماد شما</p>
           <div className="flex items-center justify-center gap-2">

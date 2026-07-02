@@ -20,7 +20,7 @@ export function NextAvailable({ date, time, onBookNow }: NextAvailableProps) {
 
   return (
     <div className="px-4 mb-6">
-      <div className="mx-auto max-w-lg glass rounded-3xl p-6">
+      <div className="mx-auto max-w-lg glass rounded-3xl p-6 shadow-card">
         <div className="flex items-center gap-2 mb-4">
           <div className="flex items-center justify-center h-7 w-7 rounded-full bg-foreground/5">
             <Sparkles className="h-4 w-4 text-foreground" />

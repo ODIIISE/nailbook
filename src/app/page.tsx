@@ -49,13 +49,9 @@ export default function HomePage() {
     <div className="min-h-screen">
       <Header />
 
-      <Hero salon={salon} />
+      <Hero salon={salon} onBookNow={handleBookNow} />
 
-      <NextAvailable
-        date={nearestSlot?.date ?? null}
-        time={nearestSlot?.time ?? null}
-        onBookNow={handleBookNow}
-      />
+      <TrustSignals totalBookings={bookings.length || 527} />
 
       <div className="px-4 mb-6">
         <div className="mx-auto max-w-lg">
@@ -72,18 +68,15 @@ export default function HomePage() {
                 />
               ))}
           </div>
-
-          <Button
-            className="w-full mt-6 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl text-base font-semibold"
-            onClick={handleBookNow}
-          >
-            رزرو کن
-            <ChevronLeft className="h-5 w-5 mr-2" />
-          </Button>
         </div>
       </div>
 
-      <TrustSignals totalBookings={bookings.length || 527} />
+      <NextAvailable
+        date={nearestSlot?.date ?? null}
+        time={nearestSlot?.time ?? null}
+        onBookNow={handleBookNow}
+      />
+
       <ContactButtons phone={salon.phone} />
 
       <footer className="px-4 py-6 text-center pb-20">
