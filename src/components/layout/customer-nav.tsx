@@ -10,8 +10,11 @@ export function CustomerNav() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-border/30" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
-      <div className="mx-auto max-w-lg flex px-2 pb-2">
+    <div
+      className="fixed bottom-0 left-0 right-0 z-20 bg-white"
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+    >
+      <div className="mx-auto max-w-lg flex items-stretch border-t border-black/[0.08]">
         {[
           { path: "/", icon: Home, label: "خانه" },
           { path: "/services", icon: Scissors, label: "خدمات" },
@@ -23,16 +26,14 @@ export function CustomerNav() {
             <button
               key={path}
               onClick={() => router.push(path)}
-              className={`flex-1 flex flex-col items-center gap-1 pt-2 pb-1 rounded-xl mx-0.5 transition-all duration-200 ${
-                active
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 pt-[10px] pb-[6px] transition-colors duration-150 ${
+                active ? "text-foreground" : "text-black/40"
               }`}
             >
-              <div className={`p-1.5 rounded-xl transition-all duration-200 ${active ? "bg-primary/10" : ""}`}>
-                <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />
-              </div>
-              <span className={`text-[10px] ${active ? "font-bold" : "font-medium"}`}>{label}</span>
+              <Icon className="h-6 w-6" strokeWidth={active ? 2.2 : 1.5} />
+              <span className={`text-[10px] leading-none ${active ? "font-semibold" : "font-normal"}`}>
+                {label}
+              </span>
             </button>
           );
         })}
