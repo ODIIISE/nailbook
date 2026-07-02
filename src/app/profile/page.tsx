@@ -21,7 +21,7 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="min-h-screen">
-        <Header showBack title="پروفایل" onBack={() => router.back()} />
+        <Header title="پروفایل" />
         <div className="px-4 py-12 text-center">
           <User className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
           <p className="text-muted-foreground">برای مشاهده پروفایل وارد شوید</p>
@@ -39,7 +39,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen">
-      <Header showBack title="پروفایل" onBack={() => router.back()} />
+      <Header title="پروفایل" />
 
       <div className="px-4 py-6">
         <div className="mx-auto max-w-lg space-y-4">

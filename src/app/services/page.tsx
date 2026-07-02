@@ -21,7 +21,7 @@ export default function ServicesPage() {
 
   return (
     <div className="min-h-screen">
-      <Header showBack title="خدمات ما" onBack={() => router.back()} />
+      <Header title="خدمات ما" />
 
       <div className="px-4 py-6">
         <div className="mx-auto max-w-lg space-y-4 animate-stagger">

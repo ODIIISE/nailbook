@@ -46,7 +46,7 @@ export default function BookingsPage() {
   if (!user) {
     return (
       <div className="min-h-screen">
-        <Header showBack title="نوبت‌های من" onBack={() => router.back()} />
+        <Header title="نوبت‌های من" />
         <div className="px-4 py-12 text-center">
           <p className="text-muted-foreground">برای مشاهده نوبت‌ها وارد شوید</p>
           <button
@@ -63,7 +63,7 @@ export default function BookingsPage() {
 
   return (
     <div className="min-h-screen">
-      <Header showBack title="نوبت‌های من" onBack={() => router.back()} />
+      <Header title="نوبت‌های من" />
 
       <div className="px-4 py-6">
         <div className="mx-auto max-w-lg space-y-3 animate-stagger">
