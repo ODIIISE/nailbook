@@ -101,8 +101,10 @@ export function JalaliCalendar({
             <span className="text-2xl font-bold leading-tight mt-1">
               {toPersianDigits(d.jalaliDay)}
             </span>
-            {d.isToday && !d.isSelected && (
-              <span className="text-[10px] font-semibold text-primary mt-0.5 leading-none">امروز</span>
+            {d.isToday && (
+              <span className={`text-[10px] font-semibold mt-0.5 leading-none ${d.isSelected ? "text-white" : "text-primary"}`}>
+                امروز
+              </span>
             )}
           </button>
         ))}
