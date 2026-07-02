@@ -134,6 +134,15 @@ export default function BookContent() {
     setSelectedTime((prev) => (prev === time ? null : time));
   }, []);
 
+  const handleGoToNextDay = useCallback(() => {
+    setSelectedDate((prev) => {
+      const next = new Date(prev);
+      next.setDate(next.getDate() + 1);
+      return next;
+    });
+    setSelectedTime(null);
+  }, []);
+
   const handleCustomerSubmit = useCallback(async (name: string, phone: string) => {
     setCustomerName(name);
     setCustomerPhone(phone);
@@ -251,6 +260,7 @@ export default function BookContent() {
                   slots={timeSlots}
                   selectedSlot={selectedTime}
                   onSelectSlot={handleSelectTime}
+                  onGoToNextDay={handleGoToNextDay}
                 />
                 {selectedTime && (
                   <Button

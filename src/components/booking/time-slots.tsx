@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Clock, Ban, Sparkles, Bell, CheckCircle } from "lucide-react";
+import { Clock, Ban, Sparkles, ChevronLeft } from "lucide-react";
 import { toPersianDigits } from "@/lib/jalali";
 import type { TimeSlot } from "@/lib/slots";
 
@@ -10,12 +9,10 @@ interface TimeSlotsProps {
   slots: TimeSlot[];
   selectedSlot: string | null;
   onSelectSlot: (time: string) => void;
+  onGoToNextDay?: () => void;
 }
 
-export function TimeSlots({ date, slots, selectedSlot, onSelectSlot }: TimeSlotsProps) {
-  const [notifyRequested, setNotifyRequested] = useState(false);
-  const [notifyPhone, setNotifyPhone] = useState("");
-
+export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextDay }: TimeSlotsProps) {
   if (!date) {
     return (
       <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center shadow-card">
@@ -34,33 +31,14 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot }: TimeSlots
         <p className="text-[15px] text-muted-foreground">ساعتی موجود نیست</p>
         <p className="text-[13px] text-muted-foreground/50 mt-1">تاریخ دیگری انتخاب کنید</p>
 
-        {!notifyRequested ? (
-          <div className="mt-4 space-y-2">
-            <input
-              type="tel"
-              value={notifyPhone}
-              onChange={(e) => setNotifyPhone(e.target.value)}
-              placeholder="شماره موبایل"
-              className="w-full h-10 rounded-full glass px-4 text-[15px] text-center placeholder:text-muted-foreground/50"
-              dir="ltr"
-            />
-            <button
-              onClick={() => {
-                if (notifyPhone.length >= 10) {
-                  setNotifyRequested(true);
-                }
-              }}
-              className="w-full h-10 rounded-full bg-foreground text-background text-[13px] font-bold hover:bg-foreground/90 transition-colors"
-            >
-              <Bell className="h-4 w-4 inline ml-2" />
-              اعلام کن وقتی جای خالی شد
-            </button>
-          </div>
-        ) : (
-          <div className="mt-4 flex items-center justify-center gap-2 text-[13px] text-success">
-            <CheckCircle className="h-4 w-4" />
-            <span>ثبت شد! وقتی جای خالی شد به شما اطلاع می‌دهیم</span>
-          </div>
+        {onGoToNextDay && (
+          <button
+            onClick={onGoToNextDay}
+            className="mt-4 w-full h-10 rounded-full bg-foreground text-background text-[13px] font-bold hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2"
+          >
+            روز بعد
+            <ChevronLeft className="h-4 w-4" />
+          </button>
         )}
       </div>
     );
