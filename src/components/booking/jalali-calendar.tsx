@@ -28,6 +28,7 @@ export function JalaliCalendar({
       date: Date;
       weekday: string;
       isToday: boolean;
+      isTomorrow: boolean;
       isSelected: boolean;
       jalaliDay: number;
     }> = [];
@@ -51,6 +52,7 @@ export function JalaliCalendar({
         date,
         weekday: PERSIAN_WEEKDAYS_SHORT[iranIndex],
         isToday: i === 0,
+        isTomorrow: i === 1,
         isSelected,
         jalaliDay: jalali.jd,
       });
@@ -104,6 +106,11 @@ export function JalaliCalendar({
             {d.isToday && (
               <span className={`text-[10px] font-semibold mt-0.5 leading-none ${d.isSelected ? "text-white" : "text-primary"}`}>
                 امروز
+              </span>
+            )}
+            {d.isTomorrow && (
+              <span className={`text-[10px] font-semibold mt-0.5 leading-none ${d.isSelected ? "text-white/80" : "text-muted-foreground"}`}>
+                فردا
               </span>
             )}
           </button>
