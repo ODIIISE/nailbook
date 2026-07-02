@@ -118,7 +118,6 @@ export default function OwnerDashboard() {
     <>
       <div className="px-4 py-4 space-y-4">
         <DateStrip
-          workingHours={salon.working_hours}
           selectedDate={currentDate}
           onSelectDate={setCurrentDate}
         />

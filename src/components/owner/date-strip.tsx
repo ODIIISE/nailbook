@@ -2,11 +2,8 @@
 
 import { useMemo, useRef, useEffect } from "react";
 import { gregorianToJalali, toPersianDigits } from "@/lib/jalali";
-import { getIranWeekDay } from "@/lib/slots";
-import type { WorkingHours } from "@/lib/slots";
 
 interface DateStripProps {
-  workingHours: WorkingHours;
   selectedDate: Date;
   onSelectDate: (date: Date) => void;
 }
@@ -14,7 +11,7 @@ interface DateStripProps {
 const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
 const JS_TO_IRAN_DAY = [1, 2, 3, 4, 5, 6, 0];
 
-export function DateStrip({ workingHours, selectedDate, onSelectDate }: DateStripProps) {
+export function DateStrip({ selectedDate, onSelectDate }: DateStripProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const today = useMemo(() => {
@@ -27,7 +24,6 @@ export function DateStrip({ workingHours, selectedDate, onSelectDate }: DateStri
     const result: Array<{
       date: Date;
       weekday: string;
-      isWorkingDay: boolean;
       isToday: boolean;
       isSelected: boolean;
       jalaliDay: number;
@@ -36,9 +32,6 @@ export function DateStrip({ workingHours, selectedDate, onSelectDate }: DateStri
     for (let i = -10; i <= 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
-
-      const dayKey = getIranWeekDay(date);
-      const isWorkingDay = workingHours[dayKey] !== null;
 
       const isSelected =
         selectedDate !== null &&
@@ -53,14 +46,13 @@ export function DateStrip({ workingHours, selectedDate, onSelectDate }: DateStri
       result.push({
         date,
         weekday: PERSIAN_WEEKDAYS_SHORT[iranIndex],
-        isWorkingDay,
         isToday: i === 0,
         isSelected,
         jalaliDay: jalali.jd,
       });
     }
     return result;
-  }, [today, workingHours, selectedDate]);
+  }, [today, selectedDate]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -90,12 +82,10 @@ export function DateStrip({ workingHours, selectedDate, onSelectDate }: DateStri
             onClick={() => onSelectDate(d.date)}
             style={{ scrollSnapAlign: "center" }}
             className={`
-              flex-shrink-0 min-w-[72px] h-[90px] flex flex-col items-center justify-center rounded-2xl transition-all duration-200
+              flex-shrink-0 min-w-[72px] h-[90px] flex flex-col items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer active:scale-95
               ${d.isSelected
-                ? "bg-foreground text-background shadow-lg"
-                : d.isWorkingDay
-                  ? "bg-card border border-border text-foreground cursor-pointer hover:border-primary/30"
-                  : "bg-muted/30 text-muted-foreground/40 cursor-not-allowed"
+                ? "bg-foreground text-background"
+                : "bg-card border border-border text-foreground hover:border-primary/30"
               }
               ${d.isToday && !d.isSelected ? "border-2 border-primary/40" : ""}
             `}

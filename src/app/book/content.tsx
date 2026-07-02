@@ -250,8 +250,6 @@ export default function BookContent() {
             ) : (
               <div className="space-y-5">
                 <JalaliCalendar
-                  workingHours={workingHours}
-                  bookedDates={bookedDates}
                   selectedDate={selectedDate}
                   onSelectDate={handleSelectDate}
                 />
