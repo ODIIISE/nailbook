@@ -12,11 +12,10 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  sendCode: (phone: string) => Promise<boolean>;
-  verifyCode: (phone: string, code: string) => Promise<boolean>;
-  login: (phone: string, password: string) => Promise<boolean>;
+  checkPhone: (phone: string) => Promise<{ exists: boolean; locked?: boolean; hasPin?: boolean; role?: string; message?: string }>;
+  createPin: (phone: string, pin: string, name: string) => Promise<{ success: boolean; error?: string }>;
+  verifyPin: (phone: string, pin: string) => Promise<{ success: boolean; error?: string; attemptsLeft?: number }>;
   logout: () => void;
-  updateProfile: (name: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -35,54 +34,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const sendCode = useCallback(async (phone: string): Promise<boolean> => {
+  const checkPhone = useCallback(async (phone: string) => {
     try {
-      const res = await fetch("/api/auth/send-code", {
+      const res = await fetch("/api/auth/check-phone", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone }),
       });
-      return res.ok;
+      return await res.json();
     } catch {
-      return false;
+      return { exists: false };
     }
   }, []);
 
-  const verifyCode = useCallback(async (phone: string, code: string): Promise<boolean> => {
+  const createPin = useCallback(async (phone: string, pin: string, name: string) => {
     try {
-      const res = await fetch("/api/auth/verify-code", {
+      const res = await fetch("/api/auth/create-pin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, code }),
+        body: JSON.stringify({ phone, pin, name, role: "customer" }),
       });
       const data = await res.json();
       if (data.success && data.user) {
         setUser(data.user);
         localStorage.setItem("auth_user", JSON.stringify(data.user));
-        return true;
+        return { success: true };
       }
-      return false;
+      return { success: false, error: data.error };
     } catch {
-      return false;
+      return { success: false, error: "خطای سرور" };
     }
   }, []);
 
-  const login = useCallback(async (phone: string, password: string): Promise<boolean> => {
+  const verifyPin = useCallback(async (phone: string, pin: string) => {
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/verify-pin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, password }),
+        body: JSON.stringify({ phone, pin }),
       });
       const data = await res.json();
       if (data.success && data.user) {
         setUser(data.user);
         localStorage.setItem("auth_user", JSON.stringify(data.user));
-        return true;
+        return { success: true };
       }
-      return false;
+      return { success: false, error: data.error, attemptsLeft: data.attemptsLeft };
     } catch {
-      return false;
+      return { success: false, error: "خطای سرور" };
     }
   }, []);
 
@@ -92,18 +91,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     document.cookie = "auth_token=; path=/; max-age=0";
   }, []);
 
-  const updateProfile = useCallback((name: string) => {
-    setUser((prev) => {
-      if (!prev) return prev;
-      const updated = { ...prev, name };
-      localStorage.setItem("auth_user", JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
-
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, sendCode, verifyCode, login, logout, updateProfile }}
+      value={{ user, isLoading, checkPhone, createPin, verifyPin, logout }}
     >
       {children}
     </AuthContext.Provider>

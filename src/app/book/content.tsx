@@ -10,7 +10,7 @@ import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { toPersianDigits } from "@/lib/jalali";
 import { TimeSlots } from "@/components/booking/time-slots";
 import { CustomerForm } from "@/components/booking/customer-form";
-import { OtpVerify } from "@/components/booking/otp-verify";
+import { AuthFlow } from "@/components/booking/auth-flow";
 import { BookingConfirm } from "@/components/booking/booking-confirm";
 import { AddonSelect } from "@/components/booking/addon-select";
 import { generateTimeSlots } from "@/lib/slots";
@@ -18,13 +18,13 @@ import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
 import type { Booking } from "@/lib/mock-data";
 
-type BookingStep = "date" | "addon" | "time" | "info" | "otp" | "confirmed";
+type BookingStep = "date" | "addon" | "time" | "info" | "auth" | "confirmed";
 
 export default function BookContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { salon, workingHours, services, addons, bookings, blockedTimes, addBooking } = useSalon();
-  const { sendCode, verifyCode } = useAuth();
+  const { user } = useAuth();
   const [step, setStep] = useState<BookingStep>("date");
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
@@ -137,20 +137,15 @@ export default function BookContent() {
   const handleCustomerSubmit = useCallback(async (name: string, phone: string) => {
     setCustomerName(name);
     setCustomerPhone(phone);
-    setIsLoading(true);
-    const sent = await sendCode(phone);
-    setIsLoading(false);
-    if (sent) {
-      setStep("otp");
+    if (user) {
+      handleAuthComplete();
+    } else {
+      setStep("auth");
     }
-  }, [sendCode]);
+  }, [user]);
 
-  const handleOtpVerify = useCallback(async (code: string) => {
-    setIsLoading(true);
-    const verified = await verifyCode(customerPhone, code);
-    setIsLoading(false);
-
-    if (verified && selectedDate && selectedService) {
+  const handleAuthComplete = useCallback(() => {
+    if (selectedDate && selectedService) {
       const id = crypto.randomUUID();
       setBookingId(`BK-${Date.now().toString(36).toUpperCase()}`);
 
@@ -178,21 +173,15 @@ export default function BookContent() {
 
       addBooking(newBooking);
       setStep("confirmed");
-    } else {
-      setOtpError("کد تایید نادرست یا منقضی شده");
     }
-  }, [customerPhone, selectedDate, selectedService, selectedTime, customerName, addBooking, selectedAddons, totalDuration, verifyCode]);
-
-  const handleResendOtp = useCallback(() => {
-    setOtpError("");
-  }, []);
+  }, [selectedDate, selectedService, selectedTime, customerName, customerPhone, addBooking, selectedAddons, totalDuration]);
 
   const stepTitles: Record<BookingStep, string> = {
     date: "انتخاب زمان",
     addon: "آپشن‌ها",
-    time: "انتخاب زمان",
+    time: "انتخاب ساعت",
     info: "اطلاعات شما",
-    otp: "تایید شماره",
+    auth: "ورود",
     confirmed: "تایید نهایی",
   };
 
@@ -283,14 +272,8 @@ export default function BookContent() {
           <CustomerForm onSubmit={handleCustomerSubmit} isLoading={isLoading} />
         )}
 
-        {step === "otp" && (
-          <OtpVerify
-            phone={customerPhone}
-            onVerify={handleOtpVerify}
-            onResend={handleResendOtp}
-            isLoading={isLoading}
-            error={otpError}
-          />
+        {step === "auth" && (
+          <AuthFlow onComplete={handleAuthComplete} />
         )}
 
         {step === "confirmed" && selectedService && selectedDate && selectedTime && (
