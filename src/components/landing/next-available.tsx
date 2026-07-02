@@ -30,10 +30,7 @@ export function NextAvailable({ date, time, onBookNow }: NextAvailableProps) {
               <span className="text-[32px] font-extrabold text-foreground leading-none">
                 {toPersianDigits(jalali.jd)}
               </span>
-              <div className="flex flex-col">
-                <span className="text-[13px] font-bold text-foreground leading-tight">{monthName}</span>
-                <span className="text-[11px] text-muted-foreground leading-tight">{weekday}</span>
-              </div>
+              <span className="text-[13px] font-bold text-foreground">{monthName} · {weekday}</span>
             </div>
             <div className="h-8 w-px bg-border mx-1" />
             <div className="flex items-center gap-1.5">
