@@ -10,7 +10,7 @@ import { ServiceCard } from "@/components/landing/service-card";
 import { TrustSignals } from "@/components/landing/trust-signals";
 import { ContactButtons } from "@/components/landing/contact-buttons";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Heart } from "lucide-react";
 
 import { getNearestAvailableSlot } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
@@ -80,8 +80,8 @@ export default function HomePage() {
       <ContactButtons phone={salon.phone} />
 
       <footer className="px-4 py-6 text-center pb-20">
-        <p className="text-xs text-muted-foreground">
-          ساخته شده با ❤️ برای Forehand Nail Studio
+        <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+          ساخته شده با <Heart className="h-3 w-3 text-rose fill-rose" /> برای Forehand Nail Studio
         </p>
       </footer>
 
