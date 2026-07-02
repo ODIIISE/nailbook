@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/header";
+import { CustomerNav } from "@/components/layout/customer-nav";
 import { Hero } from "@/components/landing/hero";
 import { NextAvailable } from "@/components/landing/next-available";
 import { ServiceCard } from "@/components/landing/service-card";
@@ -85,11 +86,13 @@ export default function HomePage() {
       <TrustSignals totalBookings={bookings.length || 527} />
       <ContactButtons phone={salon.phone} />
 
-      <footer className="px-4 py-6 text-center">
+      <footer className="px-4 py-6 text-center pb-20">
         <p className="text-xs text-muted-foreground">
           ساخته شده با ❤️ برای Forehand Nail Studio
         </p>
       </footer>
+
+      <CustomerNav />
     </div>
   );
 }

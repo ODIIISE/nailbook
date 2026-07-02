@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Header } from "@/components/layout/header";
+import { CustomerNav } from "@/components/layout/customer-nav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft } from "lucide-react";
@@ -293,9 +294,11 @@ export default function BookContent() {
             customerName={customerName}
             bookingId={bookingId}
             phone={salon.phone}
-          />
+           />
         )}
       </div>
+
+      <CustomerNav />
     </div>
   );
 }
