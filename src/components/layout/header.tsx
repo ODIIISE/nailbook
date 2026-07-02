@@ -23,9 +23,10 @@ interface HeaderProps {
   showBack?: boolean;
   title?: string;
   subtitle?: string;
+  onBack?: () => void;
 }
 
-export function Header({ showBack = false, title, subtitle }: HeaderProps) {
+export function Header({ showBack = false, title, subtitle, onBack }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { salon } = useSalon();
@@ -39,7 +40,7 @@ export function Header({ showBack = false, title, subtitle }: HeaderProps) {
         <div className="mx-auto max-w-lg px-4 h-full flex items-center justify-between">
           <div className="flex items-center gap-3">
             {showBack && !isHome ? (
-              <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
+              <Button variant="ghost" size="icon-sm" onClick={onBack || (() => router.back())}>
                 <ArrowRight className="h-5 w-5" />
               </Button>
             ) : null}

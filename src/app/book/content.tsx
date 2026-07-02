@@ -184,12 +184,20 @@ export default function BookContent() {
     confirmed: "تایید نهایی",
   };
 
+  const goBack = () => {
+    const steps: BookingStep[] = ["date", "addon", "info", "auth"];
+    const idx = steps.indexOf(step);
+    if (idx > 0) setStep(steps[idx - 1]);
+    else router.push("/");
+  };
+
   return (
     <div className="min-h-screen min-h-screen">
       <Header
         showBack={step !== "confirmed"}
         title={stepTitles[step]}
         subtitle={selectedService?.name}
+        onBack={step !== "confirmed" ? goBack : undefined}
       />
 
       <div className="mx-auto max-w-lg px-4 py-6 space-y-4">
