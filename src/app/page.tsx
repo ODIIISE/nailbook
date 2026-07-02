@@ -51,6 +51,12 @@ export default function HomePage() {
 
       <Hero salon={salon} onBookNow={handleBookNow} />
 
+      <NextAvailable
+        date={nearestSlot?.date ?? null}
+        time={nearestSlot?.time ?? null}
+        onBookNow={handleBookNow}
+      />
+
       <TrustSignals totalBookings={bookings.length || 527} />
 
       <div className="px-4 mb-6">
@@ -70,12 +76,6 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-
-      <NextAvailable
-        date={nearestSlot?.date ?? null}
-        time={nearestSlot?.time ?? null}
-        onBookNow={handleBookNow}
-      />
 
       <ContactButtons phone={salon.phone} />
 
