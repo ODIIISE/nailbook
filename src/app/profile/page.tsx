@@ -41,7 +41,7 @@ export default function ProfilePage() {
     <div className="min-h-screen">
       <Header title="پروفایل" />
 
-      <div className="px-4 py-6">
+      <div className="px-4 pt-6 pb-24">
         <div className="mx-auto max-w-lg space-y-4">
           <div className="flex justify-center mb-6">
             <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">

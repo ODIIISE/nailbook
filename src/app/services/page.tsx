@@ -23,7 +23,7 @@ export default function ServicesPage() {
     <div className="min-h-screen">
       <Header title="خدمات ما" />
 
-      <div className="px-4 py-6">
+      <div className="px-4 pt-6 pb-24">
         <div className="mx-auto max-w-lg space-y-4 animate-stagger">
           {activeServices.map((service) => (
             <ServiceCard
