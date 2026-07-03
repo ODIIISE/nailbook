@@ -42,6 +42,11 @@ export default function HomePage() {
     <div className="min-h-screen">
       <Header />
 
+      <Highlights
+        highlights={highlights}
+        onSelect={setViewingHighlight}
+      />
+
       <Hero salon={salon} onBookNow={handleBookNow} />
 
       <NextAvailable
@@ -51,11 +56,6 @@ export default function HomePage() {
       />
 
       <TrustSignals totalBookings={bookings.length || 527} />
-
-      <Highlights
-        highlights={highlights}
-        onSelect={setViewingHighlight}
-      />
 
       <ContactButtons phone={salon.phone} />
 
