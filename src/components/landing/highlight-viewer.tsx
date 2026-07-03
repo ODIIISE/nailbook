@@ -9,12 +9,11 @@ interface HighlightViewerProps {
   onClose: () => void;
 }
 
-const AUTO_ADVANCE_MS = 5000;
+const AUTO_ADVANCE_MS = 10000;
 
 export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [paused, setPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const images = highlight.images;
   const total = images.length;
@@ -37,7 +36,7 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
 
   // Auto-advance timer
   useEffect(() => {
-    if (total === 0 || paused) return;
+    if (total === 0) return;
 
     const interval = 50;
     let elapsed = 0;
@@ -54,7 +53,7 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [currentIndex, paused, total, goNext]);
+  }, [currentIndex, total, goNext]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -72,17 +71,13 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
   const image = images[currentIndex];
 
   return (
-    <div
-      className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
-      onPointerDown={() => setPaused(true)}
-      onPointerUp={() => setPaused(false)}
-    >
+    <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
       {/* Progress bars */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex gap-1 p-3 pt-4">
+      <div className="absolute top-0 left-0 right-0 z-20 flex gap-1 p-3 pt-4">
         {images.map((_, i) => (
           <div key={i} className="flex-1 h-[3px] rounded-full bg-white/30 overflow-hidden">
             <div
-              className="h-full bg-white rounded-full transition-none"
+              className="h-full bg-white rounded-full"
               style={{
                 width:
                   i < currentIndex
@@ -96,20 +91,16 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
         ))}
       </div>
 
-      {/* Header */}
-      <div className="absolute top-8 left-0 right-0 z-10 flex items-center justify-between px-4">
-        <div className="flex items-center gap-2">
-          {image.caption && (
-            <span className="text-white/80 text-sm">{image.caption}</span>
-          )}
-        </div>
-        <button
-          onClick={onClose}
-          className="p-2 rounded-full bg-black/30 text-white"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
+      {/* Close button — above everything */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+        className="absolute top-8 right-4 z-30 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+      >
+        <X className="h-5 w-5" />
+      </button>
 
       {/* Image */}
       <img
@@ -119,15 +110,15 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
         draggable={false}
       />
 
-      {/* Navigation tap zones */}
+      {/* Navigation tap zones — below close button */}
       <button
         onClick={goPrev}
-        className="absolute left-0 top-0 bottom-0 w-1/3 z-10"
+        className="absolute left-0 top-16 bottom-0 w-1/3 z-10"
         aria-label="Previous"
       />
       <button
         onClick={goNext}
-        className="absolute right-0 top-0 bottom-0 w-1/3 z-10"
+        className="absolute right-0 top-16 bottom-0 w-2/3 z-10"
         aria-label="Next"
       />
 
@@ -135,7 +126,7 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
       {currentIndex > 0 && (
         <button
           onClick={goPrev}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/30 text-white hidden md:block"
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hidden md:block"
         >
           <ChevronRight className="h-6 w-6" />
         </button>
@@ -143,14 +134,14 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
       {currentIndex < total - 1 && (
         <button
           onClick={goNext}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/30 text-white hidden md:block"
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hidden md:block"
         >
           <ChevronLeft className="h-6 w-6" />
         </button>
       )}
 
       {/* Highlight name */}
-      <div className="absolute bottom-6 left-0 right-0 z-10 text-center">
+      <div className="absolute bottom-6 left-0 right-0 z-20 text-center">
         <span className="text-white text-sm font-medium bg-black/30 px-3 py-1 rounded-full">
           {highlight.name} · {currentIndex + 1}/{total}
         </span>
