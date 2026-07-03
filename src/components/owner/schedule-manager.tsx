@@ -15,6 +15,7 @@ import {
   getJalaliMonthName,
 } from "@/lib/jalali";
 import type { WorkingHours } from "@/lib/slots";
+import { getTehranDateKey } from "@/lib/time";
 
 interface ScheduleManagerProps {
   workingHours: WorkingHours;
@@ -70,7 +71,7 @@ function JalaliMonthGrid({
         {Array.from({ length: daysInMonth }).map((_, i) => {
           const d = i + 1;
           const date = jalaliToGregorian(year, month, d);
-          const dateStr = date.toISOString().split("T")[0];
+          const dateStr = getTehranDateKey(date);
           const isOff = daysOff.includes(dateStr);
           const isToday =
             date.toDateString() === new Date().toDateString();

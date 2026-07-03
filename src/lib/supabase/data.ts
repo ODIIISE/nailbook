@@ -104,6 +104,7 @@ export async function fetchBookings(): Promise<Booking[]> {
 export async function insertBooking(booking: Booking) {
   await supabase.from("bookings").insert({
     id: booking.id,
+    user_id: booking.user_id || null,
     service_id: booking.service_id,
     selected_addons: booking.selected_addons,
     customer_name: booking.customer_name,

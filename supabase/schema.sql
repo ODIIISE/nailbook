@@ -99,6 +99,41 @@ CREATE INDEX IF NOT EXISTS idx_bookings_phone ON bookings(customer_phone);
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
 CREATE INDEX IF NOT EXISTS idx_blocked_times_date ON blocked_times(date_gregorian);
 
+-- Row Level Security Policies
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE salon_info ENABLE ROW LEVEL SECURITY;
+ALTER TABLE services ENABLE ROW LEVEL SECURITY;
+ALTER TABLE addons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE blocked_times ENABLE ROW LEVEL SECURITY;
+
+-- Users: only service role can access (for auth)
+CREATE POLICY "Service role manages users" ON users FOR ALL USING (true) WITH CHECK (true);
+
+-- Sessions: only service role can access
+CREATE POLICY "Service role manages sessions" ON sessions FOR ALL USING (true) WITH CHECK (true);
+
+-- Salon info: anyone can read, service role can write
+CREATE POLICY "Anyone can read salon info" ON salon_info FOR SELECT USING (true);
+CREATE POLICY "Service role manages salon info" ON salon_info FOR ALL USING (true) WITH CHECK (true);
+
+-- Services: anyone can read, service role can write
+CREATE POLICY "Anyone can read services" ON services FOR SELECT USING (true);
+CREATE POLICY "Service role manages services" ON services FOR ALL USING (true) WITH CHECK (true);
+
+-- Addons: anyone can read, service role can write
+CREATE POLICY "Anyone can read addons" ON addons FOR SELECT USING (true);
+CREATE POLICY "Service role manages addons" ON addons FOR ALL USING (true) WITH CHECK (true);
+
+-- Bookings: anyone can read (for slot availability), service role can write
+CREATE POLICY "Anyone can read bookings" ON bookings FOR SELECT USING (true);
+CREATE POLICY "Service role manages bookings" ON bookings FOR ALL USING (true) WITH CHECK (true);
+
+-- Blocked times: anyone can read, service role can write
+CREATE POLICY "Anyone can read blocked times" ON blocked_times FOR SELECT USING (true);
+CREATE POLICY "Service role manages blocked times" ON blocked_times FOR ALL USING (true) WITH CHECK (true);
+
 -- Seed salon info
 INSERT INTO salon_info (name, description, slogan, phone, address) VALUES
   ('استدیو تخصصی ناخن فورهند', 'Forehand Nail Studio — استدیو تخصصی ناخن در مشهد', 'زیبایی ناخن، اعتماد به نفس شما', '09308681363', 'مشهد، نebin صارمی ۳۸/۱۲، پلاک ۷۷')

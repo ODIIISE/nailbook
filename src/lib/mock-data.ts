@@ -35,6 +35,7 @@ export interface Service {
 
 export interface Booking {
   id: string;
+  user_id?: string;
   service_id: string;
   selected_addons: string[];
   customer_name: string;
@@ -145,9 +146,4 @@ export const MOCK_SERVICES: Service[] = [
   },
 ];
 
-const today = new Date().toISOString().split("T")[0];
-const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
-
 export const MOCK_BOOKINGS: Booking[] = [];
-
-export const MOCK_TOTAL_BOOKINGS = 527;

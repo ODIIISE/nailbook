@@ -13,6 +13,9 @@ export interface TimeSlot {
 
 const IRAN_WEEK_DAYS = ["sat", "sun", "mon", "tue", "wed", "thu", "fri"];
 
+import { getTehranDateKey, getTehranNow } from "./time";
+import { gregorianToJalali, jalaliToGregorian } from "./jalali";
+
 export function getIranWeekDay(date: Date): string {
   const jsDay = date.getDay();
   return IRAN_WEEK_DAYS[jsDay === 6 ? 0 : jsDay === 5 ? 6 : jsDay - 1];
@@ -71,9 +74,9 @@ export function generateTimeSlots(
 
   if (!dayHours) return [];
 
-  const now = new Date();
-  const isToday = date.toDateString() === now.toDateString();
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const now = getTehranNow();
+  const isToday = getTehranDateKey(date) === now.dateKey;
+  const nowMinutes = now.minutes;
 
   const slots: TimeSlot[] = [];
   const [openH, openM] = dayHours.open.split(":").map(Number);
@@ -143,13 +146,26 @@ export function getNearestAvailableSlot(
   existingBookings: Array<{ date_gregorian: string; start_time: string; end_time: string }>,
   activeLocks: Array<{ date_gregorian: string; start_time: string; expires_at: string }>
 ): { date: Date; time: string } | null {
-  const now = new Date();
+  const now = getTehranNow();
+  const todayJalali = gregorianToJalali(new Date());
 
   for (let dayOffset = 0; dayOffset < 14; dayOffset++) {
-    const checkDate = new Date(now);
-    checkDate.setDate(checkDate.getDate() + dayOffset);
+    const jy = todayJalali.jy;
+    let jm = todayJalali.jm;
+    let jd = todayJalali.jd + dayOffset;
 
-    const dateStr = checkDate.toISOString().split("T")[0];
+    // Simple Jalali date arithmetic
+    const daysInMonth = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+    while (jd > daysInMonth[jm - 1]) {
+      jd -= daysInMonth[jm - 1];
+      jm++;
+      if (jm > 12) {
+        jm = 1;
+      }
+    }
+
+    const checkDate = jalaliToGregorian(jy, jm, jd);
+    const dateStr = getTehranDateKey(checkDate);
     const dayBookings = existingBookings.filter((b) => b.date_gregorian === dateStr);
     const dayLocks = activeLocks.filter((l) => l.date_gregorian === dateStr);
 

@@ -55,7 +55,7 @@ export function PinInput({ length = 4, onComplete, disabled }: PinInputProps) {
         <input
           key={i}
           ref={(el) => { inputRefs.current[i] = el; }}
-          type="text"
+          type="tel"
           inputMode="numeric"
           maxLength={1}
           value={digit}

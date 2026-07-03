@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
 
     const { data: user } = await supabaseAdmin
       .from("users")
-      .select("id, phone, pin, role, name, locked_until")
+      .select("id, phone, role, name, pin, locked_until")
       .eq("phone", phone)
       .single();
 

@@ -43,6 +43,10 @@ export default function BookingsPage() {
     return addonIds.map(id => addons.find(a => a.id === id)?.name || "").filter(Boolean);
   };
 
+  const getServicePrice = (serviceId: string) => {
+    return services.find(s => s.id === serviceId)?.price || 0;
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen">
@@ -107,7 +111,7 @@ export default function BookingsPage() {
                       <span>{formatJalaliTime(time)}</span>
                     </div>
                     <span className="font-bold text-foreground">
-                      {toPersianDigits(booking.service?.price?.toLocaleString("fa-IR") || "۰")} تومان
+                      {toPersianDigits(getServicePrice(booking.service_id).toLocaleString("fa-IR"))} تومان
                     </span>
                   </div>
                 </Card>
@@ -123,6 +127,7 @@ export default function BookingsPage() {
           onClose={() => setSelectedBooking(null)}
           getServiceName={getServiceName}
           getAddonNames={getAddonNames}
+          getServicePrice={getServicePrice}
         />
       )}
 
@@ -136,11 +141,13 @@ function BookingDetailModal({
   onClose,
   getServiceName,
   getAddonNames,
+  getServicePrice,
 }: {
   booking: Booking;
   onClose: () => void;
   getServiceName: (id: string) => string;
   getAddonNames: (ids: string[]) => string[];
+  getServicePrice: (id: string) => number;
 }) {
   const jalali = gregorianToJalali(new Date(booking.date_gregorian));
   const status = STATUS_MAP[booking.status] || STATUS_MAP.pending;
@@ -199,7 +206,7 @@ function BookingDetailModal({
           <div className="flex items-center justify-between py-2 border-b border-border/30">
             <span className="text-sm text-muted-foreground">هزینه</span>
             <span className="text-base font-bold text-foreground">
-              {toPersianDigits((booking.service?.price || 0).toLocaleString("fa-IR"))} تومان
+              {toPersianDigits(getServicePrice(booking.service_id).toLocaleString("fa-IR"))} تومان
             </span>
           </div>
 

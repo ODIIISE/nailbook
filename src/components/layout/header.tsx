@@ -117,7 +117,7 @@ export function Header({ showBack = false, title, subtitle, onBack }: HeaderProp
                 </a>
 
                 <a
-                  href="https://instagram.com"
+                  href="https://instagram.com/forehandnailstudio"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"

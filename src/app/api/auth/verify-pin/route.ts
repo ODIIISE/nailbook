@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import crypto from "crypto";
+
+function hashPin(pin: string): string {
+  return crypto.createHash("sha256").update(pin).digest("hex");
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +34,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (user.pin !== pin) {
+    const hashedPin = hashPin(pin);
+
+    if (user.pin !== hashedPin) {
       const newAttempts = (user.failed_attempts || 0) + 1;
       const updateData: Record<string, unknown> = { failed_attempts: newAttempts };
 

@@ -34,7 +34,10 @@ export function EarningsModal({
       startDate.setHours(0, 0, 0, 0);
     } else if (period === "week") {
       startDate = new Date(now);
-      startDate.setDate(startDate.getDate() - startDate.getDay());
+      const dayOfWeek = startDate.getDay(); // 0=Sun, 6=Sat
+      // Iran week starts on Saturday (day 6)
+      const daysSinceSaturday = (dayOfWeek + 1) % 7;
+      startDate.setDate(startDate.getDate() - daysSinceSaturday);
       startDate.setHours(0, 0, 0, 0);
     } else {
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);

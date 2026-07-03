@@ -16,7 +16,8 @@ import { PinInput } from "@/components/booking/pin-input";
 import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
-import { toPersianDigits } from "@/lib/jalali";
+import { toPersianDigits, gregorianToJalali } from "@/lib/jalali";
+import { getTehranDateKey } from "@/lib/time";
 import type { Booking } from "@/lib/mock-data";
 
 type BookingStep = "select" | "auth" | "confirm" | "receipt";
@@ -80,7 +81,7 @@ export default function BookContent() {
 
   const timeSlots = useMemo(() => {
     if (!selectedDate || !selectedService) return [];
-    const dateStr = selectedDate.toISOString().split("T")[0];
+    const dateStr = getTehranDateKey(selectedDate);
     const dayBookings = bookings.filter(
       (b) => b.date_gregorian === dateStr && b.status === "confirmed"
     ).map((b) => ({
@@ -203,8 +204,28 @@ export default function BookContent() {
     }
   };
 
-  const handleConfirmBooking = useCallback(() => {
+  const [spamError, setSpamError] = useState("");
+
+  const handleConfirmBooking = useCallback(async () => {
     if (selectedDate && selectedService && selectedTime) {
+      const customerPhone = user?.phone || authPhone;
+      if (customerPhone) {
+        try {
+          const res = await fetch("/api/anti-spam", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: customerPhone }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            setSpamError(data.error || "خطا در بررسی");
+            return;
+          }
+        } catch {
+          // Proceed if anti-spam check fails (server error)
+        }
+      }
+      setSpamError("");
       const id = crypto.randomUUID();
       setBookingId(`BK-${Date.now().toString(36).toUpperCase()}`);
 
@@ -214,16 +235,19 @@ export default function BookContent() {
       const endM = endMinutes % 60;
 
       const customerName = user?.name || authName;
-      const customerPhone = user?.phone || authPhone;
 
       const newBooking: Booking = {
         id,
+        user_id: user?.id,
         service_id: selectedService.id,
         selected_addons: selectedAddons,
         customer_name: customerName,
         customer_phone: customerPhone,
-        date: "",
-        date_gregorian: selectedDate.toISOString().split("T")[0],
+        date: (() => {
+          const j = gregorianToJalali(selectedDate);
+          return `${j.jy}/${String(j.jm).padStart(2, "0")}/${String(j.jd).padStart(2, "0")}`;
+        })(),
+        date_gregorian: getTehranDateKey(selectedDate),
         start_time: `${selectedTime}:00`,
         end_time: `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`,
         status: "confirmed",
@@ -486,6 +510,10 @@ export default function BookContent() {
                 </div>
               </div>
             </Card>
+
+            {spamError && (
+              <p className="text-[13px] text-destructive text-center">{spamError}</p>
+            )}
 
             <Button
               onClick={handleConfirmBooking}

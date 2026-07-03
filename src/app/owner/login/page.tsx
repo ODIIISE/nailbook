@@ -6,33 +6,50 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
+import { PinInput } from "@/components/booking/pin-input";
 
 const salon = { name: "استدیو تخصصی ناخن فورهند" };
 
 export default function OwnerLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [step, setStep] = useState<"phone" | "pin">("phone");
 
-  const handleLogin = () => {
+  const handlePhoneSubmit = () => {
+    if (phone.length < 10) {
+      setError("شماره موبایل معتبر نیست");
+      return;
+    }
+    setError("");
+    setStep("pin");
+  };
+
+  const handlePinSubmit = async (pin: string) => {
     setIsLoading(true);
     setError("");
-
-    setTimeout(() => {
-      if (email === "FarzanehOR" && password === "0920653367") {
-        document.cookie = "owner_session=true; path=/owner";
-        router.push("/owner");
-      } else {
-        setError("ایمیل یا رمز عبور اشتباه است");
+    try {
+      const res = await fetch("/api/owner-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, pin }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "خطا در ورود");
+        setIsLoading(false);
+        return;
       }
+      router.push("/owner");
+    } catch {
+      setError("خطای سرور");
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleLogin();
+    if (e.key === "Enter" && step === "phone") handlePhoneSubmit();
   };
 
   return (
@@ -49,45 +66,49 @@ export default function OwnerLoginPage() {
         </div>
 
         <div className="space-y-4">
-          <div>
-            <Label className="text-[13px]">ایمیل</Label>
-            <Input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="mt-1"
-              dir="ltr"
-              placeholder="FarzanehOR"
-            />
-          </div>
-          <div>
-            <Label className="text-[13px]">رمز عبور</Label>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="mt-1"
-              placeholder="••••••"
-            />
-          </div>
-
-          {error && (
-            <p className="text-[13px] text-destructive text-center">{error}</p>
+          {step === "phone" && (
+            <>
+              <div>
+                <Label className="text-[13px]">شماره موبایل</Label>
+                <Input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="mt-1"
+                  dir="ltr"
+                  placeholder="09121234567"
+                />
+              </div>
+              {error && (
+                <p className="text-[13px] text-destructive text-center">{error}</p>
+              )}
+              <Button
+                className="w-full"
+                onClick={handlePhoneSubmit}
+                disabled={phone.length < 10}
+              >
+                ادامه
+              </Button>
+            </>
           )}
 
-          <Button
-            className="w-full"
-            onClick={handleLogin}
-            disabled={isLoading}
-          >
-            {isLoading ? "در حال ورود..." : "ورود"}
-          </Button>
+          {step === "pin" && (
+            <>
+              <div className="text-center">
+                <p className="text-[13px] text-muted-foreground">
+                  کد ۴ رقمی خود را وارد کنید
+                </p>
+                <p className="text-[13px] text-muted-foreground mt-1" dir="ltr">
+                  {phone}
+                </p>
+              </div>
+              <PinInput onComplete={handlePinSubmit} disabled={isLoading} />
+              {error && (
+                <p className="text-[13px] text-destructive text-center">{error}</p>
+              )}
+            </>
+          )}
         </div>
-
-        <p className="mt-4 text-[13px] text-muted-foreground text-center">
-          دمو: FarzanehOR / 0920653367
-        </p>
       </div>
     </div>
   );

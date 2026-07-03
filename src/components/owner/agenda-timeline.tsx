@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { ChevronRight, ChevronLeft, Clock, User, Ban, X } from "lucide-react";
 import { toPersianDigits, formatJalaliDate, gregorianToJalali } from "@/lib/jalali";
+import { getTehranNow } from "@/lib/time";
 import type { Booking } from "@/lib/mock-data";
 
 interface BlockedTime {
@@ -171,7 +172,7 @@ export function AgendaTimeline({
           <div
             className="absolute right-14 left-2 h-[2px] bg-primary z-20 pointer-events-none"
             style={{
-              top: ((new Date().getHours() * 60 + new Date().getMinutes() - START_HOUR * 60) / 60) * HOUR_HEIGHT,
+              top: ((getTehranNow().minutes - START_HOUR * 60) / 60) * HOUR_HEIGHT,
             }}
           />
         </div>

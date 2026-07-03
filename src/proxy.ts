@@ -5,8 +5,8 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/owner") && pathname !== "/owner/login") {
-    const hasSession = request.cookies.get("owner_session");
-    if (!hasSession) {
+    const session = request.cookies.get("owner_session");
+    if (!session || !session.value) {
       return NextResponse.redirect(new URL("/owner/login", request.url));
     }
   }

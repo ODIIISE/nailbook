@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import crypto from "crypto";
+
+function hashPin(pin: string): string {
+  return crypto.createHash("sha256").update(pin).digest("hex");
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,11 +24,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "کاربر قبلاً ثبت‌نام شده" }, { status: 400 });
     }
 
+    const hashedPin = hashPin(pin);
+
     const { data: user, error } = await supabaseAdmin
       .from("users")
       .insert({
         phone,
-        pin,
+        pin: hashedPin,
         name: name || "",
         role: role || "customer",
         failed_attempts: 0,

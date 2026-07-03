@@ -13,6 +13,7 @@ import { DateStrip } from "@/components/owner/date-strip";
 import { ChevronLeft, Plus } from "lucide-react";
 import { toPersianDigits } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
+import { getTehranDateKey } from "@/lib/time";
 
 interface BlockedTime {
   date_gregorian: string;
@@ -37,7 +38,7 @@ export default function OwnerDashboard() {
   }, [refreshBookings]);
 
   const dayBookings = useMemo(() => {
-    const dateStr = currentDate.toISOString().split("T")[0];
+    const dateStr = getTehranDateKey(currentDate);
     return bookings.filter(
       (b) => b.date_gregorian === dateStr && b.status === "confirmed"
     ).map((b) => ({
@@ -47,12 +48,12 @@ export default function OwnerDashboard() {
   }, [currentDate, bookings, services]);
 
   const dayBlockedTimes = useMemo(() => {
-    const dateStr = currentDate.toISOString().split("T")[0];
+    const dateStr = getTehranDateKey(currentDate);
     return blockedTimes.filter((b) => b.date_gregorian === dateStr);
   }, [currentDate, blockedTimes]);
 
   const accounting = useMemo(() => {
-    const today = currentDate.toISOString().split("T")[0];
+    const today = getTehranDateKey(currentDate);
     const todayBookings = bookings.filter(
       (b) => b.date_gregorian === today && b.status === "confirmed"
     );
@@ -75,13 +76,13 @@ export default function OwnerDashboard() {
   }, [currentDate, bookings, services, paidBookings]);
 
   const handleBlockTime = (startTime: string, endTime: string, reason: string) => {
-    const dateStr = currentDate.toISOString().split("T")[0];
+    const dateStr = getTehranDateKey(currentDate);
     updateBlockedTimes([...blockedTimes, { date_gregorian: dateStr, start_time: startTime, end_time: endTime }]);
     setShowBlockTime(false);
   };
 
   const handleRemoveBlock = (id: string) => {
-    updateBlockedTimes(blockedTimes.filter((b) => b.start_time !== id || b.date_gregorian !== currentDate.toISOString().split("T")[0]));
+    updateBlockedTimes(blockedTimes.filter((b) => b.start_time !== id || b.date_gregorian !== getTehranDateKey(currentDate)));
   };
 
   const handleManualReserve = (data: {
@@ -91,7 +92,7 @@ export default function OwnerDashboard() {
     start_time: string;
     end_time: string;
   }) => {
-    const dateStr = currentDate.toISOString().split("T")[0];
+    const dateStr = getTehranDateKey(currentDate);
     const service = services.find((s) => s.id === data.service_id);
 
     addBooking({

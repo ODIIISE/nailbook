@@ -85,7 +85,8 @@ export function ManualReserveModal({
             <select
               value={serviceId}
               onChange={(e) => setServiceId(e.target.value)}
-              className="mt-1 w-full h-12 rounded-2xl glass px-3 text-[15px]"
+              className="mt-1 w-full h-12 rounded-2xl glass px-3 text-[15px] appearance-none cursor-pointer"
+              dir="rtl"
             >
               {services.filter((s) => s.is_active).map((s) => (
                 <option key={s.id} value={s.id}>
