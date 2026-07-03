@@ -43,7 +43,7 @@ export function Hero({ salon, onBookNow }: HeroProps) {
 
         {onBookNow && (
           <Button
-            className="w-full h-14 bg-rose hover:bg-rose/90 text-white rounded-2xl text-lg font-bold shadow-elevated transition-all duration-200 hover:scale-[0.98] active:scale-95"
+            className="w-full h-16 bg-foreground hover:bg-foreground/90 text-background rounded-2xl text-lg font-bold shadow-elevated transition-all duration-200 hover:scale-[0.98] active:scale-95"
             onClick={onBookNow}
           >
             رزرو کن

@@ -20,7 +20,7 @@ export function Highlights({ highlights, onSelect }: HighlightsProps) {
   const hasHighlights = highlights.length > 0;
 
   return (
-    <div className="px-4 mb-6">
+    <div className="px-4 pt-4 mb-6">
       <div className="mx-auto max-w-lg">
         <div className="flex gap-4 justify-center flex-wrap pb-2">
           {hasHighlights
