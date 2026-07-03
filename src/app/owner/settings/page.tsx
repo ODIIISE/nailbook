@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSalon } from "@/lib/salon-context";
-import { ScheduleManager } from "@/components/owner/schedule-manager";
 import { toast } from "sonner";
-import { Save, Camera, Phone, FileText, Sparkles, Clock } from "lucide-react";
+import { Save, Camera, Phone, FileText, Sparkles } from "lucide-react";
 
 export default function OwnerSettingsPage() {
-  const { salon, updateSalon, workingHours, specificDaysOff, updateWorkingHours, updateSpecificDaysOff } = useSalon();
+  const { salon, updateSalon } = useSalon();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState(salon.name);
@@ -65,109 +64,97 @@ export default function OwnerSettingsPage() {
 
   return (
     <div className="px-4 py-4 space-y-6">
-        <Card className="p-5">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarUpload}
-                className="hidden"
+      <Card className="p-5">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarUpload}
+              className="hidden"
+            />
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={salon.name}
+                className="h-20 w-20 rounded-full object-cover"
               />
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={salon.name}
-                  className="h-20 w-20 rounded-full object-cover"
-                />
-              ) : (
-                <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Sparkles className="h-8 w-8 text-primary" />
-                </div>
-              )}
+            ) : (
+              <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="h-8 w-8 text-primary" />
+              </div>
+            )}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="absolute -bottom-1 -left-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              <Camera className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-foreground">{salon.name}</p>
+            <p className="text-sm text-muted-foreground">لوگوی سالن</p>
+            {avatarUrl && (
               <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="absolute -bottom-1 -left-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+                onClick={async () => {
+                  setAvatarUrl("");
+                  await updateSalon({ logo_url: null });
+                  toast.success("لوگو حذف شد");
+                }}
+                className="text-xs text-destructive mt-1 hover:underline"
               >
-                <Camera className="h-4 w-4" />
+                حذف عکس
               </button>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-foreground">{salon.name}</p>
-              <p className="text-sm text-muted-foreground">لوگوی سالن</p>
-              {avatarUrl && (
-                <button
-                  onClick={() => setAvatarUrl("")}
-                  className="text-xs text-destructive mt-1 hover:underline"
-                >
-                  حذف عکس
-                </button>
-              )}
-            </div>
+            )}
           </div>
-        </Card>
+        </div>
+      </Card>
 
-        <Card className="p-5 space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <FileText className="h-4 w-4 text-primary" />
-            <h3 className="font-semibold text-foreground">اطلاعات پایه</h3>
-          </div>
+      <Card className="p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <FileText className="h-4 w-4 text-primary" />
+          <h3 className="font-semibold text-foreground">اطلاعات پایه</h3>
+        </div>
 
-          <div>
-            <Label className="text-caption">نام سالن</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" placeholder="نام سالن" />
-          </div>
+        <div>
+          <Label className="text-caption">نام سالن</Label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" placeholder="نام سالن" />
+        </div>
 
-          <div>
-            <Label className="text-caption">شعار تبلیغاتی</Label>
-            <Input value={slogan} onChange={(e) => setSlogan(e.target.value)} className="mt-1" placeholder="مثلاً: زیبایی ناخن، اعتماد به نفس شما" />
-          </div>
+        <div>
+          <Label className="text-caption">شعار تبلیغاتی</Label>
+          <Input value={slogan} onChange={(e) => setSlogan(e.target.value)} className="mt-1" placeholder="مثلاً: زیبایی ناخن، اعتماد به نفس شما" />
+        </div>
 
-          <div>
-            <Label className="text-caption">توضیحات</Label>
-            <Input value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" placeholder="توضیح کوتاه درباره سالن" />
-          </div>
-        </Card>
+        <div>
+          <Label className="text-caption">توضیحات</Label>
+          <Input value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" placeholder="توضیح کوتاه درباره سالن" />
+        </div>
+      </Card>
 
-        <Card className="p-5 space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Phone className="h-4 w-4 text-primary" />
-            <h3 className="font-semibold text-foreground">اطلاعات تماس</h3>
-          </div>
+      <Card className="p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Phone className="h-4 w-4 text-primary" />
+          <h3 className="font-semibold text-foreground">اطلاعات تماس</h3>
+        </div>
 
-          <div>
-            <Label className="text-caption">شماره موبایل</Label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" dir="ltr" placeholder="09121234567" />
-          </div>
+        <div>
+          <Label className="text-caption">شماره موبایل</Label>
+          <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" dir="ltr" placeholder="09121234567" />
+        </div>
 
-          <div>
-            <Label className="text-caption">آدرس</Label>
-            <Input value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1" placeholder="آدرس سالن" />
-          </div>
-        </Card>
+        <div>
+          <Label className="text-caption">آدرس</Label>
+          <Input value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1" placeholder="آدرس سالن" />
+        </div>
+      </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Clock className="h-4 w-4 text-primary" />
-            <h3 className="font-semibold text-foreground">ساعات کاری</h3>
-          </div>
-          <ScheduleManager
-            workingHours={workingHours}
-            specificDaysOff={specificDaysOff}
-            onSave={(hours, daysOff) => {
-              updateWorkingHours(hours);
-              updateSpecificDaysOff(daysOff);
-              toast.success("ساعات کاری ذخیره شد");
-            }}
-          />
-        </Card>
-
-        <Button onClick={handleSave} disabled={saving} className="w-full h-12">
-          <Save className="h-5 w-5 ml-2" />
-          {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
-        </Button>
+      <Button onClick={handleSave} disabled={saving} className="w-full h-12">
+        <Save className="h-5 w-5 ml-2" />
+        {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
+      </Button>
     </div>
   );
 }

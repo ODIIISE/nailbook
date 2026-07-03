@@ -124,8 +124,11 @@ export function SalonProvider({ children }: { children: ReactNode }) {
 
   const handleUpdateSalon = useCallback(async (updates: Partial<SalonInfo>) => {
     setSalon((prev) => ({ ...prev, ...updates }));
-    const { updateSalonInfo } = await import("@/lib/supabase/data");
-    await updateSalonInfo(updates);
+    await fetch("/api/update-salon", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    });
   }, []);
 
   const handleAddHighlight = useCallback(async (highlight: Highlight) => {

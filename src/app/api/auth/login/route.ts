@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import crypto from "crypto";
+
+function hashPin(pin: string): string {
+  return crypto.createHash("sha256").update(pin).digest("hex");
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,19 +14,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
 
+    const hashedPin = hashPin(password);
+
     const { data: user, error } = await supabaseAdmin
       .from("users")
-      .select("id, phone, name, role")
+      .select("id, phone, name, role, pin")
       .eq("phone", phone)
-      .eq("pin", password)
       .eq("role", "artist")
       .single();
 
-    if (error || !user) {
+    if (error || !user || user.pin !== hashedPin) {
       return NextResponse.json({ error: "شماره یا رمز عبور اشتباه است" }, { status: 401 });
     }
 
     const token = `auth_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+    await supabaseAdmin.from("sessions").insert({
+      user_id: user.id,
+      token,
+      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    });
 
     const response = NextResponse.json({
       success: true,

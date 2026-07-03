@@ -51,17 +51,6 @@ export interface Booking {
   service?: Service;
 }
 
-export interface SoftLock {
-  id: string;
-  service_id: string;
-  date_gregorian: string;
-  start_time: string;
-  locked_by_phone: string;
-  locked_at: string;
-  expires_at: string;
-  released: boolean;
-}
-
 export const MOCK_SALON: SalonInfo = {
   id: "1",
   name: "استدیو تخصصی ناخن فورهند",
