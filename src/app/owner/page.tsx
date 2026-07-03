@@ -121,6 +121,7 @@ export default function OwnerDashboard() {
         <JalaliCalendar
           selectedDate={currentDate}
           onSelectDate={setCurrentDate}
+          showPast
         />
 
         <div className="flex gap-2">

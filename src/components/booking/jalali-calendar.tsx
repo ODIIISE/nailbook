@@ -6,6 +6,7 @@ import { gregorianToJalali, toPersianDigits } from "@/lib/jalali";
 interface JalaliCalendarProps {
   selectedDate: Date | null;
   onSelectDate: (date: Date) => void;
+  showPast?: boolean;
 }
 
 const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
@@ -14,6 +15,7 @@ const JS_TO_IRAN_DAY = [1, 2, 3, 4, 5, 6, 0];
 export function JalaliCalendar({
   selectedDate,
   onSelectDate,
+  showPast = false,
 }: JalaliCalendarProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +35,7 @@ export function JalaliCalendar({
       jalaliDay: number;
     }> = [];
 
-    for (let i = -7; i <= 7; i++) {
+    for (let i = showPast ? -7 : 0; i <= 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
 
