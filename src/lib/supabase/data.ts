@@ -1,4 +1,5 @@
 import { supabase } from "./client";
+import { supabaseAdmin } from "./server";
 import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "../mock-data";
 
 export async function fetchSalonInfo(): Promise<SalonInfo | null> {
@@ -200,12 +201,15 @@ export async function uploadHighlightImage(file: File): Promise<string | null> {
   const ext = file.name.split(".").pop() || "jpg";
   const path = `highlights/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
-  const { error } = await supabase.storage
+  const { error } = await supabaseAdmin.storage
     .from("highlights")
     .upload(path, file, { contentType: file.type });
 
-  if (error) return null;
+  if (error) {
+    console.error("Upload error:", error);
+    return null;
+  }
 
-  const { data } = supabase.storage.from("highlights").getPublicUrl(path);
+  const { data } = supabaseAdmin.storage.from("highlights").getPublicUrl(path);
   return data?.publicUrl || null;
 }

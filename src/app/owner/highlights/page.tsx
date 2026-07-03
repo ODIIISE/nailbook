@@ -5,16 +5,17 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, X, Trash2, ImagePlus, GripVertical } from "lucide-react";
+import { Plus, X, Trash2, ImagePlus, ChevronDown, ChevronUp } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 import type { Highlight, HighlightImage } from "@/lib/mock-data";
 
 export default function OwnerHighlightsPage() {
   const { highlights, addHighlight, updateHighlight, removeHighlight, addHighlightImage, removeHighlightImage, uploadHighlightImage } = useSalon();
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingHighlight, setEditingHighlight] = useState<Highlight | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [editName, setEditName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -34,12 +35,21 @@ export default function OwnerHighlightsPage() {
 
   const handleDelete = async (id: string) => {
     await removeHighlight(id);
-    if (editingHighlight?.id === id) setEditingHighlight(null);
+    if (expandedId === id) setExpandedId(null);
+  };
+
+  const toggleExpand = (highlight: Highlight) => {
+    if (expandedId === highlight.id) {
+      setExpandedId(null);
+    } else {
+      setExpandedId(highlight.id);
+      setEditName(highlight.name);
+    }
   };
 
   const handleAddImages = async (e: React.ChangeEvent<HTMLInputElement>, highlight: Highlight) => {
     const files = e.target.files;
-    if (!files || files.length === 0 || !editingHighlight) return;
+    if (!files || files.length === 0) return;
 
     setIsUploading(true);
     for (let i = 0; i < files.length; i++) {
@@ -53,12 +63,6 @@ export default function OwnerHighlightsPage() {
           sort_order: highlight.images.length + i,
         };
         await addHighlightImage(image);
-        // Update local editing state
-        setEditingHighlight((prev) =>
-          prev
-            ? { ...prev, images: [...prev.images, image] }
-            : prev
-        );
       }
     }
     setIsUploading(false);
@@ -73,25 +77,22 @@ export default function OwnerHighlightsPage() {
     if (url) {
       const updated = { ...highlight, cover_url: url };
       await updateHighlight(updated);
-      setEditingHighlight(updated);
     }
     e.target.value = "";
   };
 
   const handleRemoveImage = async (imageId: string) => {
     await removeHighlightImage(imageId);
-    setEditingHighlight((prev) =>
-      prev
-        ? { ...prev, images: prev.images.filter((img) => img.id !== imageId) }
-        : prev
-    );
   };
 
-  const handleUpdateName = async (highlight: Highlight, name: string) => {
-    const updated = { ...highlight, name };
-    await updateHighlight(updated);
-    setEditingHighlight(updated);
+  const handleSaveName = async (highlight: Highlight) => {
+    if (editName.trim() && editName.trim() !== highlight.name) {
+      const updated = { ...highlight, name: editName.trim() };
+      await updateHighlight(updated);
+    }
   };
+
+  const expandedHighlight = highlights.find((h) => h.id === expandedId);
 
   return (
     <div className="px-4 py-4 space-y-4">
@@ -108,7 +109,6 @@ export default function OwnerHighlightsPage() {
         </Button>
       </div>
 
-      {/* Highlights list */}
       {highlights.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="text-muted-foreground">هنوز هایلایتی اضافه نشده</p>
@@ -119,165 +119,154 @@ export default function OwnerHighlightsPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {highlights.map((highlight) => (
-            <Card
-              key={highlight.id}
-              className={`p-4 cursor-pointer transition-all ${
-                editingHighlight?.id === highlight.id
-                  ? "ring-2 ring-primary"
-                  : "hover:bg-white/60"
-              }`}
-              onClick={() => setEditingHighlight(highlight)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0">
-                  {highlight.cover_url ? (
-                    <img
-                      src={highlight.cover_url}
-                      alt={highlight.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-lg font-bold text-muted-foreground">
-                        {highlight.name.charAt(0)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-foreground truncate">{highlight.name}</p>
-                  <p className="text-[13px] text-muted-foreground">
-                    {highlight.images.length} تصویر
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(highlight.id);
-                  }}
-                  className="text-destructive hover:text-destructive"
+          {highlights.map((highlight) => {
+            const isExpanded = expandedId === highlight.id;
+            return (
+              <Card key={highlight.id} className="overflow-hidden">
+                {/* Collapsed header — always visible */}
+                <button
+                  onClick={() => toggleExpand(highlight)}
+                  className="w-full p-4 flex items-center gap-3 text-left hover:bg-white/40 transition-colors"
                 >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0">
+                    {highlight.cover_url ? (
+                      <img src={highlight.cover_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-lg font-bold text-muted-foreground">
+                          {highlight.name.charAt(0)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-foreground truncate">{highlight.name}</p>
+                    <p className="text-[13px] text-muted-foreground">
+                      {highlight.images.length} تصویر
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(highlight.id);
+                    }}
+                    className="text-destructive hover:text-destructive shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                  {isExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                  )}
+                </button>
 
-      {/* Edit panel */}
-      {editingHighlight && (
-        <Card className="p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-foreground">ویرایش هایلایت</h3>
-            <Button variant="ghost" size="icon-sm" onClick={() => setEditingHighlight(null)}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+                {/* Expanded edit panel — inline */}
+                {isExpanded && expandedHighlight && (
+                  <div className="px-4 pb-4 space-y-4 border-t border-border/30">
+                    {/* Name */}
+                    <div className="pt-3">
+                      <Label className="text-[13px]">نام</Label>
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={() => handleSaveName(expandedHighlight)}
+                          disabled={editName.trim() === expandedHighlight.name}
+                        >
+                          ذخیره
+                        </Button>
+                      </div>
+                    </div>
 
-          <div>
-            <Label className="text-[13px]">نام</Label>
-            <Input
-              value={editingHighlight.name}
-              onChange={(e) => {
-                const name = e.target.value;
-                setEditingHighlight((prev) => (prev ? { ...prev, name } : prev));
-              }}
-              onBlur={() => {
-                if (editingHighlight.name.trim()) {
-                  handleUpdateName(editingHighlight, editingHighlight.name.trim());
-                }
-              }}
-              className="mt-1"
-            />
-          </div>
+                    {/* Cover */}
+                    <div>
+                      <Label className="text-[13px]">کاور</Label>
+                      <div className="mt-2 flex items-center gap-3">
+                        <div className="w-14 h-14 rounded-full overflow-hidden bg-muted shrink-0">
+                          {expandedHighlight.cover_url ? (
+                            <img src={expandedHighlight.cover_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => coverInputRef.current?.click()}>
+                          تغییر کاور
+                        </Button>
+                        <input
+                          ref={coverInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleAddCover(e, expandedHighlight)}
+                        />
+                      </div>
+                    </div>
 
-          <div>
-            <Label className="text-[13px]">کاور</Label>
-            <div className="mt-2 flex items-center gap-3">
-              <div className="w-16 h-16 rounded-full overflow-hidden bg-muted shrink-0">
-                {editingHighlight.cover_url ? (
-                  <img
-                    src={editingHighlight.cover_url}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                    {/* Images */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-[13px]">تصاویر ({expandedHighlight.images.length})</Label>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                        >
+                          <ImagePlus className="h-4 w-4 ml-1" />
+                          {isUploading ? "آپلود..." : "افزودن"}
+                        </Button>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => handleAddImages(e, expandedHighlight)}
+                        />
+                      </div>
+
+                      {expandedHighlight.images.length === 0 ? (
+                        <div className="text-center py-4 text-muted-foreground text-[13px]">
+                          هنوز تصویری اضافه نشده
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-2">
+                          {expandedHighlight.images.map((image, index) => (
+                            <div key={image.id} className="relative group aspect-square rounded-xl overflow-hidden bg-muted">
+                              <img
+                                src={image.image_url}
+                                alt={`تصویر ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                              <button
+                                onClick={() => handleRemoveImage(image.id)}
+                                className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                              <span className="absolute bottom-1 left-1 text-[10px] text-white bg-black/50 px-1.5 py-0.5 rounded-full">
+                                {index + 1}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => coverInputRef.current?.click()}
-              >
-                تغییر کاور
-              </Button>
-              <input
-                ref={coverInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => handleAddCover(e, editingHighlight)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <Label className="text-[13px]">تصاویر ({editingHighlight.images.length})</Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-              >
-                <ImagePlus className="h-4 w-4 ml-1" />
-                {isUploading ? "در حال آپلود..." : "افزودن تصویر"}
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={(e) => handleAddImages(e, editingHighlight)}
-              />
-            </div>
-
-            {editingHighlight.images.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground text-[13px]">
-                هنوز تصویری اضافه نشده
-              </div>
-            ) : (
-              <div className="grid grid-cols-3 gap-2">
-                {editingHighlight.images.map((image, index) => (
-                  <div key={image.id} className="relative group aspect-square rounded-xl overflow-hidden bg-muted">
-                    <img
-                      src={image.image_url}
-                      alt={`تصویر ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      onClick={() => handleRemoveImage(image.id)}
-                      className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                    <span className="absolute bottom-1 left-1 text-[10px] text-white bg-black/50 px-1.5 py-0.5 rounded-full">
-                      {index + 1}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </Card>
+              </Card>
+            );
+          })}
+        </div>
       )}
 
       {/* Create modal */}
