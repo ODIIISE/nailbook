@@ -1,5 +1,4 @@
 import { supabase } from "./client";
-import { supabaseAdmin } from "./server";
 import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "../mock-data";
 
 export async function fetchSalonInfo(): Promise<SalonInfo | null> {
@@ -198,18 +197,15 @@ export async function deleteHighlightImage(id: string) {
 }
 
 export async function uploadHighlightImage(file: File): Promise<string | null> {
-  const ext = file.name.split(".").pop() || "jpg";
-  const path = `highlights/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+  const formData = new FormData();
+  formData.append("file", file);
 
-  const { error } = await supabaseAdmin.storage
-    .from("highlights")
-    .upload(path, file, { contentType: file.type });
+  const res = await fetch("/api/upload-highlight", {
+    method: "POST",
+    body: formData,
+  });
 
-  if (error) {
-    console.error("Upload error:", error);
-    return null;
-  }
-
-  const { data } = supabaseAdmin.storage.from("highlights").getPublicUrl(path);
-  return data?.publicUrl || null;
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data.url || null;
 }
