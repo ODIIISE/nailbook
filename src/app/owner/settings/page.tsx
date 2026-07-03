@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSalon } from "@/lib/salon-context";
+import { ScheduleManager } from "@/components/owner/schedule-manager";
 import { toast } from "sonner";
-import { Save, Camera, Phone, FileText, Sparkles, Trash2 } from "lucide-react";
+import { Save, Camera, Phone, FileText, Sparkles, Clock } from "lucide-react";
 
 export default function OwnerSettingsPage() {
-  const { salon, updateSalon } = useSalon();
+  const { salon, updateSalon, workingHours, specificDaysOff, updateWorkingHours, updateSpecificDaysOff } = useSalon();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState(salon.name);
@@ -139,6 +140,22 @@ export default function OwnerSettingsPage() {
             <Label className="text-caption">آدرس</Label>
             <Input value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1" placeholder="آدرس سالن" />
           </div>
+        </Card>
+
+        <Card className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="h-4 w-4 text-primary" />
+            <h3 className="font-semibold text-foreground">ساعات کاری</h3>
+          </div>
+          <ScheduleManager
+            workingHours={workingHours}
+            specificDaysOff={specificDaysOff}
+            onSave={(hours, daysOff) => {
+              updateWorkingHours(hours);
+              updateSpecificDaysOff(daysOff);
+              toast.success("ساعات کاری ذخیره شد");
+            }}
+          />
         </Card>
 
         <Button onClick={handleSave} disabled={saving} className="w-full h-12">
