@@ -21,36 +21,41 @@ export default function OwnerSettingsPage() {
   const [address, setAddress] = useState(salon.address);
   const [avatarUrl, setAvatarUrl] = useState(salon.logo_url || "");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("حجم فایل بیشتر از ۲ مگابایت است");
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("حجم فایل بیشتر از ۵ مگابایت است");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
-      setAvatarUrl(result);
-      toast.success("عکس آپلود شد");
-    };
-    reader.readAsDataURL(file);
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload-highlight", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.url) {
+        setAvatarUrl(data.url);
+        await updateSalon({ logo_url: data.url });
+        toast.success("لوگو ذخیره شد");
+      } else {
+        toast.error("خطا در آپلود تصویر");
+      }
+    } catch {
+      toast.error("خطا در آپلود تصویر");
+    }
+    setUploading(false);
+    e.target.value = "";
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updateSalon({
-        name,
-        slogan,
-        description,
-        phone,
-        address,
-        logo_url: avatarUrl,
-      });
+      await updateSalon({ name, slogan, description, phone, address });
       toast.success("تغییرات ذخیره شد");
     } catch {
       toast.error("خطا در ذخیره تغییرات");
@@ -83,7 +88,8 @@ export default function OwnerSettingsPage() {
               )}
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-1 -left-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors"
+                disabled={uploading}
+                className="absolute -bottom-1 -left-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
                 <Camera className="h-4 w-4" />
               </button>
