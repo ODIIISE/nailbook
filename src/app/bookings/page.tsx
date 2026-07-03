@@ -9,8 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Calendar, X } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
-import { useAuth } from "@/lib/auth-context";
-import { gregorianToJalali, toPersianDigits, formatJalaliTime, formatJalaliDateShort } from "@/lib/jalali";
+import { gregorianToJalali, toPersianDigits, formatJalaliTime } from "@/lib/jalali";
 import type { Booking } from "@/lib/mock-data";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
@@ -25,15 +24,17 @@ const JALALI_MONTHS = ["", "فروردین", "اردیبهشت", "خرداد", "
 export default function BookingsPage() {
   const router = useRouter();
   const { bookings, services, addons } = useSalon();
-  const { user } = useAuth();
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-  const myBookings = useMemo(() => {
-    if (!user) return [];
-    return bookings
-      .filter((b) => b.customer_phone === user.phone)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }, [bookings, user]);
+  const allBookings = useMemo(() => {
+    return [...bookings]
+      .sort((a, b) => {
+        const dateA = new Date(a.date_gregorian).getTime();
+        const dateB = new Date(b.date_gregorian).getTime();
+        if (dateA !== dateB) return dateA - dateB;
+        return a.start_time.localeCompare(b.start_time);
+      });
+  }, [bookings]);
 
   const getServiceName = (serviceId: string) => {
     return services.find((s) => s.id === serviceId)?.name || "نامعلوم";
@@ -47,34 +48,34 @@ export default function BookingsPage() {
     return services.find(s => s.id === serviceId)?.price || 0;
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen">
-        <Header title="نوبت‌های من" />
-        <div className="px-4 py-12 text-center">
-          <p className="text-muted-foreground">برای مشاهده نوبت‌ها وارد شوید</p>
-          <button
-            onClick={() => router.push("/")}
-            className="mt-4 text-primary font-bold"
-          >
-            بازگشت به صفحه اصلی
-          </button>
-        </div>
-        <CustomerNav />
-      </div>
-    );
-  }
+  const groupedByDate = useMemo(() => {
+    const groups: { date: string; jalaliStr: string; bookings: Booking[] }[] = [];
+    const map = new Map<string, Booking[]>();
+
+    for (const b of allBookings) {
+      const key = b.date_gregorian;
+      if (!map.has(key)) {
+        const jalali = gregorianToJalali(new Date(key));
+        const jalaliStr = `${toPersianDigits(jalali.jd)} ${JALALI_MONTHS[jalali.jm]} ${toPersianDigits(jalali.jy)}`;
+        groups.push({ date: key, jalaliStr, bookings: [] });
+        map.set(key, groups[groups.length - 1].bookings);
+      }
+      map.get(key)!.push(b);
+    }
+
+    return groups;
+  }, [allBookings]);
 
   return (
     <div className="min-h-screen">
       <Header title="نوبت‌های من" />
 
       <div className="px-4 py-6">
-        <div className="mx-auto max-w-lg space-y-3 animate-stagger">
-          {myBookings.length === 0 ? (
+        <div className="mx-auto max-w-lg space-y-6">
+          {allBookings.length === 0 ? (
             <div className="text-center py-12">
               <Calendar className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
-              <p className="text-muted-foreground">هنوز نوبتی ثبت نکرده‌اید</p>
+              <p className="text-muted-foreground">هنوز نوبتی ثبت نشده است</p>
               <button
                 onClick={() => router.push("/services")}
                 className="mt-4 text-primary font-bold"
@@ -83,40 +84,48 @@ export default function BookingsPage() {
               </button>
             </div>
           ) : (
-            myBookings.map((booking) => {
-              const jalali = gregorianToJalali(new Date(booking.date_gregorian));
-              const status = STATUS_MAP[booking.status] || STATUS_MAP.pending;
-              const time = booking.start_time.slice(0, 5);
+            groupedByDate.map((group) => (
+              <div key={group.date}>
+                <p className="text-[13px] font-bold text-muted-foreground mb-2 px-1">
+                  {group.jalaliStr}
+                </p>
+                <div className="space-y-2">
+                  {group.bookings.map((booking) => {
+                    const status = STATUS_MAP[booking.status] || STATUS_MAP.pending;
+                    const time = booking.start_time.slice(0, 5);
 
-              return (
-                <Card
-                  key={booking.id}
-                  className="glass p-4 shadow-card cursor-pointer active:scale-[0.98] transition-all duration-150"
-                  onClick={() => setSelectedBooking(booking)}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="font-bold text-foreground">
-                        {getServiceName(booking.service_id)}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        {toPersianDigits(jalali.jd)} {JALALI_MONTHS[jalali.jm]}
-                      </p>
-                    </div>
-                    <Badge variant={status.variant}>{status.label}</Badge>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>{formatJalaliTime(time)}</span>
-                    </div>
-                    <span className="font-bold text-foreground">
-                      {toPersianDigits(getServicePrice(booking.service_id).toLocaleString("fa-IR"))} تومان
-                    </span>
-                  </div>
-                </Card>
-              );
-            })
+                    return (
+                      <Card
+                        key={booking.id}
+                        className="glass p-4 shadow-card cursor-pointer active:scale-[0.98] transition-all duration-150"
+                        onClick={() => setSelectedBooking(booking)}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h3 className="font-bold text-foreground">
+                              {getServiceName(booking.service_id)}
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-0.5">
+                              {booking.customer_name}
+                            </p>
+                          </div>
+                          <Badge variant={status.variant}>{status.label}</Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="h-3.5 w-3.5" />
+                            <span>{formatJalaliTime(time)}</span>
+                          </div>
+                          <span className="font-bold text-foreground">
+                            {toPersianDigits(getServicePrice(booking.service_id).toLocaleString("fa-IR"))} تومان
+                          </span>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
           )}
         </div>
       </div>
@@ -175,6 +184,11 @@ function BookingDetailModal({
           <div className="flex items-center justify-between py-2 border-b border-border/30">
             <span className="text-sm text-muted-foreground">خدمت</span>
             <span className="text-sm font-bold text-foreground">{getServiceName(booking.service_id)}</span>
+          </div>
+
+          <div className="flex items-center justify-between py-2 border-b border-border/30">
+            <span className="text-sm text-muted-foreground">مشتری</span>
+            <span className="text-sm font-bold text-foreground">{booking.customer_name}</span>
           </div>
 
           <div className="flex items-center justify-between py-2 border-b border-border/30">
