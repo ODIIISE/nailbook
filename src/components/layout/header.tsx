@@ -36,7 +36,7 @@ export function Header({ showBack = false, title, subtitle, onBack }: HeaderProp
 
   return (
     <>
-      <div className="sticky top-0 z-30 bg-background h-14">
+      <div className="sticky top-0 z-30 bg-background h-14 border-b border-border">
         <div className="mx-auto max-w-lg px-4 h-full flex items-center justify-between">
           <div className="flex items-center gap-3">
             {showBack && !isHome ? (

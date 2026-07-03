@@ -11,7 +11,7 @@ export function CustomerNav() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-20 bg-white"
+      className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-border"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <div className="mx-auto max-w-lg flex items-stretch border-t border-black/[0.08]">
