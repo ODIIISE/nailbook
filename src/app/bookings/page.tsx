@@ -70,7 +70,7 @@ export default function BookingsPage() {
     <div className="min-h-screen">
       <Header title="نوبت‌های من" />
 
-      <div className="px-4 py-6">
+      <div className="px-4 pt-6 pb-24">
         <div className="mx-auto max-w-lg space-y-6">
           {allBookings.length === 0 ? (
             <div className="text-center py-12">
