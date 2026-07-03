@@ -17,7 +17,7 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen pb-20">
-      <div className="sticky top-0 z-10 glass-strong h-14">
+      <div className="sticky top-0 z-10 bg-background h-14">
         <div className="mx-auto max-w-lg px-4 h-full flex items-center justify-between">
           <h1 className="text-[17px] font-bold text-foreground">{salon.name}</h1>
           <Button variant="ghost" size="icon-sm" onClick={() => setMenuOpen(true)}>
@@ -104,7 +104,7 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
         {children}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-20 glass-strong border-t border-border">
+      <div className="fixed bottom-0 left-0 right-0 z-20 bg-background border-t border-border">
         <div className="mx-auto max-w-lg flex">
           <button
             onClick={() => router.push("/owner")}
