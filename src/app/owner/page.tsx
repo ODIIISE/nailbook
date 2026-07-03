@@ -9,7 +9,7 @@ import { BlockTimeModal } from "@/components/owner/block-time-modal";
 import { BookingModal } from "@/components/owner/booking-modal";
 import { EarningsModal } from "@/components/owner/earnings-modal";
 import { ManualReserveModal } from "@/components/owner/manual-reserve-modal";
-import { DateStrip } from "@/components/owner/date-strip";
+import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { ChevronLeft, Plus } from "lucide-react";
 import { toPersianDigits } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
@@ -118,7 +118,7 @@ export default function OwnerDashboard() {
   return (
     <>
       <div className="px-4 py-4 space-y-4">
-        <DateStrip
+        <JalaliCalendar
           selectedDate={currentDate}
           onSelectDate={setCurrentDate}
         />
