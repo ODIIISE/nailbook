@@ -1,5 +1,5 @@
 import { supabase } from "./client";
-import type { SalonInfo, Service, Booking, Addon } from "../mock-data";
+import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "../mock-data";
 
 export async function fetchSalonInfo(): Promise<SalonInfo | null> {
   const { data } = await supabase.from("salon_info").select("*").limit(1).single();
@@ -131,4 +131,81 @@ export async function updateWorkingHours(workingHours: Record<string, unknown>, 
       specific_days_off: specificDaysOff,
     }).eq("id", existing.id);
   }
+}
+
+// ── Highlights ──
+
+export async function fetchHighlights(): Promise<Highlight[]> {
+  const { data: highlights } = await supabase
+    .from("highlights")
+    .select("*")
+    .order("sort_order");
+
+  if (!highlights || highlights.length === 0) return [];
+
+  const { data: images } = await supabase
+    .from("highlight_images")
+    .select("*")
+    .order("sort_order");
+
+  const imageMap = new Map<string, HighlightImage[]>();
+  for (const img of images || []) {
+    if (!imageMap.has(img.highlight_id)) imageMap.set(img.highlight_id, []);
+    imageMap.get(img.highlight_id)!.push({
+      id: img.id,
+      highlight_id: img.highlight_id,
+      image_url: img.image_url,
+      caption: img.caption || "",
+      sort_order: img.sort_order,
+    });
+  }
+
+  return highlights.map((h) => ({
+    id: h.id,
+    name: h.name,
+    cover_url: h.cover_url,
+    sort_order: h.sort_order,
+    images: imageMap.get(h.id) || [],
+  }));
+}
+
+export async function upsertHighlight(highlight: Highlight) {
+  await supabase.from("highlights").upsert({
+    id: highlight.id,
+    name: highlight.name,
+    cover_url: highlight.cover_url,
+    sort_order: highlight.sort_order,
+  });
+}
+
+export async function deleteHighlight(id: string) {
+  await supabase.from("highlights").delete().eq("id", id);
+}
+
+export async function upsertHighlightImage(image: HighlightImage) {
+  await supabase.from("highlight_images").upsert({
+    id: image.id,
+    highlight_id: image.highlight_id,
+    image_url: image.image_url,
+    caption: image.caption,
+    sort_order: image.sort_order,
+  });
+}
+
+export async function deleteHighlightImage(id: string) {
+  await supabase.from("highlight_images").delete().eq("id", id);
+}
+
+export async function uploadHighlightImage(file: File): Promise<string | null> {
+  const ext = file.name.split(".").pop() || "jpg";
+  const path = `highlights/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from("highlights")
+    .upload(path, file, { contentType: file.type });
+
+  if (error) return null;
+
+  const { data } = supabase.storage.from("highlights").getPublicUrl(path);
+  return data?.publicUrl || null;
 }

@@ -89,6 +89,25 @@ CREATE TABLE IF NOT EXISTS blocked_times (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Highlights (Instagram-style story highlights)
+CREATE TABLE IF NOT EXISTS highlights (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  cover_url TEXT,
+  sort_order INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Highlight images
+CREATE TABLE IF NOT EXISTS highlight_images (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  highlight_id UUID REFERENCES highlights(id) ON DELETE CASCADE,
+  image_url TEXT NOT NULL,
+  caption TEXT DEFAULT '',
+  sort_order INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
@@ -98,6 +117,7 @@ CREATE INDEX IF NOT EXISTS idx_bookings_user ON bookings(user_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_phone ON bookings(customer_phone);
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
 CREATE INDEX IF NOT EXISTS idx_blocked_times_date ON blocked_times(date_gregorian);
+CREATE INDEX IF NOT EXISTS idx_highlight_images_highlight ON highlight_images(highlight_id);
 
 -- Row Level Security Policies
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -107,6 +127,8 @@ ALTER TABLE services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE addons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE blocked_times ENABLE ROW LEVEL SECURITY;
+ALTER TABLE highlights ENABLE ROW LEVEL SECURITY;
+ALTER TABLE highlight_images ENABLE ROW LEVEL SECURITY;
 
 -- Users: only service role can access (for auth)
 CREATE POLICY "Service role manages users" ON users FOR ALL USING (true) WITH CHECK (true);
@@ -133,6 +155,14 @@ CREATE POLICY "Service role manages bookings" ON bookings FOR ALL USING (true) W
 -- Blocked times: anyone can read, service role can write
 CREATE POLICY "Anyone can read blocked times" ON blocked_times FOR SELECT USING (true);
 CREATE POLICY "Service role manages blocked times" ON blocked_times FOR ALL USING (true) WITH CHECK (true);
+
+-- Highlights: anyone can read, service role can write
+CREATE POLICY "Anyone can read highlights" ON highlights FOR SELECT USING (true);
+CREATE POLICY "Service role manages highlights" ON highlights FOR ALL USING (true) WITH CHECK (true);
+
+-- Highlight images: anyone can read, service role can write
+CREATE POLICY "Anyone can read highlight images" ON highlight_images FOR SELECT USING (true);
+CREATE POLICY "Service role manages highlight images" ON highlight_images FOR ALL USING (true) WITH CHECK (true);
 
 -- Seed salon info
 INSERT INTO salon_info (name, description, slogan, phone, address) VALUES

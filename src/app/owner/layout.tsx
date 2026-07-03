@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Calendar, Clock, Briefcase, Settings, Menu, X, Home, LogOut } from "lucide-react";
+import { Calendar, Clock, Briefcase, Settings, Menu, X, Home, LogOut, CircleDot } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useSalon } from "@/lib/salon-context";
@@ -73,6 +73,14 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
                   <span className="text-[15px]">مدیریت خدمات</span>
                 </button>
 
+                <button
+                  onClick={() => { router.push("/owner/highlights"); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"
+                >
+                  <CircleDot className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-[15px]">مدیریت هایلایت</span>
+                </button>
+
                 <Separator className="my-2 bg-white/20" />
 
                 <button
@@ -124,6 +132,15 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
           >
             <Briefcase className="h-5 w-5" />
             <span className="text-[10px] font-bold">خدمات</span>
+          </button>
+          <button
+            onClick={() => router.push("/owner/highlights")}
+            className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${
+              isActive("/owner/highlights") ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <CircleDot className="h-5 w-5" />
+            <span className="text-[10px] font-bold">هایلایت</span>
           </button>
           <button
             onClick={() => router.push("/owner/settings")}

@@ -146,4 +146,22 @@ export const MOCK_SERVICES: Service[] = [
   },
 ];
 
+export interface HighlightImage {
+  id: string;
+  highlight_id: string;
+  image_url: string;
+  caption: string;
+  sort_order: number;
+}
+
+export interface Highlight {
+  id: string;
+  name: string;
+  cover_url: string | null;
+  sort_order: number;
+  images: HighlightImage[];
+}
+
 export const MOCK_BOOKINGS: Booking[] = [];
+
+export const MOCK_HIGHLIGHTS: Highlight[] = [];

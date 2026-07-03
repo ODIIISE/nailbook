@@ -6,20 +6,21 @@ import { Header } from "@/components/layout/header";
 import { CustomerNav } from "@/components/layout/customer-nav";
 import { Hero } from "@/components/landing/hero";
 import { NextAvailable } from "@/components/landing/next-available";
-import { ServiceCard } from "@/components/landing/service-card";
 import { TrustSignals } from "@/components/landing/trust-signals";
 import { ContactButtons } from "@/components/landing/contact-buttons";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, Heart } from "lucide-react";
+import { Highlights } from "@/components/landing/highlights";
+import { HighlightViewer } from "@/components/landing/highlight-viewer";
+import { Heart } from "lucide-react";
 
 import { getNearestAvailableSlot } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
-import type { Service } from "@/lib/mock-data";
+import type { Highlight } from "@/lib/mock-data";
 
 export default function HomePage() {
   const router = useRouter();
-  const { salon, workingHours, services, bookings } = useSalon();
+  const { salon, workingHours, bookings, highlights } = useSalon();
   const [nearestSlot, setNearestSlot] = useState<{ date: Date; time: string } | null>(null);
+  const [viewingHighlight, setViewingHighlight] = useState<Highlight | null>(null);
 
   useEffect(() => {
     const slot = getNearestAvailableSlot(
@@ -32,14 +33,6 @@ export default function HomePage() {
     );
     setNearestSlot(slot);
   }, [workingHours, salon]);
-
-  const handleSelectService = (service: Service) => {
-    if (service.addon_ids.length > 0) {
-      router.push(`/book?service=${service.id}&step=addon`);
-    } else {
-      router.push(`/book?service=${service.id}`);
-    }
-  };
 
   const handleBookNow = () => {
     router.push("/book");
@@ -59,23 +52,10 @@ export default function HomePage() {
 
       <TrustSignals totalBookings={bookings.length || 527} />
 
-      <div className="px-4 mb-6">
-        <div className="mx-auto max-w-lg">
-          <h2 className="text-lg font-bold text-foreground mb-4">خدمات ما</h2>
-          <div className="space-y-4 animate-stagger">
-            {services
-              .filter((s) => s.is_active)
-              .sort((a, b) => a.sort_order - b.sort_order)
-              .map((service) => (
-                <ServiceCard
-                  key={service.id}
-                  service={service}
-                  onSelect={handleSelectService}
-                />
-              ))}
-          </div>
-        </div>
-      </div>
+      <Highlights
+        highlights={highlights}
+        onSelect={setViewingHighlight}
+      />
 
       <ContactButtons phone={salon.phone} />
 
@@ -86,6 +66,13 @@ export default function HomePage() {
       </footer>
 
       <CustomerNav />
+
+      {viewingHighlight && (
+        <HighlightViewer
+          highlight={viewingHighlight}
+          onClose={() => setViewingHighlight(null)}
+        />
+      )}
     </div>
   );
 }
