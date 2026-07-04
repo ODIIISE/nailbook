@@ -5,7 +5,7 @@ import { Header } from "@/components/layout/header";
 import { CustomerNav } from "@/components/layout/customer-nav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Phone, LogOut, ChevronLeft } from "lucide-react";
+import { User, Phone, LogOut, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { toPersianDigits } from "@/lib/jalali";
 
@@ -22,15 +22,25 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen">
         <Header title="پروفایل" />
-        <div className="px-4 py-12 text-center">
-          <User className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
-          <p className="text-muted-foreground">برای مشاهده پروفایل وارد شوید</p>
-          <button
-            onClick={() => router.push("/")}
-            className="mt-4 text-primary font-bold"
-          >
-            بازگشت به صفحه اصلی
-          </button>
+        <div className="px-4 pt-6 pb-24">
+          <div className="mx-auto max-w-lg">
+            <div className="text-center py-16">
+              <div className="h-16 w-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
+                <User className="h-8 w-8 text-muted-foreground/50" />
+              </div>
+              <h2 className="text-h3 text-foreground mb-2">وارد شوید</h2>
+              <p className="text-[13px] text-muted-foreground mb-6 max-w-xs mx-auto">
+                برای مشاهده پروفایل و اطلاعات حساب کاربری وارد شوید
+              </p>
+              <Button
+                onClick={() => router.push("/book")}
+                className="gap-2"
+              >
+                ورود
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
         <CustomerNav />
       </div>

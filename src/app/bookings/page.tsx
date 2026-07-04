@@ -7,7 +7,7 @@ import { CustomerNav } from "@/components/layout/customer-nav";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Calendar, User, LogIn } from "lucide-react";
+import { Clock, Calendar, User, ArrowLeft } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
 import { gregorianToJalali, toPersianDigits, formatJalaliTime } from "@/lib/jalali";
@@ -82,7 +82,7 @@ export default function BookingsPage() {
               <div className="h-16 w-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
                 <User className="h-8 w-8 text-muted-foreground/50" />
               </div>
-              <h2 className="text-h3 text-foreground mb-2">ورود کنید</h2>
+              <h2 className="text-h3 text-foreground mb-2">وارد شوید</h2>
               <p className="text-[13px] text-muted-foreground mb-6 max-w-xs mx-auto">
                 برای مشاهده نوبت‌های خود وارد حساب کاربری شوید
               </p>
@@ -90,8 +90,8 @@ export default function BookingsPage() {
                 onClick={() => router.push("/book")}
                 className="gap-2"
               >
-                <LogIn className="h-4 w-4" />
-                رزرو نوبت
+                ورود
+                <ArrowLeft className="h-4 w-4" />
               </Button>
             </div>
           </div>
