@@ -3,8 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { AgendaTimeline } from "@/components/owner/agenda-timeline";
+import { Timeline } from "@/components/owner/timeline";
 import { BlockTimeModal } from "@/components/owner/block-time-modal";
 import { BookingModal } from "@/components/owner/booking-modal";
 import { EarningsModal } from "@/components/owner/earnings-modal";
@@ -79,10 +78,6 @@ export default function OwnerDashboard() {
     const dateStr = getTehranDateKey(currentDate);
     updateBlockedTimes([...blockedTimes, { date_gregorian: dateStr, start_time: startTime, end_time: endTime }]);
     setShowBlockTime(false);
-  };
-
-  const handleRemoveBlock = (id: string) => {
-    updateBlockedTimes(blockedTimes.filter((b) => b.start_time !== id || b.date_gregorian !== getTehranDateKey(currentDate)));
   };
 
   const handleManualReserve = (data: {
@@ -172,15 +167,11 @@ export default function OwnerDashboard() {
           </div>
         </Card>
 
-        <AgendaTimeline
+        <Timeline
           bookings={dayBookings}
           blockedTimes={dayBlockedTimes}
-          date={currentDate}
           paidBookings={paidBookings}
-          onPrevDay={() => {}}
-          onNextDay={() => {}}
           onSelectBooking={setSelectedBooking}
-          onRemoveBlock={handleRemoveBlock}
         />
       </div>
 
