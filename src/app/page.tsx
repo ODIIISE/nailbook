@@ -48,8 +48,6 @@ export default function HomePage() {
         onSelect={setViewingHighlight}
       />
 
-      <ServiceCardGrid services={services} />
-
       <Hero salon={salon} onBookNow={handleBookNow} />
 
       <NextAvailable
@@ -57,6 +55,8 @@ export default function HomePage() {
         time={nearestSlot?.time ?? null}
         onBookNow={handleBookNow}
       />
+
+      <ServiceCardGrid services={services} />
 
       <TrustSignals totalBookings={bookings.length || 527} />
 
