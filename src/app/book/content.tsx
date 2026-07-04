@@ -137,7 +137,7 @@ export default function BookContent() {
     }
   }, [user]);
 
-  const handleAuthPhoneSubmit = async () => {
+  const handleAuthPhoneSubmit = useCallback(async () => {
     if (authPhone.length < 10) {
       setAuthError("شماره موبایل معتبر نیست");
       return;
@@ -159,22 +159,22 @@ export default function BookContent() {
     } else {
       setAuthStep("name");
     }
-  };
+  }, [authPhone, checkPhone]);
 
-  const handleAuthNameSubmit = () => {
+  const handleAuthNameSubmit = useCallback(() => {
     if (!authName.trim()) {
       setAuthError("نام الزامی است");
       return;
     }
     setAuthStep("pin");
-  };
+  }, [authName]);
 
-  const handleAuthPinSubmit = (pin: string) => {
+  const handleAuthPinSubmit = useCallback((pin: string) => {
     setAuthPin(pin);
     setAuthStep("confirm-pin");
-  };
+  }, []);
 
-  const handleAuthConfirmPinSubmit = async (confirmPin: string) => {
+  const handleAuthConfirmPinSubmit = useCallback(async (confirmPin: string) => {
     if (authPin !== confirmPin) {
       setAuthError("رمزها مطابقت ندارند");
       return;
@@ -189,9 +189,9 @@ export default function BookContent() {
     } else {
       setAuthError(result.error || "خطا در ثبت‌نام");
     }
-  };
+  }, [authPin, authPhone, authName, createPin]);
 
-  const handleAuthVerifyPinSubmit = async (pin: string) => {
+  const handleAuthVerifyPinSubmit = useCallback(async (pin: string) => {
     setIsLoading(true);
     setAuthError("");
     const result = await verifyPin(authPhone, pin);
@@ -202,7 +202,7 @@ export default function BookContent() {
     } else {
       setAuthError(result.error || "کد نادرست است");
     }
-  };
+  }, [authPhone, verifyPin]);
 
   const [spamError, setSpamError] = useState("");
 
@@ -269,16 +269,22 @@ export default function BookContent() {
     receipt: "تایید نهایی",
   };
 
-  const goBack = () => {
+  const goBack = useCallback(() => {
     const steps: BookingStep[] = ["select", "auth", "confirm"];
     const idx = steps.indexOf(step);
     if (idx > 0) setStep(steps[idx - 1]);
     else router.push("/services");
-  };
+  }, [step, router]);
 
-  const activeAddons = selectedService
-    ? addons.filter((a) => selectedService.addon_ids.includes(a.id) && a.is_active)
-    : [];
+  const activeAddons = useMemo(() => {
+    return selectedService
+      ? addons.filter((a) => selectedService.addon_ids.includes(a.id) && a.is_active)
+      : [];
+  }, [selectedService, addons]);
+
+  const handleToggleAddons = useCallback(() => {
+    setShowAddons((prev) => !prev);
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -295,7 +301,7 @@ export default function BookContent() {
             {activeAddons.length > 0 && (
               <Card className="glass p-4">
                 <button
-                  onClick={() => setShowAddons(!showAddons)}
+                  onClick={handleToggleAddons}
                   className="w-full flex items-center justify-between"
                 >
                   <div className="flex items-center gap-2">
@@ -369,33 +375,44 @@ export default function BookContent() {
           <Card className="glass p-6">
             {authStep === "phone" && (
               <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <h2 className="text-h1 text-foreground">ورود</h2>
-                  <p className="text-[13px] text-muted-foreground mt-1">
-                    شماره موبایل خود را وارد کنید
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-[13px]">شماره موبایل</Label>
-                  <Input
-                    value={authPhone}
-                    onChange={(e) => setAuthPhone(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAuthPhoneSubmit()}
-                    placeholder="۰۹۱۲۱۲۳۴۵۶۷"
-                    dir="ltr"
-                    className="mt-1 text-left"
-                  />
-                </div>
-                {authError && (
-                  <p className="text-[13px] text-destructive text-center">{authError}</p>
+                {isLoading ? (
+                  <div className="space-y-3">
+                    <div className="skeleton h-6 w-32 mx-auto" />
+                    <div className="skeleton h-4 w-48 mx-auto" />
+                    <div className="skeleton h-10 w-full" />
+                    <div className="skeleton h-12 w-full" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-center mb-4">
+                      <h2 className="text-h1 text-foreground">ورود</h2>
+                      <p className="text-[13px] text-muted-foreground mt-1">
+                        شماره موبایل خود را وارد کنید
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-[13px]">شماره موبایل</Label>
+                      <Input
+                        value={authPhone}
+                        onChange={(e) => setAuthPhone(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleAuthPhoneSubmit()}
+                        placeholder="۰۹۱۲۱۲۳۴۵۶۷"
+                        dir="ltr"
+                        className="mt-1 text-left"
+                      />
+                    </div>
+                    {authError && (
+                      <p className="text-[13px] text-destructive text-center">{authError}</p>
+                    )}
+                    <Button
+                      className="w-full"
+                      onClick={handleAuthPhoneSubmit}
+                      disabled={authPhone.length < 10}
+                    >
+                      ادامه
+                    </Button>
+                  </>
                 )}
-                <Button
-                  className="w-full"
-                  onClick={handleAuthPhoneSubmit}
-                  disabled={isLoading || authPhone.length < 10}
-                >
-                  {isLoading ? "در حال بررسی..." : "ادامه"}
-                </Button>
               </div>
             )}
 
@@ -447,33 +464,54 @@ export default function BookContent() {
 
             {authStep === "confirm-pin" && (
               <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <h2 className="text-h1 text-foreground">تکرار رمز</h2>
-                  <p className="text-[13px] text-muted-foreground mt-1">
-                    رمز خود را دوباره وارد کنید
-                  </p>
-                </div>
-                <PinInput onComplete={handleAuthConfirmPinSubmit} disabled={isLoading} />
-                {authError && (
-                  <p className="text-[13px] text-destructive text-center mt-2">{authError}</p>
+                {isLoading ? (
+                  <div className="space-y-3">
+                    <div className="skeleton h-6 w-28 mx-auto" />
+                    <div className="skeleton h-4 w-44 mx-auto" />
+                    <div className="skeleton h-12 w-full" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-center mb-4">
+                      <h2 className="text-h1 text-foreground">تکرار رمز</h2>
+                      <p className="text-[13px] text-muted-foreground mt-1">
+                        رمز خود را دوباره وارد کنید
+                      </p>
+                    </div>
+                    <PinInput onComplete={handleAuthConfirmPinSubmit} disabled={false} />
+                    {authError && (
+                      <p className="text-[13px] text-destructive text-center mt-2">{authError}</p>
+                    )}
+                  </>
                 )}
               </div>
             )}
 
             {authStep === "verify-pin" && (
               <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <h2 className="text-h1 text-foreground">ورود</h2>
-                  <p className="text-[13px] text-muted-foreground mt-1">
-                    کد ۴ رقمی عضویت خود را وارد کنید
-                  </p>
-                  <p className="text-[13px] text-muted-foreground mt-1" dir="ltr">
-                    {authPhone}
-                  </p>
-                </div>
-                <PinInput onComplete={handleAuthVerifyPinSubmit} disabled={isLoading} />
-                {authError && (
-                  <p className="text-[13px] text-destructive text-center mt-2">{authError}</p>
+                {isLoading ? (
+                  <div className="space-y-3">
+                    <div className="skeleton h-6 w-24 mx-auto" />
+                    <div className="skeleton h-4 w-40 mx-auto" />
+                    <div className="skeleton h-4 w-28 mx-auto" />
+                    <div className="skeleton h-12 w-full" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-center mb-4">
+                      <h2 className="text-h1 text-foreground">ورود</h2>
+                      <p className="text-[13px] text-muted-foreground mt-1">
+                        کد ۴ رقمی عضویت خود را وارد کنید
+                      </p>
+                      <p className="text-[13px] text-muted-foreground mt-1" dir="ltr">
+                        {authPhone}
+                      </p>
+                    </div>
+                    <PinInput onComplete={handleAuthVerifyPinSubmit} disabled={false} />
+                    {authError && (
+                      <p className="text-[13px] text-destructive text-center mt-2">{authError}</p>
+                    )}
+                  </>
                 )}
               </div>
             )}
