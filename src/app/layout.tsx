@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Toaster } from "@/components/ui/sonner";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Providers } from "./providers";
 import { GradientBackground } from "@/components/layout/gradient-background";
 import "./globals.css";
@@ -31,7 +32,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <GradientBackground />
         <Providers>
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
           <Toaster />
         </Providers>
       </body>
