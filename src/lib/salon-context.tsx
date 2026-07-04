@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
 import { MOCK_SALON, MOCK_SERVICES, MOCK_BOOKINGS, MOCK_ADDONS, MOCK_HIGHLIGHTS } from "@/lib/mock-data";
 import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "@/lib/mock-data";
 import type { WorkingHours } from "@/lib/slots";
@@ -171,66 +171,66 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     return uploadImage(file);
   }, []);
 
-  if (!loaded) {
-    return (
-      <SalonContext.Provider
-        value={{
-          salon: MOCK_SALON,
-          workingHours: MOCK_SALON.working_hours,
-          specificDaysOff: [],
-          services: MOCK_SERVICES,
-          addons: MOCK_ADDONS,
-          bookings: MOCK_BOOKINGS,
-          highlights: MOCK_HIGHLIGHTS,
-          blockedTimes: [],
-          updateWorkingHours: async () => {},
-          updateSpecificDaysOff: async () => {},
-          updateServices: async () => {},
-          updateAddons: async () => {},
-          updateSalon: async () => {},
-          updateBlockedTimes: () => {},
-          addBooking: async () => {},
-          refreshBookings: async () => {},
-          addHighlight: async () => {},
-          updateHighlight: async () => {},
-          removeHighlight: async () => {},
-          addHighlightImage: async () => {},
-          removeHighlightImage: async () => {},
-          uploadHighlightImage: async () => null,
-        }}
-      >
-        {children}
-      </SalonContext.Provider>
-    );
-  }
+  const value = useMemo<SalonContextType>(() => {
+    if (!loaded) {
+      return {
+        salon: MOCK_SALON,
+        workingHours: MOCK_SALON.working_hours,
+        specificDaysOff: [],
+        services: MOCK_SERVICES,
+        addons: MOCK_ADDONS,
+        bookings: MOCK_BOOKINGS,
+        highlights: MOCK_HIGHLIGHTS,
+        blockedTimes: [],
+        updateWorkingHours: async () => {},
+        updateSpecificDaysOff: async () => {},
+        updateServices: async () => {},
+        updateAddons: async () => {},
+        updateSalon: async () => {},
+        updateBlockedTimes: () => {},
+        addBooking: async () => {},
+        refreshBookings: async () => {},
+        addHighlight: async () => {},
+        updateHighlight: async () => {},
+        removeHighlight: async () => {},
+        addHighlightImage: async () => {},
+        removeHighlightImage: async () => {},
+        uploadHighlightImage: async () => null,
+      };
+    }
+    return {
+      salon,
+      workingHours,
+      specificDaysOff,
+      services,
+      addons,
+      bookings,
+      highlights,
+      blockedTimes,
+      updateWorkingHours: handleUpdateWorkingHours,
+      updateSpecificDaysOff: handleUpdateSpecificDaysOff,
+      updateServices: handleUpdateServices,
+      updateAddons: handleUpdateAddons,
+      updateSalon: handleUpdateSalon,
+      updateBlockedTimes: setBlockedTimes,
+      addBooking: handleAddBooking,
+      refreshBookings,
+      addHighlight: handleAddHighlight,
+      updateHighlight: handleUpdateHighlight,
+      removeHighlight: handleRemoveHighlight,
+      addHighlightImage: handleAddHighlightImage,
+      removeHighlightImage: handleRemoveHighlightImage,
+      uploadHighlightImage: handleUploadHighlightImage,
+    };
+  }, [
+    loaded, salon, workingHours, specificDaysOff, services, addons, bookings, highlights, blockedTimes,
+    handleUpdateWorkingHours, handleUpdateSpecificDaysOff, handleUpdateServices, handleUpdateAddons,
+    handleUpdateSalon, handleAddBooking, refreshBookings, handleAddHighlight, handleUpdateHighlight,
+    handleRemoveHighlight, handleAddHighlightImage, handleRemoveHighlightImage, handleUploadHighlightImage,
+  ]);
 
   return (
-    <SalonContext.Provider
-      value={{
-        salon,
-        workingHours,
-        specificDaysOff,
-        services,
-        addons,
-        bookings,
-        highlights,
-        blockedTimes,
-        updateWorkingHours: handleUpdateWorkingHours,
-        updateSpecificDaysOff: handleUpdateSpecificDaysOff,
-        updateServices: handleUpdateServices,
-        updateAddons: handleUpdateAddons,
-        updateSalon: handleUpdateSalon,
-        updateBlockedTimes: setBlockedTimes,
-        addBooking: handleAddBooking,
-        refreshBookings,
-        addHighlight: handleAddHighlight,
-        updateHighlight: handleUpdateHighlight,
-        removeHighlight: handleRemoveHighlight,
-        addHighlightImage: handleAddHighlightImage,
-        removeHighlightImage: handleRemoveHighlightImage,
-        uploadHighlightImage: handleUploadHighlightImage,
-      }}
-    >
+    <SalonContext.Provider value={value}>
       {children}
     </SalonContext.Provider>
   );
