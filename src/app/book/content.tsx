@@ -16,7 +16,7 @@ import { PinInput } from "@/components/booking/pin-input";
 import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
-import { toPersianDigits, gregorianToJalali } from "@/lib/jalali";
+import { toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { getTehranDateKey } from "@/lib/time";
 import type { Booking } from "@/lib/mock-data";
 
@@ -344,6 +344,22 @@ export default function BookContent() {
               selectedDate={selectedDate}
               onSelectDate={handleSelectDate}
             />
+
+            {/* Full date display */}
+            {selectedDate && (
+              <div className="mx-auto max-w-lg px-4 py-3">
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-[13px] text-muted-foreground">تاریخ:</span>
+                  <span className="text-[17px] font-bold text-foreground">
+                    {(() => {
+                      const j = gregorianToJalali(selectedDate);
+                      return formatJalaliDate(j.jy, j.jm, j.jd);
+                    })()}
+                  </span>
+                </div>
+              </div>
+            )}
+
             <TimeSlots
               date={selectedDate}
               slots={timeSlots}
