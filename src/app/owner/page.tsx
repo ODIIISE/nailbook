@@ -119,25 +119,6 @@ export default function OwnerDashboard() {
           showPast
         />
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => setShowBlockTime(true)}
-          >
-            <Plus className="h-4 w-4 ml-1" />
-            مسدود کردن زمان
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => setShowManualReserve(true)}
-          >
-            <Plus className="h-4 w-4 ml-1" />
-            رزرو دستی
-          </Button>
-        </div>
-
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[13px] font-bold text-foreground">حساب امروز</span>
@@ -173,6 +154,25 @@ export default function OwnerDashboard() {
           paidBookings={paidBookings}
           onSelectBooking={setSelectedBooking}
         />
+
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => setShowBlockTime(true)}
+          >
+            <Plus className="h-4 w-4 ml-1" />
+            مسدود کردن زمان
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => setShowManualReserve(true)}
+          >
+            <Plus className="h-4 w-4 ml-1" />
+            رزرو دستی
+          </Button>
+        </div>
       </div>
 
       {showBlockTime && (
