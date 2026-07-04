@@ -7,8 +7,9 @@ import { CustomerNav } from "@/components/layout/customer-nav";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Calendar, X } from "lucide-react";
+import { Clock, Calendar, User, LogIn } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
+import { useAuth } from "@/lib/auth-context";
 import { gregorianToJalali, toPersianDigits, formatJalaliTime } from "@/lib/jalali";
 import type { Booking } from "@/lib/mock-data";
 
@@ -23,18 +24,22 @@ const JALALI_MONTHS = ["", "فروردین", "اردیبهشت", "خرداد", "
 
 export default function BookingsPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const { bookings, services, addons } = useSalon();
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-  const allBookings = useMemo(() => {
-    return [...bookings]
+  // Filter bookings by logged-in user only
+  const myBookings = useMemo(() => {
+    if (!user) return [];
+    return bookings
+      .filter((b) => b.user_id === user.id)
       .sort((a, b) => {
         const dateA = new Date(a.date_gregorian).getTime();
         const dateB = new Date(b.date_gregorian).getTime();
         if (dateA !== dateB) return dateA - dateB;
         return a.start_time.localeCompare(b.start_time);
       });
-  }, [bookings]);
+  }, [bookings, user]);
 
   const getServiceName = (serviceId: string) => {
     return services.find((s) => s.id === serviceId)?.name || "نامعلوم";
@@ -52,7 +57,7 @@ export default function BookingsPage() {
     const groups: { date: string; jalaliStr: string; bookings: Booking[] }[] = [];
     const map = new Map<string, Booking[]>();
 
-    for (const b of allBookings) {
+    for (const b of myBookings) {
       const key = b.date_gregorian;
       if (!map.has(key)) {
         const jalali = gregorianToJalali(new Date(key));
@@ -64,7 +69,37 @@ export default function BookingsPage() {
     }
 
     return groups;
-  }, [allBookings]);
+  }, [myBookings]);
+
+  // Not logged in — show login prompt
+  if (!user) {
+    return (
+      <div className="min-h-screen">
+        <Header title="نوبت‌های من" />
+        <div className="px-4 pt-6 pb-24">
+          <div className="mx-auto max-w-lg">
+            <div className="text-center py-16">
+              <div className="h-16 w-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
+                <User className="h-8 w-8 text-muted-foreground/50" />
+              </div>
+              <h2 className="text-h3 text-foreground mb-2">ورود کنید</h2>
+              <p className="text-[13px] text-muted-foreground mb-6 max-w-xs mx-auto">
+                برای مشاهده نوبت‌های خود وارد حساب کاربری شوید
+              </p>
+              <Button
+                onClick={() => router.push("/book")}
+                className="gap-2"
+              >
+                <LogIn className="h-4 w-4" />
+                رزرو نوبت
+              </Button>
+            </div>
+          </div>
+        </div>
+        <CustomerNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -72,16 +107,22 @@ export default function BookingsPage() {
 
       <div className="px-4 pt-6 pb-24">
         <div className="mx-auto max-w-lg space-y-6">
-          {allBookings.length === 0 ? (
-            <div className="text-center py-12">
-              <Calendar className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
-              <p className="text-muted-foreground">هنوز نوبتی ثبت نشده است</p>
-              <button
+          {myBookings.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="h-16 w-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
+                <Calendar className="h-8 w-8 text-muted-foreground/50" />
+              </div>
+              <h2 className="text-h3 text-foreground mb-2">نوبتی ندارید</h2>
+              <p className="text-[13px] text-muted-foreground mb-6 max-w-xs mx-auto">
+                هنوز نوبتی رزرو نکرده‌اید. همین الان اولین نوبت خود را بگیرید.
+              </p>
+              <Button
                 onClick={() => router.push("/")}
-                className="mt-4 text-primary font-bold"
+                className="gap-2"
               >
+                <Calendar className="h-4 w-4" />
                 رزرو نوبت
-              </button>
+              </Button>
             </div>
           ) : (
             groupedByDate.map((group) => (
@@ -176,7 +217,7 @@ function BookingDetailModal({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-h2 text-foreground">جزئیات نوبت</h2>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-foreground/5">
-            <X className="h-5 w-5 text-muted-foreground" />
+            <span className="text-muted-foreground">✕</span>
           </button>
         </div>
 
