@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Header } from "@/components/layout/header";
 import { CustomerNav } from "@/components/layout/customer-nav";
 import { Hero } from "@/components/landing/hero";
-import { NextAvailable } from "@/components/landing/next-available";
 import { TrustSignals } from "@/components/landing/trust-signals";
 import { ContactButtons } from "@/components/landing/contact-buttons";
 import { Highlights } from "@/components/landing/highlights";
@@ -13,30 +11,15 @@ import { HighlightViewer } from "@/components/landing/highlight-viewer";
 import { ServiceCardGrid } from "@/components/landing/service-card-grid";
 import { Heart } from "lucide-react";
 
-import { getNearestAvailableSlot } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import type { Highlight } from "@/lib/mock-data";
 
 export default function HomePage() {
-  const router = useRouter();
-  const { salon, workingHours, bookings, highlights, services } = useSalon();
-  const [nearestSlot, setNearestSlot] = useState<{ date: Date; time: string } | null>(null);
+  const { salon, bookings, highlights, services } = useSalon();
   const [viewingHighlight, setViewingHighlight] = useState<Highlight | null>(null);
 
-  useEffect(() => {
-    const slot = getNearestAvailableSlot(
-      workingHours,
-      45,
-      salon.slot_interval_minutes,
-      salon.slot_buffer_minutes,
-      [],
-      []
-    );
-    setNearestSlot(slot);
-  }, [workingHours, salon]);
-
-  const handleBookNow = () => {
-    router.push("/book");
+  const scrollToServices = () => {
+    document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -48,15 +31,11 @@ export default function HomePage() {
         onSelect={setViewingHighlight}
       />
 
-      <Hero salon={salon} onBookNow={handleBookNow} />
+      <Hero salon={salon} onBookNow={scrollToServices} />
 
-      <NextAvailable
-        date={nearestSlot?.date ?? null}
-        time={nearestSlot?.time ?? null}
-        onBookNow={handleBookNow}
-      />
-
-      <ServiceCardGrid services={services} />
+      <div id="services">
+        <ServiceCardGrid services={services} />
+      </div>
 
       <TrustSignals totalBookings={bookings.length || 527} />
 

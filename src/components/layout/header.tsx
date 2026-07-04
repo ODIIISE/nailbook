@@ -88,14 +88,6 @@ export function Header({ showBack = false, title, subtitle, onBack }: HeaderProp
                   <span className="text-[15px]">صفحه اصلی</span>
                 </button>
 
-                <button
-                  onClick={() => { router.push("/book"); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"
-                >
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-[15px]">رزرو نوبت</span>
-                </button>
-
                 <Separator className="my-2 bg-white/20" />
 
                 <button
