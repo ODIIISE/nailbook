@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useRef, useEffect } from "react";
-import { gregorianToJalali, toPersianDigits } from "@/lib/jalali";
+import { useMemo, useRef, useEffect, useState, useCallback } from "react";
+import { gregorianToJalali, jalaliToGregorian, toPersianDigits } from "@/lib/jalali";
+import { CalendarDays, ChevronRight, ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface JalaliCalendarProps {
   selectedDate: Date | null;
@@ -10,7 +12,10 @@ interface JalaliCalendarProps {
 }
 
 const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
+const PERSIAN_WEEKDAYS_FULL = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
+const PERSIAN_MONTHS = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
 const JS_TO_IRAN_DAY = [1, 2, 3, 4, 5, 6, 0];
+const DAYS_IN_MONTH = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
 
 export function JalaliCalendar({
   selectedDate,
@@ -18,6 +23,7 @@ export function JalaliCalendar({
   showPast = false,
 }: JalaliCalendarProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [showModal, setShowModal] = useState(false);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -74,52 +80,214 @@ export function JalaliCalendar({
     }
   }, [selectedDate]);
 
+  // Convert wheel to horizontal scroll
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      e.preventDefault();
+      if (scrollRef.current) {
+        scrollRef.current.scrollLeft += e.deltaY;
+      }
+    }
+  }, []);
+
   return (
-    <div className="mx-auto max-w-lg relative">
-      <div
-        ref={scrollRef}
-        className="flex gap-2 overflow-x-auto pb-1 px-4"
-        style={{
-          scrollSnapType: "x mandatory",
-          scrollPaddingInline: "16px",
-          msOverflowStyle: "none",
-          scrollbarWidth: "none",
-        }}
-      >
-        {days.map((d, i) => (
-          <button
-            key={i}
-            data-selected={d.isSelected}
-            onClick={() => onSelectDate(d.date)}
-            style={{ scrollSnapAlign: "center" }}
-            className={`
-              flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer active:scale-95
-              focus-visible:ring-3 focus-visible:ring-primary/50 focus-visible:outline-none
-              ${d.isSelected
-                ? "bg-primary text-white shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
-                : "bg-card border border-border hover:border-primary/30 text-foreground"
-              }
-              ${d.isToday && !d.isSelected ? "border-2 border-primary/40" : ""}
-            `}
+    <>
+      <div className="mx-auto max-w-lg relative">
+        <div className="flex items-center justify-between px-4 mb-2">
+          <span className="text-[13px] text-muted-foreground">انتخاب تاریخ</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowModal(true)}
+            className="text-primary gap-1.5 h-8 px-2"
           >
-            <span className={`text-[11px] font-medium leading-none ${d.isSelected ? "text-white/70" : "text-muted-foreground"}`}>
-              {d.weekday}
-            </span>
-            <span className="text-xl font-bold leading-tight mt-1">
-              {toPersianDigits(d.jalaliDay)}
-            </span>
-            {d.isToday && (
-              <span className={`text-[10px] font-semibold mt-0.5 leading-none ${d.isSelected ? "text-white" : "text-primary"}`}>
-                امروز
+            <CalendarDays className="h-4 w-4" />
+            <span className="text-[12px]">تقویم</span>
+          </Button>
+        </div>
+        <div
+          ref={scrollRef}
+          onWheel={handleWheel}
+          className="flex gap-2 overflow-x-auto pb-1 px-4"
+          style={{
+            scrollSnapType: "x mandatory",
+            scrollPaddingInline: "16px",
+            WebkitOverflowScrolling: "touch",
+            msOverflowStyle: "none",
+            scrollbarWidth: "none",
+          }}
+        >
+          {days.map((d, i) => (
+            <button
+              key={i}
+              data-selected={d.isSelected}
+              onClick={() => onSelectDate(d.date)}
+              style={{ scrollSnapAlign: "center" }}
+              className={`
+                flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer active:scale-95
+                focus-visible:ring-3 focus-visible:ring-primary/50 focus-visible:outline-none
+                ${d.isSelected
+                  ? "bg-primary text-white shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
+                  : "bg-card border border-border hover:border-primary/30 text-foreground"
+                }
+                ${d.isToday && !d.isSelected ? "border-2 border-primary/40" : ""}
+              `}
+            >
+              <span className={`text-[11px] font-medium leading-none ${d.isSelected ? "text-white/70" : "text-muted-foreground"}`}>
+                {d.weekday}
               </span>
-            )}
-            {d.isTomorrow && (
-              <span className={`text-[10px] font-semibold mt-0.5 leading-none ${d.isSelected ? "text-white/80" : "text-muted-foreground"}`}>
-                فردا
+              <span className="text-xl font-bold leading-tight mt-1">
+                {toPersianDigits(d.jalaliDay)}
               </span>
-            )}
-          </button>
-        ))}
+              {d.isToday && (
+                <span className={`text-[10px] font-semibold mt-0.5 leading-none ${d.isSelected ? "text-white" : "text-primary"}`}>
+                  امروز
+                </span>
+              )}
+              {d.isTomorrow && (
+                <span className={`text-[10px] font-semibold mt-0.5 leading-none ${d.isSelected ? "text-white/80" : "text-muted-foreground"}`}>
+                  فردا
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {showModal && (
+        <CalendarModal
+          selectedDate={selectedDate}
+          onSelect={(date) => {
+            onSelectDate(date);
+            setShowModal(false);
+          }}
+          onClose={() => setShowModal(false)}
+          today={today}
+        />
+      )}
+    </>
+  );
+}
+
+/* ─── Month-view Calendar Modal ─── */
+
+function CalendarModal({
+  selectedDate,
+  onSelect,
+  onClose,
+  today,
+}: {
+  selectedDate: Date | null;
+  onSelect: (date: Date) => void;
+  onClose: () => void;
+  today: Date;
+}) {
+  const jalaliToday = gregorianToJalali(today);
+  const [viewMonth, setViewMonth] = useState(jalaliToday.jm);
+  const [viewYear, setViewYear] = useState(jalaliToday.jy);
+
+  const daysInMonth = DAYS_IN_MONTH[viewMonth - 1];
+
+  // First day of month weekday (JS 0=Sun → Iran index)
+  const firstDayDate = jalaliToGregorian(viewYear, viewMonth, 1);
+  const firstDayJs = firstDayDate.getDay();
+  const firstDayIran = JS_TO_IRAN_DAY[firstDayJs];
+
+  const cells = useMemo(() => {
+    const result: Array<{ day: number | null; date: Date | null; isToday: boolean; isSelected: boolean; isPast: boolean }> = [];
+    // Leading empty cells
+    for (let i = 0; i < firstDayIran; i++) {
+      result.push({ day: null, date: null, isToday: false, isSelected: false, isPast: false });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const gDate = jalaliToGregorian(viewYear, viewMonth, d);
+      const gKey = gDate.toISOString().slice(0, 10);
+      const todayKey = today.toISOString().slice(0, 10);
+      const isSelected = selectedDate !== null && gKey === selectedDate.toISOString().slice(0, 10);
+      const isPast = gDate < today;
+      result.push({ day: d, date: gDate, isToday: gKey === todayKey, isSelected, isPast });
+    }
+    return result;
+  }, [viewYear, viewMonth, daysInMonth, firstDayIran, today, selectedDate]);
+
+  const prevMonth = () => {
+    if (viewMonth === 1) {
+      setViewMonth(12);
+      setViewYear((y) => y - 1);
+    } else {
+      setViewMonth((m) => m - 1);
+    }
+  };
+
+  const nextMonth = () => {
+    if (viewMonth === 12) {
+      setViewMonth(1);
+      setViewYear((y) => y + 1);
+    } else {
+      setViewMonth((m) => m + 1);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-card rounded-3xl p-5 animate-scale shadow-elevated">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <Button variant="ghost" size="icon-sm" onClick={prevMonth}>
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+          <div className="text-center">
+            <p className="text-h3 text-foreground">{PERSIAN_MONTHS[viewMonth - 1]}</p>
+            <p className="text-[12px] text-muted-foreground">{toPersianDigits(viewYear)}</p>
+          </div>
+          <Button variant="ghost" size="icon-sm" onClick={nextMonth}>
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Weekday headers */}
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {PERSIAN_WEEKDAYS_SHORT.map((wd) => (
+            <div key={wd} className="text-center text-[11px] font-bold text-muted-foreground py-1">
+              {wd}
+            </div>
+          ))}
+        </div>
+
+        {/* Day grid */}
+        <div className="grid grid-cols-7 gap-1">
+          {cells.map((cell, i) => {
+            if (cell.day === null) {
+              return <div key={`empty-${i}`} />;
+            }
+            return (
+              <button
+                key={cell.day}
+                disabled={cell.isPast}
+                onClick={() => cell.date && onSelect(cell.date)}
+                className={`
+                  h-10 rounded-xl text-[13px] font-bold transition-all duration-150
+                  ${cell.isSelected
+                    ? "bg-primary text-white shadow-md"
+                    : cell.isToday
+                      ? "bg-primary/10 text-primary border border-primary/30"
+                      : cell.isPast
+                        ? "text-muted-foreground/30 cursor-not-allowed"
+                        : "text-foreground hover:bg-muted active:scale-95 cursor-pointer"
+                  }
+                `}
+              >
+                {toPersianDigits(cell.day)}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Close */}
+        <Button variant="outline" className="w-full mt-4" onClick={onClose}>
+          بستن
+        </Button>
       </div>
     </div>
   );
