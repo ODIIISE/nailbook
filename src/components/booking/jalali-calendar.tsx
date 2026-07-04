@@ -35,7 +35,10 @@ export function JalaliCalendar({
       jalaliDay: number;
     }> = [];
 
-    for (let i = showPast ? -7 : 0; i <= 7; i++) {
+    const start = showPast ? -7 : 0;
+    const end = showPast ? 7 : 6;
+
+    for (let i = start; i <= end; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
 
@@ -60,7 +63,7 @@ export function JalaliCalendar({
       });
     }
     return result;
-  }, [today, selectedDate]);
+  }, [today, selectedDate, showPast]);
 
   useEffect(() => {
     if (scrollRef.current && selectedDate) {
@@ -75,10 +78,10 @@ export function JalaliCalendar({
     <div className="mx-auto max-w-lg relative">
       <div
         ref={scrollRef}
-        className="flex gap-2.5 overflow-x-auto pb-2 px-5"
+        className="flex gap-2 overflow-x-auto pb-1 px-4"
         style={{
           scrollSnapType: "x mandatory",
-          scrollPaddingInline: "20px",
+          scrollPaddingInline: "16px",
           msOverflowStyle: "none",
           scrollbarWidth: "none",
         }}
@@ -90,19 +93,19 @@ export function JalaliCalendar({
             onClick={() => onSelectDate(d.date)}
             style={{ scrollSnapAlign: "center" }}
             className={`
-              flex-shrink-0 min-w-[72px] h-[90px] flex flex-col items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer active:scale-95
+              flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer active:scale-95
               focus-visible:ring-3 focus-visible:ring-primary/50 focus-visible:outline-none
               ${d.isSelected
-                ? "bg-primary text-white"
+                ? "bg-primary text-white shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
                 : "bg-card border border-border hover:border-primary/30 text-foreground"
               }
               ${d.isToday && !d.isSelected ? "border-2 border-primary/40" : ""}
             `}
           >
-            <span className={`text-xs font-medium leading-none ${d.isSelected ? "text-white/70" : "text-muted-foreground"}`}>
+            <span className={`text-[11px] font-medium leading-none ${d.isSelected ? "text-white/70" : "text-muted-foreground"}`}>
               {d.weekday}
             </span>
-            <span className="text-2xl font-bold leading-tight mt-1">
+            <span className="text-xl font-bold leading-tight mt-1">
               {toPersianDigits(d.jalaliDay)}
             </span>
             {d.isToday && (

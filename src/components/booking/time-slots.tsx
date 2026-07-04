@@ -73,7 +73,7 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
         <div>
           <div className="flex items-center gap-2 mb-2 px-1">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
-            <span className="text-[13px] font-bold text-primary">زمان‌های پیشنهادی</span>
+            <span className="text-[13px] font-bold text-primary">ساعت‌های پیشنهادی</span>
           </div>
           <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 animate-stagger">
             {suggestedSlots.map((slot) => (
@@ -91,8 +91,13 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
       {otherSlots.length > 0 && (
         <div>
           {suggestedSlots.length > 0 && (
-            <div className="flex items-center gap-2 mb-2 px-1">
+            <div className="flex items-center gap-2 mb-2 px-1 pt-2 border-t border-border/30">
               <span className="text-[13px] text-muted-foreground">ساعت‌های دیگر</span>
+            </div>
+          )}
+          {suggestedSlots.length === 0 && (
+            <div className="flex items-center gap-2 mb-2 px-1">
+              <span className="text-[13px] text-muted-foreground">ساعت‌های موجود</span>
             </div>
           )}
           <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 animate-stagger">
