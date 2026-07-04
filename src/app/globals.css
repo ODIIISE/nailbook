@@ -321,6 +321,14 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+.touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}
+.touch-target-sm {
+  min-height: 44px;
+  min-width: 44px;
+}
 }
 
 @media (prefers-reduced-motion: reduce) {
