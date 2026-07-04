@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PinInput } from "@/components/booking/pin-input";
 import { useAuth } from "@/lib/auth-context";
+import { normalizeDigits } from "@/lib/digits";
 import { LogIn } from "lucide-react";
 
 type AuthStep = "phone" | "pin" | "confirm-pin" | "verify-pin";
@@ -31,13 +32,15 @@ export default function LoginPage() {
   }, [user, router]);
 
   const handlePhoneSubmit = useCallback(async () => {
-    if (phone.length < 10) {
+    const normalized = normalizeDigits(phone);
+    if (normalized.length < 10) {
       setError("شماره موبایل معتبر نیست");
       return;
     }
     setIsLoading(true);
     setError("");
-    const result = await checkPhone(phone);
+    setPhone(normalized);
+    const result = await checkPhone(normalized);
     setIsLoading(false);
 
     if (result.locked) {
@@ -64,7 +67,7 @@ export default function LoginPage() {
     }
     setIsLoading(true);
     setError("");
-    const result = await createPin(phone, pin, "");
+    const result = await createPin(normalizeDigits(phone), pin, "");
     setIsLoading(false);
 
     if (result.success) {
@@ -77,7 +80,7 @@ export default function LoginPage() {
   const handleVerifyPinSubmit = useCallback(async (enteredPin: string) => {
     setIsLoading(true);
     setError("");
-    const result = await verifyPin(phone, enteredPin);
+    const result = await verifyPin(normalizeDigits(phone), enteredPin);
     setIsLoading(false);
 
     if (result.success) {

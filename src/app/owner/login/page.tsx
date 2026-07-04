@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
 import { PinInput } from "@/components/booking/pin-input";
+import { normalizeDigits } from "@/lib/digits";
 
 const salon = { name: "استدیو تخصصی ناخن فورهند" };
 
@@ -18,11 +19,13 @@ export default function OwnerLoginPage() {
   const [step, setStep] = useState<"phone" | "pin">("phone");
 
   const handlePhoneSubmit = () => {
-    if (phone.length < 10) {
+    const normalized = normalizeDigits(phone);
+    if (normalized.length < 10) {
       setError("شماره موبایل معتبر نیست");
       return;
     }
     setError("");
+    setPhone(normalized);
     setStep("pin");
   };
 
@@ -33,7 +36,7 @@ export default function OwnerLoginPage() {
       const res = await fetch("/api/owner-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, pin }),
+        body: JSON.stringify({ phone: normalizeDigits(phone), pin }),
       });
       const data = await res.json();
       if (!res.ok) {

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { normalizeDigits } from "@/lib/digits";
 import { toPersianDigits } from "@/lib/jalali";
 import type { Service } from "@/lib/mock-data";
 
@@ -39,7 +40,7 @@ export function ManualReserveModal({
     if (!name || !phone || !serviceId || !startTime || !endTime) return;
     onReserve({
       customer_name: name,
-      customer_phone: phone,
+      customer_phone: normalizeDigits(phone),
       service_id: serviceId,
       start_time: startTime,
       end_time: endTime,

@@ -17,6 +17,7 @@ import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
 import { toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
+import { normalizeDigits } from "@/lib/digits";
 import { getTehranDateKey } from "@/lib/time";
 import type { Booking } from "@/lib/mock-data";
 
@@ -137,13 +138,15 @@ export default function BookContent() {
   }, [user]);
 
   const handleAuthPhoneSubmit = useCallback(async () => {
-    if (authPhone.length < 10) {
+    const normalized = normalizeDigits(authPhone);
+    if (normalized.length < 10) {
       setAuthError("شماره موبایل معتبر نیست");
       return;
     }
     setIsLoading(true);
     setAuthError("");
-    const result = await checkPhone(authPhone);
+    setAuthPhone(normalized);
+    const result = await checkPhone(normalized);
     setIsLoading(false);
 
     if (result.locked) {
@@ -173,7 +176,7 @@ export default function BookContent() {
     }
     setIsLoading(true);
     setAuthError("");
-    const result = await createPin(authPhone, authPin, "");
+    const result = await createPin(normalizeDigits(authPhone), authPin, "");
     setIsLoading(false);
 
     if (result.success) {
@@ -186,7 +189,7 @@ export default function BookContent() {
   const handleAuthVerifyPinSubmit = useCallback(async (pin: string) => {
     setIsLoading(true);
     setAuthError("");
-    const result = await verifyPin(authPhone, pin);
+    const result = await verifyPin(normalizeDigits(authPhone), pin);
     setIsLoading(false);
 
     if (result.success) {
