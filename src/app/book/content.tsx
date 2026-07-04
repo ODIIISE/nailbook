@@ -279,7 +279,7 @@ export default function BookContent() {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Header
         showBack={step !== "receipt"}
         title={stepTitles[step]}
@@ -287,7 +287,7 @@ export default function BookContent() {
         onBack={step !== "receipt" ? goBack : undefined}
       />
 
-      <div className="mx-auto max-w-lg px-4 py-6 space-y-4">
+      <div className="flex-1 mx-auto max-w-lg px-4 pt-6 pb-24 space-y-4">
         {step === "select" && (
           <div className="space-y-4">
             {activeAddons.length > 0 && (
@@ -351,15 +351,6 @@ export default function BookContent() {
               onSelectSlot={handleSelectTime}
               onGoToNextDay={handleGoToNextDay}
             />
-            {selectedTime && (
-              <Button
-                onClick={handleSelectContinue}
-                className="w-full h-12"
-              >
-                ادامه
-                <ChevronLeft className="h-5 w-5 mr-2" />
-              </Button>
-            )}
           </div>
         )}
 
@@ -537,6 +528,21 @@ export default function BookContent() {
           />
         )}
       </div>
+
+      {/* Sticky CTA bar - always visible above bottom nav */}
+      {step === "select" && selectedTime && (
+        <div className="fixed bottom-[72px] left-0 right-0 z-30 px-4 pb-2">
+          <div className="mx-auto max-w-lg">
+            <Button
+              onClick={handleSelectContinue}
+              className="w-full h-12 shadow-lg"
+            >
+              ادامه
+              <ChevronLeft className="h-5 w-5 mr-2" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       <CustomerNav />
     </div>
