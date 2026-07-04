@@ -273,7 +273,7 @@ export default function BookContent() {
     const steps: BookingStep[] = ["select", "auth", "confirm"];
     const idx = steps.indexOf(step);
     if (idx > 0) setStep(steps[idx - 1]);
-    else router.push("/services");
+    else router.push("/");
   }, [step, router]);
 
   const activeAddons = useMemo(() => {

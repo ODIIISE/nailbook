@@ -10,6 +10,7 @@ import { TrustSignals } from "@/components/landing/trust-signals";
 import { ContactButtons } from "@/components/landing/contact-buttons";
 import { Highlights } from "@/components/landing/highlights";
 import { HighlightViewer } from "@/components/landing/highlight-viewer";
+import { ServiceCardGrid } from "@/components/landing/service-card-grid";
 import { Heart } from "lucide-react";
 
 import { getNearestAvailableSlot } from "@/lib/slots";
@@ -18,7 +19,7 @@ import type { Highlight } from "@/lib/mock-data";
 
 export default function HomePage() {
   const router = useRouter();
-  const { salon, workingHours, bookings, highlights } = useSalon();
+  const { salon, workingHours, bookings, highlights, services } = useSalon();
   const [nearestSlot, setNearestSlot] = useState<{ date: Date; time: string } | null>(null);
   const [viewingHighlight, setViewingHighlight] = useState<Highlight | null>(null);
 
@@ -46,6 +47,8 @@ export default function HomePage() {
         highlights={highlights}
         onSelect={setViewingHighlight}
       />
+
+      <ServiceCardGrid services={services} />
 
       <Hero salon={salon} onBookNow={handleBookNow} />
 

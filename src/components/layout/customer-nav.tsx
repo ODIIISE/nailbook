@@ -17,7 +17,6 @@ export function CustomerNav() {
       <div className="mx-auto max-w-lg flex items-stretch border-t border-black/[0.08]">
         {[
           { path: "/", icon: Home, label: "خانه" },
-          { path: "/services", icon: Scissors, label: "خدمات" },
           { path: "/bookings", icon: CalendarCheck, label: "نوبت‌ها" },
           { path: "/profile", icon: User, label: "پروفایل" },
         ].map(({ path, icon: Icon, label }) => {

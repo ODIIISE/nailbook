@@ -77,7 +77,7 @@ export default function BookingsPage() {
               <Calendar className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
               <p className="text-muted-foreground">هنوز نوبتی ثبت نشده است</p>
               <button
-                onClick={() => router.push("/services")}
+                onClick={() => router.push("/")}
                 className="mt-4 text-primary font-bold"
               >
                 رزرو نوبت
