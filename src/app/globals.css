@@ -329,7 +329,6 @@
   min-height: 44px;
   min-width: 44px;
 }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .animate-fade,
