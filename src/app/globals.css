@@ -92,8 +92,8 @@
   --card-foreground: #1A1A1A;
   --popover: rgba(255, 255, 255, 0.95);
   --popover-foreground: #1A1A1A;
-  --primary: #E8B4B8;
-  --primary-foreground: #1A1A1A;
+  --primary: #C97B7B;
+  --primary-foreground: #FFFFFF;
   --secondary: #F4F4F6;
   --secondary-foreground: #1A1A1A;
   --muted: #F4F4F6;
@@ -105,7 +105,7 @@
   --border: rgba(0, 0, 0, 0.08);
   --input: rgba(0, 0, 0, 0.06);
   --ring: #E8B4B8;
-  --rose: #E8B4B8;
+  --rose: #C97B7B;
   --gold: #D4A853;
   --warm-white: #FAFAFA;
   --navy: #1A1A1A;
