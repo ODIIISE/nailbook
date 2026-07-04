@@ -41,10 +41,9 @@ export default function BookContent() {
 
   // Auth state
   const [authPhone, setAuthPhone] = useState("");
-  const [authName, setAuthName] = useState("");
   const [authPin, setAuthPin] = useState("");
   const [authConfirmPin, setAuthConfirmPin] = useState("");
-  const [authStep, setAuthStep] = useState<"phone" | "name" | "pin" | "confirm-pin" | "verify-pin">("phone");
+  const [authStep, setAuthStep] = useState<"phone" | "pin" | "confirm-pin" | "verify-pin">("phone");
   const [authError, setAuthError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -157,17 +156,10 @@ export default function BookContent() {
     } else if (result.exists) {
       setAuthStep("pin");
     } else {
-      setAuthStep("name");
+      // New user - go directly to PIN creation (name will be optional)
+      setAuthStep("pin");
     }
   }, [authPhone, checkPhone]);
-
-  const handleAuthNameSubmit = useCallback(() => {
-    if (!authName.trim()) {
-      setAuthError("نام الزامی است");
-      return;
-    }
-    setAuthStep("pin");
-  }, [authName]);
 
   const handleAuthPinSubmit = useCallback((pin: string) => {
     setAuthPin(pin);
@@ -181,7 +173,7 @@ export default function BookContent() {
     }
     setIsLoading(true);
     setAuthError("");
-    const result = await createPin(authPhone, authPin, authName);
+    const result = await createPin(authPhone, authPin, "");
     setIsLoading(false);
 
     if (result.success) {
@@ -189,7 +181,7 @@ export default function BookContent() {
     } else {
       setAuthError(result.error || "خطا در ثبت‌نام");
     }
-  }, [authPin, authPhone, authName, createPin]);
+  }, [authPin, authPhone, createPin]);
 
   const handleAuthVerifyPinSubmit = useCallback(async (pin: string) => {
     setIsLoading(true);
@@ -234,7 +226,7 @@ export default function BookContent() {
       const endH = Math.floor(endMinutes / 60);
       const endM = endMinutes % 60;
 
-      const customerName = user?.name || authName;
+      const customerName = user?.name || "";
 
       const newBooking: Booking = {
         id,
@@ -260,7 +252,7 @@ export default function BookContent() {
       addBooking(newBooking);
       setStep("receipt");
     }
-  }, [selectedDate, selectedService, selectedTime, user, authName, authPhone, addBooking, selectedAddons, totalDuration]);
+  }, [selectedDate, selectedService, selectedTime, user, authPhone, addBooking, selectedAddons, totalDuration]);
 
   const stepTitles: Record<BookingStep, string> = {
     select: "انتخاب زمان",
@@ -416,37 +408,6 @@ export default function BookContent() {
               </div>
             )}
 
-            {authStep === "name" && (
-              <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <h2 className="text-h1 text-foreground">نام شما</h2>
-                  <p className="text-[13px] text-muted-foreground mt-1">
-                    نام خود را برای پروفایل وارد کنید
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-[13px]">نام و نام خانوادگی</Label>
-                  <Input
-                    value={authName}
-                    onChange={(e) => setAuthName(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAuthNameSubmit()}
-                    placeholder="نام خود را وارد کنید"
-                    className="mt-1"
-                  />
-                </div>
-                {authError && (
-                  <p className="text-[13px] text-destructive text-center">{authError}</p>
-                )}
-                <Button
-                  className="w-full"
-                  onClick={handleAuthNameSubmit}
-                  disabled={!authName.trim()}
-                >
-                  ادامه
-                </Button>
-              </div>
-            )}
-
             {authStep === "pin" && (
               <div className="space-y-4">
                 <div className="text-center mb-4">
@@ -570,7 +531,7 @@ export default function BookContent() {
             time={selectedTime}
             duration={totalDuration}
             price={totalPrice}
-            customerName={user?.name || authName}
+            customerName={user?.name || ""}
             bookingId={bookingId}
             phone={salon.phone}
           />
