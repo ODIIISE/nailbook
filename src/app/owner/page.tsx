@@ -80,6 +80,10 @@ export default function OwnerDashboard() {
     setShowBlockTime(false);
   };
 
+  const handleRemoveBlock = (index: number) => {
+    updateBlockedTimes(blockedTimes.filter((_, i) => i !== index));
+  };
+
   const handleManualReserve = (data: {
     customer_name: string;
     customer_phone: string;
@@ -153,6 +157,7 @@ export default function OwnerDashboard() {
           blockedTimes={dayBlockedTimes}
           paidBookings={paidBookings}
           onSelectBooking={setSelectedBooking}
+          onRemoveBlock={handleRemoveBlock}
         />
 
         <div className="flex gap-2">

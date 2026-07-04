@@ -19,6 +19,7 @@ interface TimelineProps {
   blockedTimes: BlockedTime[];
   paidBookings: Set<string>;
   onSelectBooking: (booking: Booking) => void;
+  onRemoveBlock?: (index: number) => void;
   startHour?: number;
   endHour?: number;
 }
@@ -35,6 +36,7 @@ export function Timeline({
   blockedTimes,
   paidBookings,
   onSelectBooking,
+  onRemoveBlock,
   startHour = 9,
   endHour = 21,
 }: TimelineProps) {
@@ -131,10 +133,11 @@ export function Timeline({
           return (
             <div
               key={`block-${index}`}
-              className="absolute right-14 left-2 z-10"
+              className="absolute right-14 left-2 cursor-pointer z-10"
               style={{ top: style.top, height: style.height }}
+              onClick={() => onRemoveBlock?.(index)}
             >
-              <div className="h-full rounded-lg bg-amber-50 border border-amber-300/50 p-2 overflow-hidden">
+              <div className="h-full rounded-lg bg-amber-50 border border-amber-300/50 p-2 hover:bg-amber-100 transition-colors overflow-hidden">
                 <div className="flex items-center gap-1 mb-0.5">
                   <Ban className="h-3 w-3 text-amber-600 shrink-0" />
                   <span className="text-xs font-semibold text-amber-800 truncate">
@@ -144,6 +147,11 @@ export function Timeline({
                 {style.height > 30 && (
                   <p className="text-[10px] text-amber-600">
                     {block.start_time.slice(0, 5)} - {block.end_time.slice(0, 5)}
+                  </p>
+                )}
+                {style.height > 50 && (
+                  <p className="text-[10px] text-amber-500 mt-0.5">
+                    حذف: کلیک کنید
                   </p>
                 )}
               </div>
