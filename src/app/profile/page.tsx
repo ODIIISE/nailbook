@@ -33,7 +33,7 @@ export default function ProfilePage() {
                 برای مشاهده پروفایل و اطلاعات حساب کاربری وارد شوید
               </p>
               <Button
-                onClick={() => router.push("/book")}
+                onClick={() => router.push("/login")}
                 className="gap-2"
               >
                 ورود

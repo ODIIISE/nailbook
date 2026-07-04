@@ -87,7 +87,7 @@ export default function BookingsPage() {
                 برای مشاهده نوبت‌های خود وارد حساب کاربری شوید
               </p>
               <Button
-                onClick={() => router.push("/book")}
+                onClick={() => router.push("/login")}
                 className="gap-2"
               >
                 ورود
