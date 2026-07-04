@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 
 interface BlockTimeModalProps {
   date: Date;
@@ -25,8 +25,7 @@ export function BlockTimeModal({ date, onBlock, onCancel }: BlockTimeModalProps)
   };
 
   return (
-    <Card className="p-4">
-      <h3 className="font-semibold text-foreground mb-4">مسدود کردن زمان</h3>
+    <BottomSheet open={true} onClose={onCancel} title="مسدود کردن زمان">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -71,6 +70,6 @@ export function BlockTimeModal({ date, onBlock, onCancel }: BlockTimeModalProps)
           </Button>
         </div>
       </form>
-    </Card>
+    </BottomSheet>
   );
 }

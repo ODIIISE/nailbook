@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X } from "lucide-react";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { toPersianDigits } from "@/lib/jalali";
 import type { Service } from "@/lib/mock-data";
 
@@ -47,88 +47,77 @@ export function ManualReserveModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-
-      <div className="relative w-full max-w-sm glass rounded-3xl p-6 animate-scale">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-h2 text-foreground">رزرو دستی</h2>
-          <Button variant="ghost" size="icon-sm" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
+    <BottomSheet open={true} onClose={onClose} title="رزرو دستی">
+      <div className="space-y-4">
+        <div>
+          <Label className="text-[13px]">نام مشتری</Label>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="نام و نام خانوادگی"
+            className="mt-1"
+          />
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <Label className="text-[13px]">نام مشتری</Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="نام و نام خانوادگی"
-              className="mt-1"
-            />
-          </div>
+        <div>
+          <Label className="text-[13px]">شماره موبایل</Label>
+          <Input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="۰۹۱۲۱۲۳۴۵۶۷"
+            dir="ltr"
+            className="mt-1 text-left"
+          />
+        </div>
 
+        <div>
+          <Label className="text-[13px]">خدمت</Label>
+          <select
+            value={serviceId}
+            onChange={(e) => setServiceId(e.target.value)}
+            className="mt-1 w-full h-12 rounded-2xl glass px-3 text-[15px] appearance-none cursor-pointer"
+            dir="rtl"
+          >
+            {services.filter((s) => s.is_active).map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} - {toPersianDigits(s.duration_minutes)} دقیقه
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label className="text-[13px]">شماره موبایل</Label>
+            <Label className="text-[13px]">از ساعت</Label>
             <Input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="۰۹۱۲۱۲۳۴۵۶۷"
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="mt-1 text-center"
               dir="ltr"
-              className="mt-1 text-left"
             />
           </div>
-
           <div>
-            <Label className="text-[13px]">خدمت</Label>
-            <select
-              value={serviceId}
-              onChange={(e) => setServiceId(e.target.value)}
-              className="mt-1 w-full h-12 rounded-2xl glass px-3 text-[15px] appearance-none cursor-pointer"
-              dir="rtl"
-            >
-              {services.filter((s) => s.is_active).map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} - {toPersianDigits(s.duration_minutes)} دقیقه
-                </option>
-              ))}
-            </select>
+            <Label className="text-[13px]">تا ساعت</Label>
+            <Input
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="mt-1 text-center"
+              dir="ltr"
+            />
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-[13px]">از ساعت</Label>
-              <Input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="mt-1 text-center"
-                dir="ltr"
-              />
-            </div>
-            <div>
-              <Label className="text-[13px]">تا ساعت</Label>
-              <Input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="mt-1 text-center"
-                dir="ltr"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-3 mt-5">
-          <Button onClick={handleSubmit} className="flex-1">
-            ثبت رزرو
-          </Button>
-          <Button variant="outline" onClick={onClose} className="flex-1">
-            انصراف
-          </Button>
         </div>
       </div>
-    </div>
+
+      <div className="flex gap-3 mt-5">
+        <Button onClick={handleSubmit} className="flex-1">
+          ثبت رزرو
+        </Button>
+        <Button variant="outline" onClick={onClose} className="flex-1">
+          انصراف
+        </Button>
+      </div>
+    </BottomSheet>
   );
 }
