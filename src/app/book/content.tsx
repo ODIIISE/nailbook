@@ -351,15 +351,6 @@ export default function BookContent() {
               onSelectSlot={handleSelectTime}
               onGoToNextDay={handleGoToNextDay}
             />
-            {selectedTime && (
-              <Button
-                onClick={handleSelectContinue}
-                className="w-full h-12"
-              >
-                ادامه
-                <ChevronLeft className="h-5 w-5 mr-2" />
-              </Button>
-            )}
           </div>
         )}
 
@@ -537,6 +528,21 @@ export default function BookContent() {
           />
         )}
       </div>
+
+      {/* Sticky CTA — always visible when a time is selected */}
+      {step === "select" && selectedTime && (
+        <div className="fixed bottom-[72px] left-0 right-0 z-30 px-4 pb-2 pointer-events-none">
+          <div className="mx-auto max-w-lg pointer-events-auto">
+            <Button
+              onClick={handleSelectContinue}
+              className="w-full h-12 shadow-lg"
+            >
+              ادامه
+              <ChevronLeft className="h-5 w-5 mr-2" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       <CustomerNav />
     </div>
