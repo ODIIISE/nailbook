@@ -86,31 +86,31 @@
 }
 
 :root {
-  --background: #F9F9FB;
-  --foreground: #0F0F11;
-  --card: rgba(255, 255, 255, 0.75);
-  --card-foreground: #0F0F11;
-  --popover: rgba(255, 255, 255, 0.85);
-  --popover-foreground: #0F0F11;
-  --primary: #000000;
-  --primary-foreground: #FFFFFF;
+  --background: #FAFAFA;
+  --foreground: #1A1A1A;
+  --card: rgba(255, 255, 255, 0.85);
+  --card-foreground: #1A1A1A;
+  --popover: rgba(255, 255, 255, 0.95);
+  --popover-foreground: #1A1A1A;
+  --primary: #E8B4B8;
+  --primary-foreground: #1A1A1A;
   --secondary: #F4F4F6;
-  --secondary-foreground: #0F0F11;
+  --secondary-foreground: #1A1A1A;
   --muted: #F4F4F6;
   --muted-foreground: #6E6E73;
-  --accent: #FFB4A2;
-  --accent-foreground: #0F0F11;
+  --accent: #C97B7B;
+  --accent-foreground: #FFFFFF;
   --destructive: #FF3B30;
   --success: #34C759;
-  --border: rgba(255, 255, 255, 0.4);
-  --input: rgba(255, 255, 255, 0.5);
-  --ring: #000000;
-  --rose: #FFB4A2;
+  --border: rgba(0, 0, 0, 0.08);
+  --input: rgba(0, 0, 0, 0.06);
+  --ring: #E8B4B8;
+  --rose: #E8B4B8;
   --gold: #D4A853;
-  --warm-white: #F9F9FB;
-  --navy: #0F0F11;
-  --chart-1: #FFB4A2;
-  --chart-2: #B5838D;
+  --warm-white: #FAFAFA;
+  --navy: #1A1A1A;
+  --chart-1: #E8B4B8;
+  --chart-2: #C97B7B;
   --chart-3: #34C759;
   --chart-4: #FF3B30;
   --chart-5: #FFD166;
@@ -122,14 +122,14 @@
   --duration-fast: 120ms;
   --duration-normal: 200ms;
   --easing: cubic-bezier(0.4, 0, 0.2, 1);
-  --sidebar: #F9F9FB;
-  --sidebar-foreground: #0F0F11;
-  --sidebar-primary: #000000;
-  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar: #FAFAFA;
+  --sidebar-foreground: #1A1A1A;
+  --sidebar-primary: #E8B4B8;
+  --sidebar-primary-foreground: #1A1A1A;
   --sidebar-accent: #F4F4F6;
-  --sidebar-accent-foreground: #0F0F11;
-  --sidebar-border: rgba(255, 255, 255, 0.4);
-  --sidebar-ring: #000000;
+  --sidebar-accent-foreground: #1A1A1A;
+  --sidebar-border: rgba(0, 0, 0, 0.08);
+  --sidebar-ring: #E8B4B8;
 }
 
 @layer base {
@@ -170,7 +170,7 @@
 .gradient-blob-1 {
   width: 300px;
   height: 300px;
-  background: #FFB4A2;
+  background: #E8B4B8;
   top: -80px;
   right: -60px;
 }
@@ -186,7 +186,7 @@
 .gradient-blob-3 {
   width: 280px;
   height: 280px;
-  background: #B5838D;
+  background: #C97B7B;
   bottom: -60px;
   right: 10%;
 }
