@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Calendar, Clock, Briefcase, Settings, Menu, X, Home, LogOut, CircleDot } from "lucide-react";
+import { Calendar, Clock, Briefcase, Settings, Menu, X, Home, LogOut, CircleDot, Users } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useSalon } from "@/lib/salon-context";
@@ -79,6 +79,14 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
                 >
                   <CircleDot className="h-4 w-4 text-muted-foreground" />
                   <span className="text-[15px]">مدیریت هایلایت</span>
+                </button>
+
+                <button
+                  onClick={() => { router.push("/owner/users"); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/30 text-right transition-colors"
+                >
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-[15px]">کاربران</span>
                 </button>
 
                 <Separator className="my-2 bg-white/20" />
