@@ -13,7 +13,7 @@ async function verifyOwner(request: NextRequest) {
     .from("users")
     .select("id")
     .eq("id", ownerSession)
-    .in("role", ["owner", "artist"])
+      .eq("role", "owner")
     .single();
   return owner;
 }

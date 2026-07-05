@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       .from("users")
       .select("id, phone, name, role, pin")
       .eq("phone", phone)
-      .in("role", ["owner", "artist"])
+      .eq("role", "owner")
       .single();
 
     if (error || !user || user.pin !== hashedPin) {

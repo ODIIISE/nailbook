@@ -266,9 +266,9 @@ export default function OwnerUsersPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-[15px] font-bold text-foreground truncate">{user.name || "بدون نام"}</p>
-                    {(user.role === "owner" || user.role === "artist") && (
+                    {user.role === "owner" && (
                       <Badge variant="default" className="text-[10px] px-1.5 py-0 h-5">
-                        {user.role === "owner" ? "مدیر" : "هنرمند"}
+                        مدیر
                       </Badge>
                     )}
                     {user.locked_until && (
@@ -324,7 +324,6 @@ export default function OwnerUsersPage() {
                   className="mt-1 w-full h-10 rounded-xl border border-border bg-background px-3 text-[14px]"
                 >
                   <option value="customer">مشتری</option>
-                  <option value="artist">هنرمند</option>
                   <option value="owner">مدیر</option>
                 </select>
               </div>
