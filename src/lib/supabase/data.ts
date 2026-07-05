@@ -37,6 +37,7 @@ export async function fetchServices(): Promise<Service[]> {
     is_active: s.is_active,
     sort_order: s.sort_order,
     addon_ids: s.addon_ids || [],
+    priority_score: s.priority_score || 5,
   }));
 }
 
@@ -50,6 +51,7 @@ export async function upsertService(service: Service) {
     is_active: service.is_active,
     sort_order: service.sort_order,
     addon_ids: service.addon_ids,
+    priority_score: service.priority_score || 5,
   });
 }
 

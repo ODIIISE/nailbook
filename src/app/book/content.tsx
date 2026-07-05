@@ -98,7 +98,8 @@ export default function BookContent() {
       salon.slot_interval_minutes,
       salon.slot_buffer_minutes,
       dayBookings,
-      dayBlocked
+      dayBlocked,
+      selectedService?.priority_score || 5
     );
   }, [selectedDate, selectedService, totalDuration, workingHours, salon, bookings, blockedTimes]);
 

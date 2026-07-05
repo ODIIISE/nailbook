@@ -73,6 +73,7 @@ function ServicesTab({
     description: "",
     duration_minutes: 45,
     price: 0,
+    priority_score: 5,
   });
 
   const handleAdd = () => {
@@ -85,7 +86,7 @@ function ServicesTab({
       addon_ids: [],
     };
     onUpdate([...services, newService]);
-    setForm({ name: "", description: "", duration_minutes: 45, price: 0 });
+    setForm({ name: "", description: "", duration_minutes: 45, price: 0, priority_score: 5 });
     setIsAdding(false);
   };
 
@@ -96,6 +97,7 @@ function ServicesTab({
       description: service.description,
       duration_minutes: service.duration_minutes,
       price: service.price,
+      priority_score: service.priority_score || 5,
     });
   };
 
@@ -103,7 +105,7 @@ function ServicesTab({
     if (!editingId) return;
     onUpdate(services.map((s) => (s.id === editingId ? { ...s, ...form } : s)));
     setEditingId(null);
-    setForm({ name: "", description: "", duration_minutes: 45, price: 0 });
+    setForm({ name: "", description: "", duration_minutes: 45, price: 0, priority_score: 5 });
   };
 
   const handleDelete = (id: string) => {
@@ -175,6 +177,17 @@ function ServicesTab({
                 type="number"
                 value={form.price}
                 onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">اولویت (۱-۱۰)</Label>
+              <Input
+                type="number"
+                min={1}
+                max={10}
+                value={form.priority_score}
+                onChange={(e) => setForm({ ...form, priority_score: Math.min(10, Math.max(1, Number(e.target.value))) })}
                 className="mt-1"
               />
             </div>

@@ -31,6 +31,7 @@ export interface Service {
   is_active: boolean;
   sort_order: number;
   addon_ids: string[];
+  priority_score: number;
 }
 
 export interface Booking {
@@ -92,6 +93,7 @@ export const MOCK_SERVICES: Service[] = [
     is_active: true,
     sort_order: 1,
     addon_ids: ["a1", "a2", "a3"],
+    priority_score: 7,
   },
   {
     id: "2",
@@ -102,6 +104,7 @@ export const MOCK_SERVICES: Service[] = [
     is_active: true,
     sort_order: 2,
     addon_ids: ["a4", "a5"],
+    priority_score: 8,
   },
   {
     id: "3",
@@ -112,6 +115,7 @@ export const MOCK_SERVICES: Service[] = [
     is_active: true,
     sort_order: 3,
     addon_ids: [],
+    priority_score: 10,
   },
   {
     id: "4",
@@ -122,6 +126,7 @@ export const MOCK_SERVICES: Service[] = [
     is_active: true,
     sort_order: 4,
     addon_ids: ["a6"],
+    priority_score: 6,
   },
   {
     id: "5",
@@ -132,6 +137,7 @@ export const MOCK_SERVICES: Service[] = [
     is_active: true,
     sort_order: 5,
     addon_ids: [],
+    priority_score: 5,
   },
 ];
 

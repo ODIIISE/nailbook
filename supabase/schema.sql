@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS services (
   is_active BOOLEAN DEFAULT true,
   sort_order INT DEFAULT 0,
   addon_ids JSONB DEFAULT '[]'::jsonb,
+  priority_score INT DEFAULT 5,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
