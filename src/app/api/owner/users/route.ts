@@ -89,6 +89,19 @@ export async function PUT(request: NextRequest) {
     const { userId, phone, name, pin, role, locked } = await request.json();
     if (!userId) return NextResponse.json({ error: "شناسه کاربر الزامی است" }, { status: 400 });
 
+    // If phone is changing, get old phone first to sync bookings
+    let oldPhone: string | null = null;
+    if (phone) {
+      const { data: currentUser } = await supabaseAdmin
+        .from("users")
+        .select("phone")
+        .eq("id", userId)
+        .single();
+      if (currentUser && currentUser.phone !== phone) {
+        oldPhone = currentUser.phone;
+      }
+    }
+
     const updates: Record<string, unknown> = {};
     if (phone !== undefined) updates.phone = phone;
     if (name !== undefined) updates.name = name;
@@ -109,6 +122,15 @@ export async function PUT(request: NextRequest) {
       .eq("id", userId);
 
     if (error) return NextResponse.json({ error: "خطا در بروزرسانی" }, { status: 500 });
+
+    // Sync bookings if phone changed
+    if (oldPhone && phone) {
+      await supabaseAdmin
+        .from("bookings")
+        .update({ customer_phone: phone })
+        .eq("customer_phone", oldPhone);
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Update user error:", error);

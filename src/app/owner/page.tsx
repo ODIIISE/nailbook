@@ -3,13 +3,14 @@
 import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Timeline } from "@/components/owner/timeline";
 import { BlockTimeModal } from "@/components/owner/block-time-modal";
 import { BookingModal } from "@/components/owner/booking-modal";
 import { EarningsModal } from "@/components/owner/earnings-modal";
 import { ManualReserveModal } from "@/components/owner/manual-reserve-modal";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
-import { ChevronLeft, Plus } from "lucide-react";
+import { ChevronLeft, Plus, Search } from "lucide-react";
 import { toPersianDigits } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey } from "@/lib/time";
@@ -28,6 +29,7 @@ export default function OwnerDashboard() {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [paidBookings, setPaidBookings] = useState<Set<string>>(new Set());
   const [showEarnings, setShowEarnings] = useState(false);
+  const [bookingSearch, setBookingSearch] = useState("");
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -38,13 +40,21 @@ export default function OwnerDashboard() {
 
   const dayBookings = useMemo(() => {
     const dateStr = getTehranDateKey(currentDate);
-    return bookings.filter(
-      (b) => b.date_gregorian === dateStr && b.status === "confirmed"
-    ).map((b) => ({
-      ...b,
-      service: services.find((s) => s.id === b.service_id),
-    }));
-  }, [currentDate, bookings, services]);
+    return bookings
+      .filter((b) => {
+        if (b.date_gregorian !== dateStr || b.status !== "confirmed") return false;
+        if (!bookingSearch) return true;
+        const q = bookingSearch.toLowerCase();
+        return (
+          b.customer_name.toLowerCase().includes(q) ||
+          b.customer_phone.includes(q)
+        );
+      })
+      .map((b) => ({
+        ...b,
+        service: services.find((s) => s.id === b.service_id),
+      }));
+  }, [currentDate, bookings, services, bookingSearch]);
 
   const dayBlockedTimes = useMemo(() => {
     const dateStr = getTehranDateKey(currentDate);
@@ -122,6 +132,17 @@ export default function OwnerDashboard() {
           onSelectDate={setCurrentDate}
           showPast
         />
+
+        {/* Search bookings */}
+        <div className="relative">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={bookingSearch}
+            onChange={(e) => setBookingSearch(e.target.value)}
+            placeholder="جستجوی نام یا شماره مشتری..."
+            className="pr-10"
+          />
+        </div>
 
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">

@@ -28,11 +28,11 @@ export default function BookingsPage() {
   const { bookings, services, addons } = useSalon();
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-  // Filter bookings by logged-in user only
+  // Filter bookings by user_id OR customer_phone (handles both registered and guest bookings)
   const myBookings = useMemo(() => {
     if (!user) return [];
     return bookings
-      .filter((b) => b.user_id === user.id)
+      .filter((b) => b.user_id === user.id || b.customer_phone === user.phone)
       .sort((a, b) => {
         const dateA = new Date(a.date_gregorian).getTime();
         const dateB = new Date(b.date_gregorian).getTime();
