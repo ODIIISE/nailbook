@@ -65,13 +65,14 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function load() {
       try {
-        const [salonData, servicesData, addonsData, bookingsData, hoursData, highlightsData] = await Promise.all([
+        const [salonData, servicesData, addonsData, bookingsData, hoursData, highlightsData, blockedData] = await Promise.all([
           fetchSalonInfo(),
           fetchServices(),
           fetchAddons(),
           fetchBookings(),
           fetchWorkingHours(),
           fetchHighlights(),
+          fetch("/api/owner/blocked-times").then((r) => r.json()).catch(() => ({ blockedTimes: [] })),
         ]);
         if (salonData) setSalon(salonData);
         if (servicesData.length) setServices(servicesData);
@@ -82,7 +83,12 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           setWorkingHours(hoursData.working_hours);
           setSpecificDaysOff(hoursData.specific_days_off || []);
         }
-      } catch {}
+        if (blockedData.blockedTimes?.length) {
+          setBlockedTimes(blockedData.blockedTimes);
+        }
+      } catch (e) {
+        console.error("Failed to load salon data:", e);
+      }
       setLoaded(true);
     }
     load();
@@ -100,16 +106,23 @@ export function SalonProvider({ children }: { children: ReactNode }) {
 
   const handleUpdateServices = useCallback(async (newServices: Service[]) => {
     setServices(newServices);
-    for (const s of newServices) {
-      await upsertService(s);
-    }
+    await Promise.all(newServices.map((s) => upsertService(s)));
   }, []);
 
   const handleUpdateAddons = useCallback(async (newAddons: Addon[]) => {
     setAddons(newAddons);
-    for (const a of newAddons) {
-      await upsertAddon(a);
-    }
+    await Promise.all(newAddons.map((a) => upsertAddon(a)));
+  }, []);
+
+  const handleUpdateBlockedTimes = useCallback(async (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => {
+    setBlockedTimes(blocks);
+    try {
+      await fetch("/api/owner/blocked-times", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blockedTimes: blocks }),
+      });
+    } catch {}
   }, []);
 
   const handleAddBooking = useCallback(async (booking: Booking) => {
@@ -212,7 +225,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       updateServices: handleUpdateServices,
       updateAddons: handleUpdateAddons,
       updateSalon: handleUpdateSalon,
-      updateBlockedTimes: setBlockedTimes,
+        updateBlockedTimes: handleUpdateBlockedTimes,
       addBooking: handleAddBooking,
       refreshBookings,
       addHighlight: handleAddHighlight,

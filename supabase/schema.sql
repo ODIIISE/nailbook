@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS addons (
 -- Bookings
 CREATE TABLE IF NOT EXISTS bookings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
   service_id UUID REFERENCES services(id),
   selected_addons JSONB DEFAULT '[]'::jsonb,
   customer_name TEXT NOT NULL,
