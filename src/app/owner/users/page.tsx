@@ -96,7 +96,6 @@ export default function OwnerUsersPage() {
     const phone = normalizeDigits(formPhone);
     if (phone.length < 10) { setFormError("شماره موبایل معتبر نیست"); return; }
     if (formPin.length !== 4) { setFormError("رمز باید ۴ رقمی باشد"); return; }
-    if (formPin !== formConfirmPin) { setFormError("رمزها مطابقت ندارند"); return; }
 
     setIsSubmitting(true);
     setFormError("");
@@ -331,7 +330,7 @@ export default function OwnerUsersPage() {
                 <label className="text-[13px] text-muted-foreground">{modal === "add" ? "رمز (۴ رقمی)" : "رمز جدید (اختیاری)"}</label>
                 <Input type="text" maxLength={4} value={formPin} onChange={(e) => setFormPin(normalizeDigits(e.target.value))} placeholder="۱۲۳۴" dir="ltr" className="mt-1 text-center tracking-[0.3em]" />
               </div>
-              {formPin.length === 4 && (
+              {modal === "edit" && formPin.length === 4 && (
                 <div>
                   <label className="text-[13px] text-muted-foreground">تکرار رمز</label>
                   <Input type="text" maxLength={4} value={formConfirmPin} onChange={(e) => setFormConfirmPin(normalizeDigits(e.target.value))} placeholder="۱۲۳۴" dir="ltr" className="mt-1 text-center tracking-[0.3em]" />
