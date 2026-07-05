@@ -11,7 +11,7 @@ import { EarningsModal } from "@/components/owner/earnings-modal";
 import { ManualReserveModal } from "@/components/owner/manual-reserve-modal";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { ChevronLeft, Plus, Search } from "lucide-react";
-import { toPersianDigits } from "@/lib/jalali";
+import { toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey } from "@/lib/time";
 
@@ -132,6 +132,19 @@ export default function OwnerDashboard() {
           onSelectDate={setCurrentDate}
           showPast
         />
+
+        {/* Full date display */}
+        <div className="px-4 py-2">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-[13px] text-muted-foreground">تاریخ:</span>
+            <span className="text-[17px] font-bold text-foreground">
+              {(() => {
+                const j = gregorianToJalali(currentDate);
+                return formatJalaliDate(j.jy, j.jm, j.jd);
+              })()}
+            </span>
+          </div>
+        </div>
 
         {/* Search bookings */}
         <div className="relative">
