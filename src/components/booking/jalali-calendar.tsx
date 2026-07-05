@@ -12,7 +12,6 @@ interface JalaliCalendarProps {
 }
 
 const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
-const PERSIAN_WEEKDAYS_FULL = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
 const PERSIAN_MONTHS = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
 const JS_TO_IRAN_DAY = [1, 2, 3, 4, 5, 6, 0];
 const DAYS_IN_MONTH = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
@@ -24,6 +23,11 @@ export function JalaliCalendar({
 }: JalaliCalendarProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
+
+  // Touch drag state
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -71,6 +75,7 @@ export function JalaliCalendar({
     return result;
   }, [today, selectedDate, showPast]);
 
+  // Scroll to selected date
   useEffect(() => {
     if (scrollRef.current && selectedDate) {
       const selectedEl = scrollRef.current.querySelector("[data-selected='true']");
@@ -80,14 +85,41 @@ export function JalaliCalendar({
     }
   }, [selectedDate]);
 
-  // Convert wheel to horizontal scroll
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-      e.preventDefault();
-      if (scrollRef.current) {
-        scrollRef.current.scrollLeft += e.deltaY;
+  // Native wheel handler for horizontal scroll
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
       }
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, []);
+
+  // Touch drag handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    isDragging.current = true;
+    startX.current = e.touches[0].pageX - (scrollRef.current?.offsetLeft || 0);
+    scrollLeft.current = scrollRef.current?.scrollLeft || 0;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    e.preventDefault();
+    const x = e.touches[0].pageX - (scrollRef.current?.offsetLeft || 0);
+    const walk = (x - startX.current) * 1.5;
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollLeft.current - walk;
     }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    isDragging.current = false;
   }, []);
 
   return (
@@ -107,24 +139,24 @@ export function JalaliCalendar({
         </div>
         <div
           ref={scrollRef}
-          onWheel={handleWheel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           className="flex gap-2 overflow-x-auto pb-1 px-4"
           style={{
-            scrollSnapType: "x mandatory",
-            scrollPaddingInline: "16px",
             WebkitOverflowScrolling: "touch",
-            msOverflowStyle: "none",
             scrollbarWidth: "none",
+            msOverflowStyle: "none",
           }}
         >
+          <style>{`.jalali-scroll::-webkit-scrollbar { display: none; }`}</style>
           {days.map((d, i) => (
             <button
               key={i}
               data-selected={d.isSelected}
               onClick={() => onSelectDate(d.date)}
-              style={{ scrollSnapAlign: "center" }}
               className={`
-                flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer active:scale-95
+                jalali-scroll flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer active:scale-95
                 focus-visible:ring-3 focus-visible:ring-primary/50 focus-visible:outline-none
                 ${d.isSelected
                   ? "bg-primary text-white shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
@@ -188,14 +220,12 @@ function CalendarModal({
 
   const daysInMonth = DAYS_IN_MONTH[viewMonth - 1];
 
-  // First day of month weekday (JS 0=Sun → Iran index)
   const firstDayDate = jalaliToGregorian(viewYear, viewMonth, 1);
   const firstDayJs = firstDayDate.getDay();
   const firstDayIran = JS_TO_IRAN_DAY[firstDayJs];
 
   const cells = useMemo(() => {
     const result: Array<{ day: number | null; date: Date | null; isToday: boolean; isSelected: boolean; isPast: boolean }> = [];
-    // Leading empty cells
     for (let i = 0; i < firstDayIran; i++) {
       result.push({ day: null, date: null, isToday: false, isSelected: false, isPast: false });
     }
@@ -232,7 +262,6 @@ function CalendarModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-sm bg-card rounded-3xl p-5 animate-scale shadow-elevated">
-        {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <Button variant="ghost" size="icon-sm" onClick={prevMonth}>
             <ChevronRight className="h-5 w-5" />
@@ -246,7 +275,6 @@ function CalendarModal({
           </Button>
         </div>
 
-        {/* Weekday headers */}
         <div className="grid grid-cols-7 gap-1 mb-2">
           {PERSIAN_WEEKDAYS_SHORT.map((wd) => (
             <div key={wd} className="text-center text-[11px] font-bold text-muted-foreground py-1">
@@ -255,7 +283,6 @@ function CalendarModal({
           ))}
         </div>
 
-        {/* Day grid */}
         <div className="grid grid-cols-7 gap-1">
           {cells.map((cell, i) => {
             if (cell.day === null) {
@@ -284,7 +311,6 @@ function CalendarModal({
           })}
         </div>
 
-        {/* Close */}
         <Button variant="outline" className="w-full mt-4" onClick={onClose}>
           بستن
         </Button>
