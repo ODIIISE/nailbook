@@ -28,9 +28,20 @@ export default function OwnerDashboard() {
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [paidBookings, setPaidBookings] = useState<Set<string>>(new Set());
+  const [paidBookings, setPaidBookings] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("owner_paid_bookings");
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    }
+    return new Set();
+  });
   const [showEarnings, setShowEarnings] = useState(false);
   const [bookingSearch, setBookingSearch] = useState("");
+
+  // Persist paidBookings to localStorage
+  useEffect(() => {
+    localStorage.setItem("owner_paid_bookings", JSON.stringify([...paidBookings]));
+  }, [paidBookings]);
 
   useEffect(() => {
     const interval = setInterval(() => {

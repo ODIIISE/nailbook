@@ -217,18 +217,42 @@ export default function BookContent() {
             setSpamError(data.error || "خطا در بررسی");
             return;
           }
-        } catch {
+        } catch (e) {
+          console.error("Anti-spam check failed:", e);
           // Proceed if anti-spam check fails (server error)
         }
       }
       setSpamError("");
-      const id = crypto.randomUUID();
-      setBookingId(`BK-${Date.now().toString(36).toUpperCase()}`);
 
+      // Validate slot is still available (prevent double-booking)
       const [h, m] = selectedTime.split(":").map(Number);
       const endMinutes = h * 60 + m + totalDuration;
       const endH = Math.floor(endMinutes / 60);
       const endM = endMinutes % 60;
+      const endTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`;
+
+      try {
+        const reserveRes = await fetch("/api/book/reserve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            service_id: selectedService.id,
+            date_gregorian: getTehranDateKey(selectedDate),
+            start_time: `${selectedTime}:00`,
+            end_time: endTime,
+          }),
+        });
+        if (!reserveRes.ok) {
+          const reserveData = await reserveRes.json();
+          setSpamError(reserveData.error || "این زمان دیگر در دسترس نیست");
+          return;
+        }
+      } catch {
+        // Proceed if validation fails (server error)
+      }
+
+      const id = crypto.randomUUID();
+      setBookingId(`BK-${Date.now().toString(36).toUpperCase()}`);
 
       const customerName = user?.name || "";
 

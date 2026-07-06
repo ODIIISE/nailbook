@@ -50,7 +50,7 @@ export default function BookingsPage() {
   };
 
   const getServicePrice = (serviceId: string) => {
-    return services.find(s => s.id === serviceId)?.price || 0;
+    return services.find(s => s.id === serviceId)?.price ?? null;
   };
 
   const groupedByDate = useMemo(() => {
@@ -158,7 +158,9 @@ export default function BookingsPage() {
                             <span>{formatJalaliTime(time)}</span>
                           </div>
                           <span className="font-bold text-foreground">
-                            {toPersianDigits(getServicePrice(booking.service_id).toLocaleString("fa-IR"))} تومان
+                            {getServicePrice(booking.service_id) !== null
+                              ? `${toPersianDigits(getServicePrice(booking.service_id)!.toLocaleString("fa-IR"))} تومان`
+                              : "نامعلوم"}
                           </span>
                         </div>
                       </Card>
@@ -197,7 +199,7 @@ function BookingDetailModal({
   onClose: () => void;
   getServiceName: (id: string) => string;
   getAddonNames: (ids: string[]) => string[];
-  getServicePrice: (id: string) => number;
+  getServicePrice: (id: string) => number | null;
 }) {
   const jalali = gregorianToJalali(new Date(booking.date_gregorian));
   const status = STATUS_MAP[booking.status] || STATUS_MAP.pending;
@@ -261,7 +263,9 @@ function BookingDetailModal({
           <div className="flex items-center justify-between py-2 border-b border-border/30">
             <span className="text-sm text-muted-foreground">هزینه</span>
             <span className="text-base font-bold text-foreground">
-              {toPersianDigits(getServicePrice(booking.service_id).toLocaleString("fa-IR"))} تومان
+              {getServicePrice(booking.service_id) !== null
+                ? `${toPersianDigits(getServicePrice(booking.service_id)!.toLocaleString("fa-IR"))} تومان`
+                : "نامعلوم"}
             </span>
           </div>
 

@@ -146,6 +146,9 @@ export default function LoginPage() {
               {error && (
                 <p className="text-[13px] text-destructive text-center mt-2">{error}</p>
               )}
+              <Button variant="ghost" className="w-full" onClick={() => setStep("phone")}>
+                بازگشت
+              </Button>
             </div>
           )}
 
@@ -161,6 +164,9 @@ export default function LoginPage() {
               {error && (
                 <p className="text-[13px] text-destructive text-center mt-2">{error}</p>
               )}
+              <Button variant="ghost" className="w-full" onClick={() => setStep("pin")}>
+                بازگشت
+              </Button>
             </div>
           )}
 
@@ -179,6 +185,9 @@ export default function LoginPage() {
               {error && (
                 <p className="text-[13px] text-destructive text-center mt-2">{error}</p>
               )}
+              <Button variant="ghost" className="w-full" onClick={() => setStep("phone")}>
+                بازگشت
+              </Button>
             </div>
           )}
         </Card>
