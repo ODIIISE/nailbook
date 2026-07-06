@@ -1,16 +1,16 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { UilHome, UilCalendarAlt, UilUser } from "@iconscout/react-unicons";
+import { HomeIcon, CalendarDaysIcon, UserIcon } from "@heroicons/react/24/outline";
 
 export function CustomerNav() {
   const pathname = usePathname();
   const router = useRouter();
 
   const navItems = [
-    { path: "/", icon: UilHome, label: "خانه" },
-    { path: "/bookings", icon: UilCalendarAlt, label: "نوبت‌ها" },
-    { path: "/profile", icon: UilUser, label: "پروفایل" },
+    { path: "/", icon: HomeIcon, label: "خانه" },
+    { path: "/bookings", icon: CalendarDaysIcon, label: "نوبت‌ها" },
+    { path: "/profile", icon: UserIcon, label: "پروفایل" },
   ];
 
   return (
@@ -25,14 +25,11 @@ export function CustomerNav() {
             <button
               key={path}
               onClick={() => router.push(path)}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 pt-[10px] pb-[6px] transition-colors duration-150 ${
-                active ? "text-primary" : "text-black/40"
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 pt-[10px] pb-[6px] transition-opacity duration-150 ${
+                active ? "opacity-100 text-primary" : "opacity-70 text-black"
               }`}
             >
-              <Icon
-                className="h-6 w-6"
-                style={{ fill: active ? "currentColor" : "none" }}
-              />
+              <Icon className="h-6 w-6" />
               <span className={`text-[10px] leading-none ${active ? "font-semibold" : "font-normal"}`}>
                 {label}
               </span>

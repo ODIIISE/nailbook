@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Settings, Menu, X, Home, LogOut, Clock, CircleDot, Users } from "lucide-react";
-import { UilCalendarAlt, UilBriefcaseAlt, UilApps } from "@iconscout/react-unicons";
+import { HomeIcon, BriefcaseIcon, Bars3Icon } from "@heroicons/react/24/outline";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useSalon } from "@/lib/salon-context";
@@ -112,27 +112,27 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
         <div className="mx-auto max-w-lg flex">
           <button
             onClick={() => router.push("/owner")}
-            className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${
-              isActive("/owner") ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            className={`flex-1 flex flex-col items-center gap-1 py-3 transition-opacity duration-150 ${
+              isActive("/owner") ? "opacity-100 text-primary" : "opacity-70 text-black"
             }`}
           >
-            <UilCalendarAlt className="h-5 w-5" style={{ fill: isActive("/owner") ? "currentColor" : "none" }} />
+            <HomeIcon className="h-5 w-5" />
             <span className="text-[10px] font-bold">زمان‌بندی</span>
           </button>
           <button
             onClick={() => router.push("/owner/services")}
-            className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${
-              isActive("/owner/services") ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            className={`flex-1 flex flex-col items-center gap-1 py-3 transition-opacity duration-150 ${
+              isActive("/owner/services") ? "opacity-100 text-primary" : "opacity-70 text-black"
             }`}
           >
-            <UilBriefcaseAlt className="h-5 w-5" style={{ fill: isActive("/owner/services") ? "currentColor" : "none" }} />
+            <BriefcaseIcon className="h-5 w-5" />
             <span className="text-[10px] font-bold">خدمات</span>
           </button>
           <button
             onClick={() => setMenuOpen(true)}
-            className="flex-1 flex flex-col items-center gap-1 py-3 text-muted-foreground hover:text-foreground transition-colors"
+            className="flex-1 flex flex-col items-center gap-1 py-3 opacity-70 text-black hover:opacity-100 transition-opacity duration-150"
           >
-            <UilApps className="h-5 w-5" />
+            <Bars3Icon className="h-5 w-5" />
             <span className="text-[10px] font-bold">منو</span>
           </button>
         </div>
