@@ -1,12 +1,13 @@
 /**
- * Booking Engine — Pipeline Architecture v2
+ * Booking Engine — Simplified
  *
  * Rules:
- * - Standard durations: 15, 30, 45, 60, 90, 120 minutes
- * - Buffer: 0 (configurable)
+ * - Working hours: 12:00-18:00 default, expand to 10:00-12:00 if 80% booked
  * - Slot interval: 30 minutes (:00 or :30)
- * - Dead gaps hard-removed
- * - Scoring: Fitness + ValuePriority - AdjacencyDistance
+ * - Duration rounding: 15, 30, 45, 60, 90, 120
+ * - Buffer: 0 (configurable)
+ * - Dead gaps (1-14 min) hard-removed
+ * - First 4 slots = recommended, rest = available
  */
 
 export interface WorkingHours {
@@ -32,8 +33,6 @@ interface Candidate {
   end: number;
   intervalStart: number;
   intervalEnd: number;
-  isRoundHour: boolean;
-  isAdjacentToBooking: boolean;
 }
 
 const IRAN_WEEK_DAYS = ["sat", "sun", "mon", "tue", "wed", "thu", "fri"];
@@ -97,7 +96,7 @@ function buildFreeIntervals(
   return free;
 }
 
-// ─── Step 2: Generate Candidates (30-min intervals on :00/:30) ───
+// ─── Step 2: Generate Candidates at :00 and :30 ───
 
 function generateCandidates(
   intervals: FreeInterval[],
@@ -108,7 +107,6 @@ function generateCandidates(
   for (const iv of intervals) {
     if (iv.end - iv.start < serviceDuration) continue;
 
-    // Generate slots at :00 and :30 only
     const startHour = Math.floor(iv.start / 60);
     const startMin = iv.start % 60;
     const firstSlot = startMin <= 0 ? iv.start : (startHour + 1) * 60;
@@ -119,8 +117,6 @@ function generateCandidates(
         end: m + serviceDuration,
         intervalStart: iv.start,
         intervalEnd: iv.end,
-        isRoundHour: m % 60 === 0,
-        isAdjacentToBooking: false,
       });
     }
   }
@@ -129,7 +125,7 @@ function generateCandidates(
 
 // ─── Step 3: Dead Gap Filter ───
 
-const MIN_GAP = 15; // Minimum usable gap in minutes
+const MIN_GAP = 15;
 
 function filterDeadGaps(
   candidates: Candidate[],
@@ -149,62 +145,6 @@ function filterDeadGaps(
   });
 }
 
-// ─── Step 4: Mark Adjacency ───
-
-function markAdjacency(
-  candidates: Candidate[],
-  bookings: Array<{ start: number; end: number }>
-): Candidate[] {
-  for (const slot of candidates) {
-    for (const b of bookings) {
-      if (slot.start === b.end || slot.end === b.start) {
-        slot.isAdjacentToBooking = true;
-        break;
-      }
-    }
-  }
-  return candidates;
-}
-
-// ─── Step 5: Score ───
-
-function scoreCandidates(
-  candidates: Candidate[],
-  priorityScore: number,
-  bookings: Array<{ start: number; end: number }>
-): Array<Candidate & { score: number; isRecommended: boolean }> {
-  const maxDist = 480;
-  const hasBookings = bookings.length > 0;
-
-  const scored = candidates.map((slot) => {
-    // Fitness: on empty days, prefer earlier slots; with bookings, prefer compact slots
-    let fitness: number;
-    if (!hasBookings) {
-      // Empty day: earlier is better (invert so first slot gets highest)
-      const totalRange = slot.intervalEnd - slot.intervalStart;
-      fitness = totalRange > 0 ? 1 - (slot.start - slot.intervalStart) / totalRange : 1;
-    } else {
-      const ivLen = slot.intervalEnd - slot.intervalStart;
-      const slotLen = slot.end - slot.start;
-      fitness = ivLen > 0 ? 1 - (ivLen - slotLen) / ivLen : 1;
-    }
-
-    // Adjacency: closer to existing bookings is better
-    let minDist = maxDist;
-    for (const b of bookings) {
-      minDist = Math.min(minDist, Math.abs(slot.start - b.end), Math.abs(slot.end - b.start));
-    }
-    const adjDist = hasBookings ? minDist / maxDist : 0;
-
-    const score = 0.4 * fitness + 0.2 * (priorityScore / 10) - 0.1 * adjDist;
-    return { ...slot, score, isRecommended: false };
-  });
-
-  scored.sort((a, b) => b.score - a.score);
-  if (scored.length > 0) scored[0].isRecommended = true;
-  return scored;
-}
-
 // ─── Main Entry ───
 
 export function generateTimeSlots(
@@ -215,7 +155,7 @@ export function generateTimeSlots(
   bufferMinutes: number,
   existingBookings: Array<{ start_time: string; end_time: string }>,
   activeLocks: Array<{ start_time: string; end_time?: string; expires_at?: string }>,
-  priorityScore: number = 5
+  _priorityScore: number = 5
 ): TimeSlot[] {
   const dayKey = getIranWeekDay(date);
   const dayHours = workingHours[dayKey];
@@ -263,18 +203,15 @@ export function generateTimeSlots(
   if (isToday) candidates = candidates.filter((c) => c.start >= nowMinutes);
 
   candidates = filterDeadGaps(candidates, bookings);
-  candidates = markAdjacency(candidates, bookings);
 
-  const scored = scoreCandidates(candidates, priorityScore, bookings);
-  const final = scored.slice(0, 6);
-
-  return final.map((s) => ({
-    time: formatTime(s.start),
+  // Mark first 4 as recommended
+  return candidates.map((slot, index) => ({
+    time: formatTime(slot.start),
     available: true,
     booked: false,
     locked: false,
-    suggested: s.isRecommended || s.isAdjacentToBooking || s.isRoundHour,
-    score: Math.round(s.score * 100) / 100,
+    suggested: index < 4,
+    score: 0,
   }));
 }
 
@@ -287,7 +224,7 @@ export function getNearestAvailableSlot(
   bufferMinutes: number,
   existingBookings: Array<{ date_gregorian: string; start_time: string; end_time: string }>,
   activeLocks: Array<{ date_gregorian: string; start_time: string; expires_at: string }>,
-  priorityScore: number = 5
+  _priorityScore: number = 5
 ): { date: Date; time: string } | null {
   const todayJalali = gregorianToJalali(new Date());
 
@@ -314,7 +251,7 @@ export function getNearestAvailableSlot(
 
     const slots = generateTimeSlots(
       workingHours, checkDate, serviceDurationMinutes, 30, bufferMinutes,
-      dayBookings, dayLocks, priorityScore
+      dayBookings, dayLocks, 5
     );
     const best = slots.find((s) => s.available);
     if (best) return { date: checkDate, time: best.time };
