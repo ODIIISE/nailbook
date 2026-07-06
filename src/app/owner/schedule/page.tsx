@@ -5,12 +5,15 @@ import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
 
 export default function OwnerSchedulePage() {
-  const { workingHours, specificDaysOff, updateWorkingHours, updateSpecificDaysOff } = useSalon();
+  const { workingHours, specificDaysOff, saveSchedule } = useSalon();
 
-  const handleSave = (hours: typeof workingHours, daysOff: string[]) => {
-    updateWorkingHours(hours);
-    updateSpecificDaysOff(daysOff);
-    toast.success("ساعات کاری ذخیره شد");
+  const handleSave = async (hours: typeof workingHours, daysOff: string[]) => {
+    try {
+      await saveSchedule(hours, daysOff);
+      toast.success("ساعات کاری ذخیره شد");
+    } catch {
+      toast.error("خطا در ذخیره ساعات کاری");
+    }
   };
 
   return (

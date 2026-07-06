@@ -35,6 +35,7 @@ interface SalonContextType {
   blockedTimes: Array<{ date_gregorian: string; start_time: string; end_time: string }>;
   updateWorkingHours: (hours: WorkingHours) => void;
   updateSpecificDaysOff: (daysOff: string[]) => void;
+  saveSchedule: (hours: WorkingHours, daysOff: string[]) => Promise<void>;
   updateServices: (services: Service[]) => void;
   updateAddons: (addons: Addon[]) => void;
   updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
@@ -116,6 +117,20 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       console.error("Failed to save days off:", e);
       setSpecificDaysOff(prev);
+    }
+  }, [workingHours, specificDaysOff]);
+
+  const handleSaveSchedule = useCallback(async (hours: WorkingHours, daysOff: string[]) => {
+    const prevHours = workingHours;
+    const prevDaysOff = specificDaysOff;
+    setWorkingHours(hours);
+    setSpecificDaysOff(daysOff);
+    try {
+      await saveWorkingHours(hours, daysOff);
+    } catch (e) {
+      console.error("Failed to save schedule:", e);
+      setWorkingHours(prevHours);
+      setSpecificDaysOff(prevDaysOff);
     }
   }, [workingHours, specificDaysOff]);
 
@@ -247,6 +262,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         blockedTimes: [],
         updateWorkingHours: async () => {},
         updateSpecificDaysOff: async () => {},
+        saveSchedule: async () => {},
         updateServices: async () => {},
         updateAddons: async () => {},
         updateSalon: async () => {},
@@ -270,8 +286,9 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       bookings,
       highlights,
       blockedTimes,
-      updateWorkingHours: handleUpdateWorkingHours,
-      updateSpecificDaysOff: handleUpdateSpecificDaysOff,
+        updateWorkingHours: handleUpdateWorkingHours,
+        updateSpecificDaysOff: handleUpdateSpecificDaysOff,
+        saveSchedule: handleSaveSchedule,
       updateServices: handleUpdateServices,
       updateAddons: handleUpdateAddons,
       updateSalon: handleUpdateSalon,
