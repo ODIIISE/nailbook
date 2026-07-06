@@ -115,10 +115,13 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    min-height: 100dvh;
+    overflow-x: hidden;
   }
   html {
     @apply font-sans;
     direction: rtl;
+    scroll-behavior: smooth;
   }
   :focus-visible {
     outline: 2px solid var(--primary);
