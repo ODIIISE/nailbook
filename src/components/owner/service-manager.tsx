@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit2, Trash2, X, Check } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Check, ChevronUp, ChevronDown, GripVertical } from "lucide-react";
 import { toPersianDigits } from "@/lib/jalali";
 import type { Service, Addon } from "@/lib/mock-data";
 
@@ -87,6 +87,24 @@ function ServicesTab({
 
   const markChanged = () => setHasChanges(true);
 
+  const handleMoveUp = (index: number) => {
+    if (index === 0) return;
+    const updated = [...pendingServices];
+    [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
+    updated.forEach((s, i) => s.sort_order = i + 1);
+    setPendingServices(updated);
+    markChanged();
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index === pendingServices.length - 1) return;
+    const updated = [...pendingServices];
+    [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
+    updated.forEach((s, i) => s.sort_order = i + 1);
+    setPendingServices(updated);
+    markChanged();
+  };
+
   const handleAdd = () => {
     if (!form.name) return;
     const newService: Service = {
@@ -102,6 +120,28 @@ function ServicesTab({
     markChanged();
   };
 
+  const handleSaveEdit = () => {
+    if (!editingId) return;
+    setPendingServices(pendingServices.map((s) => (s.id === editingId ? { ...s, ...form } : s)));
+    setEditingId(null);
+    setForm({ name: "", description: "", duration_minutes: 45, price: 0, priority_score: 5 });
+    markChanged();
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    await onUpdate(pendingServices);
+    setIsSaving(false);
+    setHasChanges(false);
+  };
+
+  const handleDiscard = () => {
+    setPendingServices(services);
+    setHasChanges(false);
+    setEditingId(null);
+    setIsAdding(false);
+  };
+
   const handleEdit = (service: Service) => {
     setEditingId(service.id);
     setForm({
@@ -111,14 +151,6 @@ function ServicesTab({
       price: service.price,
       priority_score: service.priority_score || 5,
     });
-  };
-
-  const handleSaveEdit = () => {
-    if (!editingId) return;
-    setPendingServices(pendingServices.map((s) => (s.id === editingId ? { ...s, ...form } : s)));
-    setEditingId(null);
-    setForm({ name: "", description: "", duration_minutes: 45, price: 0, priority_score: 5 });
-    markChanged();
   };
 
   const handleDelete = (id: string) => {
@@ -145,20 +177,6 @@ function ServicesTab({
       })
     );
     markChanged();
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    await onUpdate(pendingServices);
-    setIsSaving(false);
-    setHasChanges(false);
-  };
-
-  const handleDiscard = () => {
-    setPendingServices(services);
-    setHasChanges(false);
-    setEditingId(null);
-    setIsAdding(false);
   };
 
   return (
@@ -233,7 +251,7 @@ function ServicesTab({
         </Card>
       )}
 
-      {pendingServices.map((service) => (
+      {pendingServices.map((service, index) => (
         <Card key={service.id} className="p-4">
           {editingId === service.id ? (
             <div className="space-y-2">
@@ -277,7 +295,25 @@ function ServicesTab({
                     {toPersianDigits(service.price.toLocaleString("fa-IR"))} تومان
                   </p>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleMoveUp(index)}
+                    disabled={index === 0}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleMoveDown(index)}
+                    disabled={index === pendingServices.length - 1}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
                   <Button size="sm" variant="ghost" onClick={() => handleToggleActive(service.id)}>
                     {service.is_active ? "غیرفعال" : "فعال"}
                   </Button>
@@ -406,6 +442,22 @@ function AddonsTab({
     markChanged();
   };
 
+  const handleMoveUp = (index: number) => {
+    if (index === 0) return;
+    const updated = [...pendingAddons];
+    [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
+    setPendingAddons(updated);
+    markChanged();
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index === pendingAddons.length - 1) return;
+    const updated = [...pendingAddons];
+    [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
+    setPendingAddons(updated);
+    markChanged();
+  };
+
   const handleToggleActive = (id: string) => {
     setPendingAddons(pendingAddons.map((a) => (a.id === id ? { ...a, is_active: !a.is_active } : a)));
     markChanged();
@@ -481,7 +533,7 @@ function AddonsTab({
         </Card>
       )}
 
-      {pendingAddons.map((addon) => (
+      {pendingAddons.map((addon, index) => (
         <Card key={addon.id} className="p-4">
           {editingId === addon.id ? (
             <div className="space-y-2">
@@ -520,7 +572,25 @@ function AddonsTab({
                   +{toPersianDigits(addon.price.toLocaleString("fa-IR"))} تومان
                 </p>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleMoveUp(index)}
+                    disabled={index === 0}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleMoveDown(index)}
+                    disabled={index === pendingAddons.length - 1}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
                 <Button size="sm" variant="ghost" onClick={() => handleToggleActive(addon.id)}>
                   {addon.is_active ? "غیرفعال" : "فعال"}
                 </Button>
