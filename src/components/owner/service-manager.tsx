@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,6 +68,9 @@ function ServicesTab({
 }) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [pendingServices, setPendingServices] = useState<Service[]>(services);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -76,18 +79,27 @@ function ServicesTab({
     priority_score: 5,
   });
 
+  // Sync when parent services change
+  useEffect(() => {
+    setPendingServices(services);
+    setHasChanges(false);
+  }, [services]);
+
+  const markChanged = () => setHasChanges(true);
+
   const handleAdd = () => {
     if (!form.name) return;
     const newService: Service = {
       id: Date.now().toString(),
       ...form,
       is_active: true,
-      sort_order: services.length + 1,
+      sort_order: pendingServices.length + 1,
       addon_ids: [],
     };
-    onUpdate([...services, newService]);
+    setPendingServices([...pendingServices, newService]);
     setForm({ name: "", description: "", duration_minutes: 45, price: 0, priority_score: 5 });
     setIsAdding(false);
+    markChanged();
   };
 
   const handleEdit = (service: Service) => {
@@ -103,22 +115,25 @@ function ServicesTab({
 
   const handleSaveEdit = () => {
     if (!editingId) return;
-    onUpdate(services.map((s) => (s.id === editingId ? { ...s, ...form } : s)));
+    setPendingServices(pendingServices.map((s) => (s.id === editingId ? { ...s, ...form } : s)));
     setEditingId(null);
     setForm({ name: "", description: "", duration_minutes: 45, price: 0, priority_score: 5 });
+    markChanged();
   };
 
   const handleDelete = (id: string) => {
-    onUpdate(services.filter((s) => s.id !== id));
+    setPendingServices(pendingServices.filter((s) => s.id !== id));
+    markChanged();
   };
 
   const handleToggleActive = (id: string) => {
-    onUpdate(services.map((s) => (s.id === id ? { ...s, is_active: !s.is_active } : s)));
+    setPendingServices(pendingServices.map((s) => (s.id === id ? { ...s, is_active: !s.is_active } : s)));
+    markChanged();
   };
 
   const handleToggleAddon = (serviceId: string, addonId: string) => {
-    onUpdate(
-      services.map((s) => {
+    setPendingServices(
+      pendingServices.map((s) => {
         if (s.id !== serviceId) return s;
         const has = s.addon_ids.includes(addonId);
         return {
@@ -129,6 +144,21 @@ function ServicesTab({
         };
       })
     );
+    markChanged();
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    await onUpdate(pendingServices);
+    setIsSaving(false);
+    setHasChanges(false);
+  };
+
+  const handleDiscard = () => {
+    setPendingServices(services);
+    setHasChanges(false);
+    setEditingId(null);
+    setIsAdding(false);
   };
 
   return (
@@ -203,7 +233,7 @@ function ServicesTab({
         </Card>
       )}
 
-      {services.map((service) => (
+      {pendingServices.map((service) => (
         <Card key={service.id} className="p-4">
           {editingId === service.id ? (
             <div className="space-y-2">
@@ -289,6 +319,27 @@ function ServicesTab({
           )}
         </Card>
       ))}
+
+      {/* Save/Discard buttons */}
+      {hasChanges && (
+        <div className="flex gap-3 sticky bottom-20 z-10">
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl h-12"
+          >
+            {isSaving ? "در حال ذخیره..." : "ذخیره تغییرات"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleDiscard}
+            disabled={isSaving}
+            className="flex-1 rounded-xl h-12"
+          >
+            انصراف
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -302,11 +353,21 @@ function AddonsTab({
 }) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [pendingAddons, setPendingAddons] = useState<Addon[]>(addons);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
     name: "",
     price: 0,
     duration_minutes: 5,
   });
+
+  useEffect(() => {
+    setPendingAddons(addons);
+    setHasChanges(false);
+  }, [addons]);
+
+  const markChanged = () => setHasChanges(true);
 
   const handleAdd = () => {
     if (!form.name) return;
@@ -317,9 +378,10 @@ function AddonsTab({
       duration_minutes: form.duration_minutes,
       is_active: true,
     };
-    onUpdate([...addons, newAddon]);
+    setPendingAddons([...pendingAddons, newAddon]);
     setForm({ name: "", price: 0, duration_minutes: 5 });
     setIsAdding(false);
+    markChanged();
   };
 
   const handleEdit = (addon: Addon) => {
@@ -333,17 +395,34 @@ function AddonsTab({
 
   const handleSaveEdit = () => {
     if (!editingId) return;
-    onUpdate(addons.map((a) => (a.id === editingId ? { ...a, ...form } : a)));
+    setPendingAddons(pendingAddons.map((a) => (a.id === editingId ? { ...a, ...form } : a)));
     setEditingId(null);
     setForm({ name: "", price: 0, duration_minutes: 5 });
+    markChanged();
   };
 
   const handleDelete = (id: string) => {
-    onUpdate(addons.filter((a) => a.id !== id));
+    setPendingAddons(pendingAddons.filter((a) => a.id !== id));
+    markChanged();
   };
 
   const handleToggleActive = (id: string) => {
-    onUpdate(addons.map((a) => (a.id === id ? { ...a, is_active: !a.is_active } : a)));
+    setPendingAddons(pendingAddons.map((a) => (a.id === id ? { ...a, is_active: !a.is_active } : a)));
+    markChanged();
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    await onUpdate(pendingAddons);
+    setIsSaving(false);
+    setHasChanges(false);
+  };
+
+  const handleDiscard = () => {
+    setPendingAddons(addons);
+    setHasChanges(false);
+    setEditingId(null);
+    setIsAdding(false);
   };
 
   return (
@@ -402,7 +481,7 @@ function AddonsTab({
         </Card>
       )}
 
-      {addons.map((addon) => (
+      {pendingAddons.map((addon) => (
         <Card key={addon.id} className="p-4">
           {editingId === addon.id ? (
             <div className="space-y-2">
@@ -456,6 +535,27 @@ function AddonsTab({
           )}
         </Card>
       ))}
+
+      {/* Save/Discard buttons */}
+      {hasChanges && (
+        <div className="flex gap-3 sticky bottom-20 z-10">
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl h-12"
+          >
+            {isSaving ? "در حال ذخیره..." : "ذخیره تغییرات"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleDiscard}
+            disabled={isSaving}
+            className="flex-1 rounded-xl h-12"
+          >
+            انصراف
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
