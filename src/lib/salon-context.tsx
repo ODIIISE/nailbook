@@ -55,10 +55,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   const [salon, setSalon] = useState<SalonInfo>(MOCK_SALON);
   const [workingHours, setWorkingHours] = useState<WorkingHours>(MOCK_SALON.working_hours);
   const [specificDaysOff, setSpecificDaysOff] = useState<string[]>([]);
-  const [services, setServices] = useState<Service[]>(MOCK_SERVICES);
-  const [addons, setAddons] = useState<Addon[]>(MOCK_ADDONS);
-  const [bookings, setBookings] = useState<Booking[]>(MOCK_BOOKINGS);
-  const [highlights, setHighlights] = useState<Highlight[]>(MOCK_HIGHLIGHTS);
+  const [services, setServices] = useState<Service[]>([]);
+  const [addons, setAddons] = useState<Addon[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [blockedTimes, setBlockedTimes] = useState<Array<{ date_gregorian: string; start_time: string; end_time: string }>>([]);
   const [loaded, setLoaded] = useState(false);
 
