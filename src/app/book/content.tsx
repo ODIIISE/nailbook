@@ -288,7 +288,7 @@ export default function BookContent() {
         onBack={step !== "receipt" ? goBack : undefined}
       />
 
-      <div className="mx-auto max-w-lg px-4 py-6 space-y-4">
+      <div className="mx-auto max-w-lg px-4 pt-6 pb-28 space-y-4">
 
         {/* ─── Step 1: Addons ─── */}
         {step === "addons" && (
