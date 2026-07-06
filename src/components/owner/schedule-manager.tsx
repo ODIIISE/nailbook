@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,6 +107,13 @@ export function ScheduleManager({
   const [hours, setHours] = useState<WorkingHours>({ ...workingHours });
   const [daysOff, setDaysOff] = useState<string[]>([...specificDaysOff]);
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Sync when parent data changes (e.g., after DB load)
+  useEffect(() => {
+    setHours({ ...workingHours });
+    setDaysOff([...specificDaysOff]);
+    setHasChanges(false);
+  }, [workingHours, specificDaysOff]);
 
   const toggleDay = (key: string) => {
     const current = hours[key];
