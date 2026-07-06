@@ -111,7 +111,7 @@ function generateCandidates(
     const startMin = iv.start % 60;
     const firstSlot = startMin <= 0 ? iv.start : (startHour + 1) * 60;
 
-    for (let m = firstSlot; m + serviceDuration <= iv.end; m += 30) {
+    for (let m = firstSlot; m < iv.end; m += 30) {
       candidates.push({
         start: m,
         end: m + serviceDuration,
