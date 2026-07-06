@@ -36,7 +36,7 @@ export function Header({ showBack = false, title, subtitle, onBack }: HeaderProp
 
   return (
     <>
-      <div className="sticky top-0 z-30 bg-background h-14 border-b border-border">
+      <div className="sticky top-0 z-30 bg-white h-14 border-b border-border">
         <div className="mx-auto max-w-lg px-4 h-full flex items-center justify-between">
           <div className="flex items-center gap-3">
             {showBack && !isHome ? (
@@ -67,10 +67,10 @@ export function Header({ showBack = false, title, subtitle, onBack }: HeaderProp
       {menuOpen && (
         <div className="fixed inset-0 z-50">
           <div
-            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/20"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="absolute top-0 right-0 h-full w-72 glass-strong rounded-l-3xl shadow-elevated">
+          <div className="absolute top-0 right-0 h-full w-72 bg-white rounded-l-3xl shadow-elevated">
             <div className="p-4">
               <div className="flex items-center justify-between mb-6">
                 <span className="text-[17px] font-bold text-foreground">{salon.name}</span>

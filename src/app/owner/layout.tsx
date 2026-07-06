@@ -17,7 +17,7 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen pb-20">
-      <div className="sticky top-0 z-10 bg-background h-14">
+      <div className="sticky top-0 z-10 bg-white h-14">
         <div className="mx-auto max-w-lg px-4 h-full flex items-center justify-between">
           <h1 className="text-[17px] font-bold text-foreground">{salon.name}</h1>
           <Button variant="ghost" size="icon-sm" onClick={() => setMenuOpen(true)}>
@@ -28,8 +28,8 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
 
       {menuOpen && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setMenuOpen(false)} />
-          <div className="absolute top-0 right-0 h-full w-72 glass-strong rounded-l-3xl">
+          <div className="absolute inset-0 bg-black/20" onClick={() => setMenuOpen(false)} />
+          <div className="absolute top-0 right-0 h-full w-72 bg-white rounded-l-3xl shadow-elevated">
             <div className="p-4">
               <div className="flex items-center justify-between mb-6">
                 <span className="text-[17px] font-bold text-foreground">منو</span>
@@ -107,7 +107,7 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* Bottom nav - only functional tabs */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 bg-background border-t border-border">
+      <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-border">
         <div className="mx-auto max-w-lg flex">
           <button
             onClick={() => router.push("/owner")}
