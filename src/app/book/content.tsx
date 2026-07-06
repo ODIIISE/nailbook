@@ -241,7 +241,12 @@ export default function BookContent() {
         setIsLoading(false);
         return;
       }
-    } catch {}
+    } catch (e) {
+      console.error("Slot validation failed:", e);
+      setSpamError("خطا در بررسی زمان. لطفاً دوباره تلاش کنید.");
+      setIsLoading(false);
+      return;
+    }
 
     const id = crypto.randomUUID();
     setBookingId(`BK-${Date.now().toString(36).toUpperCase()}`);

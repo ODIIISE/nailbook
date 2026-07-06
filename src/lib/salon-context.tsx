@@ -63,6 +63,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
       try {
         const [salonData, servicesData, addonsData, bookingsData, hoursData, highlightsData, blockedData] = await Promise.all([
@@ -74,6 +75,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           fetchHighlights(),
           fetch("/api/owner/blocked-times").then((r) => r.json()).catch(() => ({ blockedTimes: [] })),
         ]);
+        if (cancelled) return;
         if (salonData) setSalon(salonData);
         if (servicesData.length) setServices(servicesData);
         if (addonsData.length) setAddons(addonsData);
@@ -87,47 +89,85 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           setBlockedTimes(blockedData.blockedTimes);
         }
       } catch (e) {
-        console.error("Failed to load salon data:", e);
+        if (!cancelled) console.error("Failed to load salon data:", e);
       }
-      setLoaded(true);
+      if (!cancelled) setLoaded(true);
     }
     load();
+    return () => { cancelled = true; };
   }, []);
 
   const handleUpdateWorkingHours = useCallback(async (hours: WorkingHours) => {
+    const prev = workingHours;
     setWorkingHours(hours);
-    await saveWorkingHours(hours, specificDaysOff);
-  }, [specificDaysOff]);
+    try {
+      await saveWorkingHours(hours, specificDaysOff);
+    } catch (e) {
+      console.error("Failed to save working hours:", e);
+      setWorkingHours(prev);
+    }
+  }, [workingHours, specificDaysOff]);
 
   const handleUpdateSpecificDaysOff = useCallback(async (daysOff: string[]) => {
+    const prev = specificDaysOff;
     setSpecificDaysOff(daysOff);
-    await saveWorkingHours(workingHours, daysOff);
-  }, [workingHours]);
+    try {
+      await saveWorkingHours(workingHours, daysOff);
+    } catch (e) {
+      console.error("Failed to save days off:", e);
+      setSpecificDaysOff(prev);
+    }
+  }, [workingHours, specificDaysOff]);
 
   const handleUpdateServices = useCallback(async (newServices: Service[]) => {
+    const prev = services;
     setServices(newServices);
-    await Promise.all(newServices.map((s) => upsertService(s)));
-  }, []);
+    try {
+      await Promise.all(newServices.map((s) => upsertService(s)));
+    } catch (e) {
+      console.error("Failed to save services:", e);
+      setServices(prev);
+    }
+  }, [services]);
 
   const handleUpdateAddons = useCallback(async (newAddons: Addon[]) => {
+    const prev = addons;
     setAddons(newAddons);
-    await Promise.all(newAddons.map((a) => upsertAddon(a)));
-  }, []);
+    try {
+      await Promise.all(newAddons.map((a) => upsertAddon(a)));
+    } catch (e) {
+      console.error("Failed to save addons:", e);
+      setAddons(prev);
+    }
+  }, [addons]);
 
   const handleUpdateBlockedTimes = useCallback(async (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => {
+    const prev = blockedTimes;
     setBlockedTimes(blocks);
     try {
-      await fetch("/api/owner/blocked-times", {
+      const res = await fetch("/api/owner/blocked-times", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ blockedTimes: blocks }),
       });
-    } catch {}
-  }, []);
+      if (!res.ok) {
+        console.error("Failed to save blocked times");
+        setBlockedTimes(prev);
+      }
+    } catch (e) {
+      console.error("Failed to save blocked times:", e);
+      setBlockedTimes(prev);
+    }
+  }, [blockedTimes]);
 
   const handleAddBooking = useCallback(async (booking: Booking) => {
     setBookings((prev) => [...prev, booking]);
-    await insertBooking(booking);
+    try {
+      await insertBooking(booking);
+    } catch (e) {
+      console.error("Failed to save booking:", e);
+      setBookings((prev) => prev.filter((b) => b.id !== booking.id));
+    }
   }, []);
 
   const refreshBookings = useCallback(async () => {
@@ -136,13 +176,23 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleUpdateSalon = useCallback(async (updates: Partial<SalonInfo>) => {
+    const prev = salon;
     setSalon((prev) => ({ ...prev, ...updates }));
-    await fetch("/api/update-salon", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updates),
-    });
-  }, []);
+    try {
+      const res = await fetch("/api/update-salon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) {
+        console.error("Failed to update salon");
+        setSalon(prev);
+      }
+    } catch (e) {
+      console.error("Failed to update salon:", e);
+      setSalon(prev);
+    }
+  }, [salon]);
 
   const handleAddHighlight = useCallback(async (highlight: Highlight) => {
     setHighlights((prev) => [...prev, highlight].sort((a, b) => a.sort_order - b.sort_order));

@@ -91,8 +91,7 @@ function ServicesTab({
     if (index === 0) return;
     const updated = [...pendingServices];
     [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
-    updated.forEach((s, i) => s.sort_order = i + 1);
-    setPendingServices(updated);
+    setPendingServices(updated.map((s, i) => ({ ...s, sort_order: i + 1 })));
     markChanged();
   };
 
@@ -100,8 +99,7 @@ function ServicesTab({
     if (index === pendingServices.length - 1) return;
     const updated = [...pendingServices];
     [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
-    updated.forEach((s, i) => s.sort_order = i + 1);
-    setPendingServices(updated);
+    setPendingServices(updated.map((s, i) => ({ ...s, sort_order: i + 1 })));
     markChanged();
   };
 

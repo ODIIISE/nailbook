@@ -42,7 +42,9 @@ export default function OwnerUsersPage() {
       const res = await fetch("/api/owner/users");
       const data = await res.json();
       if (data.users) setUsers(data.users);
-    } catch {}
+    } catch (e) {
+      console.error("Failed to fetch users:", e);
+    }
     setLoading(false);
   }, []);
 
@@ -213,7 +215,9 @@ export default function OwnerUsersPage() {
       });
       const data = await res.json();
       if (data.success) fetchUsers();
-    } catch {}
+    } catch (e) {
+      console.error("Failed to toggle block:", e);
+    }
   };
 
   const formatPhone = (p: string) => toPersianDigits(p);
