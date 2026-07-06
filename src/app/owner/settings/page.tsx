@@ -50,7 +50,7 @@ export default function OwnerSettingsPage() {
     try {
       const formData = new FormData();
       formData.append("file", blob, "logo.jpg");
-      const res = await fetch("/api/upload-highlight", { method: "POST", body: formData });
+      const res = await fetch("/api/upload-logo", { method: "POST", body: formData });
       const data = await res.json();
       if (data.url) {
         setAvatarUrl(data.url);

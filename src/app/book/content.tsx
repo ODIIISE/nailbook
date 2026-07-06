@@ -351,15 +351,24 @@ export default function BookContent() {
                               : "bg-white/50 border border-border/50"
                           }`}
                         >
-                          <div className="flex items-center gap-2">
-                            <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${isSelected ? "border-primary bg-primary" : "border-muted-foreground/40"}`}>
-                              {isSelected && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
+                          <div className="flex items-center gap-3">
+                            <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${isSelected ? "border-primary bg-primary" : "border-muted-foreground/40"}`}>
+                              {isSelected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
                             </div>
-                            <span className="text-sm">{addon.name}</span>
+                            <div>
+                              <span className="text-sm font-medium">{addon.name}</span>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                {addon.duration_minutes > 0 && (
+                                  <span className="text-[11px] text-muted-foreground">
+                                    +{toPersianDigits(addon.duration_minutes)} دقیقه
+                                  </span>
+                                )}
+                                <span className="text-[11px] font-bold text-primary">
+                                  +{toPersianDigits(addon.price.toLocaleString("fa-IR"))} تومان
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                          <span className="text-xs font-bold text-primary">
-                            +{toPersianDigits(addon.price.toLocaleString("fa-IR"))}
-                          </span>
                         </div>
                       );
                     })}
