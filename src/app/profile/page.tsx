@@ -1,21 +1,50 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { CustomerNav } from "@/components/layout/customer-nav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Phone, LogOut, ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { User, Phone, LogOut, ArrowLeft, Pencil, Check, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { toPersianDigits } from "@/lib/jalali";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const handleLogout = () => {
     logout();
     router.push("/");
+  };
+
+  const startEdit = () => {
+    setEditName(user?.name || "");
+    setEditing(true);
+  };
+
+  const saveEdit = async () => {
+    if (!editName.trim() || !user) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/auth/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, name: editName.trim() }),
+      });
+      if (res.ok) {
+        // Update local storage
+        const updated = { ...user, name: editName.trim() };
+        localStorage.setItem("auth_user", JSON.stringify(updated));
+        window.location.reload();
+      }
+    } catch {}
+    setSaving(false);
   };
 
   if (!user) {
@@ -32,10 +61,7 @@ export default function ProfilePage() {
               <p className="text-[13px] text-muted-foreground mb-6 max-w-xs mx-auto">
                 برای مشاهده پروفایل و اطلاعات حساب کاربری وارد شوید
               </p>
-              <Button
-                onClick={() => router.push("/login")}
-                className="gap-2"
-              >
+              <Button onClick={() => router.push("/login")} className="gap-2">
                 ورود
                 <ArrowLeft className="h-4 w-4" />
               </Button>
@@ -65,10 +91,33 @@ export default function ProfilePage() {
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/50">
                   <User className="h-4 w-4 text-foreground" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-sm text-muted-foreground">نام</p>
-                  <p className="text-[15px] font-bold text-foreground">{user.name}</p>
+                  {editing ? (
+                    <Input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="mt-1 h-9 text-[15px] font-bold"
+                      placeholder="نام خود را وارد کنید"
+                    />
+                  ) : (
+                    <p className="text-[15px] font-bold text-foreground">{user.name || "بدون نام"}</p>
+                  )}
                 </div>
+                {editing ? (
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" onClick={saveEdit} disabled={saving}>
+                      <Check className="h-4 w-4 text-success" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+                      <X className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button size="sm" variant="ghost" onClick={startEdit}>
+                    <Pencil className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/50">

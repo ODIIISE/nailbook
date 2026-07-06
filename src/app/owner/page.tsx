@@ -43,12 +43,12 @@ export default function OwnerDashboard() {
     localStorage.setItem("owner_paid_bookings", JSON.stringify([...paidBookings]));
   }, [paidBookings]);
 
+  // Poll for new bookings every 30 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      refreshBookings();
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [refreshBookings]);
+    const id = setInterval(refreshBookings, 30000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const dayBookings = useMemo(() => {
     const dateStr = getTehranDateKey(currentDate);

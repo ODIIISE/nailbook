@@ -129,18 +129,20 @@ function generateCandidates(
 
 // ─── Step 3: Dead Gap Filter ───
 
+const MIN_GAP = 15; // Minimum usable gap in minutes
+
 function filterDeadGaps(
   candidates: Candidate[],
   bookings: Array<{ start: number; end: number }>
 ): Candidate[] {
   return candidates.filter((slot) => {
     const remainderAfter = slot.intervalEnd - slot.end;
-    if (remainderAfter > 0 && remainderAfter < 15) return false;
+    if (remainderAfter > 0 && remainderAfter < MIN_GAP) return false;
 
     for (const b of bookings) {
       if (b.end <= slot.start && b.end > slot.intervalStart) {
         const gapBefore = slot.start - b.end;
-        if (gapBefore > 0 && gapBefore < 15) return false;
+        if (gapBefore > 0 && gapBefore < MIN_GAP) return false;
       }
     }
     return true;

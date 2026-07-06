@@ -102,19 +102,29 @@ export function JalaliCalendar({
   }, []);
 
   // Touch drag handlers
+  const touchStartY = useRef(0);
+
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     isDragging.current = true;
     startX.current = e.touches[0].pageX - (scrollRef.current?.offsetLeft || 0);
     scrollLeft.current = scrollRef.current?.scrollLeft || 0;
+    touchStartY.current = e.touches[0].pageY;
   }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDragging.current) return;
-    e.preventDefault();
     const x = e.touches[0].pageX - (scrollRef.current?.offsetLeft || 0);
-    const walk = (x - startX.current) * 1.5;
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = scrollLeft.current - walk;
+    const y = e.touches[0].pageY;
+    const deltaX = Math.abs(x - startX.current);
+    const deltaY = Math.abs(y - touchStartY.current);
+
+    // Only prevent default for horizontal swipes (not vertical scrolling)
+    if (deltaX > deltaY) {
+      e.preventDefault();
+      const walk = (x - startX.current) * 1.5;
+      if (scrollRef.current) {
+        scrollRef.current.scrollLeft = scrollLeft.current - walk;
+      }
     }
   }, []);
 

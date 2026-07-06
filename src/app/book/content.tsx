@@ -516,47 +516,56 @@ export default function BookContent() {
 
         {step === "confirm" && selectedService && selectedDate && selectedTime && (
           <div className="space-y-4">
-            <Card className="glass p-4">
+            {isLoading ? (
               <div className="space-y-3">
-                <div className="flex items-center justify-between py-2 border-b border-border/30">
-                  <span className="text-sm text-muted-foreground">خدمت</span>
-                  <span className="text-sm font-bold">{selectedService.name}</span>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-border/30">
-                  <span className="text-sm text-muted-foreground">تاریخ و ساعت</span>
-                  <span className="text-sm font-bold">{selectedTime}</span>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-border/30">
-                  <span className="text-sm text-muted-foreground">مدت</span>
-                  <span className="text-sm font-bold">{toPersianDigits(totalDuration)} دقیقه</span>
-                </div>
-                {selectedAddons.length > 0 && (
-                  <div className="flex items-center justify-between py-2 border-b border-border/30">
-                    <span className="text-sm text-muted-foreground">آپشن‌ها</span>
-                    <span className="text-sm font-bold">{toPersianDigits(selectedAddons.length)} مورد</span>
-                  </div>
-                )}
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm text-muted-foreground">هزینه کل</span>
-                  <span className="text-base font-bold text-primary">
-                    {toPersianDigits(totalPrice.toLocaleString("fa-IR"))} تومان
-                  </span>
-                </div>
+                <div className="skeleton h-48 w-full rounded-2xl" />
+                <div className="skeleton h-12 w-full rounded-xl" />
               </div>
-            </Card>
+            ) : (
+              <>
+                <Card className="glass p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between py-2 border-b border-border/30">
+                      <span className="text-sm text-muted-foreground">خدمت</span>
+                      <span className="text-sm font-bold">{selectedService.name}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-border/30">
+                      <span className="text-sm text-muted-foreground">تاریخ و ساعت</span>
+                      <span className="text-sm font-bold">{selectedTime}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-border/30">
+                      <span className="text-sm text-muted-foreground">مدت</span>
+                      <span className="text-sm font-bold">{toPersianDigits(totalDuration)} دقیقه</span>
+                    </div>
+                    {selectedAddons.length > 0 && (
+                      <div className="flex items-center justify-between py-2 border-b border-border/30">
+                        <span className="text-sm text-muted-foreground">آپشن‌ها</span>
+                        <span className="text-sm font-bold">{toPersianDigits(selectedAddons.length)} مورد</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm text-muted-foreground">هزینه کل</span>
+                      <span className="text-base font-bold text-primary">
+                        {toPersianDigits(totalPrice.toLocaleString("fa-IR"))} تومان
+                      </span>
+                    </div>
+                  </div>
+                </Card>
 
-            {spamError && (
-              <p className="text-[13px] text-destructive text-center">{spamError}</p>
+                {spamError && (
+                  <p className="text-[13px] text-destructive text-center">{spamError}</p>
+                )}
+
+                <Button
+                  onClick={handleConfirmBooking}
+                  disabled={isLoading}
+                  className="w-full h-12 bg-primary hover:bg-primary/90 text-white"
+                >
+                  {isLoading ? "در حال ثبت..." : "تایید و رزرو"}
+                  {!isLoading && <ChevronLeft className="h-5 w-5 mr-2" />}
+                </Button>
+              </>
             )}
-
-            <Button
-              onClick={handleConfirmBooking}
-              disabled={isLoading}
-              className="w-full h-12 bg-primary hover:bg-primary/90 text-white"
-            >
-              {isLoading ? "در حال ثبت..." : "تایید و رزرو"}
-              {!isLoading && <ChevronLeft className="h-5 w-5 mr-2" />}
-            </Button>
           </div>
         )}
 
