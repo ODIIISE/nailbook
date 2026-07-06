@@ -1,12 +1,12 @@
 /**
- * Booking Engine — Pipeline Architecture
+ * Booking Engine — Pipeline Architecture v2
  *
- * Step 1: Build free intervals from working hours minus bookings/blocks
- * Step 2: Generate raw 15-min candidate slots within each interval
- * Step 3: Hard remove dead gaps (remainder 0 < R < 15)
- * Step 4: Prefer round-hour and adjacent-to-booking slots
- * Step 5: Score with Fitness + ValuePriority − AdjacencyDistance
- * Step 6: Return 4–6 curated slots, one marked Recommended
+ * Rules:
+ * - Standard durations: 15, 30, 45, 60, 90, 120 minutes
+ * - Buffer: 0 (configurable)
+ * - Slot interval: 30 minutes (:00 or :30)
+ * - Dead gaps hard-removed
+ * - Scoring: Fitness + ValuePriority - AdjacencyDistance
  */
 
 export interface WorkingHours {
@@ -23,7 +23,7 @@ export interface TimeSlot {
 }
 
 interface FreeInterval {
-  start: number; // minutes from midnight
+  start: number;
   end: number;
 }
 
@@ -34,11 +34,11 @@ interface Candidate {
   intervalEnd: number;
   isRoundHour: boolean;
   isAdjacentToBooking: boolean;
-  adjacentDirection: "after" | "before" | null;
 }
 
 const IRAN_WEEK_DAYS = ["sat", "sun", "mon", "tue", "wed", "thu", "fri"];
 const DAYS_IN_MONTH = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+const STANDARD_DURATIONS = [15, 30, 45, 60, 90, 120];
 
 import { getTehranDateKey, getTehranNow } from "./time";
 import { gregorianToJalali, jalaliToGregorian } from "./jalali";
@@ -59,6 +59,15 @@ function formatTime(minutes: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
+// ─── Duration Rounding ───
+
+function roundDuration(minutes: number): number {
+  for (const std of STANDARD_DURATIONS) {
+    if (minutes <= std) return std;
+  }
+  return 120;
+}
+
 // ─── Step 1: Build Free Intervals ───
 
 function buildFreeIntervals(
@@ -67,73 +76,54 @@ function buildFreeIntervals(
   bookings: Array<{ start: number; end: number }>,
   blocked: Array<{ start: number; end: number }>
 ): FreeInterval[] {
-  // Merge all occupied periods
-  const occupied: Array<{ start: number; end: number }> = [];
+  const occupied = [...bookings, ...blocked].sort((a, b) => a.start - b.start);
 
-  for (const b of bookings) {
-    occupied.push({ start: b.start, end: b.end });
-  }
-  for (const bl of blocked) {
-    occupied.push({ start: bl.start, end: bl.end });
-  }
-
-  // Sort by start time
-  occupied.sort((a, b) => a.start - b.start);
-
-  // Merge overlapping intervals
   const merged: Array<{ start: number; end: number }> = [];
-  for (const interval of occupied) {
-    if (merged.length === 0 || interval.start > merged[merged.length - 1].end) {
-      merged.push({ ...interval });
+  for (const iv of occupied) {
+    if (merged.length === 0 || iv.start > merged[merged.length - 1].end) {
+      merged.push({ ...iv });
     } else {
-      merged[merged.length - 1].end = Math.max(merged[merged.length - 1].end, interval.end);
+      merged[merged.length - 1].end = Math.max(merged[merged.length - 1].end, iv.end);
     }
   }
 
-  // Compute free intervals
   const free: FreeInterval[] = [];
   let cursor = shiftStart;
-
   for (const block of merged) {
-    if (cursor < block.start) {
-      free.push({ start: cursor, end: block.start });
-    }
+    if (cursor < block.start) free.push({ start: cursor, end: block.start });
     cursor = Math.max(cursor, block.end);
   }
-
-  if (cursor < shiftEnd) {
-    free.push({ start: cursor, end: shiftEnd });
-  }
-
+  if (cursor < shiftEnd) free.push({ start: cursor, end: shiftEnd });
   return free;
 }
 
-// ─── Step 2: Generate Raw Candidates ───
+// ─── Step 2: Generate Candidates (30-min intervals on :00/:30) ───
 
 function generateCandidates(
   intervals: FreeInterval[],
-  serviceDuration: number,
-  buffer: number
+  serviceDuration: number
 ): Candidate[] {
   const candidates: Candidate[] = [];
 
-  for (const interval of intervals) {
-    const intervalLength = interval.end - interval.start;
-    if (intervalLength < serviceDuration + buffer) continue;
+  for (const iv of intervals) {
+    if (iv.end - iv.start < serviceDuration) continue;
 
-    for (let m = interval.start; m + serviceDuration + buffer <= interval.end; m += 15) {
+    // Generate slots at :00 and :30 only
+    const startHour = Math.floor(iv.start / 60);
+    const startMin = iv.start % 60;
+    const firstSlot = startMin <= 0 ? iv.start : (startHour + 1) * 60;
+
+    for (let m = firstSlot; m + serviceDuration <= iv.end; m += 30) {
       candidates.push({
         start: m,
         end: m + serviceDuration,
-        intervalStart: interval.start,
-        intervalEnd: interval.end,
+        intervalStart: iv.start,
+        intervalEnd: iv.end,
         isRoundHour: m % 60 === 0,
         isAdjacentToBooking: false,
-        adjacentDirection: null,
       });
     }
   }
-
   return candidates;
 }
 
@@ -141,33 +131,18 @@ function generateCandidates(
 
 function filterDeadGaps(
   candidates: Candidate[],
-  buffer: number,
   bookings: Array<{ start: number; end: number }>
 ): Candidate[] {
   return candidates.filter((slot) => {
-    // Check remainder AFTER the slot (within its free interval)
-    const remainderAfter = slot.intervalEnd - (slot.end + buffer);
+    const remainderAfter = slot.intervalEnd - slot.end;
     if (remainderAfter > 0 && remainderAfter < 15) return false;
 
-    // Check gap BEFORE the slot (relative to previous booking)
-    if (buffer === 0) {
-      // With buffer=0, check if there's a tiny gap before the slot that's unusable
-      for (const booking of bookings) {
-        if (booking.end <= slot.start && booking.end > slot.intervalStart) {
-          const gapBefore = slot.start - booking.end;
-          if (gapBefore > 0 && gapBefore < 15) return false;
-        }
-      }
-    } else {
-      // With buffer>0, the gap before should equal the buffer exactly
-      for (const booking of bookings) {
-        if (booking.end <= slot.start && booking.end > slot.intervalStart) {
-          const gapBefore = slot.start - booking.end;
-          if (gapBefore > 0 && gapBefore !== buffer) return false;
-        }
+    for (const b of bookings) {
+      if (b.end <= slot.start && b.end > slot.intervalStart) {
+        const gapBefore = slot.start - b.end;
+        if (gapBefore > 0 && gapBefore < 15) return false;
       }
     }
-
     return true;
   });
 }
@@ -179,17 +154,9 @@ function markAdjacency(
   bookings: Array<{ start: number; end: number }>
 ): Candidate[] {
   for (const slot of candidates) {
-    for (const booking of bookings) {
-      // Adjacent after: slot starts exactly when booking ends
-      if (slot.start === booking.end) {
+    for (const b of bookings) {
+      if (slot.start === b.end || slot.end === b.start) {
         slot.isAdjacentToBooking = true;
-        slot.adjacentDirection = "after";
-        break;
-      }
-      // Adjacent before: slot ends exactly when booking starts
-      if (slot.end === booking.start) {
-        slot.isAdjacentToBooking = true;
-        slot.adjacentDirection = "before";
         break;
       }
     }
@@ -197,72 +164,42 @@ function markAdjacency(
   return candidates;
 }
 
-// ─── Step 5: Score and Rank ───
+// ─── Step 5: Score ───
 
 function scoreCandidates(
   candidates: Candidate[],
-  serviceDuration: number,
   priorityScore: number,
   bookings: Array<{ start: number; end: number }>
 ): Array<Candidate & { score: number; isRecommended: boolean }> {
-  const maxDistance = 480; // full day in minutes
+  const maxDist = 480;
 
   const scored = candidates.map((slot) => {
-    // Fitness: how tightly the slot uses the free interval
-    const slotLength = slot.end - slot.start;
-    const intervalLength = slot.intervalEnd - slot.intervalStart;
-    const fitness = 1 - (intervalLength - slotLength) / intervalLength;
+    const ivLen = slot.intervalEnd - slot.intervalStart;
+    const slotLen = slot.end - slot.start;
+    const fitness = ivLen > 0 ? 1 - (ivLen - slotLen) / ivLen : 1;
 
-    // ValuePriority: normalized service priority (1-10 scale)
-    const valuePriority = priorityScore / 10;
-
-    // AdjacencyDistance: time to nearest booking (normalized 0-1)
-    let minDistance = maxDistance;
-    for (const booking of bookings) {
-      const distToStart = Math.abs(slot.start - booking.end);
-      const distToEnd = Math.abs(slot.end - booking.start);
-      minDistance = Math.min(minDistance, distToStart, distToEnd);
+    let minDist = maxDist;
+    for (const b of bookings) {
+      minDist = Math.min(minDist, Math.abs(slot.start - b.end), Math.abs(slot.end - b.start));
     }
-    const adjacencyDistance = minDistance / maxDistance;
+    const adjDist = minDist / maxDist;
 
-    // Combined score
-    const score = 0.4 * fitness + 0.2 * valuePriority - 0.1 * adjacencyDistance;
-
+    const score = 0.4 * fitness + 0.2 * (priorityScore / 10) - 0.1 * adjDist;
     return { ...slot, score, isRecommended: false };
   });
 
-  // Sort by score descending
   scored.sort((a, b) => b.score - a.score);
-
-  // Mark top scorer as recommended
-  if (scored.length > 0) {
-    scored[0].isRecommended = true;
-  }
-
+  if (scored.length > 0) scored[0].isRecommended = true;
   return scored;
 }
 
-// ─── Step 6: Select Final List ───
-
-function selectFinalSlots(
-  scored: Array<Candidate & { score: number; isRecommended: boolean }>,
-  maxSlots: number = 6,
-  minSlots: number = 4
-): Array<Candidate & { score: number; isRecommended: boolean }> {
-  // Take top N by score
-  const selected = scored.slice(0, maxSlots);
-
-  // If fewer than minimum, this is fine — caller handles empty state
-  return selected;
-}
-
-// ─── Main Entry Point ───
+// ─── Main Entry ───
 
 export function generateTimeSlots(
   workingHours: WorkingHours,
   date: Date,
   serviceDurationMinutes: number,
-  slotIntervalMinutes: number,
+  _slotIntervalMinutes: number,
   bufferMinutes: number,
   existingBookings: Array<{ start_time: string; end_time: string }>,
   activeLocks: Array<{ start_time: string; end_time?: string; expires_at?: string }>,
@@ -270,7 +207,6 @@ export function generateTimeSlots(
 ): TimeSlot[] {
   const dayKey = getIranWeekDay(date);
   const dayHours = workingHours[dayKey];
-
   if (!dayHours) return [];
 
   const now = getTehranNow();
@@ -280,65 +216,62 @@ export function generateTimeSlots(
   const shiftStart = parseTime(dayHours.open);
   const shiftEnd = parseTime(dayHours.close);
 
-  // Normalize bookings to {start, end} in minutes
+  const rounded = roundDuration(serviceDurationMinutes);
+  const totalDuration = rounded + bufferMinutes;
+
   const bookings = existingBookings.map((b) => ({
     start: parseTime(b.start_time),
     end: parseTime(b.end_time),
   }));
 
-  // Normalize blocked times, filter expired locks
   const blocked = activeLocks
-    .filter((l) => {
-      if (l.expires_at && new Date(l.expires_at) < new Date()) return false;
-      return true;
-    })
+    .filter((l) => !l.expires_at || new Date(l.expires_at) >= new Date())
     .map((l) => ({
       start: parseTime(l.start_time),
-      end: l.end_time ? parseTime(l.end_time) : parseTime(l.start_time) + serviceDurationMinutes,
+      end: l.end_time ? parseTime(l.end_time) : parseTime(l.start_time) + totalDuration,
     }));
 
-  // ─── Pipeline ───
+  let intervals = buildFreeIntervals(shiftStart, shiftEnd, bookings, blocked);
 
-  // Step 1: Free intervals
-  const freeIntervals = buildFreeIntervals(shiftStart, shiftEnd, bookings, blocked);
-
-  // Step 2: Raw candidates
-  let candidates = generateCandidates(freeIntervals, serviceDurationMinutes, bufferMinutes);
-
-  // Filter past times for today
-  if (isToday) {
-    candidates = candidates.filter((c) => c.start >= nowMinutes);
+  // Expand to 10:00 if 80% of 12-18 is booked
+  const twelveToSixMinutes = 6 * 60;
+  let bookedInWindow = 0;
+  for (const b of bookings) {
+    const bStart = Math.max(b.start, shiftStart);
+    const bEnd = Math.min(b.end, shiftEnd);
+    if (bEnd > bStart) bookedInWindow += bEnd - bStart;
+  }
+  if (bookedInWindow >= twelveToSixMinutes * 0.8 && shiftStart === parseTime("12:00")) {
+    const earlyIntervals = buildFreeIntervals(parseTime("10:00"), parseTime("12:00"), bookings, blocked);
+    intervals = [...earlyIntervals, ...intervals];
   }
 
-  // Step 3: Dead gap filter
-  candidates = filterDeadGaps(candidates, bufferMinutes, bookings);
+  let candidates = generateCandidates(intervals, totalDuration);
 
-  // Step 4: Mark adjacency
+  if (isToday) candidates = candidates.filter((c) => c.start >= nowMinutes);
+
+  candidates = filterDeadGaps(candidates, bookings);
   candidates = markAdjacency(candidates, bookings);
 
-  // Step 5: Score and rank
-  const scored = scoreCandidates(candidates, serviceDurationMinutes, priorityScore, bookings);
+  const scored = scoreCandidates(candidates, priorityScore, bookings);
+  const final = scored.slice(0, 6);
 
-  // Step 6: Select final list
-  const finalSlots = selectFinalSlots(scored);
-
-  // Convert to TimeSlot format
-  return finalSlots.map((slot) => ({
-    time: formatTime(slot.start),
+  return final.map((s) => ({
+    time: formatTime(s.start),
     available: true,
     booked: false,
     locked: false,
-    suggested: slot.isRecommended || slot.isAdjacentToBooking || slot.isRoundHour,
-    score: Math.round(slot.score * 100) / 100,
+    suggested: s.isRecommended || s.isAdjacentToBooking || s.isRoundHour,
+    score: Math.round(s.score * 100) / 100,
   }));
 }
 
-// ─── Nearest Available Slot (with 14-day fallback) ───
+// ─── Nearest Slot (14-day scan) ───
 
 export function getNearestAvailableSlot(
   workingHours: WorkingHours,
   serviceDurationMinutes: number,
-  slotIntervalMinutes: number,
+  _slotIntervalMinutes: number,
   bufferMinutes: number,
   existingBookings: Array<{ date_gregorian: string; start_time: string; end_time: string }>,
   activeLocks: Array<{ date_gregorian: string; start_time: string; expires_at: string }>,
@@ -346,42 +279,30 @@ export function getNearestAvailableSlot(
 ): { date: Date; time: string } | null {
   const todayJalali = gregorianToJalali(new Date());
 
-  for (let dayOffset = 0; dayOffset < 14; dayOffset++) {
+  for (let offset = 0; offset < 14; offset++) {
     const jy = todayJalali.jy;
     let jm = todayJalali.jm;
-    let jd = todayJalali.jd + dayOffset;
-
-    // Jalali date arithmetic
+    let jd = todayJalali.jd + offset;
     while (jd > DAYS_IN_MONTH[jm - 1]) {
       jd -= DAYS_IN_MONTH[jm - 1];
       jm++;
       if (jm > 12) jm = 1;
     }
-
     const checkDate = jalaliToGregorian(jy, jm, jd);
     const dateStr = getTehranDateKey(checkDate);
     const dayBookings = existingBookings
       .filter((b) => b.date_gregorian === dateStr)
       .map((b) => ({ start_time: b.start_time, end_time: b.end_time }));
-
     const dayLocks = activeLocks
       .filter((l) => l.date_gregorian === dateStr)
       .map((l) => ({ start_time: l.start_time, expires_at: l.expires_at }));
 
     const slots = generateTimeSlots(
-      workingHours,
-      checkDate,
-      serviceDurationMinutes,
-      slotIntervalMinutes,
-      bufferMinutes,
-      dayBookings,
-      dayLocks,
-      priorityScore
+      workingHours, checkDate, serviceDurationMinutes, 30, bufferMinutes,
+      dayBookings, dayLocks, priorityScore
     );
-
     const best = slots.find((s) => s.available);
     if (best) return { date: checkDate, time: best.time };
   }
-
   return null;
 }
