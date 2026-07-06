@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Calendar, Briefcase, Settings, Menu, X, Home, LogOut, Clock, CircleDot, Users } from "lucide-react";
+import { Settings, Menu, X, Home, LogOut, Clock, CircleDot, Users } from "lucide-react";
+import { UilCalendarAlt, UilBriefcaseAlt, UilApps } from "@iconscout/react-unicons";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useSalon } from "@/lib/salon-context";
@@ -115,7 +116,7 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
               isActive("/owner") ? "text-primary" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Calendar className="h-5 w-5" />
+            <UilCalendarAlt className="h-5 w-5" style={{ fill: isActive("/owner") ? "currentColor" : "none" }} />
             <span className="text-[10px] font-bold">زمان‌بندی</span>
           </button>
           <button
@@ -124,14 +125,14 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
               isActive("/owner/services") ? "text-primary" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Briefcase className="h-5 w-5" />
+            <UilBriefcaseAlt className="h-5 w-5" style={{ fill: isActive("/owner/services") ? "currentColor" : "none" }} />
             <span className="text-[10px] font-bold">خدمات</span>
           </button>
           <button
             onClick={() => setMenuOpen(true)}
             className="flex-1 flex flex-col items-center gap-1 py-3 text-muted-foreground hover:text-foreground transition-colors"
           >
-            <Menu className="h-5 w-5" />
+            <UilApps className="h-5 w-5" />
             <span className="text-[10px] font-bold">منو</span>
           </button>
         </div>
