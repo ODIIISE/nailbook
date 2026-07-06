@@ -26,8 +26,16 @@ export function Hero({ salon, onBookNow }: HeroProps) {
   return (
     <div className="px-4 pt-8 pb-6">
       <div className="mx-auto max-w-lg text-center animate-stagger">
-        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl glass shadow-glass">
-          <Sparkles className="h-8 w-8 text-foreground" />
+        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl glass shadow-glass overflow-hidden">
+          {salon.logo_url ? (
+            <img
+              src={salon.logo_url}
+              alt={salon.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <Sparkles className="h-8 w-8 text-foreground" />
+          )}
         </div>
         <h1 className="text-display text-foreground mb-2">
           {salon.name}

@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: "Forehand Nail Studio | رزرو آنلاین",
   description: "Forehand Nail Studio — رزرو آنلاین نوبت ناخن در مشهد",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export const viewport: Viewport = {
