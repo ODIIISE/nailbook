@@ -1,21 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { verifyOwner } from "@/lib/owner-auth";
 import crypto from "crypto";
 
 function hashPin(pin: string): string {
   return crypto.createHash("sha256").update(pin).digest("hex");
-}
-
-async function verifyOwner(request: NextRequest) {
-  const ownerSession = request.cookies.get("owner_session")?.value;
-  if (!ownerSession) return null;
-  const { data: owner } = await supabaseAdmin
-    .from("users")
-    .select("id")
-    .eq("id", ownerSession)
-      .eq("role", "owner")
-    .single();
-  return owner;
 }
 
 // GET - list all users

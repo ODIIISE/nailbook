@@ -290,13 +290,16 @@ export function getNearestAvailableSlot(
   const todayJalali = gregorianToJalali(new Date());
 
   for (let offset = 0; offset < 14; offset++) {
-    const jy = todayJalali.jy;
+    let jy = todayJalali.jy;
     let jm = todayJalali.jm;
     let jd = todayJalali.jd + offset;
     while (jd > DAYS_IN_MONTH[jm - 1]) {
       jd -= DAYS_IN_MONTH[jm - 1];
       jm++;
-      if (jm > 12) jm = 1;
+      if (jm > 12) {
+        jm = 1;
+        jy++;
+      }
     }
     const checkDate = jalaliToGregorian(jy, jm, jd);
     const dateStr = getTehranDateKey(checkDate);

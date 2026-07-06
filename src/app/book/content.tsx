@@ -527,10 +527,11 @@ export default function BookContent() {
 
             <Button
               onClick={handleConfirmBooking}
+              disabled={isLoading}
               className="w-full h-12 bg-primary hover:bg-primary/90 text-white"
             >
-              تایید و رزرو
-              <ChevronLeft className="h-5 w-5 mr-2" />
+              {isLoading ? "در حال ثبت..." : "تایید و رزرو"}
+              {!isLoading && <ChevronLeft className="h-5 w-5 mr-2" />}
             </Button>
           </div>
         )}

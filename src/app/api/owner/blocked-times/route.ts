@@ -1,17 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
-
-async function verifyOwner(request: NextRequest) {
-  const ownerSession = request.cookies.get("owner_session")?.value;
-  if (!ownerSession) return null;
-  const { data: owner } = await supabaseAdmin
-    .from("users")
-    .select("id")
-    .eq("id", ownerSession)
-    .eq("role", "owner")
-    .single();
-  return owner;
-}
+import { verifyOwner } from "@/lib/owner-auth";
 
 // GET - fetch all blocked times
 export async function GET(request: NextRequest) {

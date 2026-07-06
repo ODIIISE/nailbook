@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { verifyOwner } from "@/lib/owner-auth";
 import crypto from "crypto";
 
 function hashPin(pin: string): string {
@@ -8,19 +9,7 @@ function hashPin(pin: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const ownerSession = request.cookies.get("owner_session")?.value;
-    if (!ownerSession) {
-      return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
-    }
-
-    // Verify owner
-    const { data: owner } = await supabaseAdmin
-      .from("users")
-      .select("id")
-      .eq("id", ownerSession)
-      .eq("role", "owner")
-      .single();
-
+    const owner = await verifyOwner(request);
     if (!owner) {
       return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
     }

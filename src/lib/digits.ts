@@ -12,7 +12,8 @@ export function normalizeDigits(input: string): string {
   return input
     .split("")
     .map((ch) => FA_TO_EN[ch] || ch)
-    .join("");
+    .join("")
+    .replace(/[^0-9]/g, ""); // Strip any remaining non-digit characters
 }
 
 export function displayDigits(input: string): string {

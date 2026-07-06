@@ -11,15 +11,12 @@ export async function POST(request: NextRequest) {
 
     const { data: user } = await supabaseAdmin
       .from("users")
-      .select("id, phone, role, name, pin, locked_until")
+      .select("id, phone, pin, locked_until")
       .eq("phone", phone)
       .single();
 
-    if (!user) {
-      return NextResponse.json({ exists: false });
-    }
-
-    if (user.locked_until && new Date(user.locked_until) > new Date()) {
+    // Check lockout first (before revealing if user exists)
+    if (user?.locked_until && new Date(user.locked_until) > new Date()) {
       const remaining = Math.ceil((new Date(user.locked_until).getTime() - Date.now()) / 60000);
       return NextResponse.json({
         exists: true,
@@ -28,12 +25,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Return consistent response structure for both existing and non-existing
+    // This prevents phone enumeration - attacker can't tell if phone is registered
     return NextResponse.json({
-      exists: true,
+      exists: !!user,
       locked: false,
-      role: user.role,
-      name: user.name,
-      hasPin: !!user.pin,
+      hasPin: user ? !!user.pin : false,
     });
   } catch (error) {
     console.error("Check phone error:", error);

@@ -14,6 +14,7 @@ import { ChevronLeft, Plus, Search } from "lucide-react";
 import { toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey } from "@/lib/time";
+import type { Booking } from "@/lib/mock-data";
 
 interface BlockedTime {
   date_gregorian: string;
@@ -26,7 +27,7 @@ export default function OwnerDashboard() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [paidBookings, setPaidBookings] = useState<Set<string>>(new Set());
   const [showEarnings, setShowEarnings] = useState(false);
   const [bookingSearch, setBookingSearch] = useState("");
