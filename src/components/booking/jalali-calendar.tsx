@@ -142,21 +142,20 @@ export function JalaliCalendar({
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="flex gap-2 overflow-x-auto pb-1 px-4"
+          className="flex gap-2 overflow-x-auto pb-1 px-4 scrollbar-hide"
           style={{
             WebkitOverflowScrolling: "touch",
             scrollbarWidth: "none",
             msOverflowStyle: "none",
           }}
         >
-          <style>{`.jalali-scroll::-webkit-scrollbar { display: none; }`}</style>
           {days.map((d, i) => (
             <button
               key={i}
               data-selected={d.isSelected}
               onClick={() => onSelectDate(d.date)}
               className={`
-                jalali-scroll flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer active:scale-95
+                flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer active:scale-95
                 focus-visible:ring-3 focus-visible:ring-primary/50 focus-visible:outline-none
                 ${d.isSelected
                   ? "bg-primary text-white shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
@@ -262,16 +261,28 @@ function CalendarModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-sm bg-card rounded-3xl p-5 animate-scale shadow-elevated">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-2">
           <Button variant="ghost" size="icon-sm" onClick={prevMonth}>
             <ChevronRight className="h-5 w-5" />
           </Button>
           <div className="text-center">
             <p className="text-h3 text-foreground">{PERSIAN_MONTHS[viewMonth - 1]}</p>
-            <p className="text-[12px] text-muted-foreground">{toPersianDigits(viewYear)}</p>
           </div>
           <Button variant="ghost" size="icon-sm" onClick={nextMonth}>
             <ChevronLeft className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Year selector */}
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <Button variant="ghost" size="icon-sm" onClick={() => setViewYear((y) => y - 1)}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <span className="text-[14px] font-bold text-foreground min-w-[60px] text-center">
+            {toPersianDigits(viewYear)}
+          </span>
+          <Button variant="ghost" size="icon-sm" onClick={() => setViewYear((y) => y + 1)}>
+            <ChevronLeft className="h-4 w-4" />
           </Button>
         </div>
 

@@ -217,7 +217,12 @@ export default function OwnerUsersPage() {
   };
 
   const formatPhone = (p: string) => toPersianDigits(p);
-  const formatDate = (d: string) => toPersianDigits(new Date(d).toLocaleDateString("fa-IR"));
+  const formatDate = (d: string) => {
+    if (!d) return "نامعلوم";
+    const date = new Date(d);
+    if (isNaN(date.getTime())) return "نامعلوم";
+    return toPersianDigits(date.toLocaleDateString("fa-IR"));
+  };
 
   return (
     <div className="px-4 py-4 space-y-4">
