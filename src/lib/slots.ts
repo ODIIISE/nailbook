@@ -172,17 +172,27 @@ function scoreCandidates(
   bookings: Array<{ start: number; end: number }>
 ): Array<Candidate & { score: number; isRecommended: boolean }> {
   const maxDist = 480;
+  const hasBookings = bookings.length > 0;
 
   const scored = candidates.map((slot) => {
-    const ivLen = slot.intervalEnd - slot.intervalStart;
-    const slotLen = slot.end - slot.start;
-    const fitness = ivLen > 0 ? 1 - (ivLen - slotLen) / ivLen : 1;
+    // Fitness: on empty days, prefer earlier slots; with bookings, prefer compact slots
+    let fitness: number;
+    if (!hasBookings) {
+      // Empty day: earlier is better (invert so first slot gets highest)
+      const totalRange = slot.intervalEnd - slot.intervalStart;
+      fitness = totalRange > 0 ? 1 - (slot.start - slot.intervalStart) / totalRange : 1;
+    } else {
+      const ivLen = slot.intervalEnd - slot.intervalStart;
+      const slotLen = slot.end - slot.start;
+      fitness = ivLen > 0 ? 1 - (ivLen - slotLen) / ivLen : 1;
+    }
 
+    // Adjacency: closer to existing bookings is better
     let minDist = maxDist;
     for (const b of bookings) {
       minDist = Math.min(minDist, Math.abs(slot.start - b.end), Math.abs(slot.end - b.start));
     }
-    const adjDist = minDist / maxDist;
+    const adjDist = hasBookings ? minDist / maxDist : 0;
 
     const score = 0.4 * fitness + 0.2 * (priorityScore / 10) - 0.1 * adjDist;
     return { ...slot, score, isRecommended: false };
