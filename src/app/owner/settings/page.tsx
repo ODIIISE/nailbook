@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ImageCrop } from "@/components/ui/image-crop";
 import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
 import { Save, Camera, Phone, FileText, Sparkles } from "lucide-react";
@@ -22,7 +23,10 @@ export default function OwnerSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Crop state
+  const [cropImage, setCropImage] = useState<string | null>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -31,10 +35,21 @@ export default function OwnerSettingsPage() {
       return;
     }
 
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleCropComplete = async (blob: Blob) => {
+    setCropImage(null);
     setUploading(true);
+
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", blob, "logo.jpg");
       const res = await fetch("/api/upload-highlight", { method: "POST", body: formData });
       const data = await res.json();
       if (data.url) {
@@ -48,7 +63,6 @@ export default function OwnerSettingsPage() {
       toast.error("خطا در آپلود تصویر");
     }
     setUploading(false);
-    e.target.value = "";
   };
 
   const handleSave = async () => {
@@ -71,7 +85,7 @@ export default function OwnerSettingsPage() {
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              onChange={handleAvatarUpload}
+              onChange={handleFileSelect}
               className="hidden"
             />
             {avatarUrl ? (
@@ -155,6 +169,16 @@ export default function OwnerSettingsPage() {
         <Save className="h-5 w-5 ml-2" />
         {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
       </Button>
+
+      {/* Crop Modal */}
+      {cropImage && (
+        <ImageCrop
+          image={cropImage}
+          onCropComplete={handleCropComplete}
+          onCancel={() => setCropImage(null)}
+          aspect={1}
+        />
+      )}
     </div>
   );
 }
