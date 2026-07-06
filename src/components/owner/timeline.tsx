@@ -172,10 +172,10 @@ export function Timeline({
 
       {/* Empty state */}
       {bookings.length === 0 && blockedTimes.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <Clock className="h-8 w-8 mx-auto text-muted-foreground/40 mb-2" />
-            <p className="text-muted-foreground text-sm">برنامه‌ای برای این روز ثبت نشده</p>
+        <div className="flex items-center justify-center" style={{ height: `${hours.length * HOUR_HEIGHT}px` }}>
+          <div className="text-center opacity-40">
+            <Clock className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+            <p className="text-muted-foreground text-[15px]">برنامه‌ای برای این روز ثبت نشده</p>
           </div>
         </div>
       )}
