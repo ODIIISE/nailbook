@@ -34,14 +34,14 @@ const supabase = createClient(
   env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-// Test data — realistic but clearly marked as test values
+// Test data — clearly distinct from production values (QA_TEST prefix)
 const TEST_DATA = {
-  name: "تست کیفیت - استدیو ناخن",
-  slogan: "شعار تستی - زیبایی ناخن",
-  description: "توضیحات تستی - این متن برای تست کیفیت نوشته شده",
+  name: "QA_TEST - ناخن تستی",
+  slogan: "QA_TEST - شعار تستی",
+  description: "QA_TEST - توضیحات تستی",
   phone: "09111111111",
-  address: "آدرس تستی - خیابان تست، پلاک ۱",
-  working_hours_text: "شنبه تا پنج شنبه . ۰۹ تا ۱۷",
+  address: "QA_TEST - آدرس تستی",
+  working_hours_text: "QA_TEST - ساعت تستی",
 };
 
 const FIELDS = [
