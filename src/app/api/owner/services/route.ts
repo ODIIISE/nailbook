@@ -44,6 +44,12 @@ export async function PUT(request: NextRequest) {
 
     // Delete removed services
     if (deletedIds.length > 0) {
+      // Nullify foreign key references in bookings first
+      await supabaseAdmin
+        .from("bookings")
+        .update({ service_id: null })
+        .in("service_id", deletedIds);
+
       const { error: deleteError } = await supabaseAdmin
         .from("services")
         .delete()
