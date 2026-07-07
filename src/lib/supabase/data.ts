@@ -42,18 +42,16 @@ export async function fetchServices(): Promise<Service[]> {
   }));
 }
 
-export async function upsertService(service: Service) {
-  await supabase.from("services").upsert({
-    id: service.id,
-    name: service.name,
-    description: service.description,
-    duration_minutes: service.duration_minutes,
-    price: service.price,
-    is_active: service.is_active,
-    sort_order: service.sort_order,
-    addon_ids: service.addon_ids,
-    priority_score: service.priority_score || 5,
+export async function upsertServices(services: Service[]) {
+  const res = await fetch("/api/owner/services", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ services }),
   });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Failed to save services");
+  }
 }
 
 export async function deleteService(id: string) {
@@ -71,14 +69,16 @@ export async function fetchAddons(): Promise<Addon[]> {
   }));
 }
 
-export async function upsertAddon(addon: Addon) {
-  await supabase.from("addons").upsert({
-    id: addon.id,
-    name: addon.name,
-    price: addon.price,
-    duration_minutes: addon.duration_minutes,
-    is_active: addon.is_active,
+export async function upsertAddons(addons: Addon[]) {
+  const res = await fetch("/api/owner/addons", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ addons }),
   });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Failed to save addons");
+  }
 }
 
 export async function deleteAddon(id: string) {

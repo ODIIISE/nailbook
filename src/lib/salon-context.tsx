@@ -9,9 +9,9 @@ import {
   fetchServices,
   fetchAddons,
   fetchBookings,
-  upsertService,
+  upsertServices,
   deleteService,
-  upsertAddon,
+  upsertAddons,
   deleteAddon,
   insertBooking,
   updateWorkingHours as saveWorkingHours,
@@ -138,7 +138,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     const prev = services;
     setServices(newServices);
     try {
-      await Promise.all(newServices.map((s) => upsertService(s)));
+      await upsertServices(newServices);
     } catch (e) {
       console.error("Failed to save services:", e);
       setServices(prev);
@@ -149,7 +149,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     const prev = addons;
     setAddons(newAddons);
     try {
-      await Promise.all(newAddons.map((a) => upsertAddon(a)));
+      await upsertAddons(newAddons);
     } catch (e) {
       console.error("Failed to save addons:", e);
       setAddons(prev);
