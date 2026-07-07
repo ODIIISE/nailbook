@@ -135,23 +135,27 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, [workingHours, specificDaysOff]);
 
   const handleUpdateServices = useCallback(async (newServices: Service[]) => {
+    console.log("[salon-context] handleUpdateServices called with", newServices.length, "services");
     const prev = services;
     setServices(newServices);
     try {
       await upsertServices(newServices);
+      console.log("[salon-context] handleUpdateServices completed successfully");
     } catch (e) {
-      console.error("Failed to save services:", e);
+      console.error("[salon-context] Failed to save services:", e);
       setServices(prev);
     }
   }, [services]);
 
   const handleUpdateAddons = useCallback(async (newAddons: Addon[]) => {
+    console.log("[salon-context] handleUpdateAddons called with", newAddons.length, "addons");
     const prev = addons;
     setAddons(newAddons);
     try {
       await upsertAddons(newAddons);
+      console.log("[salon-context] handleUpdateAddons completed successfully");
     } catch (e) {
-      console.error("Failed to save addons:", e);
+      console.error("[salon-context] Failed to save addons:", e);
       setAddons(prev);
     }
   }, [addons]);

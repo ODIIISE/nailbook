@@ -4,11 +4,14 @@ import { verifyOwner } from "@/lib/owner-auth";
 
 // PUT - upsert all services (owner only)
 export async function PUT(request: NextRequest) {
+  console.log("[API /api/owner/services] PUT called");
   try {
     const owner = await verifyOwner(request);
+    console.log("[API /api/owner/services] owner:", owner ? "authenticated" : "NOT authenticated");
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const { services } = await request.json();
+    console.log("[API /api/owner/services] received", services?.length, "services");
 
     if (!Array.isArray(services)) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
@@ -32,13 +35,14 @@ export async function PUT(request: NextRequest) {
       );
 
     if (error) {
-      console.error("Upsert services error:", error);
+      console.error("[API /api/owner/services] Supabase error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    console.log("[API /api/owner/services] success");
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Services route error:", error);
+    console.error("[API /api/owner/services] route error:", error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

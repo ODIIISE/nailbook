@@ -28,7 +28,10 @@ export async function updateSalonInfo(updates: Partial<SalonInfo>) {
 }
 
 export async function fetchServices(): Promise<Service[]> {
-  const { data } = await supabase.from("services").select("*").order("sort_order");
+  console.log("[data.ts] fetchServices called");
+  const { data, error } = await supabase.from("services").select("*").order("sort_order");
+  if (error) console.error("[data.ts] fetchServices error:", error);
+  console.log("[data.ts] fetchServices returned", (data || []).length, "services");
   return (data || []).map((s) => ({
     id: s.id,
     name: s.name,
@@ -43,15 +46,19 @@ export async function fetchServices(): Promise<Service[]> {
 }
 
 export async function upsertServices(services: Service[]) {
+  console.log("[data.ts] upsertServices called with", services.length, "services");
   const res = await fetch("/api/owner/services", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ services }),
   });
+  console.log("[data.ts] upsertServices response status:", res.status);
   if (!res.ok) {
     const data = await res.json();
+    console.error("[data.ts] upsertServices error:", data);
     throw new Error(data.error || "Failed to save services");
   }
+  console.log("[data.ts] upsertServices success");
 }
 
 export async function deleteService(id: string) {
@@ -59,7 +66,10 @@ export async function deleteService(id: string) {
 }
 
 export async function fetchAddons(): Promise<Addon[]> {
-  const { data } = await supabase.from("addons").select("*").order("created_at");
+  console.log("[data.ts] fetchAddons called");
+  const { data, error } = await supabase.from("addons").select("*").order("created_at");
+  if (error) console.error("[data.ts] fetchAddons error:", error);
+  console.log("[data.ts] fetchAddons returned", (data || []).length, "addons");
   return (data || []).map((a) => ({
     id: a.id,
     name: a.name,
@@ -70,15 +80,19 @@ export async function fetchAddons(): Promise<Addon[]> {
 }
 
 export async function upsertAddons(addons: Addon[]) {
+  console.log("[data.ts] upsertAddons called with", addons.length, "addons");
   const res = await fetch("/api/owner/addons", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ addons }),
   });
+  console.log("[data.ts] upsertAddons response status:", res.status);
   if (!res.ok) {
     const data = await res.json();
+    console.error("[data.ts] upsertAddons error:", data);
     throw new Error(data.error || "Failed to save addons");
   }
+  console.log("[data.ts] upsertAddons success");
 }
 
 export async function deleteAddon(id: string) {
