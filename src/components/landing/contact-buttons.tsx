@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
-import { MessageCircle, Send } from "lucide-react";
+import { MessageCircle, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ContactButtonsProps {
@@ -10,8 +10,8 @@ interface ContactButtonsProps {
 }
 
 export function ContactButtons({ phone }: ContactButtonsProps) {
+  const telUrl = `tel:${phone}`;
   const whatsappUrl = `https://wa.me/98${phone.slice(1)}`;
-  const telegramUrl = `https://t.me/+98${phone.slice(1)}`;
 
   return (
     <div className="px-4 mb-6">
@@ -19,19 +19,17 @@ export function ContactButtons({ phone }: ContactButtonsProps) {
         <p className="text-sm text-muted-foreground text-center mb-3">تماس با ما</p>
         <div className="flex gap-3">
           <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={telUrl}
             className={cn(
               buttonVariants({ variant: "outline" }),
               "flex-1 border-green-500/30 text-green-600 hover:bg-green-50 transition-colors duration-200"
             )}
           >
-            <MessageCircle className="h-4 w-4 ml-2" />
-            واتساپ
+            <Phone className="h-4 w-4 ml-2" />
+            تماس تلفنی
           </a>
           <a
-            href={telegramUrl}
+            href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
@@ -39,8 +37,8 @@ export function ContactButtons({ phone }: ContactButtonsProps) {
               "flex-1 border-blue-500/30 text-blue-500 hover:bg-blue-50 transition-colors duration-200"
             )}
           >
-            <Send className="h-4 w-4 ml-2" />
-            تلگرام
+            <MessageCircle className="h-4 w-4 ml-2" />
+            واتساپ
           </a>
         </div>
       </Card>
