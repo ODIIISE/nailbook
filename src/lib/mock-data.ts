@@ -21,6 +21,7 @@ export interface Addon {
   price: number;
   duration_minutes: number;
   is_active: boolean;
+  sort_order: number;
 }
 
 export interface Service {
@@ -77,12 +78,12 @@ export const MOCK_SALON: SalonInfo = {
 };
 
 export const MOCK_ADDONS: Addon[] = [
-  { id: "a1", name: "طراحی ساده", price: 50000, duration_minutes: 10, is_active: true },
-  { id: "a2", name: "سنگ ناخن", price: 30000, duration_minutes: 5, is_active: true },
-  { id: "a3", name: "کروم ناخن", price: 40000, duration_minutes: 5, is_active: true },
-  { id: "a4", name: "فرنچ رنگی", price: 30000, duration_minutes: 5, is_active: true },
-  { id: "a5", name: "نگین فرنچ", price: 40000, duration_minutes: 10, is_active: true },
-  { id: "a6", name: "لاک ژل پا", price: 100000, duration_minutes: 15, is_active: true },
+  { id: "a1", name: "طراحی ساده", price: 50000, duration_minutes: 10, is_active: true, sort_order: 1 },
+  { id: "a2", name: "سنگ ناخن", price: 30000, duration_minutes: 5, is_active: true, sort_order: 2 },
+  { id: "a3", name: "کروم ناخن", price: 40000, duration_minutes: 5, is_active: true, sort_order: 3 },
+  { id: "a4", name: "فرنچ رنگی", price: 30000, duration_minutes: 5, is_active: true, sort_order: 4 },
+  { id: "a5", name: "نگین فرنچ", price: 40000, duration_minutes: 10, is_active: true, sort_order: 5 },
+  { id: "a6", name: "لاک ژل پا", price: 100000, duration_minutes: 15, is_active: true, sort_order: 6 },
 ];
 
 export const MOCK_SERVICES: Service[] = [

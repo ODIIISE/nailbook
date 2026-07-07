@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS addons (
   price NUMERIC NOT NULL DEFAULT 0,
   duration_minutes INT NOT NULL DEFAULT 5,
   is_active BOOLEAN DEFAULT true,
+  sort_order INT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -181,11 +182,11 @@ INSERT INTO services (id, name, description, duration_minutes, price, sort_order
 ON CONFLICT DO NOTHING;
 
 -- Seed addons
-INSERT INTO addons (id, name, price, duration_minutes, is_active) VALUES
-  ('a1', 'طراحی ساده', 50000, 10, true),
-  ('a2', 'سنگ ناخن', 30000, 5, true),
-  ('a3', 'کروم ناخن', 40000, 5, true),
-  ('a4', 'فرنچ رنگی', 30000, 5, true),
-  ('a5', 'نگین فرنچ', 40000, 10, true),
-  ('a6', 'لاک ژل پا', 100000, 15, true)
+INSERT INTO addons (id, name, price, duration_minutes, is_active, sort_order) VALUES
+  ('a1', 'طراحی ساده', 50000, 10, true, 1),
+  ('a2', 'سنگ ناخن', 30000, 5, true, 2),
+  ('a3', 'کروم ناخن', 40000, 5, true, 3),
+  ('a4', 'فرنچ رنگی', 30000, 5, true, 4),
+  ('a5', 'نگین فرنچ', 40000, 10, true, 5),
+  ('a6', 'لاک ژل پا', 100000, 15, true, 6)
 ON CONFLICT DO NOTHING;

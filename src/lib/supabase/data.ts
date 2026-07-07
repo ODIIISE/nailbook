@@ -28,10 +28,7 @@ export async function updateSalonInfo(updates: Partial<SalonInfo>) {
 }
 
 export async function fetchServices(): Promise<Service[]> {
-  console.log("[data.ts] fetchServices called");
-  const { data, error } = await supabase.from("services").select("*").order("sort_order");
-  if (error) console.error("[data.ts] fetchServices error:", error);
-  console.log("[data.ts] fetchServices returned", (data || []).length, "services");
+  const { data } = await supabase.from("services").select("*").order("sort_order");
   return (data || []).map((s) => ({
     id: s.id,
     name: s.name,
@@ -45,52 +42,36 @@ export async function fetchServices(): Promise<Service[]> {
   }));
 }
 
-export async function upsertServices(services: Service[]) {
+export async function saveServices(services: Service[]) {
   const res = await fetch("/api/owner/services", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ services }),
   });
   const body = await res.json();
-  if (!res.ok) {
-    console.error("[data.ts] upsertServices failed:", res.status, body);
-    throw new Error(body.error || "Failed to save services");
-  }
-}
-
-export async function deleteService(id: string) {
-  await supabase.from("services").delete().eq("id", id);
+  if (!res.ok) throw new Error(body.error || "Failed to save services");
 }
 
 export async function fetchAddons(): Promise<Addon[]> {
-  console.log("[data.ts] fetchAddons called");
-  const { data, error } = await supabase.from("addons").select("*").order("created_at");
-  if (error) console.error("[data.ts] fetchAddons error:", error);
-  console.log("[data.ts] fetchAddons returned", (data || []).length, "addons");
+  const { data } = await supabase.from("addons").select("*").order("sort_order");
   return (data || []).map((a) => ({
     id: a.id,
     name: a.name,
     price: a.price,
     duration_minutes: a.duration_minutes,
     is_active: a.is_active,
+    sort_order: a.sort_order || 0,
   }));
 }
 
-export async function upsertAddons(addons: Addon[]) {
+export async function saveAddons(addons: Addon[]) {
   const res = await fetch("/api/owner/addons", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ addons }),
   });
   const body = await res.json();
-  if (!res.ok) {
-    console.error("[data.ts] upsertAddons failed:", res.status, body);
-    throw new Error(body.error || "Failed to save addons");
-  }
-}
-
-export async function deleteAddon(id: string) {
-  await supabase.from("addons").delete().eq("id", id);
+  if (!res.ok) throw new Error(body.error || "Failed to save addons");
 }
 
 export async function fetchBookings(): Promise<Booking[]> {

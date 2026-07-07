@@ -9,10 +9,8 @@ import {
   fetchServices,
   fetchAddons,
   fetchBookings,
-  upsertServices,
-  deleteService,
-  upsertAddons,
-  deleteAddon,
+  saveServices,
+  saveAddons,
   insertBooking,
   updateWorkingHours as saveWorkingHours,
   fetchWorkingHours,
@@ -138,10 +136,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     const prev = services;
     setServices(newServices);
     try {
-      await upsertServices(newServices);
+      await saveServices(newServices);
       return true;
     } catch (e) {
-      console.error("[salon-context] Failed to save services:", e);
+      console.error("Failed to save services:", e);
       setServices(prev);
       return false;
     }
@@ -151,10 +149,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     const prev = addons;
     setAddons(newAddons);
     try {
-      await upsertAddons(newAddons);
+      await saveAddons(newAddons);
       return true;
     } catch (e) {
-      console.error("[salon-context] Failed to save addons:", e);
+      console.error("Failed to save addons:", e);
       setAddons(prev);
       return false;
     }
