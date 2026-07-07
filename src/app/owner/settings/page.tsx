@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { ImageCrop } from "@/components/ui/image-crop";
 import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
-import { Save, Camera, Phone, FileText, Sparkles } from "lucide-react";
+import { Save, Camera, Phone, FileText, Sparkles, Clock } from "lucide-react";
 
 export default function OwnerSettingsPage() {
   const { salon, updateSalon } = useSalon();
@@ -19,6 +19,7 @@ export default function OwnerSettingsPage() {
   const [description, setDescription] = useState(salon.description);
   const [phone, setPhone] = useState(salon.phone);
   const [address, setAddress] = useState(salon.address);
+  const [workingHoursText, setWorkingHoursText] = useState(salon.working_hours_text);
   const [avatarUrl, setAvatarUrl] = useState(salon.logo_url || "");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -68,7 +69,7 @@ export default function OwnerSettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updateSalon({ name, slogan, description, phone, address });
+      await updateSalon({ name, slogan, description, phone, address, working_hours_text: workingHoursText });
       toast.success("تغییرات ذخیره شد");
     } catch {
       toast.error("خطا در ذخیره تغییرات");
@@ -162,6 +163,11 @@ export default function OwnerSettingsPage() {
         <div>
           <Label className="text-caption">آدرس</Label>
           <Input value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1" placeholder="آدرس سالن" />
+        </div>
+
+        <div>
+          <Label className="text-caption">ساعت کار</Label>
+          <Input value={workingHoursText} onChange={(e) => setWorkingHoursText(e.target.value)} className="mt-1" placeholder="مثلاً: شنبه تا پنج شنبه . ۱۰ تا ۱۸" />
         </div>
       </Card>
 

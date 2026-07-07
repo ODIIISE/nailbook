@@ -13,6 +13,7 @@ export async function fetchSalonInfo(): Promise<SalonInfo | null> {
     address: data.address,
     hero_image_url: data.hero_image_url,
     logo_url: data.logo_url,
+    working_hours_text: data.working_hours_text || "شنبه تا پنج شنبه . ۱۰ تا ۱۸",
     working_hours: data.working_hours,
     slot_buffer_minutes: data.slot_buffer_minutes,
     slot_interval_minutes: data.slot_interval_minutes,

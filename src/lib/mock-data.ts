@@ -7,6 +7,7 @@ export interface SalonInfo {
   address: string;
   hero_image_url: string | null;
   logo_url: string | null;
+  working_hours_text: string;
   working_hours: {
     [key: string]: { open: string; close: string } | null;
   };
@@ -61,6 +62,7 @@ export const MOCK_SALON: SalonInfo = {
   address: "مشهد، نبش صارمی ۳۸/۱۲، پلاک ۷۷",
   hero_image_url: null,
   logo_url: null,
+  working_hours_text: "شنبه تا پنج شنبه . ۱۰ تا ۱۸",
   working_hours: {
     sat: { open: "10:00", close: "16:00" },
     sun: { open: "10:00", close: "16:00" },

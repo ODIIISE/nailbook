@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS salon_info (
   address TEXT DEFAULT '',
   hero_image_url TEXT,
   logo_url TEXT,
+  working_hours_text TEXT DEFAULT 'شنبه تا پنج شنبه . ۱۰ تا ۱۸',
   working_hours JSONB DEFAULT '{"sat":{"open":"10:00","close":"16:00"},"sun":{"open":"10:00","close":"16:00"},"mon":{"open":"10:00","close":"16:00"},"tue":{"open":"10:00","close":"16:00"},"wed":{"open":"10:00","close":"16:00"},"thu":{"open":"10:00","close":"16:00"},"fri":null}'::jsonb,
   specific_days_off JSONB DEFAULT '[]'::jsonb,
   slot_buffer_minutes INT DEFAULT 15,

@@ -10,8 +10,8 @@ interface HeroProps {
   onBookNow?: () => void;
 }
 
-function getWorkingHoursText(): string {
-  return "شنبه تا پنج شنبه . ۱۰ تا ۱۸";
+function getWorkingHoursText(text: string): string {
+  return text || "شنبه تا پنج شنبه . ۱۰ تا ۱۸";
 }
 
 export function Hero({ salon, onBookNow }: HeroProps) {
@@ -69,7 +69,7 @@ export function Hero({ salon, onBookNow }: HeroProps) {
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/50">
                 <Clock className="h-4 w-4 text-foreground" />
               </div>
-              <span>{getWorkingHoursText()}</span>
+              <span>{getWorkingHoursText(salon.working_hours_text)}</span>
             </div>
           </div>
         </div>
