@@ -28,14 +28,34 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // Delete all existing addons, then insert the new list
-    // This ensures deletions are persisted
-    await supabaseAdmin.from("addons").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    const incomingIds = new Set(addons.map((a) => a.id));
 
+    // Fetch current addon IDs to find which ones were deleted
+    const { data: currentAddons } = await supabaseAdmin
+      .from("addons")
+      .select("id");
+
+    const currentIds = new Set((currentAddons || []).map((a) => a.id));
+    const deletedIds = [...currentIds].filter((id) => !incomingIds.has(id));
+
+    // Delete removed addons
+    if (deletedIds.length > 0) {
+      const { error: deleteError } = await supabaseAdmin
+        .from("addons")
+        .delete()
+        .in("id", deletedIds);
+
+      if (deleteError) {
+        console.error("Delete addons error:", deleteError);
+        return NextResponse.json({ error: deleteError.message }, { status: 500 });
+      }
+    }
+
+    // Upsert all addons (insert new + update existing)
     if (addons.length > 0) {
       const { error } = await supabaseAdmin
         .from("addons")
-        .insert(
+        .upsert(
           addons.map((a, i) => ({
             id: a.id,
             name: a.name,
@@ -43,11 +63,12 @@ export async function PUT(request: NextRequest) {
             duration_minutes: a.duration_minutes,
             is_active: a.is_active !== false,
             sort_order: a.sort_order || i + 1,
-          }))
+          })),
+          { onConflict: "id" }
         );
 
       if (error) {
-        console.error("Insert addons error:", error);
+        console.error("Upsert addons error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
     }
