@@ -78,7 +78,7 @@ export function Timeline({
         {/* Hour grid lines — always visible */}
         {hourMarks.map((hour, i) => (
           <div
-            key={hour}
+            key={`hour-${hour}`}
             className="absolute w-full border-t border-border/50"
             style={{ top: i * HOUR_HEIGHT }}
           >
@@ -86,6 +86,15 @@ export function Timeline({
               {formatHour(hour)}
             </span>
           </div>
+        ))}
+
+        {/* Half-hour dashed lines — half opacity */}
+        {hourMarks.slice(0, -1).map((hour, i) => (
+          <div
+            key={`half-${hour}`}
+            className="absolute w-full border-t border-dashed border-border/25"
+            style={{ top: (i + 0.5) * HOUR_HEIGHT }}
+          />
         ))}
 
         {hasContent ? (
