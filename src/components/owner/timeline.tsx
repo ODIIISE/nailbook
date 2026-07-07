@@ -37,8 +37,8 @@ export function Timeline({
   paidBookings,
   onSelectBooking,
   onRemoveBlock,
-  startHour = 9,
-  endHour = 21,
+  startHour = 8,
+  endHour = 22,
 }: TimelineProps) {
   const hours = useMemo(() => {
     const result = [];
