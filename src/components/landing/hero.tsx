@@ -10,16 +10,8 @@ interface HeroProps {
   onBookNow?: () => void;
 }
 
-function getWorkingHoursText(hours: Record<string, { open: string; close: string } | null>): string {
-  const activeDays = Object.entries(hours).filter(([, v]) => v !== null);
-  if (activeDays.length === 0) return "تعطیل";
-  const firstDay = activeDays[0][1]!;
-  const daysMap: Record<string, string> = {
-    sat: "شنبه", sun: "یکشنبه", mon: "دوشنبه", tue: "سه‌شنبه",
-    wed: "چهارشنبه", thu: "پنجشنبه", fri: "جمعه",
-  };
-  const dayNames = activeDays.map(([k]) => daysMap[k]).filter(Boolean);
-  return `${dayNames[0]} تا ${dayNames[dayNames.length - 1]} · ${firstDay.open.slice(0, 5)} تا ${firstDay.close.slice(0, 5)}`;
+function getWorkingHoursText(): string {
+  return "شنبه تا ۵ شنبه . ۱۰ تا ۱۶";
 }
 
 export function Hero({ salon, onBookNow }: HeroProps) {
@@ -77,7 +69,7 @@ export function Hero({ salon, onBookNow }: HeroProps) {
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/50">
                 <Clock className="h-4 w-4 text-foreground" />
               </div>
-              <span>{getWorkingHoursText(salon.working_hours)}</span>
+              <span>{getWorkingHoursText()}</span>
             </div>
           </div>
         </div>
