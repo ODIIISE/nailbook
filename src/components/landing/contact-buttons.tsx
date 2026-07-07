@@ -3,6 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { MessageCircle, Phone } from "lucide-react";
+import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 import { cn } from "@/lib/utils";
 
 interface ContactButtonsProps {
@@ -11,6 +12,7 @@ interface ContactButtonsProps {
 
 export function ContactButtons({ phone }: ContactButtonsProps) {
   const telUrl = `tel:${phone}`;
+  const smsUrl = `sms:${phone}`;
   const whatsappUrl = `https://wa.me/98${phone.slice(1)}`;
 
   return (
@@ -34,11 +36,21 @@ export function ContactButtons({ phone }: ContactButtonsProps) {
             rel="noopener noreferrer"
             className={cn(
               buttonVariants({ variant: "outline" }),
+              "flex-1 border-green-500/30 text-green-600 hover:bg-green-50 transition-colors duration-200"
+            )}
+          >
+            <WhatsAppIcon className="h-4 w-4 ml-2" />
+            واتساپ
+          </a>
+          <a
+            href={smsUrl}
+            className={cn(
+              buttonVariants({ variant: "outline" }),
               "flex-1 border-blue-500/30 text-blue-500 hover:bg-blue-50 transition-colors duration-200"
             )}
           >
             <MessageCircle className="h-4 w-4 ml-2" />
-            واتساپ
+            پیامک
           </a>
         </div>
       </Card>
