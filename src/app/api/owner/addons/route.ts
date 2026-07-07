@@ -6,13 +6,13 @@ export async function PUT(request: NextRequest) {
   try {
     const owner = await verifyOwner(request);
     if (!owner) {
-      return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+      return NextResponse.json({ error: "لطفاً دوباره وارد شوید" }, { status: 401 });
     }
 
     const { addons } = await request.json();
 
     if (!Array.isArray(addons)) {
-      return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+      return NextResponse.json({ error: "داده نامعتبر" }, { status: 400 });
     }
 
     // Validate fields
@@ -31,23 +31,38 @@ export async function PUT(request: NextRequest) {
     const incomingIds = new Set(addons.map((a) => a.id));
 
     // Fetch current addon IDs to find which ones were deleted
-    const { data: currentAddons } = await supabaseAdmin
+    const { data: currentAddons, error: fetchErr } = await supabaseAdmin
       .from("addons")
       .select("id");
+
+    if (fetchErr) {
+      return NextResponse.json({ error: "خطا در خواندن آپشن‌ها: " + fetchErr.message }, { status: 500 });
+    }
 
     const currentIds = new Set((currentAddons || []).map((a) => a.id));
     const deletedIds = [...currentIds].filter((id) => !incomingIds.has(id));
 
     // Delete removed addons
     if (deletedIds.length > 0) {
+      // Also clean up addon_ids references in services
+      const { data: services } = await supabaseAdmin.from("services").select("id, addon_ids");
+      if (services) {
+        for (const svc of services) {
+          const currentAddonIds: string[] = svc.addon_ids || [];
+          const cleanedIds = currentAddonIds.filter((aid: string) => !deletedIds.includes(aid));
+          if (cleanedIds.length !== currentAddonIds.length) {
+            await supabaseAdmin.from("services").update({ addon_ids: cleanedIds }).eq("id", svc.id);
+          }
+        }
+      }
+
       const { error: deleteError } = await supabaseAdmin
         .from("addons")
         .delete()
         .in("id", deletedIds);
 
       if (deleteError) {
-        console.error("Delete addons error:", deleteError);
-        return NextResponse.json({ error: deleteError.message }, { status: 500 });
+        return NextResponse.json({ error: "خطا در حذف آپشن: " + deleteError.message }, { status: 500 });
       }
     }
 
@@ -68,14 +83,12 @@ export async function PUT(request: NextRequest) {
         );
 
       if (error) {
-        console.error("Upsert addons error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: "خطا در ذخیره آپشن: " + error.message }, { status: 500 });
       }
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Addons route error:", error);
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+    return NextResponse.json({ error: "خطای سرور: " + String(error) }, { status: 500 });
   }
 }

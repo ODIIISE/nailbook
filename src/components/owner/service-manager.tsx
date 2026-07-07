@@ -14,8 +14,8 @@ import type { Service, Addon } from "@/lib/mock-data";
 interface ServiceManagerProps {
   services: Service[];
   addons: Addon[];
-  onUpdateServices: (services: Service[]) => Promise<boolean>;
-  onUpdateAddons: (addons: Addon[]) => Promise<boolean>;
+  onUpdateServices: (services: Service[]) => Promise<string | null>;
+  onUpdateAddons: (addons: Addon[]) => Promise<string | null>;
 }
 
 export function ServiceManager({
@@ -66,7 +66,7 @@ function ServicesTab({
 }: {
   services: Service[];
   addons: Addon[];
-  onUpdate: (services: Service[]) => Promise<boolean>;
+  onUpdate: (services: Service[]) => Promise<string | null>;
 }) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -157,12 +157,12 @@ function ServicesTab({
   const handleSave = async () => {
     setIsSaving(true);
     setSaveError(null);
-    const ok = await onUpdate(pending);
+    const error = await onUpdate(pending);
     setIsSaving(false);
-    if (ok) {
-      setHasChanges(false);
+    if (error) {
+      setSaveError(error);
     } else {
-      setSaveError("ذخیره ناموفق بود. لطفاً دوباره تلاش کنید.");
+      setHasChanges(false);
     }
   };
 
@@ -298,7 +298,7 @@ function AddonsTab({
   onUpdate,
 }: {
   addons: Addon[];
-  onUpdate: (addons: Addon[]) => Promise<boolean>;
+  onUpdate: (addons: Addon[]) => Promise<string | null>;
 }) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -368,12 +368,12 @@ function AddonsTab({
   const handleSave = async () => {
     setIsSaving(true);
     setSaveError(null);
-    const ok = await onUpdate(pending);
+    const error = await onUpdate(pending);
     setIsSaving(false);
-    if (ok) {
-      setHasChanges(false);
+    if (error) {
+      setSaveError(error);
     } else {
-      setSaveError("ذخیره ناموفق بود. لطفاً دوباره تلاش کنید.");
+      setHasChanges(false);
     }
   };
 

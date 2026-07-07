@@ -6,13 +6,13 @@ export async function PUT(request: NextRequest) {
   try {
     const owner = await verifyOwner(request);
     if (!owner) {
-      return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+      return NextResponse.json({ error: "لطفاً دوباره وارد شوید" }, { status: 401 });
     }
 
     const { services } = await request.json();
 
     if (!Array.isArray(services)) {
-      return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+      return NextResponse.json({ error: "داده نامعتبر" }, { status: 400 });
     }
 
     // Validate fields
@@ -31,15 +31,18 @@ export async function PUT(request: NextRequest) {
     const incomingIds = new Set(services.map((s) => s.id));
 
     // Fetch current service IDs to find which ones were deleted
-    const { data: currentServices } = await supabaseAdmin
+    const { data: currentServices, error: fetchErr } = await supabaseAdmin
       .from("services")
       .select("id");
+
+    if (fetchErr) {
+      return NextResponse.json({ error: "خطا در خواندن خدمات: " + fetchErr.message }, { status: 500 });
+    }
 
     const currentIds = new Set((currentServices || []).map((s) => s.id));
     const deletedIds = [...currentIds].filter((id) => !incomingIds.has(id));
 
-    // Delete removed services (those not in the new list)
-    // foreign key ON DELETE SET NULL handles bookings referencing them
+    // Delete removed services
     if (deletedIds.length > 0) {
       const { error: deleteError } = await supabaseAdmin
         .from("services")
@@ -47,8 +50,7 @@ export async function PUT(request: NextRequest) {
         .in("id", deletedIds);
 
       if (deleteError) {
-        console.error("Delete services error:", deleteError);
-        return NextResponse.json({ error: deleteError.message }, { status: 500 });
+        return NextResponse.json({ error: "خطا در حذف خدمت: " + deleteError.message }, { status: 500 });
       }
     }
 
@@ -72,14 +74,12 @@ export async function PUT(request: NextRequest) {
         );
 
       if (error) {
-        console.error("Upsert services error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: "خطا در ذخیره خدمت: " + error.message }, { status: 500 });
       }
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Services route error:", error);
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+    return NextResponse.json({ error: "خطای سرور: " + String(error) }, { status: 500 });
   }
 }

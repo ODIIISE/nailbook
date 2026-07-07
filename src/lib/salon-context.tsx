@@ -34,8 +34,8 @@ interface SalonContextType {
   updateWorkingHours: (hours: WorkingHours) => void;
   updateSpecificDaysOff: (daysOff: string[]) => void;
   saveSchedule: (hours: WorkingHours, daysOff: string[]) => Promise<void>;
-  updateServices: (services: Service[]) => Promise<boolean>;
-  updateAddons: (addons: Addon[]) => Promise<boolean>;
+  updateServices: (services: Service[]) => Promise<string | null>;
+  updateAddons: (addons: Addon[]) => Promise<string | null>;
   updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
   updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => void;
   addBooking: (booking: Booking) => void;
@@ -132,29 +132,29 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, [workingHours, specificDaysOff]);
 
-  const handleUpdateServices = useCallback(async (newServices: Service[]): Promise<boolean> => {
+  const handleUpdateServices = useCallback(async (newServices: Service[]): Promise<string | null> => {
     const prev = services;
     setServices(newServices);
     try {
       await saveServices(newServices);
-      return true;
+      return null;
     } catch (e) {
       console.error("Failed to save services:", e);
       setServices(prev);
-      return false;
+      return e instanceof Error ? e.message : "خطای ناشناخته";
     }
   }, [services]);
 
-  const handleUpdateAddons = useCallback(async (newAddons: Addon[]): Promise<boolean> => {
+  const handleUpdateAddons = useCallback(async (newAddons: Addon[]): Promise<string | null> => {
     const prev = addons;
     setAddons(newAddons);
     try {
       await saveAddons(newAddons);
-      return true;
+      return null;
     } catch (e) {
       console.error("Failed to save addons:", e);
       setAddons(prev);
-      return false;
+      return e instanceof Error ? e.message : "خطای ناشناخته";
     }
   }, [addons]);
 
@@ -265,8 +265,8 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         updateWorkingHours: async () => {},
         updateSpecificDaysOff: async () => {},
         saveSchedule: async () => {},
-        updateServices: async () => false,
-        updateAddons: async () => false,
+        updateServices: async () => null,
+        updateAddons: async () => null,
         updateSalon: async () => {},
         updateBlockedTimes: () => {},
         addBooking: async () => {},
