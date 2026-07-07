@@ -23,7 +23,7 @@ export async function PUT(request: NextRequest) {
       if (typeof a.price !== "number" || a.price < 0) {
         return NextResponse.json({ error: "قیمت نامعتبر است" }, { status: 400 });
       }
-      if (typeof a.duration_minutes !== "number" || a.duration_minutes <= 0) {
+      if (typeof a.duration_minutes !== "number" || a.duration_minutes < 0) {
         return NextResponse.json({ error: "مدت زمان نامعتبر است" }, { status: 400 });
       }
     }
