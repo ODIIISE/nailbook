@@ -11,7 +11,7 @@ interface HeroProps {
 }
 
 function getWorkingHoursText(): string {
-  return "شنبه تا ۵ شنبه . ۱۰ تا ۱۶";
+  return "شنبه تا پنج شنبه . ۱۰ تا ۱۸";
 }
 
 export function Hero({ salon, onBookNow }: HeroProps) {

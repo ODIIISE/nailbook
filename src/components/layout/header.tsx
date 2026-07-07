@@ -128,7 +128,7 @@ export function Header({ showBack = false, title, subtitle, onBack }: HeaderProp
                   <div className="flex items-center gap-2">
                     <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                     <span className="text-[13px] text-muted-foreground">
-                      شنبه تا ۵ شنبه . ۱۰ تا ۱۶
+                      شنبه تا پنج شنبه . ۱۰ تا ۱۸
                     </span>
                   </div>
                 </div>
