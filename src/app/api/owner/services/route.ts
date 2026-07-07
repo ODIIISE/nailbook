@@ -4,45 +4,44 @@ import { verifyOwner } from "@/lib/owner-auth";
 
 // PUT - upsert all services (owner only)
 export async function PUT(request: NextRequest) {
-  console.log("[API /api/owner/services] PUT called");
   try {
     const owner = await verifyOwner(request);
-    console.log("[API /api/owner/services] owner:", owner ? "authenticated" : "NOT authenticated");
-    if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    if (!owner) {
+      console.log("[API services] Owner not authenticated");
+      return NextResponse.json({ error: "غیرمجاز - لطفاً دوباره وارد شوید", debug: "owner_auth_failed" }, { status: 401 });
+    }
 
     const { services } = await request.json();
-    console.log("[API /api/owner/services] received", services?.length, "services");
 
     if (!Array.isArray(services)) {
-      return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid data", debug: "not_array" }, { status: 400 });
     }
 
-    const { error } = await supabaseAdmin
+    const rows = services.map((s) => ({
+      id: s.id,
+      name: s.name,
+      description: s.description,
+      duration_minutes: s.duration_minutes,
+      price: s.price,
+      is_active: s.is_active,
+      sort_order: s.sort_order,
+      addon_ids: s.addon_ids,
+      priority_score: s.priority_score || 5,
+    }));
+
+    const { data, error } = await supabaseAdmin
       .from("services")
-      .upsert(
-        services.map((s) => ({
-          id: s.id,
-          name: s.name,
-          description: s.description,
-          duration_minutes: s.duration_minutes,
-          price: s.price,
-          is_active: s.is_active,
-          sort_order: s.sort_order,
-          addon_ids: s.addon_ids,
-          priority_score: s.priority_score || 5,
-        })),
-        { onConflict: "id" }
-      );
+      .upsert(rows, { onConflict: "id" })
+      .select();
 
     if (error) {
-      console.error("[API /api/owner/services] Supabase error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[API services] Supabase error:", JSON.stringify(error));
+      return NextResponse.json({ error: error.message, code: error.code, details: error.details }, { status: 500 });
     }
 
-    console.log("[API /api/owner/services] success");
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, count: data?.length || 0 });
   } catch (error) {
-    console.error("[API /api/owner/services] route error:", error);
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+    console.error("[API services] route error:", error);
+    return NextResponse.json({ error: "خطای سرور", debug: String(error) }, { status: 500 });
   }
 }

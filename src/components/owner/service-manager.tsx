@@ -14,8 +14,8 @@ import type { Service, Addon } from "@/lib/mock-data";
 interface ServiceManagerProps {
   services: Service[];
   addons: Addon[];
-  onUpdateServices: (services: Service[]) => void;
-  onUpdateAddons: (addons: Addon[]) => void;
+  onUpdateServices: (services: Service[]) => Promise<boolean>;
+  onUpdateAddons: (addons: Addon[]) => Promise<boolean>;
 }
 
 export function ServiceManager({
@@ -64,7 +64,7 @@ function ServicesTab({
 }: {
   services: Service[];
   addons: Addon[];
-  onUpdate: (services: Service[]) => void;
+  onUpdate: (services: Service[]) => Promise<boolean>;
 }) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -126,11 +126,18 @@ function ServicesTab({
     markChanged();
   };
 
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const handleSave = async () => {
     setIsSaving(true);
-    await onUpdate(pendingServices);
+    setSaveError(null);
+    const ok = await onUpdate(pendingServices);
     setIsSaving(false);
-    setHasChanges(false);
+    if (ok) {
+      setHasChanges(false);
+    } else {
+      setSaveError("ذخیره ناموفق بود. لطفاً دوباره تلاش کنید.");
+    }
   };
 
   const handleDiscard = () => {
@@ -355,23 +362,28 @@ function ServicesTab({
       ))}
 
       {/* Save/Discard buttons */}
-      {hasChanges && (
-        <div className="flex gap-3 sticky bottom-20 z-10">
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl h-12"
-          >
-            {isSaving ? "در حال ذخیره..." : "ذخیره تغییرات"}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleDiscard}
-            disabled={isSaving}
-            className="flex-1 rounded-xl h-12"
-          >
-            انصراف
-          </Button>
+      {(hasChanges || saveError) && (
+        <div className="sticky bottom-20 z-10 space-y-2">
+          {saveError && (
+            <p className="text-xs text-destructive text-center bg-destructive/10 rounded-xl px-3 py-2">{saveError}</p>
+          )}
+          <div className="flex gap-3">
+            <Button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl h-12"
+            >
+              {isSaving ? "در حال ذخیره..." : "ذخیره تغییرات"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleDiscard}
+              disabled={isSaving}
+              className="flex-1 rounded-xl h-12"
+            >
+              انصراف
+            </Button>
+          </div>
         </div>
       )}
     </div>
@@ -383,7 +395,7 @@ function AddonsTab({
   onUpdate,
 }: {
   addons: Addon[];
-  onUpdate: (addons: Addon[]) => void;
+  onUpdate: (addons: Addon[]) => Promise<boolean>;
 }) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -461,11 +473,18 @@ function AddonsTab({
     markChanged();
   };
 
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const handleSave = async () => {
     setIsSaving(true);
-    await onUpdate(pendingAddons);
+    setSaveError(null);
+    const ok = await onUpdate(pendingAddons);
     setIsSaving(false);
-    setHasChanges(false);
+    if (ok) {
+      setHasChanges(false);
+    } else {
+      setSaveError("ذخیره ناموفق بود. لطفاً دوباره تلاش کنید.");
+    }
   };
 
   const handleDiscard = () => {
@@ -605,23 +624,28 @@ function AddonsTab({
       ))}
 
       {/* Save/Discard buttons */}
-      {hasChanges && (
-        <div className="flex gap-3 sticky bottom-20 z-10">
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl h-12"
-          >
-            {isSaving ? "در حال ذخیره..." : "ذخیره تغییرات"}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleDiscard}
-            disabled={isSaving}
-            className="flex-1 rounded-xl h-12"
-          >
-            انصراف
-          </Button>
+      {(hasChanges || saveError) && (
+        <div className="sticky bottom-20 z-10 space-y-2">
+          {saveError && (
+            <p className="text-xs text-destructive text-center bg-destructive/10 rounded-xl px-3 py-2">{saveError}</p>
+          )}
+          <div className="flex gap-3">
+            <Button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl h-12"
+            >
+              {isSaving ? "در حال ذخیره..." : "ذخیره تغییرات"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleDiscard}
+              disabled={isSaving}
+              className="flex-1 rounded-xl h-12"
+            >
+              انصراف
+            </Button>
+          </div>
         </div>
       )}
     </div>

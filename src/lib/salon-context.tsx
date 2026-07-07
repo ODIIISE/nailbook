@@ -36,8 +36,8 @@ interface SalonContextType {
   updateWorkingHours: (hours: WorkingHours) => void;
   updateSpecificDaysOff: (daysOff: string[]) => void;
   saveSchedule: (hours: WorkingHours, daysOff: string[]) => Promise<void>;
-  updateServices: (services: Service[]) => void;
-  updateAddons: (addons: Addon[]) => void;
+  updateServices: (services: Service[]) => Promise<boolean>;
+  updateAddons: (addons: Addon[]) => Promise<boolean>;
   updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
   updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => void;
   addBooking: (booking: Booking) => void;
@@ -134,29 +134,29 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, [workingHours, specificDaysOff]);
 
-  const handleUpdateServices = useCallback(async (newServices: Service[]) => {
-    console.log("[salon-context] handleUpdateServices called with", newServices.length, "services");
+  const handleUpdateServices = useCallback(async (newServices: Service[]): Promise<boolean> => {
     const prev = services;
     setServices(newServices);
     try {
       await upsertServices(newServices);
-      console.log("[salon-context] handleUpdateServices completed successfully");
+      return true;
     } catch (e) {
       console.error("[salon-context] Failed to save services:", e);
       setServices(prev);
+      return false;
     }
   }, [services]);
 
-  const handleUpdateAddons = useCallback(async (newAddons: Addon[]) => {
-    console.log("[salon-context] handleUpdateAddons called with", newAddons.length, "addons");
+  const handleUpdateAddons = useCallback(async (newAddons: Addon[]): Promise<boolean> => {
     const prev = addons;
     setAddons(newAddons);
     try {
       await upsertAddons(newAddons);
-      console.log("[salon-context] handleUpdateAddons completed successfully");
+      return true;
     } catch (e) {
       console.error("[salon-context] Failed to save addons:", e);
       setAddons(prev);
+      return false;
     }
   }, [addons]);
 
@@ -267,8 +267,8 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         updateWorkingHours: async () => {},
         updateSpecificDaysOff: async () => {},
         saveSchedule: async () => {},
-        updateServices: async () => {},
-        updateAddons: async () => {},
+        updateServices: async () => false,
+        updateAddons: async () => false,
         updateSalon: async () => {},
         updateBlockedTimes: () => {},
         addBooking: async () => {},

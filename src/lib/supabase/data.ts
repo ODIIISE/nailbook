@@ -46,19 +46,16 @@ export async function fetchServices(): Promise<Service[]> {
 }
 
 export async function upsertServices(services: Service[]) {
-  console.log("[data.ts] upsertServices called with", services.length, "services");
   const res = await fetch("/api/owner/services", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ services }),
   });
-  console.log("[data.ts] upsertServices response status:", res.status);
+  const body = await res.json();
   if (!res.ok) {
-    const data = await res.json();
-    console.error("[data.ts] upsertServices error:", data);
-    throw new Error(data.error || "Failed to save services");
+    console.error("[data.ts] upsertServices failed:", res.status, body);
+    throw new Error(body.error || "Failed to save services");
   }
-  console.log("[data.ts] upsertServices success");
 }
 
 export async function deleteService(id: string) {
@@ -80,19 +77,16 @@ export async function fetchAddons(): Promise<Addon[]> {
 }
 
 export async function upsertAddons(addons: Addon[]) {
-  console.log("[data.ts] upsertAddons called with", addons.length, "addons");
   const res = await fetch("/api/owner/addons", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ addons }),
   });
-  console.log("[data.ts] upsertAddons response status:", res.status);
+  const body = await res.json();
   if (!res.ok) {
-    const data = await res.json();
-    console.error("[data.ts] upsertAddons error:", data);
-    throw new Error(data.error || "Failed to save addons");
+    console.error("[data.ts] upsertAddons failed:", res.status, body);
+    throw new Error(body.error || "Failed to save addons");
   }
-  console.log("[data.ts] upsertAddons success");
 }
 
 export async function deleteAddon(id: string) {

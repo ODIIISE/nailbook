@@ -4,41 +4,40 @@ import { verifyOwner } from "@/lib/owner-auth";
 
 // PUT - upsert all addons (owner only)
 export async function PUT(request: NextRequest) {
-  console.log("[API /api/owner/addons] PUT called");
   try {
     const owner = await verifyOwner(request);
-    console.log("[API /api/owner/addons] owner:", owner ? "authenticated" : "NOT authenticated");
-    if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    if (!owner) {
+      console.log("[API addons] Owner not authenticated");
+      return NextResponse.json({ error: "غیرمجاز - لطفاً دوباره وارد شوید", debug: "owner_auth_failed" }, { status: 401 });
+    }
 
     const { addons } = await request.json();
-    console.log("[API /api/owner/addons] received", addons?.length, "addons");
 
     if (!Array.isArray(addons)) {
-      return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid data", debug: "not_array" }, { status: 400 });
     }
 
-    const { error } = await supabaseAdmin
+    const rows = addons.map((a) => ({
+      id: a.id,
+      name: a.name,
+      price: a.price,
+      duration_minutes: a.duration_minutes,
+      is_active: a.is_active,
+    }));
+
+    const { data, error } = await supabaseAdmin
       .from("addons")
-      .upsert(
-        addons.map((a) => ({
-          id: a.id,
-          name: a.name,
-          price: a.price,
-          duration_minutes: a.duration_minutes,
-          is_active: a.is_active,
-        })),
-        { onConflict: "id" }
-      );
+      .upsert(rows, { onConflict: "id" })
+      .select();
 
     if (error) {
-      console.error("[API /api/owner/addons] Supabase error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[API addons] Supabase error:", JSON.stringify(error));
+      return NextResponse.json({ error: error.message, code: error.code, details: error.details }, { status: 500 });
     }
 
-    console.log("[API /api/owner/addons] success");
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, count: data?.length || 0 });
   } catch (error) {
-    console.error("[API /api/owner/addons] route error:", error);
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+    console.error("[API addons] route error:", error);
+    return NextResponse.json({ error: "خطای سرور", debug: String(error) }, { status: 500 });
   }
 }
