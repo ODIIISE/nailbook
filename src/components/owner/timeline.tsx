@@ -75,21 +75,21 @@ export function Timeline({
   return (
     <Card className="overflow-hidden">
       <div className="relative" style={{ height: totalHeight }}>
+        {/* Hour grid lines — always visible */}
+        {hourMarks.map((hour, i) => (
+          <div
+            key={hour}
+            className="absolute w-full border-t border-border/50"
+            style={{ top: i * HOUR_HEIGHT }}
+          >
+            <span className="absolute -top-3 right-0 text-[10px] text-muted-foreground font-mono bg-card px-1">
+              {formatHour(hour)}
+            </span>
+          </div>
+        ))}
+
         {hasContent ? (
           <>
-            {/* Hour grid lines */}
-            {hourMarks.map((hour, i) => (
-              <div
-                key={hour}
-                className="absolute w-full border-t border-border/50"
-                style={{ top: i * HOUR_HEIGHT }}
-              >
-                <span className="absolute -top-3 right-0 text-[10px] text-muted-foreground font-mono bg-card px-1">
-                  {formatHour(hour)}
-                </span>
-              </div>
-            ))}
-
             {/* Booking blocks */}
             {bookings.map((booking) => {
               const pos = getBlockPosition(booking.start_time, booking.end_time, startHour);
