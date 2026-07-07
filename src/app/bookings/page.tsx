@@ -36,8 +36,8 @@ export default function BookingsPage() {
       .sort((a, b) => {
         const dateA = new Date(a.date_gregorian).getTime();
         const dateB = new Date(b.date_gregorian).getTime();
-        if (dateA !== dateB) return dateA - dateB;
-        return a.start_time.localeCompare(b.start_time);
+        if (dateA !== dateB) return dateB - dateA;
+        return b.start_time.localeCompare(a.start_time);
       });
   }, [bookings, user]);
 
