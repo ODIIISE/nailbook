@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: blob.url });
   } catch (error) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    console.error("Highlight upload error:", error);
+    return NextResponse.json({ error: "Server error: " + String(error) }, { status: 500 });
   }
 }
