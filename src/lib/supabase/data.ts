@@ -2,8 +2,8 @@ import { supabase } from "./client";
 import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "../mock-data";
 
 export async function fetchSalonInfo(): Promise<SalonInfo | null> {
-  const { data } = await supabase.from("salon_info").select("*").limit(1).single();
-  if (!data) return null;
+  const { data, error } = await supabase.from("salon_info").select("*").limit(1).single();
+  if (error || !data) return null;
   return {
     id: data.id,
     name: data.name,
@@ -28,7 +28,8 @@ export async function updateSalonInfo(updates: Partial<SalonInfo>) {
 }
 
 export async function fetchServices(): Promise<Service[]> {
-  const { data } = await supabase.from("services").select("*").order("sort_order");
+  const { data, error } = await supabase.from("services").select("*").order("sort_order");
+  if (error) console.error("fetchServices error:", error.message);
   return (data || []).map((s) => ({
     id: s.id,
     name: s.name,
@@ -53,7 +54,8 @@ export async function saveServices(services: Service[]) {
 }
 
 export async function fetchAddons(): Promise<Addon[]> {
-  const { data } = await supabase.from("addons").select("*").order("sort_order");
+  const { data, error } = await supabase.from("addons").select("*").order("sort_order");
+  if (error) console.error("fetchAddons error:", error.message);
   return (data || []).map((a) => ({
     id: a.id,
     name: a.name,
@@ -75,7 +77,8 @@ export async function saveAddons(addons: Addon[]) {
 }
 
 export async function fetchBookings(): Promise<Booking[]> {
-  const { data } = await supabase.from("bookings").select("*").order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("bookings").select("*").order("created_at", { ascending: false });
+  if (error) console.error("fetchBookings error:", error.message);
   return (data || []).map((b) => ({
     id: b.id,
     service_id: b.service_id,
@@ -94,7 +97,7 @@ export async function fetchBookings(): Promise<Booking[]> {
 }
 
 export async function insertBooking(booking: Booking) {
-  await supabase.from("bookings").insert({
+  const { error } = await supabase.from("bookings").insert({
     id: booking.id,
     user_id: booking.user_id || null,
     service_id: booking.service_id,
@@ -108,6 +111,7 @@ export async function insertBooking(booking: Booking) {
     status: booking.status,
     phone_verified: booking.phone_verified,
   });
+  if (error) throw new Error(error.message);
 }
 
 export async function fetchWorkingHours() {

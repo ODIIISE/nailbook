@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
-import { MOCK_SALON, MOCK_SERVICES, MOCK_BOOKINGS, MOCK_ADDONS, MOCK_HIGHLIGHTS } from "@/lib/mock-data";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react";
+import { MOCK_SALON } from "@/lib/mock-data";
 import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "@/lib/mock-data";
 import type { WorkingHours } from "@/lib/slots";
 import {
@@ -31,8 +31,8 @@ interface SalonContextType {
   bookings: Booking[];
   highlights: Highlight[];
   blockedTimes: Array<{ date_gregorian: string; start_time: string; end_time: string }>;
-  updateWorkingHours: (hours: WorkingHours) => void;
-  updateSpecificDaysOff: (daysOff: string[]) => void;
+  updateWorkingHours: (hours: WorkingHours) => Promise<void>;
+  updateSpecificDaysOff: (daysOff: string[]) => Promise<void>;
   saveSchedule: (hours: WorkingHours, daysOff: string[]) => Promise<void>;
   updateServices: (services: Service[]) => Promise<string | null>;
   updateAddons: (addons: Addon[]) => Promise<string | null>;
@@ -60,6 +60,12 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [blockedTimes, setBlockedTimes] = useState<Array<{ date_gregorian: string; start_time: string; end_time: string }>>([]);
   const [loaded, setLoaded] = useState(false);
+
+  // Refs to avoid stale closures in callbacks
+  const workingHoursRef = useRef(workingHours);
+  const specificDaysOffRef = useRef(specificDaysOff);
+  workingHoursRef.current = workingHours;
+  specificDaysOffRef.current = specificDaysOff;
 
   useEffect(() => {
     let cancelled = false;
@@ -97,30 +103,30 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleUpdateWorkingHours = useCallback(async (hours: WorkingHours) => {
-    const prev = workingHours;
+    const prev = workingHoursRef.current;
     setWorkingHours(hours);
     try {
-      await saveWorkingHours(hours, specificDaysOff);
+      await saveWorkingHours(hours, specificDaysOffRef.current);
     } catch (e) {
       console.error("Failed to save working hours:", e);
       setWorkingHours(prev);
     }
-  }, [workingHours, specificDaysOff]);
+  }, []);
 
   const handleUpdateSpecificDaysOff = useCallback(async (daysOff: string[]) => {
-    const prev = specificDaysOff;
+    const prev = specificDaysOffRef.current;
     setSpecificDaysOff(daysOff);
     try {
-      await saveWorkingHours(workingHours, daysOff);
+      await saveWorkingHours(workingHoursRef.current, daysOff);
     } catch (e) {
       console.error("Failed to save days off:", e);
       setSpecificDaysOff(prev);
     }
-  }, [workingHours, specificDaysOff]);
+  }, []);
 
   const handleSaveSchedule = useCallback(async (hours: WorkingHours, daysOff: string[]) => {
-    const prevHours = workingHours;
-    const prevDaysOff = specificDaysOff;
+    const prevHours = workingHoursRef.current;
+    const prevDaysOff = specificDaysOffRef.current;
     setWorkingHours(hours);
     setSpecificDaysOff(daysOff);
     try {
@@ -130,7 +136,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       setWorkingHours(prevHours);
       setSpecificDaysOff(prevDaysOff);
     }
-  }, [workingHours, specificDaysOff]);
+  }, []);
 
   const handleUpdateServices = useCallback(async (newServices: Service[]): Promise<string | null> => {
     const prev = services;
@@ -212,21 +218,40 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, [salon]);
 
   const handleAddHighlight = useCallback(async (highlight: Highlight) => {
+    const prev = highlights;
     setHighlights((prev) => [...prev, highlight].sort((a, b) => a.sort_order - b.sort_order));
-    await upsertHighlight(highlight);
-  }, []);
+    try {
+      await upsertHighlight(highlight);
+    } catch (e) {
+      console.error("Failed to add highlight:", e);
+      setHighlights(prev);
+    }
+  }, [highlights]);
 
   const handleUpdateHighlight = useCallback(async (highlight: Highlight) => {
+    const prev = highlights;
     setHighlights((prev) => prev.map((h) => (h.id === highlight.id ? highlight : h)));
-    await upsertHighlight(highlight);
-  }, []);
+    try {
+      await upsertHighlight(highlight);
+    } catch (e) {
+      console.error("Failed to update highlight:", e);
+      setHighlights(prev);
+    }
+  }, [highlights]);
 
   const handleRemoveHighlight = useCallback(async (id: string) => {
+    const prev = highlights;
     setHighlights((prev) => prev.filter((h) => h.id !== id));
-    await deleteHighlight(id);
-  }, []);
+    try {
+      await deleteHighlight(id);
+    } catch (e) {
+      console.error("Failed to remove highlight:", e);
+      setHighlights(prev);
+    }
+  }, [highlights]);
 
   const handleAddHighlightImage = useCallback(async (image: HighlightImage) => {
+    const prev = highlights;
     setHighlights((prev) =>
       prev.map((h) =>
         h.id === image.highlight_id
@@ -234,17 +259,28 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           : h
       )
     );
-    await upsertHighlightImage(image);
-  }, []);
+    try {
+      await upsertHighlightImage(image);
+    } catch (e) {
+      console.error("Failed to add highlight image:", e);
+      setHighlights(prev);
+    }
+  }, [highlights]);
 
   const handleRemoveHighlightImage = useCallback(async (id: string) => {
+    const prev = highlights;
     setHighlights((prev) =>
       prev.map((h) => ({
         ...h,
         images: h.images.filter((img) => img.id !== id),
       }))
     );
-    await deleteHighlightImage(id);
+    try {
+      await deleteHighlightImage(id);
+    } catch (e) {
+      console.error("Failed to remove highlight image:", e);
+      setHighlights(prev);
+    }
   }, []);
 
   const handleUploadHighlightImage = useCallback(async (file: File) => {
@@ -306,8 +342,8 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     };
   }, [
     loaded, salon, workingHours, specificDaysOff, services, addons, bookings, highlights, blockedTimes,
-    handleUpdateWorkingHours, handleUpdateSpecificDaysOff, handleUpdateServices, handleUpdateAddons,
-    handleUpdateSalon, handleAddBooking, refreshBookings, handleAddHighlight, handleUpdateHighlight,
+    handleUpdateWorkingHours, handleUpdateSpecificDaysOff, handleSaveSchedule, handleUpdateServices, handleUpdateAddons,
+    handleUpdateSalon, handleUpdateBlockedTimes, handleAddBooking, refreshBookings, handleAddHighlight, handleUpdateHighlight,
     handleRemoveHighlight, handleAddHighlightImage, handleRemoveHighlightImage, handleUploadHighlightImage,
   ]);
 

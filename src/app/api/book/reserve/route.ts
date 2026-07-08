@@ -1,9 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
 
-// POST: Reserve a slot (lock it temporarily before final booking)
+// Simple in-memory rate limiter: max 30 requests per minute per IP
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + 60_000 });
+    return false;
+  }
+  entry.count++;
+  return entry.count > 30;
+}
+
+// POST: Check slot availability
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+    if (isRateLimited(ip)) {
+      return NextResponse.json({ error: "درخواست زیاد است. لطفاً صبر کنید" }, { status: 429 });
+    }
+
     const { service_id, date_gregorian, start_time, end_time } = await request.json();
 
     if (!service_id || !date_gregorian || !start_time || !end_time) {

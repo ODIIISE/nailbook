@@ -1,10 +1,13 @@
 import crypto from "crypto";
 import { supabaseAdmin } from "./supabase/server";
 
-const SECRET = process.env.OWNER_SESSION_SECRET || "nailbook-owner-secret-key-change-in-production";
+const SECRET = process.env.OWNER_SESSION_SECRET;
+if (!SECRET) {
+  console.error("FATAL: OWNER_SESSION_SECRET environment variable is not set");
+}
 
 export function verifyOwnerSession(cookieValue: string | undefined): string | null {
-  if (!cookieValue) return null;
+  if (!cookieValue || !SECRET) return null;
 
   const parts = cookieValue.split(":");
   if (parts.length !== 3) return null;
@@ -13,7 +16,15 @@ export function verifyOwnerSession(cookieValue: string | undefined): string | nu
   const payload = `${userId}:${timestamp}`;
   const expectedSig = crypto.createHmac("sha256", SECRET).update(payload).digest("hex");
 
-  if (signature !== expectedSig) return null;
+  // Timing-safe comparison to prevent timing attacks
+  try {
+    const sigBuf = Buffer.from(signature, "hex");
+    const expectedBuf = Buffer.from(expectedSig, "hex");
+    if (sigBuf.length !== expectedBuf.length) return null;
+    if (!crypto.timingSafeEqual(sigBuf, expectedBuf)) return null;
+  } catch {
+    return null;
+  }
 
   // Check if session is not older than 7 days
   const age = Date.now() - parseInt(timestamp);
