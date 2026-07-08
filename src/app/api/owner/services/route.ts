@@ -19,10 +19,12 @@ export async function PUT(request: NextRequest) {
       if (!s.name || typeof s.name !== "string") {
         return NextResponse.json({ error: "نام خدمت الزامی است" }, { status: 400 });
       }
-      if (typeof s.price !== "number" || s.price < 0) {
+      const price = Number(s.price);
+      if (isNaN(price) || price < 0) {
         return NextResponse.json({ error: "قیمت نامعتبر است" }, { status: 400 });
       }
-      if (typeof s.duration_minutes !== "number" || s.duration_minutes < 0) {
+      const duration = Number(s.duration_minutes);
+      if (isNaN(duration) || duration < 0) {
         return NextResponse.json({ error: "مدت زمان نامعتبر است" }, { status: 400 });
       }
     }
