@@ -16,19 +16,19 @@ export function ContactButtons({ phone }: ContactButtonsProps) {
   const whatsappUrl = `https://wa.me/98${phone.slice(1)}`;
 
   return (
-    <div className="px-4 mb-6">
-      <Card className="mx-auto max-w-lg p-4 glass shadow-card">
-        <p className="text-sm text-muted-foreground text-center mb-3">تماس با ما</p>
-        <div className="flex gap-3">
+    <div className="px-4 mb-5">
+      <Card className="mx-auto max-w-lg p-4 shadow-card">
+        <p className="text-[12px] text-muted-foreground text-center mb-3 font-medium">تماس با ما</p>
+        <div className="flex gap-2">
           <a
             href={telUrl}
             className={cn(
               buttonVariants({ variant: "outline" }),
-              "flex-1 border-green-500/30 text-green-600 hover:bg-green-50 transition-colors duration-200"
+              "flex-1 h-11 text-[13px] border-success/25 text-success hover:bg-success/5"
             )}
           >
-            <Phone className="h-4 w-4 ml-2" />
-            تماس تلفنی
+            <Phone className="h-3.5 w-3.5 ml-1.5" />
+            تماس
           </a>
           <a
             href={whatsappUrl}
@@ -36,20 +36,20 @@ export function ContactButtons({ phone }: ContactButtonsProps) {
             rel="noopener noreferrer"
             className={cn(
               buttonVariants({ variant: "outline" }),
-              "flex-1 border-green-500/30 text-green-600 hover:bg-green-50 transition-colors duration-200"
+              "flex-1 h-11 text-[13px] border-success/25 text-success hover:bg-success/5"
             )}
           >
-            <WhatsAppIcon className="h-4 w-4 ml-2" />
+            <WhatsAppIcon className="h-3.5 w-3.5 ml-1.5" />
             واتساپ
           </a>
           <a
             href={smsUrl}
             className={cn(
               buttonVariants({ variant: "outline" }),
-              "flex-1 border-blue-500/30 text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+              "flex-1 h-11 text-[13px] border-primary/25 text-primary hover:bg-primary/5"
             )}
           >
-            <MessageCircle className="h-4 w-4 ml-2" />
+            <MessageCircle className="h-3.5 w-3.5 ml-1.5" />
             پیامک
           </a>
         </div>

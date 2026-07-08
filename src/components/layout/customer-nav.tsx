@@ -15,7 +15,7 @@ export function CustomerNav() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-border"
+      className="fixed bottom-0 left-0 right-0 z-20 glass-strong border-t border-white/30"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <div className="mx-auto max-w-lg flex items-stretch">
@@ -25,11 +25,11 @@ export function CustomerNav() {
             <button
               key={path}
               onClick={() => router.push(path)}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 pt-[10px] pb-[6px] transition-opacity duration-150 ${
-                active ? "opacity-100 text-primary" : "opacity-70 text-black"
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 pt-2.5 pb-2 transition-all duration-180 ${
+                active ? "text-primary" : "text-muted-foreground"
               }`}
             >
-              <Icon className="h-6 w-6" />
+              <Icon className={`h-5 w-5 ${active ? "stroke-[2.5]" : "stroke-[1.8]"}`} />
               <span className={`text-[10px] leading-none ${active ? "font-semibold" : "font-normal"}`}>
                 {label}
               </span>

@@ -16,9 +16,9 @@ function getWorkingHoursText(text: string): string {
 
 export function Hero({ salon, onBookNow }: HeroProps) {
   return (
-    <div className="px-4 pt-8 pb-6">
+    <div className="px-4 pt-6 pb-4">
       <div className="mx-auto max-w-lg text-center animate-stagger">
-        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl glass shadow-glass overflow-hidden">
+        <div className="mx-auto mb-4 flex h-[72px] w-[72px] items-center justify-center rounded-[22px] glass-strong shadow-glass overflow-hidden">
           {salon.logo_url ? (
             <img
               src={salon.logo_url}
@@ -26,54 +26,50 @@ export function Hero({ salon, onBookNow }: HeroProps) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <Sparkles className="h-8 w-8 text-foreground" />
+            <Sparkles className="h-7 w-7 text-primary" />
           )}
         </div>
-        <h1 className="text-display text-foreground mb-2">
+        <h1 className="text-display text-foreground mb-1.5">
           {salon.name}
         </h1>
         {salon.slogan && (
-          <p className="mb-2 text-body-lg text-foreground/70 font-medium">
+          <p className="mb-1.5 text-body text-primary font-medium">
             {salon.slogan}
           </p>
         )}
-        <p className="mb-6 text-body text-muted-foreground leading-relaxed max-w-sm mx-auto">
+        <p className="mb-5 text-caption text-muted-foreground max-w-[280px] mx-auto">
           {salon.description}
         </p>
 
         {onBookNow && (
           <Button
-            className="w-full h-16 bg-foreground hover:bg-foreground/90 text-background rounded-2xl text-lg font-bold shadow-elevated transition-all duration-200 hover:scale-[0.98] active:scale-95"
+            className="w-full h-14 text-[16px]"
             onClick={onBookNow}
           >
             رزرو کن
-            <ChevronLeft className="h-5 w-5 mr-2" />
+            <ChevronLeft className="h-5 w-5 mr-1" />
           </Button>
         )}
 
-        <div className="glass rounded-3xl p-5 mt-6 shadow-card">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 text-[15px] text-foreground">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/50">
-                <MapPin className="h-4 w-4 text-foreground" />
-              </div>
-              <span>{salon.address}</span>
-            </div>
-            <div className="flex items-center gap-3 text-[15px] text-foreground">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/50">
-                <Phone className="h-4 w-4 text-foreground" />
-              </div>
-              <span dir="ltr">{toPersianDigits(salon.phone)}</span>
-            </div>
-            <div className="flex items-center gap-3 text-[15px] text-foreground">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/50">
-                <Clock className="h-4 w-4 text-foreground" />
-              </div>
-              <span>{getWorkingHoursText(salon.working_hours_text)}</span>
-            </div>
+        <div className="glass rounded-[20px] p-4 mt-5 shadow-card">
+          <div className="space-y-2.5">
+            <InfoRow icon={<MapPin className="h-4 w-4" />} text={salon.address} />
+            <InfoRow icon={<Phone className="h-4 w-4" />} text={toPersianDigits(salon.phone)} dir="ltr" />
+            <InfoRow icon={<Clock className="h-4 w-4" />} text={getWorkingHoursText(salon.working_hours_text)} />
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function InfoRow({ icon, text, dir }: { icon: React.ReactNode; text: string; dir?: string }) {
+  return (
+    <div className="flex items-center gap-3 text-[14px] text-foreground/80">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-white/45 text-primary">
+        {icon}
+      </div>
+      <span className="text-body" dir={dir}>{text}</span>
     </div>
   );
 }
