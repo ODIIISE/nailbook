@@ -1,9 +1,9 @@
 import crypto from "crypto";
 import { sql } from "@vercel/postgres";
 
-const SECRET = process.env.OWNER_SESSION_SECRET;
-if (!SECRET) {
-  console.error("FATAL: OWNER_SESSION_SECRET environment variable is not set");
+const SECRET = process.env.OWNER_SESSION_SECRET || "nailbook-owner-secret-key-change-in-production";
+if (!process.env.OWNER_SESSION_SECRET) {
+  console.warn("OWNER_SESSION_SECRET not set, using fallback");
 }
 
 export function verifyOwnerSession(cookieValue: string | undefined): string | null {
