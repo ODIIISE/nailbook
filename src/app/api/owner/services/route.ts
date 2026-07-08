@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 
 export async function PUT(request: NextRequest) {
@@ -15,7 +15,6 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "داده نامعتبر" }, { status: 400 });
     }
 
-    // Validate fields
     for (const s of services) {
       if (!s.name || typeof s.name !== "string") {
         return NextResponse.json({ error: "نام خدمت الزامی است" }, { status: 400 });
@@ -28,60 +27,27 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const incomingIds = new Set(services.map((s) => s.id));
+    const incomingIds = services.map((s) => s.id);
+    const { rows: currentRows } = await sql`SELECT id FROM services`;
+    const currentIds = currentRows.map((r) => r.id);
+    const deletedIds = currentIds.filter((id) => !incomingIds.includes(id));
 
-    // Fetch current service IDs to find which ones were deleted
-    const { data: currentServices, error: fetchErr } = await supabaseAdmin
-      .from("services")
-      .select("id");
-
-    if (fetchErr) {
-      return NextResponse.json({ error: "خطا در خواندن خدمات: " + fetchErr.message }, { status: 500 });
-    }
-
-    const currentIds = new Set((currentServices || []).map((s) => s.id));
-    const deletedIds = [...currentIds].filter((id) => !incomingIds.has(id));
-
-    // Delete removed services
     if (deletedIds.length > 0) {
-      // Nullify foreign key references in bookings first
-      await supabaseAdmin
-        .from("bookings")
-        .update({ service_id: null })
-        .in("service_id", deletedIds);
-
-      const { error: deleteError } = await supabaseAdmin
-        .from("services")
-        .delete()
-        .in("id", deletedIds);
-
-      if (deleteError) {
-        return NextResponse.json({ error: "خطا در حذف خدمت: " + deleteError.message }, { status: 500 });
+      for (const id of deletedIds) {
+        await sql`UPDATE bookings SET service_id = NULL WHERE service_id = ${id}`;
+        await sql`DELETE FROM services WHERE id = ${id}`;
       }
     }
 
-    // Upsert all services (insert new + update existing)
-    if (services.length > 0) {
-      const { error } = await supabaseAdmin
-        .from("services")
-        .upsert(
-          services.map((s, i) => ({
-            id: s.id,
-            name: s.name,
-            description: s.description || "",
-            duration_minutes: s.duration_minutes,
-            price: s.price,
-            is_active: s.is_active !== false,
-            sort_order: s.sort_order || i + 1,
-            addon_ids: s.addon_ids || [],
-            priority_score: s.priority_score || 5,
-          })),
-          { onConflict: "id" }
-        );
-
-      if (error) {
-        return NextResponse.json({ error: "خطا در ذخیره خدمت: " + error.message }, { status: 500 });
-      }
+    for (const [i, s] of services.entries()) {
+      await sql`
+        INSERT INTO services (id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score)
+        VALUES (${s.id}, ${s.name}, ${s.description || ""}, ${s.duration_minutes}, ${s.price}, ${s.is_active !== false}, ${s.sort_order || i + 1}, ${JSON.stringify(s.addon_ids || [])}, ${s.priority_score || 5})
+        ON CONFLICT (id) DO UPDATE SET
+          name = ${s.name}, description = ${s.description || ""}, duration_minutes = ${s.duration_minutes},
+          price = ${s.price}, is_active = ${s.is_active !== false}, sort_order = ${s.sort_order || i + 1},
+          addon_ids = ${JSON.stringify(s.addon_ids || [])}, priority_score = ${s.priority_score || 5}
+      `;
     }
 
     return NextResponse.json({ success: true });

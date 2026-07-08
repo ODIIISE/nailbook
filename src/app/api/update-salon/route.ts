@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 
 const ALLOWED_FIELDS = [
@@ -18,7 +18,6 @@ export async function POST(request: NextRequest) {
 
     const updates = await request.json();
 
-    // Whitelist allowed fields to prevent mass assignment
     const safeUpdates: Record<string, unknown> = {};
     for (const key of Object.keys(updates)) {
       if (ALLOWED_FIELDS.includes(key)) {
@@ -30,24 +29,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "داده نامعتبر" }, { status: 400 });
     }
 
-    const { data: existing } = await supabaseAdmin
-      .from("salon_info")
-      .select("id")
-      .limit(1)
-      .single();
-
-    if (!existing) {
+    const { rows: existing } = await sql`SELECT id FROM salon_info LIMIT 1`;
+    if (!existing[0]) {
       return NextResponse.json({ error: "Salon not found" }, { status: 404 });
     }
 
-    const { error } = await supabaseAdmin
-      .from("salon_info")
-      .update(safeUpdates)
-      .eq("id", existing.id);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    const sets: string[] = [];
+    const values: unknown[] = [];
+    let idx = 1;
+    for (const [key, val] of Object.entries(safeUpdates)) {
+      sets.push(`${key} = $${idx}`);
+      values.push(typeof val === "object" ? JSON.stringify(val) : val);
+      idx++;
     }
+
+    await sql.query(`UPDATE salon_info SET ${sets.join(", ")} WHERE id = $${idx}`, [...values, existing[0].id]);
 
     return NextResponse.json({ success: true });
   } catch (error) {

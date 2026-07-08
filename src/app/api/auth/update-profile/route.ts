@@ -1,26 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { sql } from "@vercel/postgres";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId, name } = await request.json();
+    if (!userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
 
-    if (!userId || !name) {
-      return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
-    }
-
-    const { error } = await supabaseAdmin
-      .from("users")
-      .update({ name: name.trim() })
-      .eq("id", userId);
-
-    if (error) {
-      return NextResponse.json({ error: "خطا در بروزرسانی" }, { status: 500 });
-    }
-
+    await sql`UPDATE users SET name = ${name || ""} WHERE id = ${userId}`;
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Update profile error:", error);
+  } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

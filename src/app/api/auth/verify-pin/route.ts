@@ -1,80 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { sql } from "@vercel/postgres";
 import crypto from "crypto";
 
 function hashPin(pin: string): string {
   return crypto.createHash("sha256").update(pin).digest("hex");
 }
 
+function signSession(userId: string): string {
+  const payload = `${userId}:${Date.now()}`;
+  const secret = process.env.OWNER_SESSION_SECRET || "nailbook-owner-secret-key-change-in-production";
+  const signature = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+  return `${payload}:${signature}`;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { phone, pin } = await request.json();
-
-    if (!phone || !pin) {
-      return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    const { data: user, error: userError } = await supabaseAdmin
-      .from("users")
-      .select("id, phone, pin, role, name, failed_attempts, locked_until")
-      .eq("phone", phone)
-      .single();
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "کاربر یافت نشد" }, { status: 404 });
-    }
-
-    if (user.locked_until && new Date(user.locked_until) > new Date()) {
-      const remaining = Math.ceil((new Date(user.locked_until).getTime() - Date.now()) / 60000);
-      return NextResponse.json({
-        error: `حساب شما به مدت ${remaining} دقیقه قفل شده است`,
-        locked: true,
-      });
-    }
+    if (!phone || !pin) return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
 
     const hashedPin = hashPin(pin);
+    const { rows: users } = await sql`
+      SELECT id, pin, failed_attempts, locked_until FROM users WHERE phone = ${phone}
+    `;
+    const user = users[0];
 
-    if (user.pin !== hashedPin) {
-      const newAttempts = (user.failed_attempts || 0) + 1;
-      const updateData: Record<string, unknown> = { failed_attempts: newAttempts };
-
-      if (newAttempts >= 5) {
-        updateData.locked_until = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-        updateData.failed_attempts = 0;
-      }
-
-      await supabaseAdmin.from("users").update(updateData).eq("id", user.id);
-
-      return NextResponse.json({
-        error: newAttempts >= 5
-          ? "حساب شما به مدت ۶۰ دقیقه قفل شده است"
-          : `کد نادرست است. ${5 - newAttempts} تلاش باقی‌مانده`,
-        attemptsLeft: 5 - newAttempts,
-      });
+    if (user?.locked_until && new Date(user.locked_until) > new Date()) {
+      return NextResponse.json({ error: "حساب قفل شده است" }, { status: 423 });
     }
 
-    await supabaseAdmin
-      .from("users")
-      .update({ failed_attempts: 0, locked_until: null })
-      .eq("id", user.id);
+    if (!user || user.pin !== hashedPin) {
+      const attempts = (user?.failed_attempts || 0) + 1;
+      const lockUntil = attempts >= 5 ? new Date(Date.now() + 30 * 60 * 1000).toISOString() : null;
+      if (user?.id) {
+        await sql`UPDATE users SET failed_attempts = ${attempts}, locked_until = ${lockUntil} WHERE id = ${user.id}`;
+      }
+      return NextResponse.json({ error: "رمز عبور اشتباه است" }, { status: 401 });
+    }
 
-    const token = `pin_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
 
-    await supabaseAdmin.from("sessions").insert({
-      user_id: user.id,
-      token,
-      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    });
+    const sessionId = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    await sql`
+      INSERT INTO sessions (id, user_id, token, expires_at)
+      VALUES (${sessionId}, ${user.id}, ${signSession(user.id)}, ${expiresAt})
+    `;
 
-    const response = NextResponse.json({
-      success: true,
-      user: { id: user.id, phone: user.phone, name: user.name, role: user.role },
-      token,
-    });
-
-    response.cookies.set("auth_token", token, {
+    const response = NextResponse.json({ success: true, userId: user.id });
+    response.cookies.set("session", signSession(user.id), {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
@@ -83,8 +56,7 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch (error) {
-    console.error("Verify PIN error:", error);
+  } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

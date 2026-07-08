@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { supabaseAdmin } from "./supabase/server";
+import { sql } from "@vercel/postgres";
 
 const SECRET = process.env.OWNER_SESSION_SECRET;
 if (!SECRET) {
@@ -16,7 +16,6 @@ export function verifyOwnerSession(cookieValue: string | undefined): string | nu
   const payload = `${userId}:${timestamp}`;
   const expectedSig = crypto.createHmac("sha256", SECRET).update(payload).digest("hex");
 
-  // Timing-safe comparison to prevent timing attacks
   try {
     const sigBuf = Buffer.from(signature, "hex");
     const expectedBuf = Buffer.from(expectedSig, "hex");
@@ -26,7 +25,6 @@ export function verifyOwnerSession(cookieValue: string | undefined): string | nu
     return null;
   }
 
-  // Check if session is not older than 7 days
   const age = Date.now() - parseInt(timestamp);
   if (age > 7 * 24 * 60 * 60 * 1000) return null;
 
@@ -38,12 +36,6 @@ export async function verifyOwner(request: { cookies: { get: (name: string) => {
   const userId = verifyOwnerSession(cookieValue);
   if (!userId) return null;
 
-  const { data: owner } = await supabaseAdmin
-    .from("users")
-    .select("id")
-    .eq("id", userId)
-    .eq("role", "owner")
-    .single();
-
-  return owner;
+  const { rows } = await sql`SELECT id FROM users WHERE id = ${userId} AND role = 'owner'`;
+  return rows[0] || null;
 }

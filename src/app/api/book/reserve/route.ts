@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { sql } from "@vercel/postgres";
 
-// Simple in-memory rate limiter: max 30 requests per minute per IP
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function isRateLimited(ip: string): boolean {
@@ -15,12 +14,11 @@ function isRateLimited(ip: string): boolean {
   return entry.count > 30;
 }
 
-// POST: Check slot availability
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
     if (isRateLimited(ip)) {
-      return NextResponse.json({ error: "درخواست زیاد است. لطفاً صبر کنید" }, { status: 429 });
+      return NextResponse.json({ error: "درخواست زیاد است" }, { status: 429 });
     }
 
     const { service_id, date_gregorian, start_time, end_time } = await request.json();
@@ -29,34 +27,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
 
-    // Check for existing booking in this slot
-    const { data: conflicts } = await supabaseAdmin
-      .from("bookings")
-      .select("id")
-      .eq("date_gregorian", date_gregorian)
-      .eq("status", "confirmed")
-      .lte("start_time", end_time)
-      .gte("end_time", start_time);
+    const { rows: conflicts } = await sql`
+      SELECT id FROM bookings
+      WHERE date_gregorian = ${date_gregorian}
+      AND status = 'confirmed'
+      AND start_time <= ${end_time}
+      AND end_time >= ${start_time}
+    `;
 
-    if (conflicts && conflicts.length > 0) {
+    if (conflicts.length > 0) {
       return NextResponse.json({ error: "این زمان قبلاً رزرو شده", conflict: true }, { status: 409 });
     }
 
-    // Check blocked times
-    const { data: blocked } = await supabaseAdmin
-      .from("blocked_times")
-      .select("id")
-      .eq("date_gregorian", date_gregorian)
-      .lte("start_time", end_time)
-      .gte("end_time", start_time);
+    const { rows: blocked } = await sql`
+      SELECT id FROM blocked_times
+      WHERE date_gregorian = ${date_gregorian}
+      AND start_time <= ${end_time}
+      AND end_time >= ${start_time}
+    `;
 
-    if (blocked && blocked.length > 0) {
+    if (blocked.length > 0) {
       return NextResponse.json({ error: "این زمان مسدود شده", conflict: true }, { status: 409 });
     }
 
     return NextResponse.json({ available: true });
   } catch (error) {
-    console.error("Reserve slot error:", error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

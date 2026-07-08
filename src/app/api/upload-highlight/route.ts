@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { put } from "@vercel/blob";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,19 +13,13 @@ export async function POST(request: NextRequest) {
     const ext = file.name.split(".").pop() || "jpg";
     const path = `highlights/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
-    const { error } = await supabaseAdmin.storage
-      .from("highlights")
-      .upload(path, file, { contentType: file.type });
+    const blob = await put(path, file, {
+      access: "public",
+      contentType: file.type,
+    });
 
-    if (error) {
-      console.error("Upload error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    const { data } = supabaseAdmin.storage.from("highlights").getPublicUrl(path);
-    return NextResponse.json({ url: data?.publicUrl || null });
+    return NextResponse.json({ url: blob.url });
   } catch (error) {
-    console.error("Upload route error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

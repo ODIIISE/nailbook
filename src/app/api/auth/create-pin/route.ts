@@ -1,62 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { sql } from "@vercel/postgres";
 import crypto from "crypto";
 
 function hashPin(pin: string): string {
   return crypto.createHash("sha256").update(pin).digest("hex");
 }
 
+function signSession(userId: string): string {
+  const payload = `${userId}:${Date.now()}`;
+  const secret = process.env.OWNER_SESSION_SECRET || "nailbook-owner-secret-key-change-in-production";
+  const signature = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+  return `${payload}:${signature}`;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { phone, pin, name, role } = await request.json();
+    const { phone, pin, name } = await request.json();
+    if (!phone || !pin) return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
 
-    if (!phone || !pin || pin.length !== 4) {
-      return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
-    }
-
-    const { data: existing } = await supabaseAdmin
-      .from("users")
-      .select("id")
-      .eq("phone", phone)
-      .single();
-
-    if (existing) {
-      return NextResponse.json({ error: "کاربر قبلاً ثبت‌نام شده" }, { status: 400 });
-    }
+    const { rows: existing } = await sql`SELECT id FROM users WHERE phone = ${phone}`;
+    if (existing.length > 0) return NextResponse.json({ error: "این شماره قبلاً ثبت شده" }, { status: 409 });
 
     const hashedPin = hashPin(pin);
+    const userId = crypto.randomUUID();
 
-    const { data: user, error } = await supabaseAdmin
-      .from("users")
-      .insert({
-        phone,
-        pin: hashedPin,
-        name: name || "",
-        role: role || "customer",
-        failed_attempts: 0,
-      })
-      .select("id, phone, name, role")
-      .single();
+    await sql`
+      INSERT INTO users (id, phone, pin, name, role)
+      VALUES (${userId}, ${phone}, ${hashedPin}, ${name || ""}, 'customer')
+    `;
 
-    if (error) {
-      return NextResponse.json({ error: "خطا در ثبت‌نام" }, { status: 500 });
-    }
+    const sessionId = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    await sql`
+      INSERT INTO sessions (id, user_id, token, expires_at)
+      VALUES (${sessionId}, ${userId}, ${signSession(userId)}, ${expiresAt})
+    `;
 
-    const token = `pin_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-
-    await supabaseAdmin.from("sessions").insert({
-      user_id: user.id,
-      token,
-      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    });
-
-    const response = NextResponse.json({
-      success: true,
-      user: { id: user.id, phone: user.phone, name: user.name, role: user.role },
-      token,
-    });
-
-    response.cookies.set("auth_token", token, {
+    const response = NextResponse.json({ success: true, userId });
+    response.cookies.set("session", signSession(userId), {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
@@ -65,8 +46,7 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch (error) {
-    console.error("Create PIN error:", error);
+  } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }
