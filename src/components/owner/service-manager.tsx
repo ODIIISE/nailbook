@@ -157,7 +157,9 @@ function ServicesTab({
   const handleSave = async () => {
     setIsSaving(true);
     setSaveError(null);
+    console.log("[ServiceManager] Saving", pending.length, "items");
     const error = await onUpdate(pending);
+    console.log("[ServiceManager] Save result:", error || "success");
     setIsSaving(false);
     if (error) {
       setSaveError(error);
@@ -368,7 +370,9 @@ function AddonsTab({
   const handleSave = async () => {
     setIsSaving(true);
     setSaveError(null);
+    console.log("[ServiceManager] Saving", pending.length, "items");
     const error = await onUpdate(pending);
+    console.log("[ServiceManager] Save result:", error || "success");
     setIsSaving(false);
     if (error) {
       setSaveError(error);

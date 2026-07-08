@@ -153,12 +153,14 @@ export function SalonProvider({ children }: { children: ReactNode }) {
 
   const handleUpdateAddons = useCallback(async (newAddons: Addon[]): Promise<string | null> => {
     const prev = addons;
+    console.log("[salon-context] Saving", newAddons.length, "addons");
     setAddons(newAddons);
     try {
       await saveAddons(newAddons);
+      console.log("[salon-context] Addons saved successfully");
       return null;
     } catch (e) {
-      console.error("Failed to save addons:", e);
+      console.error("[salon-context] Failed to save addons:", e);
       setAddons(prev);
       return e instanceof Error ? e.message : "خطای ناشناخته";
     }
