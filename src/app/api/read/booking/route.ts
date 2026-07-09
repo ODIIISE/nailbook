@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!b.id || !b.service_id || !b.customer_name || !b.customer_phone || !b.date || !b.date_gregorian || !b.start_time || !b.end_time) {
-      return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
+      return NextResponse.json({ error: "اطلاعات ناقص است", debug: { id: !!b.id, service_id: !!b.service_id, name: !!b.customer_name, phone: !!b.customer_phone, date: !!b.date, date_gregorian: !!b.date_gregorian, start_time: !!b.start_time, end_time: !!b.end_time } }, { status: 400 });
     }
 
     // Validate phone format (Iranian)
@@ -18,6 +18,12 @@ export async function POST(request: NextRequest) {
 
     // Sanitize name
     const name = String(b.customer_name).slice(0, 100);
+
+    // Validate service_id is a UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(b.service_id)) {
+      return NextResponse.json({ error: "شناسه خدمت نامعتبر است", debug: { service_id: b.service_id } }, { status: 400 });
+    }
 
     await sql`
       INSERT INTO bookings (id, user_id, service_id, selected_addons, customer_name, customer_phone, date, date_gregorian, start_time, end_time, status, phone_verified)
