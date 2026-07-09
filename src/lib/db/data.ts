@@ -59,7 +59,10 @@ export async function insertBooking(booking: Booking) {
     body: JSON.stringify(booking),
   });
   const body = await res.json();
-  if (!res.ok) throw new Error(body.error || "Failed to save booking");
+  if (!res.ok) {
+    const details = body.debug ? ` (${JSON.stringify(body.debug)})` : "";
+    throw new Error(body.error + details || "Failed to save booking");
+  }
 }
 
 export async function fetchWorkingHours() {

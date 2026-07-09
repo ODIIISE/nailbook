@@ -5,8 +5,8 @@ export async function POST(request: NextRequest) {
   try {
     const b = await request.json();
 
-    // Validate required fields
-    if (!b.id || !b.service_id || !b.customer_name || !b.customer_phone || !b.date || !b.date_gregorian || !b.start_time || !b.end_time) {
+    // Validate required fields (name can be empty for new users)
+    if (!b.id || !b.service_id || !b.customer_phone || !b.date || !b.date_gregorian || !b.start_time || !b.end_time) {
       return NextResponse.json({ error: "اطلاعات ناقص است", debug: { id: !!b.id, service_id: !!b.service_id, name: !!b.customer_name, phone: !!b.customer_phone, date: !!b.date, date_gregorian: !!b.date_gregorian, start_time: !!b.start_time, end_time: !!b.end_time } }, { status: 400 });
     }
 
@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "شماره موبایل نامعتبر است" }, { status: 400 });
     }
 
-    // Sanitize name
-    const name = String(b.customer_name).slice(0, 100);
+    // Sanitize name — use phone as fallback if name is empty
+    const name = (String(b.customer_name || "").slice(0, 100) || phone);
 
     // Validate service_id is a UUID
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
