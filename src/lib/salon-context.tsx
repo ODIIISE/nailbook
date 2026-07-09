@@ -62,8 +62,16 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(false);
 
   // Refs to avoid stale closures in callbacks
+  const servicesRef = useRef(services);
+  const addonsRef = useRef(addons);
+  const salonRef = useRef(salon);
+  const highlightsRef = useRef(highlights);
   const workingHoursRef = useRef(workingHours);
   const specificDaysOffRef = useRef(specificDaysOff);
+  servicesRef.current = services;
+  addonsRef.current = addons;
+  salonRef.current = salon;
+  highlightsRef.current = highlights;
   workingHoursRef.current = workingHours;
   specificDaysOffRef.current = specificDaysOff;
 
@@ -139,7 +147,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleUpdateServices = useCallback(async (newServices: Service[]): Promise<string | null> => {
-    const prev = services;
+    const prev = servicesRef.current;
     setServices(newServices);
     try {
       await saveServices(newServices);
@@ -149,10 +157,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       setServices(prev);
       return e instanceof Error ? e.message : "خطای ناشناخته";
     }
-  }, [services]);
+  }, []);
 
   const handleUpdateAddons = useCallback(async (newAddons: Addon[]): Promise<string | null> => {
-    const prev = addons;
+    const prev = addonsRef.current;
     setAddons(newAddons);
     try {
       await saveAddons(newAddons);
@@ -162,7 +170,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       setAddons(prev);
       return e instanceof Error ? e.message : "خطای ناشناخته";
     }
-  }, [addons]);
+  }, []);
 
   const handleUpdateBlockedTimes = useCallback(async (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => {
     const prev = blockedTimes;
@@ -199,7 +207,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleUpdateSalon = useCallback(async (updates: Partial<SalonInfo>) => {
-    const prev = salon;
+    const prev = salonRef.current;
     setSalon((prev) => ({ ...prev, ...updates }));
     try {
       const res = await fetch("/api/update-salon", {
@@ -215,10 +223,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       console.error("Failed to update salon:", e);
       setSalon(prev);
     }
-  }, [salon]);
+  }, []);
 
   const handleAddHighlight = useCallback(async (highlight: Highlight) => {
-    const prev = highlights;
+    const prev = highlightsRef.current;
     setHighlights((prev) => [...prev, highlight].sort((a, b) => a.sort_order - b.sort_order));
     try {
       await upsertHighlight(highlight);
@@ -226,10 +234,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       console.error("Failed to add highlight:", e);
       setHighlights(prev);
     }
-  }, [highlights]);
+  }, []);
 
   const handleUpdateHighlight = useCallback(async (highlight: Highlight) => {
-    const prev = highlights;
+    const prev = highlightsRef.current;
     setHighlights((prev) => prev.map((h) => (h.id === highlight.id ? highlight : h)));
     try {
       await upsertHighlight(highlight);
@@ -237,10 +245,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       console.error("Failed to update highlight:", e);
       setHighlights(prev);
     }
-  }, [highlights]);
+  }, []);
 
   const handleRemoveHighlight = useCallback(async (id: string) => {
-    const prev = highlights;
+    const prev = highlightsRef.current;
     setHighlights((prev) => prev.filter((h) => h.id !== id));
     try {
       await deleteHighlight(id);
@@ -248,10 +256,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       console.error("Failed to remove highlight:", e);
       setHighlights(prev);
     }
-  }, [highlights]);
+  }, []);
 
   const handleAddHighlightImage = useCallback(async (image: HighlightImage) => {
-    const prev = highlights;
+    const prev = highlightsRef.current;
     setHighlights((prev) =>
       prev.map((h) =>
         h.id === image.highlight_id
@@ -265,10 +273,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       console.error("Failed to add highlight image:", e);
       setHighlights(prev);
     }
-  }, [highlights]);
+  }, []);
 
   const handleRemoveHighlightImage = useCallback(async (id: string) => {
-    const prev = highlights;
+    const prev = highlightsRef.current;
     setHighlights((prev) =>
       prev.map((h) => ({
         ...h,
