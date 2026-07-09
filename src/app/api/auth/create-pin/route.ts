@@ -16,17 +16,25 @@ function signSession(userId: string): string {
 export async function POST(request: NextRequest) {
   try {
     const { phone, pin, name } = await request.json();
-    if (!phone || !pin) return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
+    if (!phone || !pin) {
+      return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
+    }
+    if (!name || !name.trim()) {
+      return NextResponse.json({ error: "نام الزامی است" }, { status: 400 });
+    }
 
+    // Check if phone already exists
     const { rows: existing } = await sql`SELECT id FROM users WHERE phone = ${phone}`;
-    if (existing.length > 0) return NextResponse.json({ error: "این شماره قبلاً ثبت شده" }, { status: 409 });
+    if (existing.length > 0) {
+      return NextResponse.json({ error: "این شماره قبلاً ثبت شده" }, { status: 409 });
+    }
 
     const hashedPin = hashPin(pin);
     const userId = crypto.randomUUID();
 
     await sql`
       INSERT INTO users (id, phone, pin, name, role)
-      VALUES (${userId}, ${phone}, ${hashedPin}, ${name || ""}, 'customer')
+      VALUES (${userId}, ${phone}, ${hashedPin}, ${name.trim()}, 'customer')
     `;
 
     const sessionId = crypto.randomUUID();

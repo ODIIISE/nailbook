@@ -26,11 +26,12 @@ export async function POST(request: NextRequest) {
 
     const { phone, pin, name, role } = await request.json();
     if (!phone || !pin) return NextResponse.json({ error: "داده ناقص" }, { status: 400 });
+    if (!name || !name.trim()) return NextResponse.json({ error: "نام الزامی است" }, { status: 400 });
 
     const userId = crypto.randomUUID();
     await sql`
       INSERT INTO users (id, phone, pin, name, role)
-      VALUES (${userId}, ${phone}, ${hashPin(pin)}, ${name || ""}, ${role || "customer"})
+      VALUES (${userId}, ${phone}, ${hashPin(pin)}, ${name.trim()}, ${role || "customer"})
     `;
     return NextResponse.json({ success: true, userId });
   } catch {
@@ -44,7 +45,12 @@ export async function PUT(request: NextRequest) {
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const { userId, phone, name, role } = await request.json();
-    if (!userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+    if (!userId) return NextResponse.json({ error: "شناسه کاربر الزامی است" }, { status: 400 });
+
+    // Prevent changing own role
+    if (userId === owner.id && role && role !== "owner") {
+      return NextResponse.json({ error: "نقش خود را نمی‌توانید تغییر دهید" }, { status: 400 });
+    }
 
     if (phone) {
       await sql`UPDATE users SET phone = ${phone}, name = ${name || ""}, role = ${role || "customer"} WHERE id = ${userId}`;
@@ -63,7 +69,18 @@ export async function DELETE(request: NextRequest) {
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const { userId } = await request.json();
-    if (!userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+    if (!userId) return NextResponse.json({ error: "شناسه کاربر الزامی است" }, { status: 400 });
+
+    // Prevent self-deletion
+    if (userId === owner.id) {
+      return NextResponse.json({ error: "نمی‌توانید حساب خود را حذف کنید" }, { status: 400 });
+    }
+
+    // Check if user is an owner
+    const { rows: targetUser } = await sql`SELECT role FROM users WHERE id = ${userId}`;
+    if (targetUser[0]?.role === "owner") {
+      return NextResponse.json({ error: "حذف مدیر مجاز نیست" }, { status: 400 });
+    }
 
     await sql`DELETE FROM users WHERE id = ${userId}`;
     return NextResponse.json({ success: true });
