@@ -58,7 +58,8 @@ export default function OwnerDashboard() {
     const dateStr = getTehranDateKey(currentDate);
     return bookings
       .filter((b) => {
-        if (b.date_gregorian !== dateStr || b.status !== "confirmed") return false;
+        const bookingDate = b.date_gregorian.split("T")[0];
+        if (bookingDate !== dateStr || b.status !== "confirmed") return false;
         if (!bookingSearch) return true;
         const q = bookingSearch.toLowerCase();
         return (
@@ -74,7 +75,10 @@ export default function OwnerDashboard() {
 
   const dayBlockedTimes = useMemo(() => {
     const dateStr = getTehranDateKey(currentDate);
-    return blockedTimes.filter((b) => b.date_gregorian === dateStr);
+    return blockedTimes.filter((b) => {
+      const blockDate = b.date_gregorian.split("T")[0];
+      return blockDate === dateStr;
+    });
   }, [currentDate, blockedTimes]);
 
   const accounting = useMemo(() => {

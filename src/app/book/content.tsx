@@ -96,9 +96,15 @@ export default function BookContent() {
     if (!selectedDate || !selectedService) return [];
     const dateStr = getTehranDateKey(selectedDate);
     const dayBookings = bookings
-      .filter((b) => b.date_gregorian === dateStr && b.status === "confirmed")
+      .filter((b) => {
+        const bookingDate = b.date_gregorian.split("T")[0];
+        return bookingDate === dateStr && b.status === "confirmed";
+      })
       .map((b) => ({ start_time: b.start_time, end_time: b.end_time }));
-    const dayBlocked = blockedTimes.filter((b) => b.date_gregorian === dateStr);
+    const dayBlocked = blockedTimes.filter((b) => {
+      const blockDate = b.date_gregorian.split("T")[0];
+      return blockDate === dateStr;
+    });
 
     return generateTimeSlots(
       workingHours,
