@@ -77,18 +77,18 @@ export default function BookContent() {
     if (!selectedService) return 0;
     const addonsDuration = selectedAddons.reduce((sum, id) => {
       const addon = addons.find((a) => a.id === id);
-      return sum + (addon?.duration_minutes || 0);
+      return sum + Number(addon?.duration_minutes || 0);
     }, 0);
-    return selectedService.duration_minutes + addonsDuration;
+    return Number(selectedService.duration_minutes) + addonsDuration;
   }, [selectedService, selectedAddons, addons]);
 
   const totalPrice = useMemo(() => {
     if (!selectedService) return 0;
     const addonsPrice = selectedAddons.reduce((sum, id) => {
       const addon = addons.find((a) => a.id === id);
-      return sum + (addon?.price || 0);
+      return sum + Number(addon?.price || 0);
     }, 0);
-    return selectedService.price + addonsPrice;
+    return Number(selectedService.price) + addonsPrice;
   }, [selectedService, selectedAddons, addons]);
 
   const timeSlots = useMemo(() => {
@@ -329,7 +329,7 @@ export default function BookContent() {
                                 </span>
                               )}
                               <span className="text-[11px] font-bold text-primary">
-                                +{toPersianDigits(addon.price.toLocaleString("fa-IR"))} تومان
+                                +{toPersianDigits(Number(addon.price).toLocaleString("fa-IR"))} تومان
                               </span>
                             </div>
                           </div>
@@ -480,7 +480,7 @@ export default function BookContent() {
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-muted-foreground">هزینه کل</span>
                       <span className="text-base font-bold text-primary">
-                        {toPersianDigits(totalPrice.toLocaleString("fa-IR"))} تومان
+                        {toPersianDigits(Number(totalPrice).toLocaleString("fa-IR"))} تومان
                       </span>
                     </div>
                   </div>

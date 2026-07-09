@@ -52,7 +52,7 @@ export function BookingConfirm({
       action: "TEMPLATE",
       text: `${serviceName} - ${salonName}`,
       dates: `${formatGCDate(start)}/${formatGCDate(end)}`,
-      details: `رزرو شماره: ${shortId}\nهزینه: ${toPersianDigits(price.toLocaleString("fa-IR"))} تومان\nنام: ${customerName}`,
+      details: `رزرو شماره: ${shortId}\nهزینه: ${toPersianDigits(Number(price).toLocaleString("fa-IR"))} تومان\nنام: ${customerName}`,
       location: salonAddress,
     });
 
@@ -102,7 +102,7 @@ export function BookingConfirm({
           <div className="flex items-center justify-between border-t border-white/20 pt-2.5">
             <span className="text-[13px] text-muted-foreground">هزینه</span>
             <span className="text-[17px] font-bold text-foreground">
-              {toPersianDigits(price.toLocaleString("fa-IR"))} تومان
+              {toPersianDigits(Number(price).toLocaleString("fa-IR"))} تومان
             </span>
           </div>
         </div>

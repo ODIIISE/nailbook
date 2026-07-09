@@ -228,7 +228,7 @@ function ServicesTab({
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     {toPersianDigits(service.duration_minutes)} دقیقه ·{" "}
-                    {toPersianDigits(service.price.toLocaleString("fa-IR"))} تومان
+                    {toPersianDigits(Number(service.price).toLocaleString("fa-IR"))} تومان
                   </p>
                 </div>
                 <div className="flex items-center gap-0.5">
@@ -436,7 +436,7 @@ function AddonsTab({
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   +{toPersianDigits(addon.duration_minutes)} دقیقه ·{" "}
-                  +{toPersianDigits(addon.price.toLocaleString("fa-IR"))} تومان
+                  +{toPersianDigits(Number(addon.price).toLocaleString("fa-IR"))} تومان
                 </p>
               </div>
               <div className="flex items-center gap-0.5">

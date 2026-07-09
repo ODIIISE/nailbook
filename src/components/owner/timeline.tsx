@@ -132,7 +132,7 @@ export function Timeline({
                           {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
                         </p>
                         <p className="text-[9px] font-bold text-primary/70">
-                          {toPersianDigits(price.toLocaleString("fa-IR"))}
+                          {toPersianDigits(Number(price).toLocaleString("fa-IR"))}
                         </p>
                       </div>
                     )}

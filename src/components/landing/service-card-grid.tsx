@@ -58,7 +58,7 @@ export function ServiceCardGrid({ services }: ServiceCardGridProps) {
                     </div>
                     <div className="flex items-center gap-1 text-small font-bold text-primary">
                       <DollarSign className="h-3.5 w-3.5" />
-                      <span>{toPersianDigits(service.price.toLocaleString("fa-IR"))} تومان</span>
+                      <span>{toPersianDigits(Number(service.price).toLocaleString("fa-IR"))} تومان</span>
                     </div>
                   </div>
                 </div>

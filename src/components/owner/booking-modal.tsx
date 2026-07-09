@@ -76,7 +76,7 @@ export function BookingModal({ booking, isPaid, onTogglePaid, onClose }: Booking
             <div className="flex items-center gap-2">
               <CreditCard className="h-4 w-4 text-muted-foreground" />
               <span className="text-[15px] font-bold text-foreground">
-                {toPersianDigits(price.toLocaleString("fa-IR"))} تومان
+                {toPersianDigits(Number(price).toLocaleString("fa-IR"))} تومان
               </span>
             </div>
           </div>
