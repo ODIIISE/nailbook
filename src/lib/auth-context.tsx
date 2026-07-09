@@ -55,9 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ phone, pin, name, role: "customer" }),
       });
       const data = await res.json();
-      if (data.success && data.user) {
-        setUser(data.user);
-        localStorage.setItem("auth_user", JSON.stringify(data.user));
+      if (data.success) {
+        const user = data.user || { id: data.userId, phone, name, role: "customer" };
+        setUser(user);
+        localStorage.setItem("auth_user", JSON.stringify(user));
         return { success: true };
       }
       return { success: false, error: data.error };
