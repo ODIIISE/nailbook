@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
       VALUES (${b.id}, ${b.user_id || null}, ${b.service_id}, ${JSON.stringify(b.selected_addons || [])}, ${name}, ${phone}, ${b.date}, ${b.date_gregorian}, ${b.start_time}, ${b.end_time}, ${b.status || 'confirmed'}, ${b.phone_verified ?? true})
     `;
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+  } catch (error) {
+    console.error("Booking insert error:", error);
+    return NextResponse.json({ error: "خطای سرور: " + String(error) }, { status: 500 });
   }
 }
