@@ -20,7 +20,7 @@ import {
   upsertHighlightImage,
   deleteHighlightImage,
   uploadHighlightImage as uploadImage,
-} from "@/lib/supabase/data";
+} from "@/lib/db/data";
 
 interface SalonContextType {
   salon: SalonInfo;

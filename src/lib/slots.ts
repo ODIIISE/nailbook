@@ -36,11 +36,10 @@ interface Candidate {
 }
 
 const IRAN_WEEK_DAYS = ["sat", "sun", "mon", "tue", "wed", "thu", "fri"];
-const DAYS_IN_MONTH = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
 const STANDARD_DURATIONS = [15, 30, 45, 60, 90, 120];
 
 import { getTehranDateKey, getTehranNow } from "./time";
-import { gregorianToJalali, jalaliToGregorian } from "./jalali";
+import { gregorianToJalali, jalaliToGregorian, DAYS_IN_MONTH } from "./jalali";
 
 export function getIranWeekDay(date: Date): string {
   const jsDay = date.getDay();

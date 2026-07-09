@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useEffect, useState, useCallback } from "react";
-import { gregorianToJalali, jalaliToGregorian, toPersianDigits } from "@/lib/jalali";
+import { gregorianToJalali, jalaliToGregorian, toPersianDigits, PERSIAN_MONTHS, DAYS_IN_MONTH, JS_TO_IRAN_DAY } from "@/lib/jalali";
 import { CalendarDays, ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -12,9 +12,6 @@ interface JalaliCalendarProps {
 }
 
 const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
-const PERSIAN_MONTHS = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
-const JS_TO_IRAN_DAY = [1, 2, 3, 4, 5, 6, 0];
-const DAYS_IN_MONTH = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
 
 export function JalaliCalendar({
   selectedDate,

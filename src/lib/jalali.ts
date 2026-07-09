@@ -6,6 +6,8 @@ const PERSIAN_MONTHS = [
   "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
   "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند",
 ];
+const DAYS_IN_MONTH = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+const JS_TO_IRAN_DAY = [1, 2, 3, 4, 5, 6, 0];
 
 const PERSIAN_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
 
@@ -75,4 +77,4 @@ export function formatJalaliTime(time: string): string {
   return `${toPersianDigits(h)}:${toPersianDigits(m)}`;
 }
 
-export { PERSIAN_WEEKDAYS, PERSIAN_MONTHS };
+export { PERSIAN_WEEKDAYS, PERSIAN_MONTHS, DAYS_IN_MONTH, JS_TO_IRAN_DAY };

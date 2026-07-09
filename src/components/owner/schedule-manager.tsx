@@ -13,6 +13,7 @@ import {
   jalaliToGregorian,
   getJalaliMonthDays,
   getJalaliMonthName,
+  JS_TO_IRAN_DAY,
 } from "@/lib/jalali";
 import type { WorkingHours } from "@/lib/slots";
 import { getTehranDateKey } from "@/lib/time";
@@ -34,7 +35,6 @@ const IRAN_WEEK_DAYS = [
 ];
 
 const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
-const JS_TO_IRAN_DAY = [1, 2, 3, 4, 5, 6, 0];
 
 function JalaliMonthGrid({
   year,
