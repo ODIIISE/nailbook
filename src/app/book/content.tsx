@@ -43,7 +43,8 @@ export default function BookContent() {
   // Auth state
   const [authPhone, setAuthPhone] = useState("");
   const [authPin, setAuthPin] = useState("");
-  const [authStep, setAuthStep] = useState<"phone" | "pin" | "confirm-pin" | "verify-pin">("phone");
+  const [authName, setAuthName] = useState("");
+  const [authStep, setAuthStep] = useState<"phone" | "pin" | "confirm-pin" | "name" | "verify-pin">("phone");
   const [authError, setAuthError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -194,13 +195,21 @@ export default function BookContent() {
       setAuthError("رمزها مطابقت ندارند");
       return;
     }
+    setAuthStep("name");
+  }, [authPin]);
+
+  const handleAuthNameSubmit = useCallback(async () => {
+    if (!authName.trim()) {
+      setAuthError("نام الزامی است");
+      return;
+    }
     setIsLoading(true);
     setAuthError("");
-    const result = await createPin(normalizeDigits(authPhone), authPin, "");
+    const result = await createPin(normalizeDigits(authPhone), authPin, authName.trim());
     setIsLoading(false);
     if (result.success) setStep("confirm");
     else setAuthError(result.error || "خطا در ثبت‌نام");
-  }, [authPin, authPhone, createPin]);
+  }, [authPin, authPhone, authName, createPin]);
 
   const handleAuthVerifyPinSubmit = useCallback(async (pin: string) => {
     setIsLoading(true);
@@ -256,7 +265,7 @@ export default function BookContent() {
       user_id: user?.id,
       service_id: selectedService.id,
       selected_addons: selectedAddons,
-      customer_name: user?.name || "",
+      customer_name: user?.name || authName || "",
       customer_phone: customerPhone,
       date: (() => { const j = gregorianToJalali(selectedDate); return `${j.jy}/${String(j.jm).padStart(2, "0")}/${String(j.jd).padStart(2, "0")}`; })(),
       date_gregorian: getTehranDateKey(selectedDate),
@@ -433,6 +442,31 @@ export default function BookContent() {
                 <PinInput onComplete={handleAuthConfirmPinSubmit} disabled={isLoading} />
                 {authError && <p className="text-[13px] text-destructive text-center mt-2">{authError}</p>}
                 <Button variant="ghost" className="w-full" onClick={() => setAuthStep("pin")}>بازگشت</Button>
+              </div>
+            )}
+
+            {authStep === "name" && (
+              <div className="space-y-4">
+                <div className="text-center mb-4">
+                  <h2 className="text-h1 text-foreground">نام شما</h2>
+                  <p className="text-[13px] text-muted-foreground mt-1">نام و نام خانوادگی خود را وارد کنید</p>
+                </div>
+                <div>
+                  <Label className="text-[13px]">نام</Label>
+                  <Input
+                    value={authName}
+                    onChange={(e) => setAuthName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAuthNameSubmit()}
+                    placeholder="نام و نام خانوادگی"
+                    className="mt-1"
+                    autoFocus
+                  />
+                </div>
+                {authError && <p className="text-[13px] text-destructive text-center">{authError}</p>}
+                <Button className="w-full" onClick={handleAuthNameSubmit} disabled={isLoading || !authName.trim()}>
+                  {isLoading ? "در حال ثبت‌نام..." : "ثبت‌نام"}
+                </Button>
+                <Button variant="ghost" className="w-full" onClick={() => setAuthStep("confirm-pin")}>بازگشت</Button>
               </div>
             )}
 
