@@ -21,7 +21,7 @@ export async function fetchAddons(): Promise<Addon[]> {
 }
 
 export async function fetchBookings(): Promise<Booking[]> {
-  const res = await fetch("/api/read/bookings");
+  const res = await fetch("/api/read/bookings", { credentials: "include" });
   if (!res.ok) return [];
   return res.json();
 }

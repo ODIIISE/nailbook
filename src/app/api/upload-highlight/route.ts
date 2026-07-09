@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
+import { verifyOwner } from "@/lib/owner-auth";
 
 export async function POST(request: NextRequest) {
   try {
+    const owner = await verifyOwner(request);
+    if (!owner) {
+      return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return NextResponse.json({ error: "فایل ارسال نشده" }, { status: 400 });
     }
 
     const ext = file.name.split(".").pop() || "jpg";
@@ -19,8 +25,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ url: blob.url });
-  } catch (error) {
-    console.error("Highlight upload error:", error);
-    return NextResponse.json({ error: "Server error: " + String(error) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

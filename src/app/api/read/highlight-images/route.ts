@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { verifyOwner } from "@/lib/owner-auth";
 
 export async function POST(request: NextRequest) {
   try {
+    const owner = await verifyOwner(request);
+    if (!owner) {
+      return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    }
+
     const img = await request.json();
     await sql`
       INSERT INTO highlight_images (id, highlight_id, image_url, caption, sort_order)
@@ -10,19 +16,24 @@ export async function POST(request: NextRequest) {
       ON CONFLICT (id) DO UPDATE SET image_url = ${img.image_url}, caption = ${img.caption || ""}, sort_order = ${img.sort_order || 0}
     `;
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
+    const owner = await verifyOwner(request);
+    if (!owner) {
+      return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
     await sql`DELETE FROM highlight_images WHERE id = ${id}`;
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

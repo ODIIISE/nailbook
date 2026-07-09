@@ -53,7 +53,7 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: "خطای سرور: " + String(error) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

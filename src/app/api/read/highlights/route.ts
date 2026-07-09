@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { verifyOwner } from "@/lib/owner-auth";
 
 export async function GET() {
   try {
@@ -25,13 +26,18 @@ export async function GET() {
       sort_order: h.sort_order,
       images: imageMap.get(h.id) || [],
     })));
-  } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
+    const owner = await verifyOwner(request);
+    if (!owner) {
+      return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    }
+
     const h = await request.json();
     await sql`
       INSERT INTO highlights (id, name, cover_url, sort_order)
@@ -39,20 +45,25 @@ export async function PUT(request: NextRequest) {
       ON CONFLICT (id) DO UPDATE SET name = ${h.name}, cover_url = ${h.cover_url || null}, sort_order = ${h.sort_order || 0}
     `;
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
+    const owner = await verifyOwner(request);
+    if (!owner) {
+      return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
     await sql`DELETE FROM highlight_images WHERE highlight_id = ${id}`;
     await sql`DELETE FROM highlights WHERE id = ${id}`;
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

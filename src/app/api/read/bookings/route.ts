@@ -1,8 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { verifyOwner } from "@/lib/owner-auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const owner = await verifyOwner(request);
+    if (!owner) {
+      return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    }
+
     const { rows } = await sql`SELECT * FROM bookings ORDER BY created_at DESC`;
     return NextResponse.json(rows.map((b) => ({
       id: b.id,
@@ -19,7 +25,7 @@ export async function GET() {
       paid: b.paid || false,
       created_at: b.created_at,
     })));
-  } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

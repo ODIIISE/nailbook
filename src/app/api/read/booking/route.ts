@@ -4,12 +4,27 @@ import { sql } from "@vercel/postgres";
 export async function POST(request: NextRequest) {
   try {
     const b = await request.json();
+
+    // Validate required fields
+    if (!b.id || !b.service_id || !b.customer_name || !b.customer_phone || !b.date || !b.date_gregorian || !b.start_time || !b.end_time) {
+      return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
+    }
+
+    // Validate phone format (Iranian)
+    const phone = String(b.customer_phone).replace(/\D/g, "");
+    if (phone.length < 10 || !phone.startsWith("0")) {
+      return NextResponse.json({ error: "شماره موبایل نامعتبر است" }, { status: 400 });
+    }
+
+    // Sanitize name
+    const name = String(b.customer_name).slice(0, 100);
+
     await sql`
       INSERT INTO bookings (id, user_id, service_id, selected_addons, customer_name, customer_phone, date, date_gregorian, start_time, end_time, status, phone_verified)
-      VALUES (${b.id}, ${b.user_id || null}, ${b.service_id}, ${JSON.stringify(b.selected_addons)}, ${b.customer_name}, ${b.customer_phone}, ${b.date}, ${b.date_gregorian}, ${b.start_time}, ${b.end_time}, ${b.status || 'confirmed'}, ${b.phone_verified ?? true})
+      VALUES (${b.id}, ${b.user_id || null}, ${b.service_id}, ${JSON.stringify(b.selected_addons || [])}, ${name}, ${phone}, ${b.date}, ${b.date_gregorian}, ${b.start_time}, ${b.end_time}, ${b.status || 'confirmed'}, ${b.phone_verified ?? true})
     `;
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }
