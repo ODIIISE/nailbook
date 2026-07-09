@@ -41,7 +41,7 @@ export default function OwnerUsersPage() {
     try {
       const res = await fetch("/api/owner/users");
       const data = await res.json();
-      if (data.users) setUsers(data.users);
+      if (Array.isArray(data)) setUsers(data);
     } catch (e) {
       console.error("Failed to fetch users:", e);
     }

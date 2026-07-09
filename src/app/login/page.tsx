@@ -12,7 +12,7 @@ import { useAuth } from "@/lib/auth-context";
 import { normalizeDigits } from "@/lib/digits";
 import { LogIn } from "lucide-react";
 
-type AuthStep = "phone" | "pin" | "confirm-pin" | "verify-pin";
+type AuthStep = "phone" | "pin" | "confirm-pin" | "name" | "verify-pin";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,6 +21,7 @@ export default function LoginPage() {
   const [step, setStep] = useState<AuthStep>("phone");
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
+  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -65,9 +66,17 @@ export default function LoginPage() {
       setError("رمزها مطابقت ندارند");
       return;
     }
+    setStep("name");
+  }, [pin]);
+
+  const handleNameSubmit = useCallback(async () => {
+    if (!name.trim()) {
+      setError("نام الزامی است");
+      return;
+    }
     setIsLoading(true);
     setError("");
-    const result = await createPin(normalizeDigits(phone), pin, "");
+    const result = await createPin(normalizeDigits(phone), pin, name.trim());
     setIsLoading(false);
 
     if (result.success) {
@@ -75,7 +84,7 @@ export default function LoginPage() {
     } else {
       setError(result.error || "خطا در ثبت‌نام");
     }
-  }, [pin, phone, createPin, router]);
+  }, [pin, phone, name, createPin, router]);
 
   const handleVerifyPinSubmit = useCallback(async (enteredPin: string) => {
     setIsLoading(true);
@@ -165,6 +174,41 @@ export default function LoginPage() {
                 <p className="text-[13px] text-destructive text-center mt-2">{error}</p>
               )}
               <Button variant="ghost" className="w-full" onClick={() => setStep("pin")}>
+                بازگشت
+              </Button>
+            </div>
+          )}
+
+          {step === "name" && (
+            <div className="space-y-4">
+              <div className="text-center mb-4">
+                <h2 className="text-h1 text-foreground">نام شما</h2>
+                <p className="text-[13px] text-muted-foreground mt-1">
+                  نام و نام خانوادگی خود را وارد کنید
+                </p>
+              </div>
+              <div>
+                <Label className="text-[13px]">نام</Label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
+                  placeholder="نام و نام خانوادگی"
+                  className="mt-1"
+                  autoFocus
+                />
+              </div>
+              {error && (
+                <p className="text-[13px] text-destructive text-center">{error}</p>
+              )}
+              <Button
+                className="w-full"
+                onClick={handleNameSubmit}
+                disabled={isLoading || !name.trim()}
+              >
+                {isLoading ? "در حال ثبت‌نام..." : "ثبت‌نام"}
+              </Button>
+              <Button variant="ghost" className="w-full" onClick={() => setStep("confirm-pin")}>
                 بازگشت
               </Button>
             </div>
