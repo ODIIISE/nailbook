@@ -203,8 +203,8 @@ export function generateTimeSlots(
 
   candidates = filterDeadGaps(candidates, bookings);
 
-  // Mark first 4 as recommended
-  return candidates.map((slot, index) => ({
+  // Available slots (mark first 4 as suggested)
+  const availableSlots = candidates.map((slot, index) => ({
     time: formatTime(slot.start),
     available: true,
     booked: false,
@@ -212,6 +212,29 @@ export function generateTimeSlots(
     suggested: index < 4,
     score: 0,
   }));
+
+  // Generate all 30-min slots in the working window to find booked ones
+  const allSlots: TimeSlot[] = [];
+  for (let m = shiftStart; m < shiftEnd; m += 30) {
+    const slotEnd = m + 30;
+    const isBooked = bookings.some((b) => b.start < slotEnd && b.end > m);
+    const isBlocked = blocked.some((b) => b.start < slotEnd && b.end > m);
+    const isAvailable = availableSlots.some((s) => parseTime(s.time) === m);
+
+    if (!isAvailable && (isBooked || isBlocked)) {
+      allSlots.push({
+        time: formatTime(m),
+        available: false,
+        booked: isBooked,
+        locked: isBlocked,
+        suggested: false,
+        score: 0,
+      });
+    }
+  }
+
+  // Interleave: available slots first (with suggested markers), then booked slots
+  return [...availableSlots, ...allSlots];
 }
 
 // ─── Nearest Slot (14-day scan) ───

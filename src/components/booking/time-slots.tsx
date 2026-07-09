@@ -23,8 +23,9 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
   }
 
   const availableSlots = slots.filter((s) => s.available);
+  const bookedSlots = slots.filter((s) => !s.available);
 
-  if (availableSlots.length === 0) {
+  if (availableSlots.length === 0 && bookedSlots.length === 0) {
     return (
       <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center shadow-card">
         <Ban className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
@@ -49,6 +50,7 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
 
   return (
     <div className="mx-auto max-w-lg space-y-4">
+      {/* Legend */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
@@ -56,12 +58,8 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
             <span className="text-[13px] text-muted-foreground">موجود</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-white/30" />
+            <span className="h-2 w-2 rounded-full bg-hatched" />
             <span className="text-[13px] text-muted-foreground">رزرو شده</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-destructive/50" />
-            <span className="text-[13px] text-muted-foreground">غیرفعال</span>
           </div>
         </div>
         <span className="text-[13px] text-muted-foreground">
@@ -69,6 +67,7 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
         </span>
       </div>
 
+      {/* Suggested slots */}
       {suggestedSlots.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-2 px-1">
@@ -88,6 +87,7 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
         </div>
       )}
 
+      {/* Other available slots */}
       {otherSlots.length > 0 && (
         <div>
           {suggestedSlots.length > 0 && (
@@ -107,6 +107,25 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
                 slot={slot}
                 isSelected={selectedSlot === slot.time}
                 onSelect={() => onSelectSlot(slot.time)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Booked slots */}
+      {bookedSlots.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-2 px-1 pt-2 border-t border-border/30">
+            <span className="text-[13px] text-muted-foreground">ساعت‌های رزرو شده</span>
+          </div>
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+            {bookedSlots.map((slot) => (
+              <SlotButton
+                key={slot.time}
+                slot={slot}
+                isSelected={false}
+                onSelect={() => {}}
               />
             ))}
           </div>
@@ -139,7 +158,7 @@ function SlotButton({
           ? "bg-foreground text-background shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
           : slot.available
             ? "glass hover:bg-white/60 text-foreground active:scale-95 cursor-pointer"
-            : "bg-white/20 text-muted-foreground/40 cursor-not-allowed line-through"
+            : "slot-booked text-muted-foreground/50 cursor-not-allowed"
         }
       `}
     >
