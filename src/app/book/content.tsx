@@ -269,9 +269,13 @@ export default function BookContent() {
       service: selectedService,
     };
 
-    addBooking(newBooking);
+    const saved = await addBooking(newBooking);
     setIsLoading(false);
-    setStep("receipt");
+    if (saved) {
+      setStep("receipt");
+    } else {
+      setSpamError("خطا در ذخیره رزرو. لطفاً دوباره تلاش کنید.");
+    }
   }, [selectedDate, selectedService, selectedTime, user, authPhone, addBooking, selectedAddons, totalDuration]);
 
   // ─── Step titles ───

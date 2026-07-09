@@ -38,7 +38,7 @@ interface SalonContextType {
   updateAddons: (addons: Addon[]) => Promise<string | null>;
   updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
   updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => void;
-  addBooking: (booking: Booking) => void;
+  addBooking: (booking: Booking) => Promise<boolean>;
   refreshBookings: () => Promise<void>;
   addHighlight: (highlight: Highlight) => Promise<void>;
   updateHighlight: (highlight: Highlight) => Promise<void>;
@@ -191,13 +191,15 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, [blockedTimes]);
 
-  const handleAddBooking = useCallback(async (booking: Booking) => {
+  const handleAddBooking = useCallback(async (booking: Booking): Promise<boolean> => {
     setBookings((prev) => [...prev, booking]);
     try {
       await insertBooking(booking);
+      return true;
     } catch (e) {
       console.error("Failed to save booking:", e);
       setBookings((prev) => prev.filter((b) => b.id !== booking.id));
+      return false;
     }
   }, []);
 
@@ -313,7 +315,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         updateAddons: async () => null,
         updateSalon: async () => {},
         updateBlockedTimes: () => {},
-        addBooking: async () => {},
+        addBooking: async () => false,
         refreshBookings: async () => {},
         addHighlight: async () => {},
         updateHighlight: async () => {},
