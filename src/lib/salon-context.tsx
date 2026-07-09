@@ -92,7 +92,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         if (salonData) setSalon(salonData);
         if (servicesData.length) setServices(servicesData);
         if (addonsData.length) setAddons(addonsData);
-        if (bookingsData.length) setBookings(bookingsData);
+        setBookings(bookingsData);
         if (highlightsData.length) setHighlights(highlightsData);
         if (hoursData) {
           setWorkingHours(hoursData.working_hours);
@@ -205,7 +205,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
 
   const refreshBookings = useCallback(async () => {
     const data = await fetchBookings();
-    if (data.length) setBookings(data);
+    setBookings(data);
   }, []);
 
   const handleUpdateSalon = useCallback(async (updates: Partial<SalonInfo>) => {

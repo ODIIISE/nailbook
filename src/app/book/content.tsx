@@ -114,14 +114,28 @@ export default function BookContent() {
 
   // ─── Navigation ───
 
+  const resetAuth = useCallback(() => {
+    setAuthStep("phone");
+    setAuthPhone("");
+    setAuthPin("");
+    setAuthName("");
+    setAuthError("");
+  }, []);
+
   const goBack = useCallback(() => {
     const steps: BookingStep[] = hasAddons
       ? ["addons", "datetime", "auth", "confirm"]
       : ["datetime", "auth", "confirm"];
     const idx = steps.indexOf(step);
-    if (idx > 0) setStep(steps[idx - 1]);
-    else router.push("/");
-  }, [step, router, hasAddons]);
+    if (idx > 0) {
+      const prev = steps[idx - 1];
+      setStep(prev);
+      // Reset auth state when leaving auth step
+      if (step === "auth" || prev !== "auth") resetAuth();
+    } else {
+      router.push("/");
+    }
+  }, [step, router, hasAddons, resetAuth]);
 
   const handleAddonToggle = useCallback((addonId: string) => {
     setSelectedAddons((prev) =>
@@ -156,9 +170,9 @@ export default function BookContent() {
       setStep("confirm");
     } else {
       setStep("auth");
-      setAuthPhone("");
+      resetAuth();
     }
-  }, [user]);
+  }, [user, resetAuth]);
 
   // ─── Auth handlers ───
 
