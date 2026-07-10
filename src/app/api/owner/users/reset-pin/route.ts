@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
-import crypto from "crypto";
-
-function hashPin(pin: string): string {
-  return crypto.createHash("sha256").update(pin).digest("hex");
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,21 +17,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
     }
 
-    // Hash the new PIN
-    const hashedPin = hashPin(String(pin));
-
-    // Update using RETURNING to confirm it worked
     const { rows } = await sql`
-      UPDATE users SET pin = ${hashedPin} WHERE id = ${userId} RETURNING id, pin
+      UPDATE users SET pin = ${String(pin)} WHERE id = ${userId} RETURNING id, pin
     `;
 
     if (rows.length === 0) {
       return NextResponse.json({ error: "کاربر یافت نشد" }, { status: 404 });
-    }
-
-    // Double-check the pin matches
-    if (rows[0].pin !== hashedPin) {
-      return NextResponse.json({ error: "خطا در بروزرسانی رمز" }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, userId: rows[0].id });

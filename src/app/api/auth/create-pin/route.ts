@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import crypto from "crypto";
 
-function hashPin(pin: string): string {
-  return crypto.createHash("sha256").update(pin).digest("hex");
-}
-
 function signSession(userId: string): string {
   const payload = `${userId}:${Date.now()}`;
   const secret = process.env.OWNER_SESSION_SECRET || "nailbook-owner-secret-key-change-in-production";
@@ -29,12 +25,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "این شماره قبلاً ثبت شده" }, { status: 409 });
     }
 
-    const hashedPin = hashPin(pin);
     const userId = crypto.randomUUID();
 
     await sql`
       INSERT INTO users (id, phone, pin, name, role)
-      VALUES (${userId}, ${phone}, ${hashedPin}, ${name.trim()}, 'customer')
+      VALUES (${userId}, ${phone}, ${pin}, ${name.trim()}, 'customer')
     `;
 
     const sessionId = crypto.randomUUID();

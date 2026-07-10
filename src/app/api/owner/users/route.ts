@@ -3,10 +3,6 @@ import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import crypto from "crypto";
 
-function hashPin(pin: string): string {
-  return crypto.createHash("sha256").update(pin).digest("hex");
-}
-
 export async function GET(request: NextRequest) {
   try {
     const owner = await verifyOwner(request);
@@ -31,7 +27,7 @@ export async function POST(request: NextRequest) {
     const userId = crypto.randomUUID();
     await sql`
       INSERT INTO users (id, phone, pin, name, role)
-      VALUES (${userId}, ${phone}, ${hashPin(pin)}, ${name.trim()}, ${role || "customer"})
+      VALUES (${userId}, ${phone}, ${pin}, ${name.trim()}, ${role || "customer"})
     `;
     return NextResponse.json({ success: true, userId });
   } catch {
@@ -70,14 +66,7 @@ export async function PUT(request: NextRequest) {
       await sql`UPDATE users SET role = ${body.role} WHERE id = ${userId}`;
     }
     if (body.pin !== undefined && String(body.pin).length === 4) {
-      const hashedPin = hashPin(String(body.pin));
-      await sql`UPDATE users SET pin = ${hashedPin} WHERE id = ${userId}`;
-      // Verify the update
-      const { rows: verify } = await sql`SELECT pin FROM users WHERE id = ${userId}`;
-      if (verify[0]?.pin !== hashedPin) {
-        console.error("PIN update failed:", { userId, expected: hashedPin, actual: verify[0]?.pin });
-        return NextResponse.json({ error: "خطا در بروزرسانی رمز" }, { status: 500 });
-      }
+      await sql`UPDATE users SET pin = ${String(body.pin)} WHERE id = ${userId}`;
     }
 
     return NextResponse.json({ success: true });

@@ -296,8 +296,8 @@ export default function OwnerUsersPage() {
                   <div className="flex items-center gap-2">
                     <p className="text-[11px] text-muted-foreground/60">عضویت: {formatDate(user.created_at)}</p>
                     {user.pin && (
-                      <p className="text-[11px] text-muted-foreground/40 font-mono" dir="ltr">
-                        رمز: {user.pin.slice(0, 8)}...
+                      <p className="text-[11px] text-primary/70 font-mono" dir="ltr">
+                        رمز: {user.pin}
                       </p>
                     )}
                   </div>

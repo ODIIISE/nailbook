@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import crypto from "crypto";
 
-function hashPin(pin: string): string {
-  return crypto.createHash("sha256").update(pin).digest("hex");
-}
-
 function signSession(userId: string): string {
   const payload = `${userId}:${Date.now()}`;
   const secret = process.env.OWNER_SESSION_SECRET || "nailbook-owner-secret-key-change-in-production";
@@ -18,7 +14,6 @@ export async function POST(request: NextRequest) {
     const { phone, pin } = await request.json();
     if (!phone || !pin) return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
 
-    const hashedPin = hashPin(pin);
     const { rows: users } = await sql`
       SELECT id, pin, failed_attempts, locked_until FROM users WHERE phone = ${phone}
     `;
@@ -28,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "حساب قفل شده است" }, { status: 423 });
     }
 
-    if (!user || user.pin !== hashedPin) {
+    if (!user || user.pin !== pin) {
       const attempts = (user?.failed_attempts || 0) + 1;
       const lockUntil = attempts >= 5 ? new Date(Date.now() + 30 * 60 * 1000).toISOString() : null;
       if (user?.id) {
