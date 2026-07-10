@@ -44,26 +44,7 @@ export function AppNavbar({ items }: AppNavbarProps) {
   const navItems = items ?? (isOwner ? defaultOwnerItems : defaultCustomerItems);
 
   return (
-    <>
-      {/* Owner login CTA - sticky above navbar */}
-      {!isOwner && (
-        <div
-          className="fixed bottom-[52px] left-0 right-0 z-20 px-4 pb-2 pointer-events-none"
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }}
-        >
-          <div className="mx-auto max-w-lg pointer-events-auto">
-            <button
-              onClick={() => router.push("/owner/login")}
-              className="w-full h-9 rounded-full bg-foreground/5 text-foreground/40 text-[11px] font-medium hover:bg-foreground/10 hover:text-foreground/60 transition-all duration-150"
-            >
-              ورود مدیر
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Navbar */}
-      <div
+    <div
         className="fixed bottom-0 left-0 right-0 z-20 bg-background border-t border-border"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
@@ -95,6 +76,5 @@ export function AppNavbar({ items }: AppNavbarProps) {
           </button>
         </div>
       </div>
-    </>
   );
 }
