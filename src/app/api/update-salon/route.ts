@@ -2,14 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 
-const ALLOWED_FIELDS = [
-  "name", "description", "slogan", "phone", "address",
-  "hero_image_url", "logo_url", "working_hours_text",
-  "working_hours", "specific_days_off",
-  "slot_buffer_minutes", "slot_interval_minutes",
-  "early_extra_hours", "late_extra_hours", "expand_threshold",
-];
-
 export async function POST(request: NextRequest) {
   try {
     const owner = await verifyOwner(request);
@@ -19,35 +11,63 @@ export async function POST(request: NextRequest) {
 
     const updates = await request.json();
 
-    const safeUpdates: Record<string, unknown> = {};
-    for (const key of Object.keys(updates)) {
-      if (ALLOWED_FIELDS.includes(key)) {
-        safeUpdates[key] = updates[key];
-      }
-    }
-
-    if (Object.keys(safeUpdates).length === 0) {
-      return NextResponse.json({ error: "داده نامعتبر" }, { status: 400 });
-    }
-
     const { rows: existing } = await sql`SELECT id FROM salon_info LIMIT 1`;
     if (!existing[0]) {
       return NextResponse.json({ error: "Salon not found" }, { status: 404 });
     }
 
-    const sets: string[] = [];
-    const values: unknown[] = [];
-    let idx = 1;
-    for (const [key, val] of Object.entries(safeUpdates)) {
-      sets.push(`${key} = $${idx}`);
-      values.push(typeof val === "object" ? JSON.stringify(val) : val);
-      idx++;
-    }
+    const salonId = existing[0].id;
 
-    await sql.query(`UPDATE salon_info SET ${sets.join(", ")} WHERE id = $${idx}`, [...values, existing[0].id]);
+    // Update each field individually using tagged template literals
+    if (updates.name !== undefined) {
+      await sql`UPDATE salon_info SET name = ${updates.name} WHERE id = ${salonId}`;
+    }
+    if (updates.description !== undefined) {
+      await sql`UPDATE salon_info SET description = ${updates.description} WHERE id = ${salonId}`;
+    }
+    if (updates.slogan !== undefined) {
+      await sql`UPDATE salon_info SET slogan = ${updates.slogan} WHERE id = ${salonId}`;
+    }
+    if (updates.phone !== undefined) {
+      await sql`UPDATE salon_info SET phone = ${updates.phone} WHERE id = ${salonId}`;
+    }
+    if (updates.address !== undefined) {
+      await sql`UPDATE salon_info SET address = ${updates.address} WHERE id = ${salonId}`;
+    }
+    if (updates.hero_image_url !== undefined) {
+      await sql`UPDATE salon_info SET hero_image_url = ${updates.hero_image_url} WHERE id = ${salonId}`;
+    }
+    if (updates.logo_url !== undefined) {
+      await sql`UPDATE salon_info SET logo_url = ${updates.logo_url} WHERE id = ${salonId}`;
+    }
+    if (updates.working_hours_text !== undefined) {
+      await sql`UPDATE salon_info SET working_hours_text = ${updates.working_hours_text} WHERE id = ${salonId}`;
+    }
+    if (updates.working_hours !== undefined) {
+      await sql`UPDATE salon_info SET working_hours = ${JSON.stringify(updates.working_hours)}::jsonb WHERE id = ${salonId}`;
+    }
+    if (updates.specific_days_off !== undefined) {
+      await sql`UPDATE salon_info SET specific_days_off = ${JSON.stringify(updates.specific_days_off)}::jsonb WHERE id = ${salonId}`;
+    }
+    if (updates.slot_buffer_minutes !== undefined) {
+      await sql`UPDATE salon_info SET slot_buffer_minutes = ${updates.slot_buffer_minutes} WHERE id = ${salonId}`;
+    }
+    if (updates.slot_interval_minutes !== undefined) {
+      await sql`UPDATE salon_info SET slot_interval_minutes = ${updates.slot_interval_minutes} WHERE id = ${salonId}`;
+    }
+    if (updates.early_extra_hours !== undefined) {
+      await sql`UPDATE salon_info SET early_extra_hours = ${updates.early_extra_hours} WHERE id = ${salonId}`;
+    }
+    if (updates.late_extra_hours !== undefined) {
+      await sql`UPDATE salon_info SET late_extra_hours = ${updates.late_extra_hours} WHERE id = ${salonId}`;
+    }
+    if (updates.expand_threshold !== undefined) {
+      await sql`UPDATE salon_info SET expand_threshold = ${updates.expand_threshold} WHERE id = ${salonId}`;
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Update salon error:", error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }
