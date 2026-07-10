@@ -31,6 +31,7 @@ interface SalonContextType {
   bookings: Booking[];
   highlights: Highlight[];
   blockedTimes: Array<{ date_gregorian: string; start_time: string; end_time: string }>;
+  loaded: boolean;
   updateWorkingHours: (hours: WorkingHours) => Promise<void>;
   updateSpecificDaysOff: (daysOff: string[]) => Promise<void>;
   saveSchedule: (hours: WorkingHours, daysOff: string[]) => Promise<void>;
@@ -40,6 +41,7 @@ interface SalonContextType {
   updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => void;
   addBooking: (booking: Booking) => Promise<boolean>;
   refreshBookings: () => Promise<void>;
+  refreshSalonData: () => Promise<void>;
   addHighlight: (highlight: Highlight) => Promise<void>;
   updateHighlight: (highlight: Highlight) => Promise<void>;
   removeHighlight: (id: string) => Promise<void>;
@@ -208,6 +210,22 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     setBookings(data);
   }, []);
 
+  const refreshSalonData = useCallback(async () => {
+    try {
+      const [salonData, hoursData] = await Promise.all([
+        fetchSalonInfo(),
+        fetchWorkingHours(),
+      ]);
+      if (salonData) setSalon(salonData);
+      if (hoursData) {
+        setWorkingHours(hoursData.working_hours);
+        setSpecificDaysOff(hoursData.specific_days_off || []);
+      }
+    } catch (e) {
+      console.error("Failed to refresh salon data:", e);
+    }
+  }, []);
+
   const handleUpdateSalon = useCallback(async (updates: Partial<SalonInfo>) => {
     const prev = salonRef.current;
     setSalon((prev) => ({ ...prev, ...updates }));
@@ -308,6 +326,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         bookings: [],
         highlights: [],
         blockedTimes: [],
+        loaded: false,
         updateWorkingHours: async () => {},
         updateSpecificDaysOff: async () => {},
         saveSchedule: async () => {},
@@ -317,6 +336,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         updateBlockedTimes: () => {},
         addBooking: async () => false,
         refreshBookings: async () => {},
+        refreshSalonData: async () => {},
         addHighlight: async () => {},
         updateHighlight: async () => {},
         removeHighlight: async () => {},
@@ -334,6 +354,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       bookings,
       highlights,
       blockedTimes,
+      loaded: true,
         updateWorkingHours: handleUpdateWorkingHours,
         updateSpecificDaysOff: handleUpdateSpecificDaysOff,
         saveSchedule: handleSaveSchedule,
@@ -343,6 +364,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         updateBlockedTimes: handleUpdateBlockedTimes,
       addBooking: handleAddBooking,
       refreshBookings,
+      refreshSalonData,
       addHighlight: handleAddHighlight,
       updateHighlight: handleUpdateHighlight,
       removeHighlight: handleRemoveHighlight,
@@ -353,7 +375,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, [
     loaded, salon, workingHours, specificDaysOff, services, addons, bookings, highlights, blockedTimes,
     handleUpdateWorkingHours, handleUpdateSpecificDaysOff, handleSaveSchedule, handleUpdateServices, handleUpdateAddons,
-    handleUpdateSalon, handleUpdateBlockedTimes, handleAddBooking, refreshBookings, handleAddHighlight, handleUpdateHighlight,
+    handleUpdateSalon, handleUpdateBlockedTimes, handleAddBooking, refreshBookings, refreshSalonData, handleAddHighlight, handleUpdateHighlight,
     handleRemoveHighlight, handleAddHighlightImage, handleRemoveHighlightImage, handleUploadHighlightImage,
   ]);
 

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageCrop } from "@/components/ui/image-crop";
+import { SalonGuard } from "@/components/ui/salon-guard";
 import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
 import { Save, Camera, Phone, FileText, Sparkles, Clock } from "lucide-react";
@@ -78,6 +79,7 @@ export default function OwnerSettingsPage() {
   };
 
   return (
+    <SalonGuard>
     <div className="px-4 py-4 space-y-6">
       <Card className="p-5">
         <div className="flex items-center gap-4">
@@ -186,5 +188,6 @@ export default function OwnerSettingsPage() {
         />
       )}
     </div>
+    </SalonGuard>
   );
 }

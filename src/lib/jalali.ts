@@ -29,7 +29,8 @@ export function getJalaliDate(date: Date = new Date()) {
 
 export function jalaliToGregorian(jy: number, jm: number, jd: number): Date {
   const g = jalaali.toGregorian(jy, jm, jd);
-  return new Date(g.gy, g.gm - 1, g.gd);
+  // Use UTC noon to avoid timezone drift when getTehranDateKey() converts the date
+  return new Date(Date.UTC(g.gy, g.gm - 1, g.gd, 12, 0, 0));
 }
 
 export function gregorianToJalali(date: Date) {

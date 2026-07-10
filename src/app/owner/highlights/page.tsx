@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SalonGuard } from "@/components/ui/salon-guard";
 import { Plus, X, Trash2, ImagePlus, ChevronDown, ChevronUp } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 import type { Highlight, HighlightImage } from "@/lib/mock-data";
@@ -95,6 +96,7 @@ export default function OwnerHighlightsPage() {
   const expandedHighlight = highlights.find((h) => h.id === expandedId);
 
   return (
+    <SalonGuard>
     <div className="px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
         <div>
@@ -307,5 +309,6 @@ export default function OwnerHighlightsPage() {
         </div>
       )}
     </div>
+    </SalonGuard>
   );
 }

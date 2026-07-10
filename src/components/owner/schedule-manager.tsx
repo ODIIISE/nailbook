@@ -119,7 +119,23 @@ export function ScheduleManager({
     const current = hours[key];
     const newHours = { ...hours };
     if (current === null) {
-      newHours[key] = { open: "10:00", close: "18:00" };
+      // Find the most common open/close times from other active days as default
+      const activeDays = Object.values(hours).filter((h): h is { open: string; close: string } => h !== null);
+      if (activeDays.length > 0) {
+        const mostFrequentOpen = activeDays.reduce((acc, h) => {
+          acc[h.open] = (acc[h.open] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        const mostFrequentClose = activeDays.reduce((acc, h) => {
+          acc[h.close] = (acc[h.close] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        const defaultOpen = Object.entries(mostFrequentOpen).sort((a, b) => b[1] - a[1])[0]?.[0] || "09:00";
+        const defaultClose = Object.entries(mostFrequentClose).sort((a, b) => b[1] - a[1])[0]?.[0] || "17:00";
+        newHours[key] = { open: defaultOpen, close: defaultClose };
+      } else {
+        newHours[key] = { open: "09:00", close: "17:00" };
+      }
     } else {
       newHours[key] = null;
     }

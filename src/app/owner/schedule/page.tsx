@@ -2,6 +2,7 @@
 
 import { ScheduleManager } from "@/components/owner/schedule-manager";
 import { useSalon } from "@/lib/salon-context";
+import { SalonGuard } from "@/components/ui/salon-guard";
 import { toast } from "sonner";
 
 export default function OwnerSchedulePage() {
@@ -17,12 +18,14 @@ export default function OwnerSchedulePage() {
   };
 
   return (
-    <div className="px-4 py-4">
-      <ScheduleManager
-        workingHours={workingHours}
-        specificDaysOff={specificDaysOff}
-        onSave={handleSave}
-      />
-    </div>
+    <SalonGuard>
+      <div className="px-4 py-4">
+        <ScheduleManager
+          workingHours={workingHours}
+          specificDaysOff={specificDaysOff}
+          onSave={handleSave}
+        />
+      </div>
+    </SalonGuard>
   );
 }

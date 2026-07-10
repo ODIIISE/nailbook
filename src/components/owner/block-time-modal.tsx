@@ -1,20 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { getIranWeekDay } from "@/lib/slots";
+import type { WorkingHours } from "@/lib/slots";
 
 interface BlockTimeModalProps {
   date: Date;
+  workingHours: WorkingHours;
   onBlock: (startTime: string, endTime: string, reason: string) => void;
   onCancel: () => void;
 }
 
-export function BlockTimeModal({ date, onBlock, onCancel }: BlockTimeModalProps) {
-  const [startTime, setStartTime] = useState("12:00");
-  const [endTime, setEndTime] = useState("13:00");
+export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockTimeModalProps) {
+  const defaultTimes = useMemo(() => {
+    const dayKey = getIranWeekDay(date);
+    const dayHours = workingHours[dayKey];
+    if (dayHours) {
+      // Default to midpoint of working hours
+      const [openH, openM] = dayHours.open.split(":").map(Number);
+      const [closeH, closeM] = dayHours.close.split(":").map(Number);
+      const openMin = openH * 60 + openM;
+      const closeMin = closeH * 60 + closeM;
+      const midMin = Math.floor((openMin + closeMin) / 2);
+      const midH = Math.floor(midMin / 60);
+      const midM = midMin % 60;
+      const endMin = midMin + 60;
+      const endH = Math.floor(endMin / 60);
+      const endM = endMin % 60;
+      return {
+        start: `${String(midH).padStart(2, "0")}:${String(midM).padStart(2, "0")}`,
+        end: `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`,
+      };
+    }
+    return { start: "12:00", end: "13:00" };
+  }, [date, workingHours]);
+
+  const [startTime, setStartTime] = useState(defaultTimes.start);
+  const [endTime, setEndTime] = useState(defaultTimes.end);
   const [reason, setReason] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {

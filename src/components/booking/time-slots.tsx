@@ -23,9 +23,10 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
   }
 
   const availableSlots = slots.filter((s) => s.available);
-  const bookedSlots = slots.filter((s) => !s.available);
+  const bookedSlots = slots.filter((s) => !s.available && (s.booked || s.locked));
+  const unavailableSlots = slots.filter((s) => !s.available && !s.booked && !s.locked);
 
-  if (availableSlots.length === 0 && bookedSlots.length === 0) {
+  if (slots.length === 0) {
     return (
       <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center shadow-card">
         <Ban className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
@@ -113,7 +114,7 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
         </div>
       )}
 
-      {/* Booked slots */}
+      {/* Booked/locked slots */}
       {bookedSlots.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-2 px-1 pt-2 border-t border-border/30">
@@ -121,6 +122,25 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
           </div>
           <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
             {bookedSlots.map((slot) => (
+              <SlotButton
+                key={slot.time}
+                slot={slot}
+                isSelected={false}
+                onSelect={() => {}}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Unavailable slots (past, dead gap, doesn't fit service) */}
+      {unavailableSlots.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-2 px-1 pt-2 border-t border-border/30">
+            <span className="text-[13px] text-muted-foreground">ساعت‌های غیرقابل رزرو</span>
+          </div>
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+            {unavailableSlots.map((slot) => (
               <SlotButton
                 key={slot.time}
                 slot={slot}
@@ -150,7 +170,7 @@ function SlotButton({
     <button
       disabled={!slot.available}
       onClick={onSelect}
-      aria-label={`${formattedTime} ${slot.available ? "موجود" : "رزرو شده"}`}
+      aria-label={`${formattedTime} ${slot.available ? "موجود" : slot.booked ? "رزرو شده" : slot.locked ? "مسدود" : "غیرقابل رزرو"}`}
       className={`
         h-11 rounded-full text-[13px] font-bold transition-all duration-200
         focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:outline-none

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Header } from "@/components/layout/header";
-import { CustomerNav } from "@/components/layout/customer-nav";
+import { AppHeader } from "@/components/layout/app-header";
+import { AppNavbar } from "@/components/layout/app-navbar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,7 +50,7 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="min-h-screen">
-        <Header title="پروفایل" />
+        <AppHeader title="پروفایل" />
         <div className="px-4 pt-6 pb-24">
           <div className="mx-auto max-w-lg">
             <div className="text-center py-16">
@@ -68,14 +68,14 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-        <CustomerNav />
+        <AppNavbar />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen">
-      <Header title="پروفایل" />
+      <AppHeader title="پروفایل" />
 
       <div className="px-4 pt-6 pb-24">
         <div className="mx-auto max-w-lg space-y-4">
@@ -144,7 +144,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <CustomerNav />
+      <AppNavbar />
     </div>
   );
 }

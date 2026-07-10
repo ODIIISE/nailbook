@@ -2,8 +2,8 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Header } from "@/components/layout/header";
-import { CustomerNav } from "@/components/layout/customer-nav";
+import { AppHeader } from "@/components/layout/app-header";
+import { AppNavbar } from "@/components/layout/app-navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { TimeSlots } from "@/components/booking/time-slots";
 import { BookingConfirm } from "@/components/booking/booking-confirm";
 import { PinInput } from "@/components/booking/pin-input";
+import { SalonGuard } from "@/components/ui/salon-guard";
 import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
@@ -26,8 +27,13 @@ type BookingStep = "addons" | "datetime" | "auth" | "confirm" | "receipt";
 export default function BookContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { salon, workingHours, services, addons, bookings, blockedTimes, addBooking } = useSalon();
+  const { salon, workingHours, services, addons, bookings, blockedTimes, addBooking, refreshSalonData } = useSalon();
   const { user, checkPhone, createPin, verifyPin } = useAuth();
+
+  // Refresh salon data on mount to get latest working hours
+  useEffect(() => {
+    refreshSalonData();
+  }, [refreshSalonData]);
 
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
@@ -114,7 +120,11 @@ export default function BookContent() {
       salon.slot_buffer_minutes,
       dayBookings,
       dayBlocked,
-      selectedService?.priority_score || 5
+      selectedService?.priority_score || 5,
+      {
+        slotIntervalMinutes: salon.slot_interval_minutes,
+        bufferMinutes: salon.slot_buffer_minutes,
+      }
     );
   }, [selectedDate, selectedService, totalDuration, workingHours, salon, bookings, blockedTimes]);
 
@@ -298,6 +308,9 @@ export default function BookContent() {
       service: selectedService,
     };
 
+    // Debug log for troubleshooting
+    console.log("[Booking] Creating:", { id, date_gregorian: newBooking.date_gregorian, service_id: newBooking.service_id });
+
     const saved = await addBooking(newBooking);
     setIsLoading(false);
     if (saved) {
@@ -318,8 +331,9 @@ export default function BookContent() {
   };
 
   return (
+    <SalonGuard>
     <div className="min-h-screen">
-      <Header
+      <AppHeader
         showBack={step !== "receipt"}
         title={stepTitles[step]}
         subtitle={selectedService?.name}
@@ -594,7 +608,8 @@ export default function BookContent() {
         </div>
       )}
 
-      <CustomerNav />
+      <AppNavbar />
     </div>
+    </SalonGuard>
   );
 }

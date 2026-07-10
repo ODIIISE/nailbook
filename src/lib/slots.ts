@@ -1,13 +1,12 @@
 /**
- * Booking Engine — Simplified
+ * Booking Engine v5 — Fully Configurable
  *
- * Rules:
- * - Working hours: 12:00-18:00 default, expand to 10:00-12:00 if 80% booked
- * - Slot interval: 30 minutes (:00 or :30)
- * - Duration rounding: 15, 30, 45, 60, 90, 120
- * - Buffer: 0 (configurable)
- * - Dead gaps (1-14 min) hard-removed
- * - First 4 slots = recommended, rest = available
+ * All values come from salon settings (database):
+ * - slot_interval_minutes: configurable slot interval
+ * - slot_buffer_minutes: configurable buffer after each booking
+ * - working_hours: per-day open/close times
+ *
+ * No hardcoded time values. All behavior is data-driven.
  */
 
 export interface WorkingHours {
@@ -23,20 +22,31 @@ export interface TimeSlot {
   score: number;
 }
 
+export interface SlotConfig {
+  slotIntervalMinutes: number;
+  bufferMinutes: number;
+  minGapMinutes: number;
+  expandHours: number;
+  expandThreshold: number; // 0.8 = 80%
+  suggestedCount: number;
+}
+
 interface FreeInterval {
   start: number;
   end: number;
 }
 
-interface Candidate {
-  start: number;
-  end: number;
-  intervalStart: number;
-  intervalEnd: number;
-}
-
 const IRAN_WEEK_DAYS = ["sat", "sun", "mon", "tue", "wed", "thu", "fri"];
 const STANDARD_DURATIONS = [15, 30, 45, 60, 90, 120];
+
+const DEFAULT_CONFIG: SlotConfig = {
+  slotIntervalMinutes: 15,
+  bufferMinutes: 0,
+  minGapMinutes: 15,
+  expandHours: 2,
+  expandThreshold: 0.8,
+  suggestedCount: 4,
+};
 
 import { getTehranDateKey, getTehranNow } from "./time";
 import { gregorianToJalali, jalaliToGregorian, DAYS_IN_MONTH } from "./jalali";
@@ -57,8 +67,6 @@ function formatTime(minutes: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-// ─── Duration Rounding ───
-
 function roundDuration(minutes: number): number {
   for (const std of STANDARD_DURATIONS) {
     if (minutes <= std) return std;
@@ -66,16 +74,13 @@ function roundDuration(minutes: number): number {
   return 120;
 }
 
-// ─── Step 1: Build Free Intervals ───
+// ─── Build merged occupied intervals ───
 
-function buildFreeIntervals(
-  shiftStart: number,
-  shiftEnd: number,
+function buildOccupiedIntervals(
   bookings: Array<{ start: number; end: number }>,
   blocked: Array<{ start: number; end: number }>
-): FreeInterval[] {
+): Array<{ start: number; end: number }> {
   const occupied = [...bookings, ...blocked].sort((a, b) => a.start - b.start);
-
   const merged: Array<{ start: number; end: number }> = [];
   for (const iv of occupied) {
     if (merged.length === 0 || iv.start > merged[merged.length - 1].end) {
@@ -84,10 +89,19 @@ function buildFreeIntervals(
       merged[merged.length - 1].end = Math.max(merged[merged.length - 1].end, iv.end);
     }
   }
+  return merged;
+}
 
+// ─── Build free intervals from occupied ───
+
+function buildFreeIntervals(
+  shiftStart: number,
+  shiftEnd: number,
+  occupied: Array<{ start: number; end: number }>
+): FreeInterval[] {
   const free: FreeInterval[] = [];
   let cursor = shiftStart;
-  for (const block of merged) {
+  for (const block of occupied) {
     if (cursor < block.start) free.push({ start: cursor, end: block.start });
     cursor = Math.max(cursor, block.end);
   }
@@ -95,53 +109,33 @@ function buildFreeIntervals(
   return free;
 }
 
-// ─── Step 2: Generate Candidates at :00 and :30 ───
+// ─── Check if a slot creates a dead gap ───
 
-function generateCandidates(
-  intervals: FreeInterval[],
-  serviceDuration: number
-): Candidate[] {
-  const candidates: Candidate[] = [];
-
-  for (const iv of intervals) {
-    if (iv.end - iv.start < serviceDuration) continue;
-
-    const startHour = Math.floor(iv.start / 60);
-    const startMin = iv.start % 60;
-    const firstSlot = startMin <= 0 ? iv.start : (startHour + 1) * 60;
-
-    for (let m = firstSlot; m < iv.end; m += 30) {
-      candidates.push({
-        start: m,
-        end: m + serviceDuration,
-        intervalStart: iv.start,
-        intervalEnd: iv.end,
-      });
+function createsDeadGap(
+  slotStart: number,
+  slotEnd: number,
+  freeIntervals: FreeInterval[],
+  bookings: Array<{ start: number; end: number }>,
+  minGap: number
+): boolean {
+  for (const iv of freeIntervals) {
+    if (slotEnd > iv.start && slotEnd < iv.end) {
+      const remainderAfter = iv.end - slotEnd;
+      if (remainderAfter > 0 && remainderAfter < minGap) return true;
+    }
+    if (slotStart > iv.start && slotStart < iv.end) {
+      const gapBefore = slotStart - iv.start;
+      if (gapBefore > 0 && gapBefore < minGap) return true;
     }
   }
-  return candidates;
-}
 
-// ─── Step 3: Dead Gap Filter ───
-
-const MIN_GAP = 15;
-
-function filterDeadGaps(
-  candidates: Candidate[],
-  bookings: Array<{ start: number; end: number }>
-): Candidate[] {
-  return candidates.filter((slot) => {
-    const remainderAfter = slot.intervalEnd - slot.end;
-    if (remainderAfter > 0 && remainderAfter < MIN_GAP) return false;
-
-    for (const b of bookings) {
-      if (b.end <= slot.start && b.end > slot.intervalStart) {
-        const gapBefore = slot.start - b.end;
-        if (gapBefore > 0 && gapBefore < MIN_GAP) return false;
-      }
+  for (const b of bookings) {
+    if (b.end <= slotStart && slotStart - b.end < minGap && slotStart - b.end > 0) {
+      return true;
     }
-    return true;
-  });
+  }
+
+  return false;
 }
 
 // ─── Main Entry ───
@@ -150,25 +144,30 @@ export function generateTimeSlots(
   workingHours: WorkingHours,
   date: Date,
   serviceDurationMinutes: number,
-  _slotIntervalMinutes: number,
+  slotIntervalMinutes: number,
   bufferMinutes: number,
   existingBookings: Array<{ start_time: string; end_time: string }>,
   activeLocks: Array<{ start_time: string; end_time?: string; expires_at?: string }>,
-  _priorityScore: number = 5
+  _priorityScore: number = 5,
+  config: Partial<SlotConfig> = {}
 ): TimeSlot[] {
+  const cfg = { ...DEFAULT_CONFIG, ...config, slotIntervalMinutes, bufferMinutes };
+  const slotInterval = cfg.slotIntervalMinutes;
+
   const dayKey = getIranWeekDay(date);
   const dayHours = workingHours[dayKey];
   if (!dayHours) return [];
 
   const now = getTehranNow();
-  const isToday = getTehranDateKey(date) === now.dateKey;
+  const todayKey = getTehranDateKey(new Date());
+  const isToday = getTehranDateKey(date) === todayKey;
   const nowMinutes = now.minutes;
 
-  const shiftStart = parseTime(dayHours.open);
+  let shiftStart = parseTime(dayHours.open);
   const shiftEnd = parseTime(dayHours.close);
 
   const rounded = roundDuration(serviceDurationMinutes);
-  const totalDuration = rounded + bufferMinutes;
+  const totalDuration = rounded + cfg.bufferMinutes;
 
   const bookings = existingBookings.map((b) => ({
     start: parseTime(b.start_time),
@@ -182,47 +181,63 @@ export function generateTimeSlots(
       end: l.end_time ? parseTime(l.end_time) : parseTime(l.start_time) + totalDuration,
     }));
 
-  let intervals = buildFreeIntervals(shiftStart, shiftEnd, bookings, blocked);
+  const occupied = buildOccupiedIntervals(bookings, blocked);
 
-  // Expand to 10:00 if 80% of 12-18 is booked
-  const twelveToSixMinutes = 6 * 60;
-  let bookedInWindow = 0;
+  // ─── Dynamic expansion: if shift is ≥threshold booked, expand start back ───
+  const shiftDuration = shiftEnd - shiftStart;
+  let bookedMinutes = 0;
   for (const b of bookings) {
     const bStart = Math.max(b.start, shiftStart);
     const bEnd = Math.min(b.end, shiftEnd);
-    if (bEnd > bStart) bookedInWindow += bEnd - bStart;
+    if (bEnd > bStart) bookedMinutes += bEnd - bStart;
   }
-  if (bookedInWindow >= twelveToSixMinutes * 0.8 && shiftStart === parseTime("12:00")) {
-    const earlyIntervals = buildFreeIntervals(parseTime("10:00"), parseTime("12:00"), bookings, blocked);
-    intervals = [...earlyIntervals, ...intervals];
+  if (bookedMinutes >= shiftDuration * cfg.expandThreshold && shiftStart > 0) {
+    const expandedStart = Math.max(0, shiftStart - cfg.expandHours * 60);
+    const earlyFree = buildFreeIntervals(expandedStart, shiftStart, occupied);
+    const hasEarlyAvailability = earlyFree.some(
+      (iv) => iv.end - iv.start >= totalDuration
+    );
+    if (hasEarlyAvailability) {
+      shiftStart = expandedStart;
+    }
   }
 
-  let candidates = generateCandidates(intervals, totalDuration);
+  // ─── Build free intervals for availability check ───
+  const freeIntervals = buildFreeIntervals(shiftStart, shiftEnd, occupied);
 
-  if (isToday) candidates = candidates.filter((c) => c.start >= nowMinutes);
+  // ─── Generate ALL slots using configurable interval ───
+  const result: TimeSlot[] = [];
+  let availableIndex = 0;
 
-  candidates = filterDeadGaps(candidates, bookings);
+  for (let m = shiftStart; m < shiftEnd; m += slotInterval) {
+    const slotEnd = m + totalDuration;
 
-  // Available slots (mark first 4 as suggested)
-  const availableSlots = candidates.map((slot, index) => ({
-    time: formatTime(slot.start),
-    available: true,
-    booked: false,
-    locked: false,
-    suggested: index < 4,
-    score: 0,
-  }));
+    const isBooked = bookings.some((b) => b.start < m + slotInterval && b.end > m);
+    const isBlocked = blocked.some((b) => b.start < m + slotInterval && b.end > m);
+    const fitsService = slotEnd <= shiftEnd;
+    const isPast = isToday && m < nowMinutes;
 
-  // Generate all 30-min slots in the working window to find booked ones
-  const allSlots: TimeSlot[] = [];
-  for (let m = shiftStart; m < shiftEnd; m += 30) {
-    const slotEnd = m + 30;
-    const isBooked = bookings.some((b) => b.start < slotEnd && b.end > m);
-    const isBlocked = blocked.some((b) => b.start < slotEnd && b.end > m);
-    const isAvailable = availableSlots.some((s) => parseTime(s.time) === m);
+    const fitsInFreeInterval = freeIntervals.some(
+      (iv) => m >= iv.start && slotEnd <= iv.end
+    );
 
-    if (!isAvailable && (isBooked || isBlocked)) {
-      allSlots.push({
+    const isDeadGap = !isBooked && !isBlocked && fitsService && fitsInFreeInterval
+      && createsDeadGap(m, slotEnd, freeIntervals, bookings, cfg.minGapMinutes);
+
+    const available = fitsService && !isBooked && !isBlocked && !isPast && !isDeadGap && fitsInFreeInterval;
+
+    if (available) {
+      result.push({
+        time: formatTime(m),
+        available: true,
+        booked: false,
+        locked: false,
+        suggested: availableIndex < cfg.suggestedCount,
+        score: 0,
+      });
+      availableIndex++;
+    } else {
+      result.push({
         time: formatTime(m),
         available: false,
         booked: isBooked,
@@ -233,8 +248,7 @@ export function generateTimeSlots(
     }
   }
 
-  // Interleave: available slots first (with suggested markers), then booked slots
-  return [...availableSlots, ...allSlots];
+  return result;
 }
 
 // ─── Nearest Slot (14-day scan) ───
@@ -242,11 +256,12 @@ export function generateTimeSlots(
 export function getNearestAvailableSlot(
   workingHours: WorkingHours,
   serviceDurationMinutes: number,
-  _slotIntervalMinutes: number,
+  slotIntervalMinutes: number,
   bufferMinutes: number,
   existingBookings: Array<{ date_gregorian: string; start_time: string; end_time: string }>,
   activeLocks: Array<{ date_gregorian: string; start_time: string; expires_at: string }>,
-  _priorityScore: number = 5
+  _priorityScore: number = 5,
+  config: Partial<SlotConfig> = {}
 ): { date: Date; time: string } | null {
   const todayJalali = gregorianToJalali(new Date());
 
@@ -272,8 +287,8 @@ export function getNearestAvailableSlot(
       .map((l) => ({ start_time: l.start_time, expires_at: l.expires_at }));
 
     const slots = generateTimeSlots(
-      workingHours, checkDate, serviceDurationMinutes, 30, bufferMinutes,
-      dayBookings, dayLocks, 5
+      workingHours, checkDate, serviceDurationMinutes, slotIntervalMinutes, bufferMinutes,
+      dayBookings, dayLocks, 5, config
     );
     const best = slots.find((s) => s.available);
     if (best) return { date: checkDate, time: best.time };

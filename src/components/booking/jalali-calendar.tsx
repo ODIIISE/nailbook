@@ -240,7 +240,7 @@ function CalendarModal({
       const gKey = gDate.toISOString().slice(0, 10);
       const todayKey = today.toISOString().slice(0, 10);
       const isSelected = selectedDate !== null && gKey === selectedDate.toISOString().slice(0, 10);
-      const isPast = gDate < today;
+      const isPast = gDate.getTime() < today.getTime();
       result.push({ day: d, date: gDate, isToday: gKey === todayKey, isSelected, isPast });
     }
     return result;

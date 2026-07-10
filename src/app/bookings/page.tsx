@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Header } from "@/components/layout/header";
-import { CustomerNav } from "@/components/layout/customer-nav";
+import { AppHeader } from "@/components/layout/app-header";
+import { AppNavbar } from "@/components/layout/app-navbar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SalonGuard } from "@/components/ui/salon-guard";
 import { Clock, Calendar, User, ArrowLeft } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
@@ -75,7 +76,7 @@ export default function BookingsPage() {
   if (!user) {
     return (
       <div className="min-h-screen">
-        <Header title="نوبت‌های من" />
+        <AppHeader title="نوبت‌های من" />
         <div className="px-4 pt-6 pb-24">
           <div className="mx-auto max-w-lg">
             <div className="text-center py-16">
@@ -96,14 +97,15 @@ export default function BookingsPage() {
             </div>
           </div>
         </div>
-        <CustomerNav />
+        <AppNavbar />
       </div>
     );
   }
 
   return (
+    <SalonGuard>
     <div className="min-h-screen">
-      <Header title="نوبت‌های من" />
+      <AppHeader title="نوبت‌های من" />
 
       <div className="px-4 pt-6 pb-24">
         <div className="mx-auto max-w-lg space-y-6">
@@ -183,8 +185,9 @@ export default function BookingsPage() {
         />
       )}
 
-      <CustomerNav />
+      <AppNavbar />
     </div>
+    </SalonGuard>
   );
 }
 

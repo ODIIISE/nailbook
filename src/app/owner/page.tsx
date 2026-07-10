@@ -10,6 +10,7 @@ import { BookingModal } from "@/components/owner/booking-modal";
 import { EarningsModal } from "@/components/owner/earnings-modal";
 import { ManualReserveModal } from "@/components/owner/manual-reserve-modal";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
+import { SalonGuard } from "@/components/ui/salon-guard";
 import { ChevronLeft, Plus, Search } from "lucide-react";
 import { toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
@@ -23,7 +24,7 @@ interface BlockedTime {
 }
 
 export default function OwnerDashboard() {
-  const { salon, bookings, services, blockedTimes, updateBlockedTimes, addBooking, refreshBookings } = useSalon();
+  const { salon, bookings, services, workingHours, blockedTimes, updateBlockedTimes, addBooking, refreshBookings } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
@@ -84,7 +85,10 @@ export default function OwnerDashboard() {
   const accounting = useMemo(() => {
     const today = getTehranDateKey(currentDate);
     const todayBookings = bookings.filter(
-      (b) => b.date_gregorian === today && b.status === "confirmed"
+      (b) => {
+        const bookingDate = b.date_gregorian.split("T")[0];
+        return bookingDate === today && b.status === "confirmed";
+      }
     );
 
     const paid = todayBookings
@@ -123,6 +127,7 @@ export default function OwnerDashboard() {
   }) => {
     const dateStr = getTehranDateKey(currentDate);
     const service = services.find((s) => s.id === data.service_id);
+    const j = gregorianToJalali(currentDate);
 
     addBooking({
       id: crypto.randomUUID(),
@@ -130,7 +135,7 @@ export default function OwnerDashboard() {
       selected_addons: [],
       customer_name: data.customer_name,
       customer_phone: data.customer_phone,
-      date: "",
+      date: `${j.jy}/${String(j.jm).padStart(2, "0")}/${String(j.jd).padStart(2, "0")}`,
       date_gregorian: dateStr,
       start_time: data.start_time + ":00",
       end_time: data.end_time + ":00",
@@ -145,6 +150,7 @@ export default function OwnerDashboard() {
   };
 
   return (
+    <SalonGuard>
     <>
       <div className="px-4 py-4 space-y-4">
         <JalaliCalendar
@@ -237,6 +243,7 @@ export default function OwnerDashboard() {
       {showBlockTime && (
         <BlockTimeModal
           date={currentDate}
+          workingHours={workingHours}
           onBlock={handleBlockTime}
           onCancel={() => setShowBlockTime(false)}
         />
@@ -246,6 +253,7 @@ export default function OwnerDashboard() {
         <ManualReserveModal
           date={currentDate}
           services={services}
+          workingHours={workingHours}
           onReserve={handleManualReserve}
           onClose={() => setShowManualReserve(false)}
         />
@@ -280,5 +288,6 @@ export default function OwnerDashboard() {
         />
       )}
     </>
+    </SalonGuard>
   );
 }

@@ -1,17 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { normalizeDigits } from "@/lib/digits";
 import { toPersianDigits } from "@/lib/jalali";
+import { getIranWeekDay } from "@/lib/slots";
 import type { Service } from "@/lib/mock-data";
+import type { WorkingHours } from "@/lib/slots";
 
 interface ManualReserveModalProps {
   date: Date;
   services: Service[];
+  workingHours: WorkingHours;
   onReserve: (data: {
     customer_name: string;
     customer_phone: string;
@@ -25,14 +28,36 @@ interface ManualReserveModalProps {
 export function ManualReserveModal({
   date,
   services,
+  workingHours,
   onReserve,
   onClose,
 }: ManualReserveModalProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [serviceId, setServiceId] = useState(services[0]?.id || "");
-  const [startTime, setStartTime] = useState("10:00");
-  const [endTime, setEndTime] = useState("11:00");
+
+  // Derive default times from working hours
+  const defaultTimes = useMemo(() => {
+    const dayKey = getIranWeekDay(date);
+    const dayHours = workingHours[dayKey];
+    if (dayHours) {
+      const service = services[0];
+      const duration = service ? service.duration_minutes : 60;
+      const [h, m] = dayHours.open.split(":").map(Number);
+      const startMin = h * 60 + m;
+      const endMin = startMin + duration;
+      const endH = Math.floor(endMin / 60);
+      const endM = endMin % 60;
+      return {
+        start: dayHours.open,
+        end: `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`,
+      };
+    }
+    return { start: "09:00", end: "10:00" };
+  }, [date, workingHours, services]);
+
+  const [startTime, setStartTime] = useState(defaultTimes.start);
+  const [endTime, setEndTime] = useState(defaultTimes.end);
 
   const selectedService = services.find((s) => s.id === serviceId);
 

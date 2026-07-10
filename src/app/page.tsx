@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Header } from "@/components/layout/header";
-import { CustomerNav } from "@/components/layout/customer-nav";
+import { AppHeader } from "@/components/layout/app-header";
+import { AppNavbar } from "@/components/layout/app-navbar";
 import { Hero } from "@/components/landing/hero";
 import { TrustSignals } from "@/components/landing/trust-signals";
 import { ContactButtons } from "@/components/landing/contact-buttons";
 import { Highlights } from "@/components/landing/highlights";
 import { HighlightViewer } from "@/components/landing/highlight-viewer";
 import { ServiceCardGrid } from "@/components/landing/service-card-grid";
+import { SalonGuard } from "@/components/ui/salon-guard";
 import { Heart } from "lucide-react";
 
 import { useSalon } from "@/lib/salon-context";
@@ -23,8 +24,9 @@ export default function HomePage() {
   };
 
   return (
+    <SalonGuard>
     <div className="min-h-screen">
-      <Header />
+      <AppHeader />
 
       <Highlights
         highlights={highlights}
@@ -47,7 +49,7 @@ export default function HomePage() {
         </p>
       </footer>
 
-      <CustomerNav />
+      <AppNavbar />
 
       {viewingHighlight && (
         <HighlightViewer
@@ -56,5 +58,6 @@ export default function HomePage() {
         />
       )}
     </div>
+    </SalonGuard>
   );
 }
