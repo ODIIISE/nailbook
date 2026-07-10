@@ -178,6 +178,80 @@ export default function OwnerSettingsPage() {
         {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
       </Button>
 
+      {/* Backup Section */}
+      <Card className="p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-[14px]">💾</span>
+          <h3 className="font-semibold text-foreground">پشتیبان‌گیری</h3>
+        </div>
+        <p className="text-[12px] text-muted-foreground">
+          از تمام اطلاعات سالن (خدمات، قیمت‌ها، رزروها، تنظیمات) خروجی بگیرید
+        </p>
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/owner/backup", { credentials: "include" });
+                if (!res.ok) throw new Error("خطا");
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `nailbook-backup-${new Date().toISOString().split("T")[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                toast.success("فایل پشتیبان دانلود شد");
+              } catch {
+                toast.error("خطا در دریافت پشتیبان");
+              }
+            }}
+          >
+            دانلود پشتیبان
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => {
+              const input = document.createElement("input");
+              input.type = "file";
+              input.accept = ".json";
+              input.onchange = async (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (!file) return;
+                try {
+                  const text = await file.text();
+                  const backup = JSON.parse(text);
+                  if (!backup.data) {
+                    toast.error("فایل پشتیبان نامعتبر است");
+                    return;
+                  }
+                  const res = await fetch("/api/owner/backup", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ data: backup.data, mode: "merge" }),
+                  });
+                  const result = await res.json();
+                  if (result.success) {
+                    toast.success(`${result.restored} مورد بازیابی شد`);
+                    window.location.reload();
+                  } else {
+                    toast.error(result.error || "خطا در بازیابی");
+                  }
+                } catch {
+                  toast.error("فایل پشتیبان نامعتبر است");
+                }
+              };
+              input.click();
+            }}
+          >
+            بازیابی از فایل
+          </Button>
+        </div>
+      </Card>
+
       {/* Crop Modal */}
       {cropImage && (
         <ImageCrop
