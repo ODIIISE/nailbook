@@ -22,26 +22,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
     }
 
-    // Check if user exists
-    const { rows: existing } = await sql`SELECT id FROM users WHERE id = ${userId}`;
-    if (existing.length === 0) {
-      return NextResponse.json({ error: "کاربر یافت نشد" }, { status: 404 });
-    }
-
     // Hash the new PIN
     const hashedPin = hashPin(String(pin));
 
-    // Update the PIN
-    await sql`UPDATE users SET pin = ${hashedPin} WHERE id = ${userId}`;
+    // Update using RETURNING to confirm it worked
+    const { rows } = await sql`
+      UPDATE users SET pin = ${hashedPin} WHERE id = ${userId} RETURNING id, pin
+    `;
 
-    // Verify the update succeeded
-    const { rows: verify } = await sql`SELECT pin FROM users WHERE id = ${userId}`;
-    if (!verify[0] || verify[0].pin !== hashedPin) {
-      console.error("PIN verification failed after update:", { userId, expected: hashedPin, actual: verify[0]?.pin });
+    if (rows.length === 0) {
+      return NextResponse.json({ error: "کاربر یافت نشد" }, { status: 404 });
+    }
+
+    // Double-check the pin matches
+    if (rows[0].pin !== hashedPin) {
       return NextResponse.json({ error: "خطا در بروزرسانی رمز" }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, userId: rows[0].id });
   } catch (error) {
     console.error("Reset PIN error:", error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
