@@ -172,6 +172,11 @@ INSERT INTO salon_info (name, description, slogan, phone, address) VALUES
   ('استدیو تخصصی ناخن فورهند', 'Forehand Nail Studio — استدیو تخصصی ناخن در مشهد', 'زیبایی ناخن، اعتماد به نفس شما', '09308681363', 'مشهد، نebin صارمی ۳۸/۱۲، پلاک ۷۷')
 ON CONFLICT DO NOTHING;
 
+-- Seed default owner (phone: 09308681363, pin: 1234)
+INSERT INTO users (phone, pin, name, role) VALUES
+  ('09308681363', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'مدیر', 'owner')
+ON CONFLICT (phone) DO NOTHING;
+
 -- Seed services
 INSERT INTO services (id, name, description, duration_minutes, price, sort_order, addon_ids) VALUES
   ('1', 'ژلیش ناخن', 'ماندگاری بالا و براقیت فوق‌العاده', 45, 350000, 1, '["a1","a2","a3"]'::jsonb),

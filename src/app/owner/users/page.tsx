@@ -39,7 +39,7 @@ export default function OwnerUsersPage() {
 
   const fetchUsers = useCallback(async () => {
     try {
-      const res = await fetch("/api/owner/users");
+      const res = await fetch("/api/owner/users", { credentials: "include" });
       const data = await res.json();
       if (Array.isArray(data)) setUsers(data);
     } catch (e) {
