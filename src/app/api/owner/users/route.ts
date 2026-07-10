@@ -44,45 +44,33 @@ export async function PUT(request: NextRequest) {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const { userId, phone, name, role, pin } = await request.json();
+    const body = await request.json();
+    const { userId } = body;
     if (!userId) return NextResponse.json({ error: "شناسه کاربر الزامی است" }, { status: 400 });
 
     // Prevent changing own role
-    if (userId === owner.id && role && role !== "owner") {
+    if (userId === owner.id && body.role && body.role !== "owner") {
       return NextResponse.json({ error: "نقش خود را نمی‌توانید تغییر دهید" }, { status: 400 });
     }
 
-    // Build dynamic update based on provided fields
-    const updates: string[] = [];
-    const values: unknown[] = [];
-    let idx = 1;
-
-    if (phone !== undefined) {
-      updates.push(`phone = $${idx++}`);
-      values.push(phone);
+    // Update each field individually using tagged template literals
+    if (body.phone !== undefined) {
+      await sql`UPDATE users SET phone = ${body.phone} WHERE id = ${userId}`;
     }
-    if (name !== undefined) {
-      updates.push(`name = $${idx++}`);
-      values.push(name);
+    if (body.name !== undefined) {
+      await sql`UPDATE users SET name = ${body.name} WHERE id = ${userId}`;
     }
-    if (role !== undefined) {
-      updates.push(`role = $${idx++}`);
-      values.push(role);
+    if (body.role !== undefined) {
+      await sql`UPDATE users SET role = ${body.role} WHERE id = ${userId}`;
     }
-    if (pin !== undefined && String(pin).length === 4) {
-      updates.push(`pin = $${idx++}`);
-      values.push(hashPin(String(pin)));
+    if (body.pin !== undefined && String(body.pin).length === 4) {
+      const hashedPin = hashPin(String(body.pin));
+      await sql`UPDATE users SET pin = ${hashedPin} WHERE id = ${userId}`;
     }
-
-    if (updates.length === 0) {
-      return NextResponse.json({ error: "داده‌ای برای بروزرسانی ارسال نشد" }, { status: 400 });
-    }
-
-    values.push(userId);
-    await sql.query(`UPDATE users SET ${updates.join(", ")} WHERE id = $${idx}`, values);
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error("User update error:", error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }
