@@ -191,7 +191,13 @@ export default function OwnerUsersPage() {
       const res = await fetch("/api/owner/users", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: selectedUser.id, pin }),
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          phone: selectedUser.phone,
+          name: selectedUser.name,
+          role: selectedUser.role,
+          pin,
+        }),
       });
       const data = await res.json();
       if (data.success) {

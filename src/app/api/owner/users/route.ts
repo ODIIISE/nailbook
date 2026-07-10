@@ -44,7 +44,7 @@ export async function PUT(request: NextRequest) {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const { userId, phone, name, role } = await request.json();
+    const { userId, phone, name, role, pin } = await request.json();
     if (!userId) return NextResponse.json({ error: "شناسه کاربر الزامی است" }, { status: 400 });
 
     // Prevent changing own role
@@ -52,11 +52,35 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "نقش خود را نمی‌توانید تغییر دهید" }, { status: 400 });
     }
 
-    if (phone) {
-      await sql`UPDATE users SET phone = ${phone}, name = ${name || ""}, role = ${role || "customer"} WHERE id = ${userId}`;
-    } else {
-      await sql`UPDATE users SET name = ${name || ""}, role = ${role || "customer"} WHERE id = ${userId}`;
+    // Build dynamic update based on provided fields
+    const updates: string[] = [];
+    const values: unknown[] = [];
+    let idx = 1;
+
+    if (phone !== undefined) {
+      updates.push(`phone = $${idx++}`);
+      values.push(phone);
     }
+    if (name !== undefined) {
+      updates.push(`name = $${idx++}`);
+      values.push(name);
+    }
+    if (role !== undefined) {
+      updates.push(`role = $${idx++}`);
+      values.push(role);
+    }
+    if (pin !== undefined && String(pin).length === 4) {
+      updates.push(`pin = $${idx++}`);
+      values.push(hashPin(String(pin)));
+    }
+
+    if (updates.length === 0) {
+      return NextResponse.json({ error: "داده‌ای برای بروزرسانی ارسال نشد" }, { status: 400 });
+    }
+
+    values.push(userId);
+    await sql.query(`UPDATE users SET ${updates.join(", ")} WHERE id = $${idx}`, values);
+
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
