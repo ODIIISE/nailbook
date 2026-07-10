@@ -12,62 +12,30 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  checkPhone: (phone: string) => Promise<{ exists: boolean; locked?: boolean; hasPin?: boolean; role?: string; message?: string }>;
-  createPin: (phone: string, pin: string, name: string) => Promise<{ success: boolean; error?: string }>;
-  verifyPin: (phone: string, pin: string) => Promise<{ success: boolean; error?: string; attemptsLeft?: number }>;
+  login: (phone: string, pin: string) => Promise<{ success: boolean; error?: string; needsSignup?: boolean }>;
+  signup: (phone: string, pin: string, name: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const STORAGE_KEY = "nailbook_user";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Load user from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem("auth_user");
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch {}
-    }
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) setUser(JSON.parse(stored));
+    } catch { /* ignore */ }
     setIsLoading(false);
   }, []);
 
-  const checkPhone = useCallback(async (phone: string) => {
-    try {
-      const res = await fetch("/api/auth/check-phone", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone }),
-      });
-      return await res.json();
-    } catch {
-      return { exists: false };
-    }
-  }, []);
-
-  const createPin = useCallback(async (phone: string, pin: string, name: string) => {
-    try {
-      const res = await fetch("/api/auth/create-pin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, pin, name, role: "customer" }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        const user = data.user || { id: data.userId, phone, name, role: "customer" };
-        setUser(user);
-        localStorage.setItem("auth_user", JSON.stringify(user));
-        return { success: true };
-      }
-      return { success: false, error: data.error };
-    } catch {
-      return { success: false, error: "خطای سرور" };
-    }
-  }, []);
-
-  const verifyPin = useCallback(async (phone: string, pin: string) => {
+  // Login: phone + PIN → verify
+  const login = useCallback(async (phone: string, pin: string) => {
     try {
       const res = await fetch("/api/auth/verify-pin", {
         method: "POST",
@@ -75,12 +43,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ phone, pin }),
       });
       const data = await res.json();
+
       if (data.success && data.user) {
         setUser(data.user);
-        localStorage.setItem("auth_user", JSON.stringify(data.user));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.user));
         return { success: true };
       }
-      return { success: false, error: data.error, attemptsLeft: data.attemptsLeft };
+
+      // If user doesn't exist or has no PIN, suggest signup
+      if (res.status === 404 || res.status === 400) {
+        return { success: false, error: data.error, needsSignup: true };
+      }
+
+      return { success: false, error: data.error || "خطا در ورود" };
+    } catch {
+      return { success: false, error: "خطای سرور" };
+    }
+  }, []);
+
+  // Signup: phone + PIN + name → create
+  const signup = useCallback(async (phone: string, pin: string, name: string) => {
+    try {
+      const res = await fetch("/api/auth/create-pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, pin, name }),
+      });
+      const data = await res.json();
+
+      if (data.success && data.user) {
+        setUser(data.user);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.user));
+        return { success: true };
+      }
+
+      return { success: false, error: data.error || "خطا در ثبت‌نام" };
     } catch {
       return { success: false, error: "خطای سرور" };
     }
@@ -88,14 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem("auth_user");
-    document.cookie = "auth_token=; path=/; max-age=0";
+    localStorage.removeItem(STORAGE_KEY);
   }, []);
 
   return (
-    <AuthContext.Provider
-      value={{ user, isLoading, checkPhone, createPin, verifyPin, logout }}
-    >
+    <AuthContext.Provider value={{ user, isLoading, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

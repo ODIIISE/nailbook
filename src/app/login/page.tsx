@@ -12,26 +12,26 @@ import { useAuth } from "@/lib/auth-context";
 import { normalizeDigits } from "@/lib/digits";
 import { LogIn } from "lucide-react";
 
-type AuthStep = "phone" | "pin" | "confirm-pin" | "name" | "verify-pin";
+type Step = "phone" | "pin" | "confirm-pin" | "name" | "verify-pin";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, checkPhone, createPin, verifyPin } = useAuth();
+  const { user, login, signup } = useAuth();
 
-  const [step, setStep] = useState<AuthStep>("phone");
+  const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // If already logged in, redirect home
+  // Redirect if already logged in
   useEffect(() => {
-    if (user) {
-      router.replace("/");
-    }
+    if (user) router.replace("/");
   }, [user, router]);
 
+  // Step 1: Submit phone number
   const handlePhoneSubmit = useCallback(async () => {
     const normalized = normalizeDigits(phone);
     if (normalized.length < 10) {
@@ -41,34 +41,40 @@ export default function LoginPage() {
     setIsLoading(true);
     setError("");
     setPhone(normalized);
-    const result = await checkPhone(normalized);
+
+    // Try login first
+    const result = await login(normalized, "");
     setIsLoading(false);
 
-    if (result.locked) {
-      setError(result.message || "حساب قفل شده است");
-      return;
-    }
-
-    if (result.exists && result.hasPin) {
-      setStep("verify-pin");
-    } else {
+    if (result.needsSignup) {
+      // User doesn't exist or has no PIN → go to signup
       setStep("pin");
+    } else if (result.success) {
+      // Already logged in (shouldn't happen with empty PIN, but handle it)
+      router.replace("/");
+    } else {
+      // User exists with PIN → go to PIN entry
+      setStep("verify-pin");
     }
-  }, [phone, checkPhone]);
+  }, [phone, login, router]);
 
+  // Step 2 (signup): Enter new PIN
   const handlePinSubmit = useCallback((enteredPin: string) => {
     setPin(enteredPin);
     setStep("confirm-pin");
   }, []);
 
-  const handleConfirmPinSubmit = useCallback(async (confirmPin: string) => {
-    if (pin !== confirmPin) {
+  // Step 3 (signup): Confirm PIN
+  const handleConfirmPinSubmit = useCallback((enteredPin: string) => {
+    if (pin !== enteredPin) {
       setError("رمزها مطابقت ندارند");
       return;
     }
+    setConfirmPin(enteredPin);
     setStep("name");
   }, [pin]);
 
+  // Step 4 (signup): Enter name and complete signup
   const handleNameSubmit = useCallback(async () => {
     if (!name.trim()) {
       setError("نام الزامی است");
@@ -76,7 +82,7 @@ export default function LoginPage() {
     }
     setIsLoading(true);
     setError("");
-    const result = await createPin(normalizeDigits(phone), pin, name.trim());
+    const result = await signup(phone, pin, name.trim());
     setIsLoading(false);
 
     if (result.success) {
@@ -84,12 +90,13 @@ export default function LoginPage() {
     } else {
       setError(result.error || "خطا در ثبت‌نام");
     }
-  }, [pin, phone, name, createPin, router]);
+  }, [phone, pin, name, signup, router]);
 
+  // Step 5 (login): Verify existing PIN
   const handleVerifyPinSubmit = useCallback(async (enteredPin: string) => {
     setIsLoading(true);
     setError("");
-    const result = await verifyPin(normalizeDigits(phone), enteredPin);
+    const result = await login(phone, enteredPin);
     setIsLoading(false);
 
     if (result.success) {
@@ -97,9 +104,8 @@ export default function LoginPage() {
     } else {
       setError(result.error || "کد نادرست است");
     }
-  }, [phone, verifyPin, router]);
+  }, [phone, login, router]);
 
-  // Don't render if already logged in
   if (user) return null;
 
   return (
@@ -108,6 +114,8 @@ export default function LoginPage() {
 
       <div className="mx-auto max-w-lg px-4 py-6">
         <Card className="glass p-6">
+
+          {/* Step 1: Phone */}
           {step === "phone" && (
             <div className="space-y-4">
               <div className="text-center mb-4">
@@ -130,19 +138,14 @@ export default function LoginPage() {
                   className="mt-1 text-left"
                 />
               </div>
-              {error && (
-                <p className="text-[13px] text-destructive text-center">{error}</p>
-              )}
-              <Button
-                className="w-full"
-                onClick={handlePhoneSubmit}
-                disabled={isLoading || phone.length < 10}
-              >
+              {error && <p className="text-[13px] text-destructive text-center">{error}</p>}
+              <Button className="w-full" onClick={handlePhoneSubmit} disabled={isLoading || phone.length < 10}>
                 {isLoading ? "در حال بررسی..." : "ادامه"}
               </Button>
             </div>
           )}
 
+          {/* Step 2 (signup): Create PIN */}
           {step === "pin" && (
             <div className="space-y-4">
               <div className="text-center mb-4">
@@ -152,15 +155,12 @@ export default function LoginPage() {
                 </p>
               </div>
               <PinInput onComplete={handlePinSubmit} disabled={isLoading} />
-              {error && (
-                <p className="text-[13px] text-destructive text-center mt-2">{error}</p>
-              )}
-              <Button variant="ghost" className="w-full" onClick={() => setStep("phone")}>
-                بازگشت
-              </Button>
+              {error && <p className="text-[13px] text-destructive text-center mt-2">{error}</p>}
+              <Button variant="ghost" className="w-full" onClick={() => setStep("phone")}>بازگشت</Button>
             </div>
           )}
 
+          {/* Step 3 (signup): Confirm PIN */}
           {step === "confirm-pin" && (
             <div className="space-y-4">
               <div className="text-center mb-4">
@@ -170,15 +170,12 @@ export default function LoginPage() {
                 </p>
               </div>
               <PinInput onComplete={handleConfirmPinSubmit} disabled={isLoading} />
-              {error && (
-                <p className="text-[13px] text-destructive text-center mt-2">{error}</p>
-              )}
-              <Button variant="ghost" className="w-full" onClick={() => setStep("pin")}>
-                بازگشت
-              </Button>
+              {error && <p className="text-[13px] text-destructive text-center mt-2">{error}</p>}
+              <Button variant="ghost" className="w-full" onClick={() => setStep("pin")}>بازگشت</Button>
             </div>
           )}
 
+          {/* Step 4 (signup): Enter name */}
           {step === "name" && (
             <div className="space-y-4">
               <div className="text-center mb-4">
@@ -198,42 +195,30 @@ export default function LoginPage() {
                   autoFocus
                 />
               </div>
-              {error && (
-                <p className="text-[13px] text-destructive text-center">{error}</p>
-              )}
-              <Button
-                className="w-full"
-                onClick={handleNameSubmit}
-                disabled={isLoading || !name.trim()}
-              >
+              {error && <p className="text-[13px] text-destructive text-center">{error}</p>}
+              <Button className="w-full" onClick={handleNameSubmit} disabled={isLoading || !name.trim()}>
                 {isLoading ? "در حال ثبت‌نام..." : "ثبت‌نام"}
               </Button>
-              <Button variant="ghost" className="w-full" onClick={() => setStep("confirm-pin")}>
-                بازگشت
-              </Button>
+              <Button variant="ghost" className="w-full" onClick={() => setStep("confirm-pin")}>بازگشت</Button>
             </div>
           )}
 
+          {/* Step 5 (login): Enter existing PIN */}
           {step === "verify-pin" && (
             <div className="space-y-4">
               <div className="text-center mb-4">
                 <h2 className="text-h1 text-foreground">ورود</h2>
                 <p className="text-[13px] text-muted-foreground mt-1">
-                  کد ۴ رقمی عضویت خود را وارد کنید
+                  رمز ۴ رقمی خود را وارد کنید
                 </p>
-                <p className="text-[13px] text-muted-foreground mt-1" dir="ltr">
-                  {phone}
-                </p>
+                <p className="text-[13px] text-muted-foreground mt-1" dir="ltr">{phone}</p>
               </div>
               <PinInput onComplete={handleVerifyPinSubmit} disabled={isLoading} />
-              {error && (
-                <p className="text-[13px] text-destructive text-center mt-2">{error}</p>
-              )}
-              <Button variant="ghost" className="w-full" onClick={() => setStep("phone")}>
-                بازگشت
-              </Button>
+              {error && <p className="text-[13px] text-destructive text-center mt-2">{error}</p>}
+              <Button variant="ghost" className="w-full" onClick={() => setStep("phone")}>بازگشت</Button>
             </div>
           )}
+
         </Card>
       </div>
     </div>

@@ -28,7 +28,7 @@ export default function BookContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { salon, workingHours, services, addons, bookings, blockedTimes, addBooking, refreshSalonData } = useSalon();
-  const { user, checkPhone, createPin, verifyPin } = useAuth();
+  const { user, login, signup } = useAuth();
 
   // Refresh salon data on mount to get latest working hours
   useEffect(() => {
@@ -201,19 +201,19 @@ export default function BookContent() {
     setIsLoading(true);
     setAuthError("");
     setAuthPhone(normalized);
-    const result = await checkPhone(normalized);
+
+    // Try login with empty PIN to check if user exists
+    const result = await login(normalized, "");
     setIsLoading(false);
 
-    if (result.locked) {
-      setAuthError(result.message || "حساب قفل شده است");
-      return;
-    }
-    if (result.exists && result.hasPin) {
-      setAuthStep("verify-pin");
-    } else {
+    if (result.needsSignup) {
       setAuthStep("pin");
+    } else if (result.success) {
+      setStep("confirm");
+    } else {
+      setAuthError(result.error || "خطا");
     }
-  }, [authPhone, checkPhone]);
+  }, [authPhone, login]);
 
   const handleAuthPinSubmit = useCallback((pin: string) => {
     setAuthPin(pin);
@@ -235,20 +235,20 @@ export default function BookContent() {
     }
     setIsLoading(true);
     setAuthError("");
-    const result = await createPin(normalizeDigits(authPhone), authPin, authName.trim());
+    const result = await signup(normalizeDigits(authPhone), authPin, authName.trim());
     setIsLoading(false);
     if (result.success) setStep("confirm");
     else setAuthError(result.error || "خطا در ثبت‌نام");
-  }, [authPin, authPhone, authName, createPin]);
+  }, [authPin, authPhone, authName, signup]);
 
   const handleAuthVerifyPinSubmit = useCallback(async (pin: string) => {
     setIsLoading(true);
     setAuthError("");
-    const result = await verifyPin(normalizeDigits(authPhone), pin);
+    const result = await login(normalizeDigits(authPhone), pin);
     setIsLoading(false);
     if (result.success) setStep("confirm");
     else setAuthError(result.error || "کد نادرست است");
-  }, [authPhone, verifyPin]);
+  }, [authPhone, login]);
 
   // ─── Confirm booking ───
 

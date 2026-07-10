@@ -7,9 +7,20 @@ export async function POST(request: NextRequest) {
     if (!phone) return NextResponse.json({ error: "شماره الزامی است" }, { status: 400 });
 
     const { rows } = await sql`SELECT id, name, role, pin FROM users WHERE phone = ${phone}`;
-    if (rows.length === 0) return NextResponse.json({ exists: false });
-    return NextResponse.json({ exists: true, hasPin: !!rows[0].pin, role: rows[0].role });
-  } catch {
+
+    if (rows.length === 0) {
+      return NextResponse.json({ exists: false });
+    }
+
+    const user = rows[0];
+    return NextResponse.json({
+      exists: true,
+      hasPin: !!user.pin,
+      role: user.role,
+      name: user.name,
+    });
+  } catch (error) {
+    console.error("check-phone error:", error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }
