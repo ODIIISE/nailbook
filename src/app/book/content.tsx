@@ -122,8 +122,8 @@ export default function BookContent() {
       dayBlocked,
       selectedService?.priority_score || 5,
       {
-        slotIntervalMinutes: salon.slot_interval_minutes,
-        bufferMinutes: salon.slot_buffer_minutes,
+        interval: salon.slot_interval_minutes,
+        buffer: salon.slot_buffer_minutes,
       }
     );
   }, [selectedDate, selectedService, totalDuration, workingHours, salon, bookings, blockedTimes]);
