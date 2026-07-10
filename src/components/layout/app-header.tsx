@@ -156,14 +156,6 @@ export function AppHeader({
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-black/5">
-                      <button
-                        onClick={() => { router.push("/owner/login"); closeMenu(); }}
-                        className="w-full text-center text-[11px] text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors duration-150 py-1"
-                      >
-                        ورود مدیر
-                      </button>
-                    </div>
                   </>
                 )}
               </div>

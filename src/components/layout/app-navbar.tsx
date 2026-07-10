@@ -44,37 +44,57 @@ export function AppNavbar({ items }: AppNavbarProps) {
   const navItems = items ?? (isOwner ? defaultOwnerItems : defaultCustomerItems);
 
   return (
-    <div
-      className="fixed bottom-0 left-0 right-0 z-20 bg-background border-t border-border"
-      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-    >
-      <div className="mx-auto max-w-lg flex items-stretch">
-        {navItems.map(({ path, icon: Icon, label }) => {
-          const active = pathname === path;
-          return (
-            <button
-              key={path}
-              onClick={() => router.push(path)}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 pt-2.5 pb-2 transition-all duration-180 ${
-                active ? "text-primary" : "text-muted-foreground"
-              }`}
-            >
-              <Icon className={`h-5 w-5 ${active ? "stroke-[2.5]" : "stroke-[1.8]"}`} />
-              <span className={`text-[10px] leading-none ${active ? "font-semibold" : "font-normal"}`}>
-                {label}
-              </span>
-            </button>
-          );
-        })}
-
-        <button
-          onClick={openMenu}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 pt-2.5 pb-2 transition-all duration-180 text-muted-foreground"
+    <>
+      {/* Owner login CTA - sticky above navbar */}
+      {!isOwner && (
+        <div
+          className="fixed bottom-[52px] left-0 right-0 z-20 px-4 pb-2 pointer-events-none"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }}
         >
-          <Menu className="h-5 w-5 stroke-[1.8]" />
-          <span className="text-[10px] leading-none font-normal">منو</span>
-        </button>
+          <div className="mx-auto max-w-lg pointer-events-auto">
+            <button
+              onClick={() => router.push("/owner/login")}
+              className="w-full h-9 rounded-full bg-foreground/5 text-foreground/40 text-[11px] font-medium hover:bg-foreground/10 hover:text-foreground/60 transition-all duration-150"
+            >
+              ورود مدیر
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Navbar */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-20 bg-background border-t border-border"
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      >
+        <div className="mx-auto max-w-lg flex items-stretch">
+          {navItems.map(({ path, icon: Icon, label }) => {
+            const active = pathname === path;
+            return (
+              <button
+                key={path}
+                onClick={() => router.push(path)}
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 pt-2.5 pb-2 transition-all duration-180 ${
+                  active ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                <Icon className={`h-5 w-5 ${active ? "stroke-[2.5]" : "stroke-[1.8]"}`} />
+                <span className={`text-[10px] leading-none ${active ? "font-semibold" : "font-normal"}`}>
+                  {label}
+                </span>
+              </button>
+            );
+          })}
+
+          <button
+            onClick={openMenu}
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 pt-2.5 pb-2 transition-all duration-180 text-muted-foreground"
+          >
+            <Menu className="h-5 w-5 stroke-[1.8]" />
+            <span className="text-[10px] leading-none font-normal">منو</span>
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
