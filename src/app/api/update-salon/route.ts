@@ -7,6 +7,7 @@ const ALLOWED_FIELDS = [
   "hero_image_url", "logo_url", "working_hours_text",
   "working_hours", "specific_days_off",
   "slot_buffer_minutes", "slot_interval_minutes",
+  "early_extra_hours", "late_extra_hours", "expand_threshold",
 ];
 
 export async function POST(request: NextRequest) {
