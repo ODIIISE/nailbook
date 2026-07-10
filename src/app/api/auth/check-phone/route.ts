@@ -12,12 +12,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ exists: false });
     }
 
-    const user = rows[0];
     return NextResponse.json({
       exists: true,
-      hasPin: !!user.pin,
-      role: user.role,
-      name: user.name,
+      hasPin: !!rows[0].pin,
+      role: rows[0].role,
     });
   } catch (error) {
     console.error("check-phone error:", error);

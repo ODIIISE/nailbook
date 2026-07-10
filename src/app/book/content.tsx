@@ -28,7 +28,7 @@ export default function BookContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { salon, workingHours, services, addons, bookings, blockedTimes, addBooking, refreshSalonData } = useSalon();
-  const { user, login, signup } = useAuth();
+  const { user, checkPhone, login, signup } = useAuth();
 
   // Refresh salon data on mount to get latest working hours
   useEffect(() => {
@@ -202,18 +202,15 @@ export default function BookContent() {
     setAuthError("");
     setAuthPhone(normalized);
 
-    // Try login with empty PIN to check if user exists
-    const result = await login(normalized, "");
+    const result = await checkPhone(normalized);
     setIsLoading(false);
 
-    if (result.needsSignup) {
-      setAuthStep("pin");
-    } else if (result.success) {
-      setStep("confirm");
+    if (result.exists && result.hasPin) {
+      setAuthStep("verify-pin");
     } else {
-      setAuthError(result.error || "خطا");
+      setAuthStep("pin");
     }
-  }, [authPhone, login]);
+  }, [authPhone, checkPhone]);
 
   const handleAuthPinSubmit = useCallback((pin: string) => {
     setAuthPin(pin);

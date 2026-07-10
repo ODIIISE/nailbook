@@ -12,7 +12,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (phone: string, pin: string) => Promise<{ success: boolean; error?: string; needsSignup?: boolean }>;
+  checkPhone: (phone: string) => Promise<{ exists: boolean; hasPin?: boolean; role?: string }>;
+  login: (phone: string, pin: string) => Promise<{ success: boolean; error?: string }>;
   signup: (phone: string, pin: string, name: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
@@ -25,7 +26,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load user from localStorage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -34,7 +34,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  // Login: phone + PIN → verify
+  // Step 1: Check if phone exists and has PIN
+  const checkPhone = useCallback(async (phone: string) => {
+    try {
+      const res = await fetch("/api/auth/check-phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      return await res.json();
+    } catch {
+      return { exists: false };
+    }
+  }, []);
+
+  // Step 2a: Login with existing PIN
   const login = useCallback(async (phone: string, pin: string) => {
     try {
       const res = await fetch("/api/auth/verify-pin", {
@@ -49,19 +63,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data.user));
         return { success: true };
       }
-
-      // If user doesn't exist or has no PIN, suggest signup
-      if (res.status === 404 || res.status === 400) {
-        return { success: false, error: data.error, needsSignup: true };
-      }
-
-      return { success: false, error: data.error || "خطا در ورود" };
+      return { success: false, error: data.error };
     } catch {
       return { success: false, error: "خطای سرور" };
     }
   }, []);
 
-  // Signup: phone + PIN + name → create
+  // Step 2b: Signup with new PIN
   const signup = useCallback(async (phone: string, pin: string, name: string) => {
     try {
       const res = await fetch("/api/auth/create-pin", {
@@ -76,8 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data.user));
         return { success: true };
       }
-
-      return { success: false, error: data.error || "خطا در ثبت‌نام" };
+      return { success: false, error: data.error };
     } catch {
       return { success: false, error: "خطای سرور" };
     }
@@ -89,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, checkPhone, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );
