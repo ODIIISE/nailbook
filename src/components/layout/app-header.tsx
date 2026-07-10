@@ -50,7 +50,6 @@ export function AppHeader({
 
   const defaultMenuItems: MenuItem[] = menuItems ?? [
     { icon: <span className="text-[14px]">🏠</span>, label: "صفحه اصلی", onClick: () => router.push("/") },
-    { icon: <span className="text-[14px]">👤</span>, label: "ورود مدیر", onClick: () => router.push("/owner/login") },
   ];
 
   // Close menu on route change
@@ -155,6 +154,15 @@ export function AppHeader({
                           {salon.working_hours_text || "شنبه تا پنج شنبه . ۱۰ تا ۱۸"}
                         </span>
                       </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-black/5">
+                      <button
+                        onClick={() => { router.push("/owner/login"); closeMenu(); }}
+                        className="w-full text-center text-[11px] text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors duration-150 py-1"
+                      >
+                        ورود مدیر
+                      </button>
                     </div>
                   </>
                 )}
