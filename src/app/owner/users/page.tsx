@@ -14,6 +14,7 @@ interface User {
   phone: string;
   name: string;
   role: string;
+  pin: string;
   failed_attempts: number;
   locked_until: string | null;
   created_at: string;
@@ -105,6 +106,7 @@ export default function OwnerUsersPage() {
       const res = await fetch("/api/owner/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ phone, name: formName, pin: formPin, role: formRole }),
       });
       const data = await res.json();
@@ -141,6 +143,7 @@ export default function OwnerUsersPage() {
       const res = await fetch("/api/owner/users", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(body),
       });
       const data = await res.json();
@@ -163,6 +166,7 @@ export default function OwnerUsersPage() {
       const res = await fetch("/api/owner/users", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ userId: selectedUser.id }),
       });
       const data = await res.json();
@@ -215,6 +219,7 @@ export default function OwnerUsersPage() {
       const res = await fetch("/api/owner/users", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ userId: user.id, locked: !user.locked_until }),
       });
       const data = await res.json();
@@ -288,7 +293,14 @@ export default function OwnerUsersPage() {
                     )}
                   </div>
                   <p className="text-[13px] text-muted-foreground" dir="ltr">{formatPhone(user.phone)}</p>
-                  <p className="text-[11px] text-muted-foreground/60">عضویت: {formatDate(user.created_at)}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[11px] text-muted-foreground/60">عضویت: {formatDate(user.created_at)}</p>
+                    {user.pin && (
+                      <p className="text-[11px] text-muted-foreground/40 font-mono" dir="ltr">
+                        رمز: {user.pin.slice(0, 8)}...
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-0.5 flex-shrink-0">
                   <Button variant="ghost" size="icon-sm" onClick={() => handleToggleBlock(user)} title={user.locked_until ? "رفع قفل" : "قفل"}>

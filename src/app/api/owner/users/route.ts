@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const { rows } = await sql`SELECT id, phone, name, role, created_at FROM users ORDER BY created_at DESC`;
+    const { rows } = await sql`SELECT id, phone, name, role, pin, created_at FROM users ORDER BY created_at DESC`;
     return NextResponse.json(rows);
   } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
