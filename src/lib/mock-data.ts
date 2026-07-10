@@ -13,6 +13,9 @@ export interface SalonInfo {
   };
   slot_buffer_minutes: number;
   slot_interval_minutes: number;
+  early_extra_hours: number;
+  late_extra_hours: number;
+  expand_threshold: number;
 }
 
 export interface Addon {
@@ -91,4 +94,7 @@ export const MOCK_SALON: SalonInfo = {
   },
   slot_buffer_minutes: 15,
   slot_interval_minutes: 15,
+  early_extra_hours: 0,
+  late_extra_hours: 0,
+  expand_threshold: 80,
 };

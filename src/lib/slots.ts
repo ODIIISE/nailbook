@@ -26,12 +26,13 @@ export interface TimeSlot {
 }
 
 interface SlotConfig {
-  interval: number;      // minutes between slot starts
-  buffer: number;        // extra minutes after each booking
-  minGap: number;        // minimum dead gap to allow
-  expandHours: number;   // hours to expand shift when busy
-  expandThreshold: number; // 0.8 = expand when 80% booked
-  suggestedCount: number;  // first N available = suggested
+  interval: number;         // minutes between slot starts
+  buffer: number;           // extra minutes after each booking
+  minGap: number;           // minimum dead gap to allow
+  earlyExtraHours: number;  // hours before shift start (0 = disabled)
+  lateExtraHours: number;   // hours after shift end (0 = disabled)
+  expandThreshold: number;  // percentage (0-100) to trigger expansion
+  suggestedCount: number;   // first N available = suggested
 }
 
 interface TimeBlock {
@@ -48,8 +49,9 @@ const DEFAULT_CONFIG: SlotConfig = {
   interval: 15,
   buffer: 0,
   minGap: 15,
-  expandHours: 2,
-  expandThreshold: 0.8,
+  earlyExtraHours: 0,
+  lateExtraHours: 0,
+  expandThreshold: 80,
   suggestedCount: 4,
 };
 
@@ -111,8 +113,8 @@ export function generateTimeSlots(
   if (!dayHours) return []; // Closed day
 
   // Calculate time boundaries
-  const shiftStart = parseTime(dayHours.open);
-  const shiftEnd = parseTime(dayHours.close);
+  const rawShiftStart = parseTime(dayHours.open);
+  const rawShiftEnd = parseTime(dayHours.close);
   const totalDuration = roundDuration(serviceDurationMinutes) + cfg.buffer;
 
   // Convert bookings and blocks to minutes
@@ -131,8 +133,8 @@ export function generateTimeSlots(
   // Merge all occupied time into continuous blocks
   const occupied = mergeBlocks([...bookings, ...blocks]);
 
-  // Check if we need to expand shift (80% booked rule)
-  const effectiveStart = shouldExpandShift(shiftStart, shiftEnd, bookings, cfg);
+  // Check if we need to expand shift (configurable threshold + extra hours)
+  const { start: shiftStart, end: shiftEnd } = shouldExpandShift(rawShiftStart, rawShiftEnd, bookings, cfg);
 
   // Generate ALL slots from shift start to end
   const result: TimeSlot[] = [];
@@ -141,7 +143,7 @@ export function generateTimeSlots(
   const isToday = getTehranDateKey(date) === now.dateKey;
   const nowMinutes = now.minutes;
 
-  for (let m = effectiveStart; m < shiftEnd; m += cfg.interval) {
+  for (let m = shiftStart; m < shiftEnd; m += cfg.interval) {
     const slot: TimeBlock = { start: m, end: m + totalDuration };
 
     // Can the service fit in the remaining shift time?
@@ -188,16 +190,14 @@ export function generateTimeSlots(
   return result;
 }
 
-// ─── Helper: Should we expand the shift start? ───
+// ─── Helper: Should we expand the shift? ───
 
 function shouldExpandShift(
   shiftStart: number,
   shiftEnd: number,
   bookings: TimeBlock[],
   cfg: SlotConfig
-): number {
-  if (shiftStart <= 0) return shiftStart; // Already at midnight, can't expand
-
+): { start: number; end: number } {
   const shiftDuration = shiftEnd - shiftStart;
   let bookedMinutes = 0;
 
@@ -207,22 +207,31 @@ function shouldExpandShift(
     if (overlapEnd > overlapStart) bookedMinutes += overlapEnd - overlapStart;
   }
 
-  // If shift is ≥ threshold booked, try expanding
-  if (bookedMinutes >= shiftDuration * cfg.expandThreshold) {
-    const expandedStart = Math.max(0, shiftStart - cfg.expandHours * 60);
-
-    // Check if the expanded window has enough free time for at least one service
-    const expandedFree = getFreeIntervals(expandedStart, shiftStart, []);
-    const hasSpace = expandedFree.some((iv) => iv.end - iv.start >= slotDurationWithBuffer());
-
-    if (hasSpace) return expandedStart;
+  // If shift is NOT ≥ threshold booked, no expansion
+  if (bookedMinutes < shiftDuration * (cfg.expandThreshold / 100)) {
+    return { start: shiftStart, end: shiftEnd };
   }
 
-  return shiftStart;
+  let newStart = shiftStart;
+  let newEnd = shiftEnd;
 
-  function slotDurationWithBuffer(): number {
-    return roundDuration(0) + cfg.buffer; // Use minimum service duration for expansion check
+  // Expand early (before shift start)
+  if (cfg.earlyExtraHours > 0) {
+    const expandedStart = Math.max(0, shiftStart - cfg.earlyExtraHours * 60);
+    const earlyFree = getFreeIntervals(expandedStart, shiftStart, []);
+    const hasSpace = earlyFree.some((iv) => iv.end - iv.start >= roundDuration(15) + cfg.buffer);
+    if (hasSpace) newStart = expandedStart;
   }
+
+  // Expand late (after shift end)
+  if (cfg.lateExtraHours > 0) {
+    const expandedEnd = shiftEnd + cfg.lateExtraHours * 60;
+    const lateFree = getFreeIntervals(shiftEnd, expandedEnd, []);
+    const hasSpace = lateFree.some((iv) => iv.end - iv.start >= roundDuration(15) + cfg.buffer);
+    if (hasSpace) newEnd = expandedEnd;
+  }
+
+  return { start: newStart, end: newEnd };
 }
 
 // ─── Helper: Get free intervals in a time range ───

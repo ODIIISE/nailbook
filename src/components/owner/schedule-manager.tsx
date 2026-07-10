@@ -21,7 +21,10 @@ import { getTehranDateKey } from "@/lib/time";
 interface ScheduleManagerProps {
   workingHours: WorkingHours;
   specificDaysOff: string[];
-  onSave: (hours: WorkingHours, daysOff: string[]) => void;
+  earlyExtraHours: number;
+  lateExtraHours: number;
+  expandThreshold: number;
+  onSave: (hours: WorkingHours, daysOff: string[], extra: { early_extra_hours: number; late_extra_hours: number; expand_threshold: number }) => void;
 }
 
 const IRAN_WEEK_DAYS = [
@@ -102,18 +105,27 @@ function JalaliMonthGrid({
 export function ScheduleManager({
   workingHours,
   specificDaysOff,
+  earlyExtraHours: initialEarly,
+  lateExtraHours: initialLate,
+  expandThreshold: initialThreshold,
   onSave,
 }: ScheduleManagerProps) {
   const [hours, setHours] = useState<WorkingHours>({ ...workingHours });
   const [daysOff, setDaysOff] = useState<string[]>([...specificDaysOff]);
+  const [earlyExtraHours, setEarlyExtraHours] = useState(initialEarly);
+  const [lateExtraHours, setLateExtraHours] = useState(initialLate);
+  const [expandThreshold, setExpandThreshold] = useState(initialThreshold);
   const [hasChanges, setHasChanges] = useState(false);
 
   // Sync when parent data changes (e.g., after DB load)
   useEffect(() => {
     setHours({ ...workingHours });
     setDaysOff([...specificDaysOff]);
+    setEarlyExtraHours(initialEarly);
+    setLateExtraHours(initialLate);
+    setExpandThreshold(initialThreshold);
     setHasChanges(false);
-  }, [workingHours, specificDaysOff]);
+  }, [workingHours, specificDaysOff, initialEarly, initialLate, initialThreshold]);
 
   const toggleDay = (key: string) => {
     const current = hours[key];
@@ -169,7 +181,11 @@ export function ScheduleManager({
   };
 
   const handleSave = () => {
-    onSave(hours, daysOff);
+    onSave(hours, daysOff, {
+      early_extra_hours: earlyExtraHours,
+      late_extra_hours: lateExtraHours,
+      expand_threshold: expandThreshold,
+    });
     setHasChanges(false);
   };
 
@@ -248,6 +264,55 @@ export function ScheduleManager({
           );
         })}
       </div>
+
+      {/* Extra Hours Configuration */}
+      <Card className="p-4">
+        <h3 className="font-semibold text-foreground mb-1">ساعت اضافی</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          زمان اضافی قبل و بعد از ساعت کاری (وقتی ۸۰٪ رزرو شده باشد باز می‌شود)
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <Label className="text-[12px]">ساعت اضافی اولیه</Label>
+            <Input
+              type="number"
+              min={0}
+              max={4}
+              value={earlyExtraHours}
+              onChange={(e) => { setEarlyExtraHours(Number(e.target.value)); setHasChanges(true); }}
+              className="mt-1 text-center"
+              dir="ltr"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">ساعت قبل از شروع</p>
+          </div>
+          <div>
+            <Label className="text-[12px]">آستانه فعال‌سازی</Label>
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              value={expandThreshold}
+              onChange={(e) => { setExpandThreshold(Number(e.target.value)); setHasChanges(true); }}
+              className="mt-1 text-center"
+              dir="ltr"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">درصد رزرو شده</p>
+          </div>
+          <div>
+            <Label className="text-[12px]">ساعت اضافی پایانی</Label>
+            <Input
+              type="number"
+              min={0}
+              max={4}
+              value={lateExtraHours}
+              onChange={(e) => { setLateExtraHours(Number(e.target.value)); setHasChanges(true); }}
+              className="mt-1 text-center"
+              dir="ltr"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">ساعت بعد از پایان</p>
+          </div>
+        </div>
+      </Card>
 
       <div>
         <h3 className="font-semibold text-foreground mb-1">روزهای تعطیل</h3>

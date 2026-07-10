@@ -19,6 +19,9 @@ export async function GET() {
       working_hours: s.working_hours,
       slot_buffer_minutes: s.slot_buffer_minutes,
       slot_interval_minutes: s.slot_interval_minutes,
+      early_extra_hours: s.early_extra_hours ?? 0,
+      late_extra_hours: s.late_extra_hours ?? 0,
+      expand_threshold: s.expand_threshold ?? 80,
       specific_days_off: s.specific_days_off,
     });
   } catch (error) {

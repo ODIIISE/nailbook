@@ -36,6 +36,9 @@ CREATE TABLE IF NOT EXISTS salon_info (
   specific_days_off JSONB DEFAULT '[]'::jsonb,
   slot_buffer_minutes INT DEFAULT 15,
   slot_interval_minutes INT DEFAULT 15,
+  early_extra_hours INT DEFAULT 0,
+  late_extra_hours INT DEFAULT 0,
+  expand_threshold INT DEFAULT 80,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
