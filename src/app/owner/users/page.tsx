@@ -188,14 +188,12 @@ export default function OwnerUsersPage() {
     setIsSubmitting(true);
     setFormError("");
     try {
-      const res = await fetch("/api/owner/users", {
-        method: "PUT",
+      const res = await fetch("/api/owner/users/reset-pin", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           userId: selectedUser.id,
-          phone: selectedUser.phone,
-          name: selectedUser.name,
-          role: selectedUser.role,
           pin,
         }),
       });

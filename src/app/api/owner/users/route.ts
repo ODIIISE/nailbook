@@ -53,6 +53,12 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "نقش خود را نمی‌توانید تغییر دهید" }, { status: 400 });
     }
 
+    // Check if user exists
+    const { rows: existing } = await sql`SELECT id FROM users WHERE id = ${userId}`;
+    if (existing.length === 0) {
+      return NextResponse.json({ error: "کاربر یافت نشد" }, { status: 404 });
+    }
+
     // Update each field individually using tagged template literals
     if (body.phone !== undefined) {
       await sql`UPDATE users SET phone = ${body.phone} WHERE id = ${userId}`;
@@ -66,6 +72,12 @@ export async function PUT(request: NextRequest) {
     if (body.pin !== undefined && String(body.pin).length === 4) {
       const hashedPin = hashPin(String(body.pin));
       await sql`UPDATE users SET pin = ${hashedPin} WHERE id = ${userId}`;
+      // Verify the update
+      const { rows: verify } = await sql`SELECT pin FROM users WHERE id = ${userId}`;
+      if (verify[0]?.pin !== hashedPin) {
+        console.error("PIN update failed:", { userId, expected: hashedPin, actual: verify[0]?.pin });
+        return NextResponse.json({ error: "خطا در بروزرسانی رمز" }, { status: 500 });
+      }
     }
 
     return NextResponse.json({ success: true });
