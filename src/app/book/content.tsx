@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppNavbar } from "@/components/layout/app-navbar";
@@ -18,7 +18,7 @@ import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
-import { normalizeDigits } from "@/lib/digits";
+import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
 import { getTehranDateKey } from "@/lib/time";
 import type { Booking } from "@/lib/types";
 
@@ -194,8 +194,8 @@ export default function BookContent() {
 
   const handleAuthPhoneSubmit = useCallback(async () => {
     const normalized = normalizeDigits(authPhone);
-    if (normalized.length < 10) {
-      setAuthError("شماره موبایل معتبر نیست");
+    if (!isValidIranianPhone(normalized)) {
+      setAuthError("شماره موبایل معتبر نیست (مثال: ۰۹۱۲۱۲۳۴۵۶۷)");
       return;
     }
     setIsLoading(true);
@@ -249,8 +249,12 @@ export default function BookContent() {
 
   // ─── Confirm booking ───
 
+  const isSubmittingRef = useRef(false);
+
   const handleConfirmBooking = useCallback(async () => {
     if (!selectedDate || !selectedService || !selectedTime) return;
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setIsLoading(true);
     setSpamError("");
 
@@ -275,12 +279,14 @@ export default function BookContent() {
         const data = await reserveRes.json();
         setSpamError(data.error || "این زمان دیگر در دسترس نیست");
         setIsLoading(false);
+        isSubmittingRef.current = false;
         return;
       }
     } catch (e) {
       console.error("Slot validation failed:", e);
       setSpamError("خطا در بررسی زمان. لطفاً دوباره تلاش کنید.");
       setIsLoading(false);
+      isSubmittingRef.current = false;
       return;
     }
 
@@ -310,6 +316,7 @@ export default function BookContent() {
 
     const saved = await addBooking(newBooking);
     setIsLoading(false);
+    isSubmittingRef.current = false;
     if (saved) {
       setStep("receipt");
     } else {
@@ -446,7 +453,7 @@ export default function BookContent() {
                   />
                 </div>
                 {authError && <p className="text-[13px] text-destructive text-center">{authError}</p>}
-                <Button className="w-full" onClick={handleAuthPhoneSubmit} disabled={authPhone.length < 10}>
+                <Button className="w-full" onClick={handleAuthPhoneSubmit} disabled={!isValidIranianPhone(normalizeDigits(authPhone))}>
                   ادامه
                 </Button>
               </div>
