@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import crypto from "crypto";
+import { hashPin } from "@/lib/pin-hash";
 
 export async function POST(request: NextRequest) {
   try {
     const { phone, pin, name } = await request.json();
 
-    // Validate inputs
     if (!phone || !pin || !name) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
@@ -21,15 +21,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
     }
 
-    // Check if phone already exists
+    const hashedPin = hashPin(cleanPin);
+
     const { rows: existing } = await sql`SELECT id, pin FROM users WHERE phone = ${phone}`;
     if (existing.length > 0) {
-      // User exists but has no PIN — allow setting PIN (first-time signup)
       if (existing[0].pin) {
         return NextResponse.json({ error: "این شماره قبلاً ثبت شده" }, { status: 409 });
       }
-      // Set PIN for existing user without one
-      await sql`UPDATE users SET pin = ${cleanPin}, name = ${trimmedName} WHERE id = ${existing[0].id}`;
+      await sql`UPDATE users SET pin = ${hashedPin}, name = ${trimmedName} WHERE id = ${existing[0].id}`;
 
       const response = NextResponse.json({
         success: true,
@@ -45,11 +44,10 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    // Create new user
     const userId = crypto.randomUUID();
     await sql`
       INSERT INTO users (id, phone, pin, name, role)
-      VALUES (${userId}, ${phone}, ${cleanPin}, ${trimmedName}, 'customer')
+      VALUES (${userId}, ${phone}, ${hashedPin}, ${trimmedName}, 'customer')
     `;
 
     const response = NextResponse.json({

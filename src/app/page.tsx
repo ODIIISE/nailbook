@@ -13,7 +13,7 @@ import { SalonGuard } from "@/components/ui/salon-guard";
 import { Heart } from "lucide-react";
 
 import { useSalon } from "@/lib/salon-context";
-import type { Highlight } from "@/lib/mock-data";
+import type { Highlight } from "@/lib/types";
 
 export default function HomePage() {
   const { salon, bookings, highlights, services } = useSalon();

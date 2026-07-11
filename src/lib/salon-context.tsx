@@ -1,8 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react";
-import { MOCK_SALON } from "@/lib/mock-data";
-import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "@/lib/mock-data";
+import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "@/lib/types";
 import type { WorkingHours } from "@/lib/slots";
 import {
   fetchSalonInfo,
@@ -48,13 +47,24 @@ interface SalonContextType {
   addHighlightImage: (image: HighlightImage) => Promise<void>;
   removeHighlightImage: (id: string) => Promise<void>;
   uploadHighlightImage: (file: File) => Promise<string | null>;
+  toggleBookingPaid: (bookingId: string, paid: boolean) => Promise<void>;
 }
 
 const SalonContext = createContext<SalonContextType | null>(null);
 
+const DEFAULT_WORKING_HOURS: WorkingHours = {
+  sat: { open: "10:00", close: "16:00" },
+  sun: { open: "10:00", close: "16:00" },
+  mon: { open: "10:00", close: "16:00" },
+  tue: { open: "10:00", close: "16:00" },
+  wed: { open: "10:00", close: "16:00" },
+  thu: { open: "10:00", close: "16:00" },
+  fri: null,
+};
+
 export function SalonProvider({ children }: { children: ReactNode }) {
-  const [salon, setSalon] = useState<SalonInfo>(MOCK_SALON);
-  const [workingHours, setWorkingHours] = useState<WorkingHours>(MOCK_SALON.working_hours);
+  const [salon, setSalon] = useState<SalonInfo | null>(null);
+  const [workingHours, setWorkingHours] = useState<WorkingHours>(DEFAULT_WORKING_HOURS);
   const [specificDaysOff, setSpecificDaysOff] = useState<string[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [addons, setAddons] = useState<Addon[]>([]);
@@ -228,7 +238,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
 
   const handleUpdateSalon = useCallback(async (updates: Partial<SalonInfo>) => {
     const prev = salonRef.current;
-    setSalon((prev) => ({ ...prev, ...updates }));
+    setSalon((prev) => prev ? { ...prev, ...updates } : prev);
     try {
       const res = await fetch("/api/update-salon", {
         method: "POST",
@@ -315,11 +325,27 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     return uploadImage(file);
   }, []);
 
+  const handleToggleBookingPaid = useCallback(async (bookingId: string, paid: boolean) => {
+    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, paid } : b)));
+    try {
+      const res = await fetch("/api/owner/bookings/paid", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId, paid }),
+      });
+      if (!res.ok) {
+        setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, paid: !paid } : b)));
+      }
+    } catch {
+      setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, paid: !paid } : b)));
+    }
+  }, []);
+
   const value = useMemo<SalonContextType>(() => {
-    if (!loaded) {
+    if (!loaded || !salon) {
       return {
-        salon: MOCK_SALON,
-        workingHours: MOCK_SALON.working_hours,
+        salon: { id: "", name: "", description: "", slogan: "", phone: "", address: "", hero_image_url: null, logo_url: null, working_hours_text: "", working_hours: DEFAULT_WORKING_HOURS, slot_buffer_minutes: 15, slot_interval_minutes: 15, early_extra_hours: 0, late_extra_hours: 0, expand_threshold: 80 },
+        workingHours: DEFAULT_WORKING_HOURS,
         specificDaysOff: [],
         services: [],
         addons: [],
@@ -343,6 +369,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         addHighlightImage: async () => {},
         removeHighlightImage: async () => {},
         uploadHighlightImage: async () => null,
+        toggleBookingPaid: async () => {},
       };
     }
     return {
@@ -371,12 +398,13 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       addHighlightImage: handleAddHighlightImage,
       removeHighlightImage: handleRemoveHighlightImage,
       uploadHighlightImage: handleUploadHighlightImage,
+      toggleBookingPaid: handleToggleBookingPaid,
     };
   }, [
     loaded, salon, workingHours, specificDaysOff, services, addons, bookings, highlights, blockedTimes,
     handleUpdateWorkingHours, handleUpdateSpecificDaysOff, handleSaveSchedule, handleUpdateServices, handleUpdateAddons,
     handleUpdateSalon, handleUpdateBlockedTimes, handleAddBooking, refreshBookings, refreshSalonData, handleAddHighlight, handleUpdateHighlight,
-    handleRemoveHighlight, handleAddHighlightImage, handleRemoveHighlightImage, handleUploadHighlightImage,
+    handleRemoveHighlight, handleAddHighlightImage, handleRemoveHighlightImage, handleUploadHighlightImage, handleToggleBookingPaid,
   ]);
 
   return (

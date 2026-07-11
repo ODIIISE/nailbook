@@ -12,15 +12,6 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Sessions table
-CREATE TABLE IF NOT EXISTS sessions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  token TEXT NOT NULL UNIQUE,
-  expires_at TIMESTAMPTZ NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
 -- Salon info
 CREATE TABLE IF NOT EXISTS salon_info (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -116,8 +107,6 @@ CREATE TABLE IF NOT EXISTS highlight_images (
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);
-CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
-CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(date_gregorian);
 CREATE INDEX IF NOT EXISTS idx_bookings_user ON bookings(user_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_phone ON bookings(customer_phone);
@@ -127,7 +116,6 @@ CREATE INDEX IF NOT EXISTS idx_highlight_images_highlight ON highlight_images(hi
 
 -- Row Level Security Policies
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE salon_info ENABLE ROW LEVEL SECURITY;
 ALTER TABLE services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE addons ENABLE ROW LEVEL SECURITY;
@@ -138,9 +126,6 @@ ALTER TABLE highlight_images ENABLE ROW LEVEL SECURITY;
 
 -- Users: only service role can access (for auth)
 CREATE POLICY "Service role manages users" ON users FOR ALL USING (true) WITH CHECK (true);
-
--- Sessions: only service role can access
-CREATE POLICY "Service role manages sessions" ON sessions FOR ALL USING (true) WITH CHECK (true);
 
 -- Salon info: anyone can read, service role can write
 CREATE POLICY "Anyone can read salon info" ON salon_info FOR SELECT USING (true);

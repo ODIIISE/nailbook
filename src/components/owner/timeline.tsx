@@ -4,9 +4,9 @@ import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User, Ban, Clock } from "lucide-react";
-import { toPersianDigits } from "@/lib/jalali";
+import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
-import type { Booking, Service } from "@/lib/mock-data";
+import type { Booking, Service } from "@/lib/types";
 
 interface BlockedTime {
   date_gregorian: string;
@@ -17,7 +17,6 @@ interface BlockedTime {
 interface TimelineProps {
   bookings: Array<Booking & { service?: Service }>;
   blockedTimes: BlockedTime[];
-  paidBookings: Set<string>;
   onSelectBooking: (booking: Booking) => void;
   onRemoveBlock?: (index: number) => void;
   startHour?: number;
@@ -51,7 +50,6 @@ function getBlockPosition(
 export function Timeline({
   bookings,
   blockedTimes,
-  paidBookings,
   onSelectBooking,
   onRemoveBlock,
   startHour = 8,
@@ -119,10 +117,10 @@ export function Timeline({
                         </span>
                       </div>
                       <Badge
-                        variant={paidBookings.has(booking.id) ? "default" : "secondary"}
-                        className={`text-[8px] px-1 py-0 h-3.5 ${paidBookings.has(booking.id) ? "bg-success text-white" : "bg-destructive/10 text-destructive"}`}
+                        variant={booking.paid ? "default" : "secondary"}
+                        className={`text-[8px] px-1 py-0 h-3.5 ${booking.paid ? "bg-success text-white" : "bg-destructive/10 text-destructive"}`}
                       >
-                        {paidBookings.has(booking.id) ? "پرداخت شده" : "پرداخت نشده"}
+                        {booking.paid ? "پرداخت شده" : "پرداخت نشده"}
                       </Badge>
                     </div>
                     <p className="text-[9px] text-primary/70 truncate">{booking.service?.name}</p>
@@ -132,7 +130,7 @@ export function Timeline({
                           {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
                         </p>
                         <p className="text-[9px] font-bold text-primary/70">
-                          {toPersianDigits(Number(price).toLocaleString("fa-IR"))}
+                          {formatPrice(Number(price))}
                         </p>
                       </div>
                     )}

@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { X, User, Phone, Clock, CreditCard } from "lucide-react";
-import { toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
-import type { Booking } from "@/lib/mock-data";
+import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
+import type { Booking } from "@/lib/types";
 
 interface BookingModalProps {
   booking: Booking;
@@ -76,7 +76,7 @@ export function BookingModal({ booking, isPaid, onTogglePaid, onClose }: Booking
             <div className="flex items-center gap-2">
               <CreditCard className="h-4 w-4 text-muted-foreground" />
               <span className="text-[15px] font-bold text-foreground">
-                {toPersianDigits(Number(price).toLocaleString("fa-IR"))} تومان
+                {formatPrice(Number(price))} تومان
               </span>
             </div>
           </div>

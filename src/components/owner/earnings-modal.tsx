@@ -5,13 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { X, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
-import { toPersianDigits } from "@/lib/jalali";
-import type { Booking, Service } from "@/lib/mock-data";
+import { formatPrice, toPersianDigits } from "@/lib/jalali";
+import type { Booking, Service } from "@/lib/types";
 
 interface EarningsModalProps {
   bookings: Booking[];
   services: Service[];
-  paidBookings: Set<string>;
   currentDate: Date;
   onClose: () => void;
 }
@@ -19,7 +18,6 @@ interface EarningsModalProps {
 export function EarningsModal({
   bookings,
   services,
-  paidBookings,
   currentDate,
   onClose,
 }: EarningsModalProps) {
@@ -49,14 +47,14 @@ export function EarningsModal({
     });
 
     const paid = filtered
-      .filter((b) => paidBookings.has(b.id))
+      .filter((b) => b.paid)
       .reduce((sum, b) => {
         const svc = services.find((s) => s.id === b.service_id);
         return sum + (svc?.price || 0);
       }, 0);
 
     const unpaid = filtered
-      .filter((b) => !paidBookings.has(b.id))
+      .filter((b) => !b.paid)
       .reduce((sum, b) => {
         const svc = services.find((s) => s.id === b.service_id);
         return sum + (svc?.price || 0);
@@ -67,10 +65,10 @@ export function EarningsModal({
       unpaid,
       total: paid + unpaid,
       count: filtered.length,
-      paidCount: filtered.filter((b) => paidBookings.has(b.id)).length,
-      unpaidCount: filtered.filter((b) => !paidBookings.has(b.id)).length,
+      paidCount: filtered.filter((b) => b.paid).length,
+      unpaidCount: filtered.filter((b) => !b.paid).length,
     };
-  }, [bookings, services, paidBookings, currentDate, period]);
+  }, [bookings, services, currentDate, period]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -108,7 +106,7 @@ export function EarningsModal({
             </div>
             <div className="text-left">
               <p className="text-[15px] font-bold text-success">
-                {toPersianDigits(earnings.paid.toLocaleString("fa-IR"))} تومان
+                {formatPrice(earnings.paid)} تومان
               </p>
               <p className="text-[11px] text-muted-foreground">
                 {toPersianDigits(earnings.paidCount)} نوبت
@@ -123,7 +121,7 @@ export function EarningsModal({
             </div>
             <div className="text-left">
               <p className="text-[15px] font-bold text-destructive">
-                {toPersianDigits(earnings.unpaid.toLocaleString("fa-IR"))} تومان
+                {formatPrice(earnings.unpaid)} تومان
               </p>
               <p className="text-[11px] text-muted-foreground">
                 {toPersianDigits(earnings.unpaidCount)} نوبت
@@ -140,7 +138,7 @@ export function EarningsModal({
             </div>
             <div className="text-left">
               <p className="text-[17px] font-bold text-foreground">
-                {toPersianDigits(earnings.total.toLocaleString("fa-IR"))} تومان
+                {formatPrice(earnings.total)} تومان
               </p>
               <p className="text-[11px] text-muted-foreground">
                 {toPersianDigits(earnings.count)} نوبت

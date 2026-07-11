@@ -1,4 +1,4 @@
-import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "../mock-data";
+import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "../types";
 
 // All reads go through API routes (Vercel Postgres is server-side only)
 

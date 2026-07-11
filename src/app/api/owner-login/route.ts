@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import crypto from "crypto";
+import { hashPin } from "@/lib/pin-hash";
 
 const SECRET = process.env.OWNER_SESSION_SECRET || "nailbook-owner-secret-key-change-in-production";
 
-function hashPin(pin: string): string {
-  return crypto.createHash("sha256").update(pin).digest("hex");
-}
-
 function signSession(userId: string): string {
   const payload = `${userId}:${Date.now()}`;
-  const signature = crypto.createHmac("sha256", SECRET).update(payload).digest("hex");
+  const signature = require("crypto").createHmac("sha256", SECRET).update(payload).digest("hex");
   return `${payload}:${signature}`;
 }
 

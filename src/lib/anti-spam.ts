@@ -9,13 +9,15 @@ export interface AntiSpamResult {
 }
 
 export async function checkAntiSpam(phone: string): Promise<AntiSpamResult> {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const tehranOffset = 3.5 * 60 * 60 * 1000;
+  const tehranDate = new Date(now.getTime() + tehranOffset);
+  const todayStr = tehranDate.toISOString().split("T")[0];
 
   const { rows } = await sql`
     SELECT COUNT(*) as count FROM bookings
     WHERE customer_phone = ${phone}
-    AND created_at >= ${today.toISOString()}
+    AND date_gregorian = ${todayStr}::date
     AND status IN ('confirmed', 'pending')
   `;
   const todayBookings = parseInt(rows[0]?.count || "0");
@@ -27,8 +29,7 @@ export async function checkAntiSpam(phone: string): Promise<AntiSpamResult> {
     };
   }
 
-  const cooldownTime = new Date();
-  cooldownTime.setMinutes(cooldownTime.getMinutes() - COOLDOWN_MINUTES);
+  const cooldownTime = new Date(now.getTime() - COOLDOWN_MINUTES * 60_000);
 
   const { rows: recentRows } = await sql`
     SELECT created_at FROM bookings
@@ -41,9 +42,7 @@ export async function checkAntiSpam(phone: string): Promise<AntiSpamResult> {
 
   if (recentRows[0]) {
     const lastBookingTime = new Date(recentRows[0].created_at);
-    const minutesSince = Math.floor(
-      (Date.now() - lastBookingTime.getTime()) / 60000
-    );
+    const minutesSince = Math.floor((Date.now() - lastBookingTime.getTime()) / 60_000);
     const minutesLeft = COOLDOWN_MINUTES - minutesSince;
 
     return {

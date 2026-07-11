@@ -17,10 +17,10 @@ import { SalonGuard } from "@/components/ui/salon-guard";
 import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
-import { toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
+import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { normalizeDigits } from "@/lib/digits";
 import { getTehranDateKey } from "@/lib/time";
-import type { Booking } from "@/lib/mock-data";
+import type { Booking } from "@/lib/types";
 
 type BookingStep = "addons" | "datetime" | "auth" | "confirm" | "receipt";
 
@@ -373,7 +373,7 @@ export default function BookContent() {
                                 </span>
                               )}
                               <span className="text-[11px] font-bold text-primary">
-                                +{toPersianDigits(Number(addon.price).toLocaleString("fa-IR"))} تومان
+                                +{formatPrice(Number(addon.price))} تومان
                               </span>
                             </div>
                           </div>
@@ -549,7 +549,7 @@ export default function BookContent() {
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-muted-foreground">هزینه کل</span>
                       <span className="text-base font-bold text-primary">
-                        {toPersianDigits(Number(totalPrice).toLocaleString("fa-IR"))} تومان
+                        {formatPrice(Number(totalPrice))} تومان
                       </span>
                     </div>
                   </div>

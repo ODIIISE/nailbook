@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
+import { hashPin } from "@/lib/pin-hash";
 import crypto from "crypto";
 
 export async function GET(request: NextRequest) {
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     const userId = crypto.randomUUID();
     await sql`
       INSERT INTO users (id, phone, pin, name, role)
-      VALUES (${userId}, ${phone}, ${pin}, ${name.trim()}, ${role || "customer"})
+      VALUES (${userId}, ${phone}, ${hashPin(String(pin))}, ${name.trim()}, ${role || "customer"})
     `;
     return NextResponse.json({ success: true, userId });
   } catch {
@@ -66,7 +67,7 @@ export async function PUT(request: NextRequest) {
       await sql`UPDATE users SET role = ${body.role} WHERE id = ${userId}`;
     }
     if (body.pin !== undefined && String(body.pin).length === 4) {
-      await sql`UPDATE users SET pin = ${String(body.pin)} WHERE id = ${userId}`;
+      await sql`UPDATE users SET pin = ${hashPin(String(body.pin))}, failed_attempts = 0, locked_until = NULL WHERE id = ${userId}`;
     }
 
     return NextResponse.json({ success: true });

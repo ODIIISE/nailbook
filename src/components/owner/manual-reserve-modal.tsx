@@ -8,7 +8,7 @@ import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { normalizeDigits } from "@/lib/digits";
 import { toPersianDigits } from "@/lib/jalali";
 import { getIranWeekDay } from "@/lib/slots";
-import type { Service } from "@/lib/mock-data";
+import type { Service } from "@/lib/types";
 import type { WorkingHours } from "@/lib/slots";
 
 interface ManualReserveModalProps {

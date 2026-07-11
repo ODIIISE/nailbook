@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
+import { hashPin } from "@/lib/pin-hash";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +19,8 @@ export async function POST(request: NextRequest) {
     }
 
     const { rows } = await sql`
-      UPDATE users SET pin = ${String(pin)} WHERE id = ${userId} RETURNING id, pin
+      UPDATE users SET pin = ${hashPin(String(pin))}, failed_attempts = 0, locked_until = NULL
+      WHERE id = ${userId} RETURNING id
     `;
 
     if (rows.length === 0) {

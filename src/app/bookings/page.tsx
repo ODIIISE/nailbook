@@ -11,8 +11,8 @@ import { SalonGuard } from "@/components/ui/salon-guard";
 import { Clock, Calendar, User, ArrowLeft } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
-import { gregorianToJalali, toPersianDigits, formatJalaliTime } from "@/lib/jalali";
-import type { Booking } from "@/lib/mock-data";
+import { formatPrice, gregorianToJalali, toPersianDigits, formatJalaliTime } from "@/lib/jalali";
+import type { Booking } from "@/lib/types";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
   confirmed: { label: "تایید شده", variant: "default" },
@@ -161,7 +161,7 @@ export default function BookingsPage() {
                           </div>
                           <span className="font-bold text-foreground">
                             {getServicePrice(booking.service_id) !== null
-                              ? `${toPersianDigits(getServicePrice(booking.service_id)!.toLocaleString("fa-IR"))} تومان`
+                              ? `${formatPrice(getServicePrice(booking.service_id)!)} تومان`
                               : "نامعلوم"}
                           </span>
                         </div>
@@ -267,7 +267,7 @@ function BookingDetailModal({
             <span className="text-sm text-muted-foreground">هزینه</span>
             <span className="text-base font-bold text-foreground">
               {getServicePrice(booking.service_id) !== null
-                ? `${toPersianDigits(getServicePrice(booking.service_id)!.toLocaleString("fa-IR"))} تومان`
+                ? `${formatPrice(getServicePrice(booking.service_id)!)} تومان`
                 : "نامعلوم"}
             </span>
           </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { Scissors, Sparkles, Heart, Star, Palette } from "lucide-react";
-import type { Highlight } from "@/lib/mock-data";
+import type { Highlight } from "@/lib/types";
 
 interface HighlightsProps {
   highlights: Highlight[];

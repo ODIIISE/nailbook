@@ -18,6 +18,11 @@ export function toPersianDigits(num: number | string): string {
     .join("");
 }
 
+export function formatPrice(price: number): string {
+  const withSeparators = price.toLocaleString("en-US");
+  return toPersianDigits(withSeparators);
+}
+
 export function getJalaliDate(date: Date = new Date()) {
   const j = jalaali.toJalaali(date);
   return {

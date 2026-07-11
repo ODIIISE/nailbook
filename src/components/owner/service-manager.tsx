@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Edit2, Trash2, X, Check, ChevronUp, ChevronDown } from "lucide-react";
-import { toPersianDigits } from "@/lib/jalali";
-import type { Service, Addon } from "@/lib/mock-data";
+import { formatPrice, toPersianDigits } from "@/lib/jalali";
+import type { Service, Addon } from "@/lib/types";
 
 interface ServiceManagerProps {
   services: Service[];
@@ -228,7 +228,7 @@ function ServicesTab({
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     {toPersianDigits(service.duration_minutes)} دقیقه ·{" "}
-                    {toPersianDigits(Number(service.price).toLocaleString("fa-IR"))} تومان
+                    {formatPrice(Number(service.price))} تومان
                   </p>
                 </div>
                 <div className="flex items-center gap-0.5">
@@ -436,7 +436,7 @@ function AddonsTab({
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   +{toPersianDigits(addon.duration_minutes)} دقیقه ·{" "}
-                  +{toPersianDigits(Number(addon.price).toLocaleString("fa-IR"))} تومان
+                  +{formatPrice(Number(addon.price))} تومان
                 </p>
               </div>
               <div className="flex items-center gap-0.5">

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { verifyPin } from "@/lib/pin-hash";
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,7 +10,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
 
-    // Find user by phone
     const { rows: users } = await sql`
       SELECT id, phone, name, role, pin, failed_attempts, locked_until
       FROM users WHERE phone = ${phone}
@@ -20,25 +20,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "کاربر یافت نشد" }, { status: 404 });
     }
 
-    // Check if account is locked
     if (user.locked_until && new Date(user.locked_until) > new Date()) {
       return NextResponse.json({ error: "حساب قفل شده است" }, { status: 423 });
     }
 
-    // Check if user has a PIN set
     if (!user.pin) {
       return NextResponse.json({ error: "رمزی تنظیم نشده است" }, { status: 400 });
     }
 
-    // Verify PIN (plaintext comparison)
-    if (user.pin !== String(pin).trim()) {
+    if (!verifyPin(String(pin).trim(), user.pin)) {
       const attempts = (user.failed_attempts || 0) + 1;
       const lockUntil = attempts >= 5 ? new Date(Date.now() + 30 * 60 * 1000).toISOString() : null;
       await sql`UPDATE users SET failed_attempts = ${attempts}, locked_until = ${lockUntil} WHERE id = ${user.id}`;
       return NextResponse.json({ error: "رمز عبور اشتباه است", attemptsLeft: Math.max(0, 5 - attempts) }, { status: 401 });
     }
 
-    // PIN correct — reset attempts and create session
     await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
 
     const response = NextResponse.json({

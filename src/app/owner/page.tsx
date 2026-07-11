@@ -12,10 +12,10 @@ import { ManualReserveModal } from "@/components/owner/manual-reserve-modal";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { ChevronLeft, Plus, Search } from "lucide-react";
-import { toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
+import { toPersianDigits, formatPrice, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey } from "@/lib/time";
-import type { Booking } from "@/lib/mock-data";
+import type { Booking } from "@/lib/types";
 
 interface BlockedTime {
   date_gregorian: string;
@@ -24,29 +24,13 @@ interface BlockedTime {
 }
 
 export default function OwnerDashboard() {
-  const { salon, bookings, services, workingHours, blockedTimes, updateBlockedTimes, addBooking, refreshBookings } = useSalon();
+  const { salon, bookings, services, workingHours, blockedTimes, updateBlockedTimes, addBooking, refreshBookings, toggleBookingPaid } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [paidBookings, setPaidBookings] = useState<Set<string>>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("owner_paid_bookings");
-        return saved ? new Set(JSON.parse(saved)) : new Set();
-      } catch {
-        return new Set();
-      }
-    }
-    return new Set();
-  });
   const [showEarnings, setShowEarnings] = useState(false);
   const [bookingSearch, setBookingSearch] = useState("");
-
-  // Persist paidBookings to localStorage
-  useEffect(() => {
-    localStorage.setItem("owner_paid_bookings", JSON.stringify([...paidBookings]));
-  }, [paidBookings]);
 
   // Poll for new bookings every 30 seconds
   useEffect(() => {
@@ -92,21 +76,21 @@ export default function OwnerDashboard() {
     );
 
     const paid = todayBookings
-      .filter((b) => paidBookings.has(b.id))
+      .filter((b) => b.paid)
       .reduce((sum, b) => {
         const svc = services.find((s) => s.id === b.service_id);
         return sum + (svc?.price || 0);
       }, 0);
 
     const unpaid = todayBookings
-      .filter((b) => !paidBookings.has(b.id))
+      .filter((b) => !b.paid)
       .reduce((sum, b) => {
         const svc = services.find((s) => s.id === b.service_id);
         return sum + (svc?.price || 0);
       }, 0);
 
     return { paid, unpaid, total: paid + unpaid };
-  }, [currentDate, bookings, services, paidBookings]);
+  }, [currentDate, bookings, services]);
 
   const handleBlockTime = (startTime: string, endTime: string, reason: string) => {
     const dateStr = getTehranDateKey(currentDate);
@@ -194,19 +178,19 @@ export default function OwnerDashboard() {
             <div className="text-center">
               <p className="text-[13px] text-muted-foreground">پرداخت شده</p>
               <p className="text-[15px] font-bold text-success">
-                {toPersianDigits(accounting.paid.toLocaleString("fa-IR"))}
+                {formatPrice(accounting.paid)}
               </p>
             </div>
             <div className="text-center">
               <p className="text-[13px] text-muted-foreground">پرداخت نشده</p>
               <p className="text-[15px] font-bold text-destructive">
-                {toPersianDigits(accounting.unpaid.toLocaleString("fa-IR"))}
+                {formatPrice(accounting.unpaid)}
               </p>
             </div>
             <div className="text-center">
               <p className="text-[13px] text-muted-foreground">کل</p>
               <p className="text-[15px] font-bold text-foreground">
-                {toPersianDigits(accounting.total.toLocaleString("fa-IR"))}
+                {formatPrice(accounting.total)}
               </p>
             </div>
           </div>
@@ -215,7 +199,6 @@ export default function OwnerDashboard() {
         <Timeline
           bookings={dayBookings}
           blockedTimes={dayBlockedTimes}
-          paidBookings={paidBookings}
           onSelectBooking={setSelectedBooking}
           onRemoveBlock={handleRemoveBlock}
         />
@@ -262,17 +245,9 @@ export default function OwnerDashboard() {
       {selectedBooking && (
         <BookingModal
           booking={selectedBooking}
-          isPaid={paidBookings.has(selectedBooking.id)}
+          isPaid={selectedBooking.paid}
           onTogglePaid={() => {
-            setPaidBookings((prev) => {
-              const next = new Set(prev);
-              if (next.has(selectedBooking.id)) {
-                next.delete(selectedBooking.id);
-              } else {
-                next.add(selectedBooking.id);
-              }
-              return next;
-            });
+            toggleBookingPaid(selectedBooking.id, !selectedBooking.paid);
           }}
           onClose={() => setSelectedBooking(null)}
         />
@@ -282,7 +257,6 @@ export default function OwnerDashboard() {
         <EarningsModal
           bookings={bookings}
           services={services}
-          paidBookings={paidBookings}
           currentDate={currentDate}
           onClose={() => setShowEarnings(false)}
         />

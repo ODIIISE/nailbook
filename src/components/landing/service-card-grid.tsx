@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Clock, DollarSign, Sparkles, ChevronLeft } from "lucide-react";
-import { toPersianDigits } from "@/lib/jalali";
-import type { Service } from "@/lib/mock-data";
+import { formatPrice, toPersianDigits } from "@/lib/jalali";
+import type { Service } from "@/lib/types";
 
 interface ServiceCardGridProps {
   services: Service[];
@@ -58,7 +58,7 @@ export function ServiceCardGrid({ services }: ServiceCardGridProps) {
                     </div>
                     <div className="flex items-center gap-1 text-small font-bold text-primary">
                       <DollarSign className="h-3.5 w-3.5" />
-                      <span>{toPersianDigits(Number(service.price).toLocaleString("fa-IR"))} تومان</span>
+                      <span>{formatPrice(Number(service.price))} تومان</span>
                     </div>
                   </div>
                 </div>

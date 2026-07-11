@@ -3,7 +3,7 @@
 import { MapPin, Phone, Clock, Sparkles, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toPersianDigits } from "@/lib/jalali";
-import type { SalonInfo } from "@/lib/mock-data";
+import type { SalonInfo } from "@/lib/types";
 
 interface HeroProps {
   salon: SalonInfo;

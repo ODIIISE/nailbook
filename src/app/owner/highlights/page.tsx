@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { Plus, X, Trash2, ImagePlus, ChevronDown, ChevronUp } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
-import type { Highlight, HighlightImage } from "@/lib/mock-data";
+import type { Highlight, HighlightImage } from "@/lib/types";
 
 export default function OwnerHighlightsPage() {
   const { highlights, addHighlight, updateHighlight, removeHighlight, addHighlightImage, removeHighlightImage, uploadHighlightImage } = useSalon();

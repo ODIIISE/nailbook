@@ -11,6 +11,7 @@ export interface SalonInfo {
   working_hours: {
     [key: string]: { open: string; close: string } | null;
   };
+  specific_days_off?: string[];
   slot_buffer_minutes: number;
   slot_interval_minutes: number;
   early_extra_hours: number;
@@ -72,29 +73,3 @@ export interface Highlight {
   sort_order: number;
   images: HighlightImage[];
 }
-
-export const MOCK_SALON: SalonInfo = {
-  id: "1",
-  name: "استدیو تخصصی ناخن فورهند",
-  description: "Forehand Nail Studio — استدیو تخصصی ناخن در مشهد",
-  slogan: "زیبایی ناخن، اعتماد به نفس شما",
-  phone: "09308681363",
-  address: "مشهد، نبش صارمی ۳۸/۱۲، پلاک ۷۷",
-  hero_image_url: null,
-  logo_url: null,
-  working_hours_text: "شنبه تا پنج شنبه . ۱۰ تا ۱۸",
-  working_hours: {
-    sat: { open: "10:00", close: "16:00" },
-    sun: { open: "10:00", close: "16:00" },
-    mon: { open: "10:00", close: "16:00" },
-    tue: { open: "10:00", close: "16:00" },
-    wed: { open: "10:00", close: "16:00" },
-    thu: { open: "10:00", close: "16:00" },
-    fri: null,
-  },
-  slot_buffer_minutes: 15,
-  slot_interval_minutes: 15,
-  early_extra_hours: 0,
-  late_extra_hours: 0,
-  expand_threshold: 80,
-};
