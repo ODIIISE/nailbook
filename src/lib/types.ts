@@ -17,6 +17,8 @@ export interface SalonInfo {
   early_extra_hours: number;
   late_extra_hours: number;
   expand_threshold: number;
+  proximity_window_hours: number;
+  allow_overflow: boolean;
 }
 
 export interface Addon {

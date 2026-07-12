@@ -24,7 +24,9 @@ interface ScheduleManagerProps {
   earlyExtraHours: number;
   lateExtraHours: number;
   expandThreshold: number;
-  onSave: (hours: WorkingHours, daysOff: string[], extra: { early_extra_hours: number; late_extra_hours: number; expand_threshold: number }) => void;
+  proximityWindowHours: number;
+  allowOverflow: boolean;
+  onSave: (hours: WorkingHours, daysOff: string[], extra: { early_extra_hours: number; late_extra_hours: number; expand_threshold: number; proximity_window_hours: number; allow_overflow: boolean }) => void;
 }
 
 const IRAN_WEEK_DAYS = [
@@ -108,6 +110,8 @@ export function ScheduleManager({
   earlyExtraHours: initialEarly,
   lateExtraHours: initialLate,
   expandThreshold: initialThreshold,
+  proximityWindowHours: initialProximity,
+  allowOverflow: initialOverflow,
   onSave,
 }: ScheduleManagerProps) {
   const [hours, setHours] = useState<WorkingHours>({ ...workingHours });
@@ -115,6 +119,8 @@ export function ScheduleManager({
   const [earlyExtraHours, setEarlyExtraHours] = useState(initialEarly);
   const [lateExtraHours, setLateExtraHours] = useState(initialLate);
   const [expandThreshold, setExpandThreshold] = useState(initialThreshold);
+  const [proximityWindowHours, setProximityWindowHours] = useState(initialProximity);
+  const [allowOverflow, setAllowOverflow] = useState(initialOverflow);
   const [hasChanges, setHasChanges] = useState(false);
 
   // Sync when parent data changes (e.g., after DB load)
@@ -124,8 +130,10 @@ export function ScheduleManager({
     setEarlyExtraHours(initialEarly);
     setLateExtraHours(initialLate);
     setExpandThreshold(initialThreshold);
+    setProximityWindowHours(initialProximity);
+    setAllowOverflow(initialOverflow);
     setHasChanges(false);
-  }, [workingHours, specificDaysOff, initialEarly, initialLate, initialThreshold]);
+  }, [workingHours, specificDaysOff, initialEarly, initialLate, initialThreshold, initialProximity, initialOverflow]);
 
   const toggleDay = (key: string) => {
     const current = hours[key];
@@ -185,6 +193,8 @@ export function ScheduleManager({
       early_extra_hours: earlyExtraHours,
       late_extra_hours: lateExtraHours,
       expand_threshold: expandThreshold,
+      proximity_window_hours: proximityWindowHours,
+      allow_overflow: allowOverflow,
     });
     setHasChanges(false);
   };
@@ -310,6 +320,41 @@ export function ScheduleManager({
               dir="ltr"
             />
             <p className="text-[10px] text-muted-foreground mt-1">ساعت بعد از پایان</p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Proximity & Overflow Settings */}
+      <Card className="p-4">
+        <h3 className="font-semibold text-foreground mb-1">تنظیمات موتور رزرو</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          پنجره نزدیکی و تمدید ساعت کاری
+        </p>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-[12px]">پنجره نزدیکی (ساعت)</Label>
+            <Input
+              type="number"
+              min={1}
+              max={8}
+              value={proximityWindowHours}
+              onChange={(e) => { setProximityWindowHours(Number(e.target.value)); setHasChanges(true); }}
+              className="mt-1 text-center"
+              dir="ltr"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">فاصله مجاز از رزرو قبلی (± ساعت)</p>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-[12px]">اجازه تمدید ساعت کاری</Label>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                رزرو می‌تواند از ساعت کاری فراتر رود (تا ساعت اضافی)
+              </p>
+            </div>
+            <Switch
+              checked={allowOverflow}
+              onCheckedChange={(v) => { setAllowOverflow(v); setHasChanges(true); }}
+            />
           </div>
         </div>
       </Card>

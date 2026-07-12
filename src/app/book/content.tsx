@@ -82,12 +82,18 @@ export default function BookContent() {
   // Compute total duration with addons
   const totalDuration = useMemo(() => {
     if (!selectedService) return 0;
-    const addonsDuration = selectedAddons.reduce((sum, id) => {
+    const addonsDur = selectedAddons.reduce((sum, id) => {
       const addon = addons.find((a) => a.id === id);
       return sum + Number(addon?.duration_minutes || 0);
     }, 0);
-    return Number(selectedService.duration_minutes) + addonsDuration;
-  }, [selectedService, selectedAddons, addons]);
+    const raw = Number(selectedService.duration_minutes) + addonsDur;
+    const buffer = salon.slot_buffer_minutes;
+    const R = salon.slot_interval_minutes;
+    if (buffer > 0) {
+      return Math.ceil((raw + buffer) / R) * R;
+    }
+    return Math.ceil(raw / R) * R;
+  }, [selectedService, selectedAddons, addons, salon]);
 
   const totalPrice = useMemo(() => {
     if (!selectedService) return 0;
@@ -112,21 +118,29 @@ export default function BookContent() {
       return blockDate === dateStr;
     });
 
+    const addonsDuration = selectedAddons.reduce((sum, id) => {
+      const addon = addons.find((a) => a.id === id);
+      return sum + Number(addon?.duration_minutes || 0);
+    }, 0);
+
     return generateTimeSlots(
       workingHours,
       selectedDate,
-      totalDuration,
+      Number(selectedService.duration_minutes),
+      addonsDuration,
       salon.slot_interval_minutes,
       salon.slot_buffer_minutes,
       dayBookings,
       dayBlocked,
-      selectedService?.priority_score || 5,
       {
-        interval: salon.slot_interval_minutes,
-        buffer: salon.slot_buffer_minutes,
+        proximity_window_hours: salon.proximity_window_hours,
+        early_extra_hours: salon.early_extra_hours,
+        late_extra_hours: salon.late_extra_hours,
+        expand_threshold: salon.expand_threshold,
+        allow_overflow: salon.allow_overflow,
       }
     );
-  }, [selectedDate, selectedService, totalDuration, workingHours, salon, bookings, blockedTimes]);
+  }, [selectedDate, selectedService, selectedAddons, workingHours, salon, bookings, blockedTimes, addons]);
 
   // ─── Navigation ───
 
@@ -404,6 +418,25 @@ export default function BookContent() {
             <JalaliCalendar
               selectedDate={selectedDate}
               onSelectDate={handleSelectDate}
+              serviceDuration={Number(selectedService?.duration_minutes || 0)}
+              addonsDuration={selectedAddons.reduce((sum, id) => {
+                const addon = addons.find((a) => a.id === id);
+                return sum + Number(addon?.duration_minutes || 0);
+              }, 0)}
+              config={{
+                proximity_window_hours: salon.proximity_window_hours,
+                early_extra_hours: salon.early_extra_hours,
+                late_extra_hours: salon.late_extra_hours,
+                expand_threshold: salon.expand_threshold,
+                allow_overflow: salon.allow_overflow,
+              }}
+              workingHours={workingHours}
+              bookings={bookings.filter((b) => b.status === "confirmed")}
+              blockedTimes={blockedTimes}
+              salonConfig={{
+                slot_interval_minutes: salon.slot_interval_minutes,
+                slot_buffer_minutes: salon.slot_buffer_minutes,
+              }}
             />
 
             {selectedDate && (

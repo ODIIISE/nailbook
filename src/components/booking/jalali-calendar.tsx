@@ -2,13 +2,31 @@
 
 import { useMemo, useRef, useEffect, useState, useCallback } from "react";
 import { gregorianToJalali, jalaliToGregorian, toPersianDigits, PERSIAN_MONTHS, DAYS_IN_MONTH, JS_TO_IRAN_DAY } from "@/lib/jalali";
-import { CalendarDays, ChevronRight, ChevronLeft } from "lucide-react";
+import { CalendarDays, ChevronRight, ChevronLeft, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { generateTimeSlots, type WorkingHours } from "@/lib/slots";
+import { getTehranDateKey } from "@/lib/time";
 
 interface JalaliCalendarProps {
   selectedDate: Date | null;
   onSelectDate: (date: Date) => void;
   showPast?: boolean;
+  serviceDuration?: number;
+  addonsDuration?: number;
+  config?: {
+    proximity_window_hours?: number;
+    early_extra_hours?: number;
+    late_extra_hours?: number;
+    expand_threshold?: number;
+    allow_overflow?: boolean;
+  };
+  workingHours?: WorkingHours;
+  bookings?: Array<{ date_gregorian: string; start_time: string; end_time: string; status?: string }>;
+  blockedTimes?: Array<{ date_gregorian: string; start_time: string; end_time: string }>;
+  salonConfig?: {
+    slot_interval_minutes: number;
+    slot_buffer_minutes: number;
+  };
 }
 
 const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
@@ -17,6 +35,13 @@ export function JalaliCalendar({
   selectedDate,
   onSelectDate,
   showPast = false,
+  serviceDuration = 0,
+  addonsDuration = 0,
+  config,
+  workingHours,
+  bookings = [],
+  blockedTimes = [],
+  salonConfig,
 }: JalaliCalendarProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
@@ -40,6 +65,8 @@ export function JalaliCalendar({
       isTomorrow: boolean;
       isSelected: boolean;
       jalaliDay: number;
+      hasAvailability: boolean;
+      isFullyBooked: boolean;
     }> = [];
 
     const start = showPast ? -7 : 0;
@@ -60,6 +87,34 @@ export function JalaliCalendar({
       const jsDay = date.getDay();
       const iranIndex = JS_TO_IRAN_DAY[jsDay];
 
+      // Compute day availability if we have the data
+      let hasAvailability = true;
+      let isFullyBooked = false;
+
+      if (workingHours && salonConfig && serviceDuration > 0) {
+        const dateStr = getTehranDateKey(date);
+        const dayBookings = bookings
+          .filter((b) => b.date_gregorian === dateStr && b.status === "confirmed")
+          .map((b) => ({ start_time: b.start_time, end_time: b.end_time }));
+        const dayBlocked = blockedTimes.filter((b) => b.date_gregorian === dateStr);
+
+        const slots = generateTimeSlots(
+          workingHours,
+          date,
+          serviceDuration,
+          addonsDuration,
+          salonConfig.slot_interval_minutes,
+          salonConfig.slot_buffer_minutes,
+          dayBookings,
+          dayBlocked,
+          config
+        );
+
+        const availableSlots = slots.filter((s) => s.available);
+        hasAvailability = availableSlots.length > 0;
+        isFullyBooked = slots.length > 0 && availableSlots.length === 0;
+      }
+
       result.push({
         date,
         weekday: PERSIAN_WEEKDAYS_SHORT[iranIndex],
@@ -67,10 +122,12 @@ export function JalaliCalendar({
         isTomorrow: i === 1,
         isSelected,
         jalaliDay: jalali.jd,
+        hasAvailability,
+        isFullyBooked,
       });
     }
     return result;
-  }, [today, selectedDate, showPast]);
+  }, [today, selectedDate, showPast, workingHours, salonConfig, serviceDuration, addonsDuration, bookings, blockedTimes, config]);
 
   // Scroll to selected date
   useEffect(() => {
@@ -166,7 +223,9 @@ export function JalaliCalendar({
                 focus-visible:ring-3 focus-visible:ring-primary/50 focus-visible:outline-none
                 ${d.isSelected
                   ? "bg-primary text-white shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
-                  : "bg-card border border-border hover:border-primary/30 text-foreground"
+                  : d.isFullyBooked
+                    ? "bg-muted border border-border text-foreground opacity-60"
+                    : "bg-card border border-border hover:border-primary/30 text-foreground"
                 }
                 ${d.isToday && !d.isSelected ? "border-2 border-primary/40" : ""}
               `}
@@ -185,6 +244,11 @@ export function JalaliCalendar({
               {d.isTomorrow && (
                 <span className={`text-[10px] font-semibold mt-0.5 leading-none ${d.isSelected ? "text-white/80" : "text-muted-foreground"}`}>
                   فردا
+                </span>
+              )}
+              {d.isFullyBooked && !d.isSelected && (
+                <span className="text-[9px] font-medium mt-0.5 leading-none text-destructive">
+                  تکمیل
                 </span>
               )}
             </button>

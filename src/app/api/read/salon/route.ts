@@ -22,6 +22,8 @@ export async function GET() {
       early_extra_hours: s.early_extra_hours ?? 0,
       late_extra_hours: s.late_extra_hours ?? 0,
       expand_threshold: s.expand_threshold ?? 80,
+      proximity_window_hours: s.proximity_window_hours ?? 2,
+      allow_overflow: s.allow_overflow ?? false,
       specific_days_off: s.specific_days_off,
     });
   } catch (error) {

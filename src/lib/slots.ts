@@ -1,11 +1,12 @@
 /**
- * Booking Engine v6 — Clean Rebuild
+ * Booking Engine v7 — Gap-Minimization Rewrite
  *
- * Design principles:
- * - All config from database (no hardcoded values)
- * - All times in Asia/Tehran timezone
- * - Every slot is generated and shown (available/booked/locked/unavailable)
- * - Clear, simple logic that's easy to debug and maintain
+ * 3-level proximity model:
+ * - Level 1 (0 bookings): all valid slots A→B
+ * - Level 2 (1 booking): ±P around existing booking
+ * - Level 3 (2+ bookings): fill gaps → earliest edge → latest edge
+ *
+ * All config from database, all times in Asia/Tehran.
  */
 
 import { getTehranDateKey, getTehranNow } from "./time";
@@ -25,35 +26,20 @@ export interface TimeSlot {
   suggested: boolean;
 }
 
-interface SlotConfig {
-  interval: number;         // minutes between slot starts
-  buffer: number;           // extra minutes after each booking
-  minGap: number;           // minimum dead gap to allow
-  earlyExtraHours: number;  // hours before shift start (0 = disabled)
-  lateExtraHours: number;   // hours after shift end (0 = disabled)
-  expandThreshold: number;  // percentage (0-100) to trigger expansion
-  suggestedCount: number;   // first N available = suggested
-}
-
 interface TimeBlock {
   start: number; // minutes from midnight
   end: number;
 }
 
-// ─── Constants ───
-
-const IRAN_WEEK_DAYS = ["sat", "sun", "mon", "tue", "wed", "thu", "fri"];
-const STANDARD_DURATIONS = [15, 30, 45, 60, 90, 120];
-
-const DEFAULT_CONFIG: SlotConfig = {
-  interval: 15,
-  buffer: 0,
-  minGap: 15,
-  earlyExtraHours: 0,
-  lateExtraHours: 0,
-  expandThreshold: 80,
-  suggestedCount: 4,
-};
+interface EngineConfig {
+  resolution: number;
+  buffer: number;
+  proximityWindow: number;
+  earlyExtraHours: number;
+  lateExtraHours: number;
+  expandThreshold: number;
+  allowOverflow: boolean;
+}
 
 // ─── Utilities ───
 
@@ -68,11 +54,8 @@ function formatTime(minutes: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-function roundDuration(minutes: number): number {
-  for (const std of STANDARD_DURATIONS) {
-    if (minutes <= std) return std;
-  }
-  return 120;
+function ceilToResolution(minutes: number, resolution: number): number {
+  return Math.ceil(minutes / resolution) * resolution;
 }
 
 function overlaps(a: TimeBlock, b: TimeBlock): boolean {
@@ -92,30 +75,196 @@ function mergeBlocks(blocks: TimeBlock[]): TimeBlock[] {
   return merged;
 }
 
-// ─── Main: Generate All Time Slots ───
+export function getIranWeekDay(date: Date): string {
+  const jsDay = date.getDay();
+  const map = ["sat", "sun", "mon", "tue", "wed", "thu", "fri"];
+  return map[jsDay === 6 ? 0 : jsDay === 5 ? 6 : jsDay - 1];
+}
+
+// ─── Effective Duration ───
+
+function computeEffectiveDuration(
+  serviceDurationMinutes: number,
+  addonsDurationMinutes: number,
+  buffer: number,
+  resolution: number
+): number {
+  const raw = serviceDurationMinutes + addonsDurationMinutes;
+  if (buffer > 0) {
+    return ceilToResolution(raw + buffer, resolution);
+  }
+  return ceilToResolution(raw, resolution);
+}
+
+// ─── Free Intervals ───
+
+function getFreeIntervals(
+  shiftStart: number,
+  shiftEnd: number,
+  occupied: TimeBlock[]
+): Array<{ start: number; end: number }> {
+  const free: Array<{ start: number; end: number }> = [];
+  let cursor = shiftStart;
+  for (const block of occupied) {
+    if (cursor < block.start) free.push({ start: cursor, end: block.start });
+    cursor = Math.max(cursor, block.end);
+  }
+  if (cursor < shiftEnd) free.push({ start: cursor, end: shiftEnd });
+  return free;
+}
+
+// ─── Shift Expansion ───
+
+function computeExpandedShift(
+  shiftStart: number,
+  shiftEnd: number,
+  bookings: TimeBlock[],
+  cfg: EngineConfig
+): { start: number; end: number; isExpanded: boolean } {
+  const shiftMinutes = shiftEnd - shiftStart;
+  if (shiftMinutes <= 0) return { start: shiftStart, end: shiftEnd, isExpanded: false };
+
+  let bookedMinutes = 0;
+  for (const b of bookings) {
+    const overlapStart = Math.max(b.start, shiftStart);
+    const overlapEnd = Math.min(b.end, shiftEnd);
+    if (overlapEnd > overlapStart) bookedMinutes += overlapEnd - overlapStart;
+  }
+
+  const fillPct = (bookedMinutes / shiftMinutes) * 100;
+  if (fillPct < cfg.expandThreshold) {
+    return { start: shiftStart, end: shiftEnd, isExpanded: false };
+  }
+
+  let newStart = shiftStart;
+  let newEnd = shiftEnd;
+
+  if (cfg.earlyExtraHours > 0) {
+    newStart = Math.max(0, shiftStart - cfg.earlyExtraHours * 60);
+  }
+  if (cfg.lateExtraHours > 0) {
+    newEnd = shiftEnd + cfg.lateExtraHours * 60;
+  }
+
+  return { start: newStart, end: newEnd, isExpanded: true };
+}
+
+// ─── Level 2: Proximity Filter ───
+
+function filterByProximity(
+  slots: TimeBlock[],
+  existingBookings: TimeBlock[],
+  proximityMinutes: number
+): TimeBlock[] {
+  if (existingBookings.length === 0) return slots;
+
+  const windows: TimeBlock[] = existingBookings.map((b) => ({
+    start: b.start - proximityMinutes,
+    end: b.end + proximityMinutes,
+  }));
+
+  const mergedWindows = mergeBlocks(windows);
+
+  return slots.filter((slot) =>
+    mergedWindows.some((w) => slot.start >= w.start && slot.end <= w.end)
+  );
+}
+
+// ─── Level 3: Gap Fill + Edge Attach ───
+
+function classifyLevel3(
+  allValidSlots: TimeBlock[],
+  occupied: TimeBlock[],
+  effectiveDuration: number,
+  resolution: number
+): { suggested: TimeBlock[]; other: TimeBlock[] } {
+  const suggested: TimeBlock[] = [];
+  const other: TimeBlock[] = [];
+
+  const sorted = [...occupied].sort((a, b) => a.start - b.start);
+
+  for (const slot of allValidSlots) {
+    let isSuggested = false;
+
+    // Check 1: Does this slot fill a gap between two bookings?
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const gapStart = sorted[i].end;
+      const gapEnd = sorted[i + 1].start;
+      const gapSize = gapEnd - gapStart;
+      if (gapSize >= effectiveDuration && slot.start >= gapStart && slot.end <= gapEnd) {
+        isSuggested = true;
+        break;
+      }
+    }
+
+    // Check 2: Is this slot adjacent to any booking edge?
+    if (!isSuggested) {
+      for (const block of sorted) {
+        if (Math.abs(slot.end - block.start) < resolution) {
+          isSuggested = true;
+          break;
+        }
+        if (Math.abs(slot.start - block.end) < resolution) {
+          isSuggested = true;
+          break;
+        }
+      }
+    }
+
+    if (isSuggested) suggested.push(slot);
+    else other.push(slot);
+  }
+
+  return { suggested, other };
+}
+
+// ─── Main: Generate Time Slots ───
 
 export function generateTimeSlots(
   workingHours: WorkingHours,
   date: Date,
   serviceDurationMinutes: number,
+  addonsDurationMinutes: number,
   slotIntervalMinutes: number,
   bufferMinutes: number,
   existingBookings: Array<{ start_time: string; end_time: string }>,
   activeLocks: Array<{ start_time: string; end_time?: string; expires_at?: string }>,
-  _priorityScore: number = 5,
-  config: Partial<SlotConfig> = {}
+  config: {
+    proximity_window_hours?: number;
+    early_extra_hours?: number;
+    late_extra_hours?: number;
+    expand_threshold?: number;
+    allow_overflow?: boolean;
+  } = {}
 ): TimeSlot[] {
-  const cfg = { ...DEFAULT_CONFIG, ...config, interval: slotIntervalMinutes, buffer: bufferMinutes };
+  const resolution = slotIntervalMinutes;
+  const proximityMinutes = (config.proximity_window_hours ?? 2) * 60;
+  const cfg: EngineConfig = {
+    resolution,
+    buffer: bufferMinutes,
+    proximityWindow: proximityMinutes,
+    earlyExtraHours: config.early_extra_hours ?? 0,
+    lateExtraHours: config.late_extra_hours ?? 0,
+    expandThreshold: config.expand_threshold ?? 80,
+    allowOverflow: config.allow_overflow ?? false,
+  };
 
   // Get working hours for this day
   const dayKey = getIranWeekDay(date);
   const dayHours = workingHours[dayKey];
   if (!dayHours) return []; // Closed day
 
-  // Calculate time boundaries
+  // Calculate effective duration
+  const effectiveDuration = computeEffectiveDuration(
+    serviceDurationMinutes,
+    addonsDurationMinutes,
+    cfg.buffer,
+    cfg.resolution
+  );
+
+  // Raw shift boundaries
   const rawShiftStart = parseTime(dayHours.open);
   const rawShiftEnd = parseTime(dayHours.close);
-  const totalDuration = roundDuration(serviceDurationMinutes) + cfg.buffer;
 
   // Convert bookings and blocks to minutes
   const bookings: TimeBlock[] = existingBookings.map((b) => ({
@@ -127,165 +276,109 @@ export function generateTimeSlots(
     .filter((l) => !l.expires_at || new Date(l.expires_at) >= new Date())
     .map((l) => ({
       start: parseTime(l.start_time),
-      end: l.end_time ? parseTime(l.end_time) : parseTime(l.start_time) + totalDuration,
+      end: l.end_time ? parseTime(l.end_time) : parseTime(l.start_time) + effectiveDuration,
     }));
 
-  // Merge all occupied time into continuous blocks
   const occupied = mergeBlocks([...bookings, ...blocks]);
 
-  // Check if we need to expand shift (configurable threshold + extra hours)
-  const { start: shiftStart, end: shiftEnd } = shouldExpandShift(rawShiftStart, rawShiftEnd, bookings, cfg);
+  // Compute expanded shift
+  const { start: shiftStart, end: shiftEnd, isExpanded } = computeExpandedShift(
+    rawShiftStart,
+    rawShiftEnd,
+    bookings,
+    cfg
+  );
 
-  // Generate ALL slots from shift start to end
-  const result: TimeSlot[] = [];
-  let availableCount = 0;
+  // Determine shift end for slot fitting
+  const effectiveShiftEnd = cfg.allowOverflow
+    ? (isExpanded ? shiftEnd : rawShiftEnd + cfg.lateExtraHours * 60)
+    : shiftEnd;
+
+  // Generate all candidate slots on the resolution grid
   const now = getTehranNow();
   const isToday = getTehranDateKey(date) === now.dateKey;
   const nowMinutes = now.minutes;
 
-  for (let m = shiftStart; m < shiftEnd; m += cfg.interval) {
-    const slot: TimeBlock = { start: m, end: m + totalDuration };
+  const candidates: TimeBlock[] = [];
+  for (let m = shiftStart; m < effectiveShiftEnd; m += cfg.resolution) {
+    const slot: TimeBlock = { start: m, end: m + effectiveDuration };
 
-    // Can the service fit in the remaining shift time?
-    const fitsService = slot.end <= shiftEnd;
+    if (slot.end > effectiveShiftEnd) continue;
+    if (isToday && m < nowMinutes) continue;
 
-    // Does this slot overlap with any booking or block?
+    candidates.push(slot);
+  }
+
+  // Filter out slots that overlap occupied blocks
+  const available = candidates.filter(
+    (slot) => !occupied.some((block) => overlaps(slot, block))
+  );
+
+  // Apply Level filtering based on booking count
+  let filtered: TimeBlock[];
+
+  if (bookings.length === 0) {
+    // Level 1: all valid slots
+    filtered = available;
+  } else if (bookings.length === 1) {
+    // Level 2: proximity filter
+    filtered = filterByProximity(
+      available,
+      bookings,
+      cfg.proximityWindow
+    );
+
+    // If no slots in proximity, try expanded proximity (2x)
+    if (filtered.length === 0) {
+      filtered = filterByProximity(
+        available,
+        bookings,
+        cfg.proximityWindow * 2
+      );
+    }
+  } else {
+    // Level 3: gap fill + edge attach
+    filtered = available;
+  }
+
+  // Classify suggested vs other
+  let suggestedSlots: TimeBlock[];
+  let otherSlots: TimeBlock[];
+
+  if (bookings.length >= 2) {
+    const classified = classifyLevel3(filtered, occupied, effectiveDuration, cfg.resolution);
+    suggestedSlots = classified.suggested;
+    otherSlots = classified.other;
+  } else if (bookings.length === 1) {
+    suggestedSlots = filtered;
+    otherSlots = [];
+  } else {
+    suggestedSlots = [];
+    otherSlots = filtered;
+  }
+
+  // Build result — show ALL slots for display
+  const result: TimeSlot[] = [];
+  for (let m = shiftStart; m < effectiveShiftEnd; m += cfg.resolution) {
+    const slot: TimeBlock = { start: m, end: m + effectiveDuration };
+    if (slot.end > effectiveShiftEnd) continue;
+
     const isBooked = bookings.some((b) => overlaps(slot, b));
     const isBlocked = blocks.some((b) => overlaps(slot, b));
-
-    // Is this in the past (today only)?
     const isPast = isToday && m < nowMinutes;
+    const isAvailable = filtered.some((s) => s.start === m);
+    const isSuggested = suggestedSlots.some((s) => s.start === m);
 
-    // Does this slot create a dead gap?
-    const isDeadGap = !isBooked && !isBlocked && fitsService
-      ? createsDeadGap(slot, occupied, bookings, cfg.minGap)
-      : false;
-
-    // Is this slot entirely within one free interval?
-    const fitsInFreeSlot = !isBooked && !isBlocked && fitsInFreeGap(slot, occupied);
-
-    // Final availability
-    const available = fitsService && !isBooked && !isBlocked && !isPast && !isDeadGap && fitsInFreeSlot;
-
-    if (available) {
-      result.push({
-        time: formatTime(m),
-        available: true,
-        booked: false,
-        locked: false,
-        suggested: availableCount < cfg.suggestedCount,
-      });
-      availableCount++;
-    } else {
-      result.push({
-        time: formatTime(m),
-        available: false,
-        booked: isBooked,
-        locked: isBlocked,
-        suggested: false,
-      });
-    }
+    result.push({
+      time: formatTime(m),
+      available: isAvailable,
+      booked: isBooked,
+      locked: isBlocked,
+      suggested: isSuggested,
+    });
   }
 
   return result;
-}
-
-// ─── Helper: Should we expand the shift? ───
-
-function shouldExpandShift(
-  shiftStart: number,
-  shiftEnd: number,
-  bookings: TimeBlock[],
-  cfg: SlotConfig
-): { start: number; end: number } {
-  const shiftDuration = shiftEnd - shiftStart;
-  let bookedMinutes = 0;
-
-  for (const b of bookings) {
-    const overlapStart = Math.max(b.start, shiftStart);
-    const overlapEnd = Math.min(b.end, shiftEnd);
-    if (overlapEnd > overlapStart) bookedMinutes += overlapEnd - overlapStart;
-  }
-
-  // If shift is NOT ≥ threshold booked, no expansion
-  if (bookedMinutes < shiftDuration * (cfg.expandThreshold / 100)) {
-    return { start: shiftStart, end: shiftEnd };
-  }
-
-  let newStart = shiftStart;
-  let newEnd = shiftEnd;
-
-  // Expand early (before shift start)
-  if (cfg.earlyExtraHours > 0) {
-    const expandedStart = Math.max(0, shiftStart - cfg.earlyExtraHours * 60);
-    const earlyFree = getFreeIntervals(expandedStart, shiftStart, []);
-    const hasSpace = earlyFree.some((iv) => iv.end - iv.start >= roundDuration(15) + cfg.buffer);
-    if (hasSpace) newStart = expandedStart;
-  }
-
-  // Expand late (after shift end)
-  if (cfg.lateExtraHours > 0) {
-    const expandedEnd = shiftEnd + cfg.lateExtraHours * 60;
-    const lateFree = getFreeIntervals(shiftEnd, expandedEnd, []);
-    const hasSpace = lateFree.some((iv) => iv.end - iv.start >= roundDuration(15) + cfg.buffer);
-    if (hasSpace) newEnd = expandedEnd;
-  }
-
-  return { start: newStart, end: newEnd };
-}
-
-// ─── Helper: Get free intervals in a time range ───
-
-function getFreeIntervals(start: number, end: number, occupied: TimeBlock[]): Array<{ start: number; end: number }> {
-  const free: Array<{ start: number; end: number }> = [];
-  let cursor = start;
-
-  for (const block of occupied) {
-    if (cursor < block.start) free.push({ start: cursor, end: block.start });
-    cursor = Math.max(cursor, block.end);
-  }
-
-  if (cursor < end) free.push({ start: cursor, end: end });
-  return free;
-}
-
-// ─── Helper: Does slot fit entirely within one free gap? ───
-
-function fitsInFreeGap(slot: TimeBlock, occupied: TimeBlock[]): boolean {
-  // Check each gap between occupied blocks
-  let cursor = 0; // Start of shift (we only check gaps within shift)
-
-  for (const block of occupied) {
-    if (slot.start >= cursor && slot.end <= block.start) return true;
-    cursor = Math.max(cursor, block.end);
-  }
-
-  // Check after last block (up to shift end - we don't know shiftEnd here, but any slot fitting before next block is fine)
-  if (slot.start >= cursor) return true;
-
-  return false;
-}
-
-// ─── Helper: Does slot create a dead gap? ───
-
-function createsDeadGap(slot: TimeBlock, occupied: TimeBlock[], bookings: TimeBlock[], minGap: number): boolean {
-  // Check gap before slot (distance from previous booking/block end)
-  for (const block of occupied) {
-    if (block.end <= slot.start) {
-      const gapBefore = slot.start - block.end;
-      if (gapBefore > 0 && gapBefore < minGap) return true;
-    }
-  }
-
-  // Check gap after slot (distance to next booking/block start)
-  for (const block of occupied) {
-    if (slot.end <= block.start) {
-      const gapAfter = block.start - slot.end;
-      if (gapAfter > 0 && gapAfter < minGap) return true;
-    }
-  }
-
-  return false;
 }
 
 // ─── Get nearest available slot (14-day scan) ───
@@ -293,12 +386,18 @@ function createsDeadGap(slot: TimeBlock, occupied: TimeBlock[], bookings: TimeBl
 export function getNearestAvailableSlot(
   workingHours: WorkingHours,
   serviceDurationMinutes: number,
+  addonsDurationMinutes: number,
   slotIntervalMinutes: number,
   bufferMinutes: number,
   existingBookings: Array<{ date_gregorian: string; start_time: string; end_time: string }>,
   activeLocks: Array<{ date_gregorian: string; start_time: string; expires_at: string }>,
-  _priorityScore: number = 5,
-  config: Partial<SlotConfig> = {}
+  config: {
+    proximity_window_hours?: number;
+    early_extra_hours?: number;
+    late_extra_hours?: number;
+    expand_threshold?: number;
+    allow_overflow?: boolean;
+  } = {}
 ): { date: Date; time: string } | null {
   const todayJalali = gregorianToJalali(new Date());
 
@@ -307,7 +406,6 @@ export function getNearestAvailableSlot(
     let jm = todayJalali.jm;
     let jd = todayJalali.jd + offset;
 
-    // Handle month overflow
     while (jd > DAYS_IN_MONTH[jm - 1]) {
       jd -= DAYS_IN_MONTH[jm - 1];
       jm++;
@@ -326,21 +424,12 @@ export function getNearestAvailableSlot(
       .map((l) => ({ start_time: l.start_time, expires_at: l.expires_at }));
 
     const slots = generateTimeSlots(
-      workingHours, checkDate, serviceDurationMinutes, slotIntervalMinutes, bufferMinutes,
-      dayBookings, dayLocks, 5, config
+      workingHours, checkDate, serviceDurationMinutes, addonsDurationMinutes,
+      slotIntervalMinutes, bufferMinutes, dayBookings, dayLocks, config
     );
 
     const best = slots.find((s) => s.available);
     if (best) return { date: checkDate, time: best.time };
   }
   return null;
-}
-
-// ─── Helpers used by other modules ───
-
-const IRAN_WEEK_DAYS_MAP = ["sat", "sun", "mon", "tue", "wed", "thu", "fri"];
-
-export function getIranWeekDay(date: Date): string {
-  const jsDay = date.getDay();
-  return IRAN_WEEK_DAYS_MAP[jsDay === 6 ? 0 : jsDay === 5 ? 6 : jsDay - 1];
 }

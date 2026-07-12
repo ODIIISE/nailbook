@@ -11,7 +11,7 @@ export default function OwnerSchedulePage() {
   const { salon, workingHours, specificDaysOff, saveSchedule, updateSalon, refreshSalonData } = useSalon();
   const [migrating, setMigrating] = useState(false);
 
-  const handleSave = async (hours: typeof workingHours, daysOff: string[], extra: { early_extra_hours: number; late_extra_hours: number; expand_threshold: number }) => {
+  const handleSave = async (hours: typeof workingHours, daysOff: string[], extra: { early_extra_hours: number; late_extra_hours: number; expand_threshold: number; proximity_window_hours: number; allow_overflow: boolean }) => {
     try {
       await Promise.all([
         saveSchedule(hours, daysOff),
@@ -56,6 +56,8 @@ export default function OwnerSchedulePage() {
           earlyExtraHours={salon.early_extra_hours ?? 0}
           lateExtraHours={salon.late_extra_hours ?? 0}
           expandThreshold={salon.expand_threshold ?? 80}
+          proximityWindowHours={salon.proximity_window_hours ?? 2}
+          allowOverflow={salon.allow_overflow ?? false}
           onSave={handleSave}
         />
       </div>

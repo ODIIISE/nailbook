@@ -64,6 +64,12 @@ export async function POST(request: NextRequest) {
     if (updates.expand_threshold !== undefined) {
       await sql`UPDATE salon_info SET expand_threshold = ${updates.expand_threshold} WHERE id = ${salonId}`;
     }
+    if (updates.proximity_window_hours !== undefined) {
+      await sql`UPDATE salon_info SET proximity_window_hours = ${updates.proximity_window_hours} WHERE id = ${salonId}`;
+    }
+    if (updates.allow_overflow !== undefined) {
+      await sql`UPDATE salon_info SET allow_overflow = ${updates.allow_overflow} WHERE id = ${salonId}`;
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

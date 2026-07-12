@@ -104,7 +104,8 @@ export async function POST(request: NextRequest) {
             name = ${s.name}, description = ${s.description || ""}, slogan = ${s.slogan || ""},
             phone = ${s.phone || ""}, address = ${s.address || ""}, working_hours = ${JSON.stringify(s.working_hours || {})},
             working_hours_text = ${s.working_hours_text || ""}, slot_buffer_minutes = ${s.slot_buffer_minutes || 15},
-            slot_interval_minutes = ${s.slot_interval_minutes || 15}, specific_days_off = ${JSON.stringify(s.specific_days_off || [])}
+            slot_interval_minutes = ${s.slot_interval_minutes || 15}, specific_days_off = ${JSON.stringify(s.specific_days_off || [])},
+            proximity_window_hours = ${s.proximity_window_hours || 2}, allow_overflow = ${s.allow_overflow ?? false}
           WHERE id = (SELECT id FROM salon_info LIMIT 1)
         `;
         results.push("salon_info");
