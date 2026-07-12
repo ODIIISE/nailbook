@@ -154,6 +154,7 @@ export default function BookContent() {
   }, []);
 
   const goBack = useCallback(() => {
+    setSpamError("");
     // Build the actual step flow based on current state
     const flow: BookingStep[] = [];
     if (hasAddons) flow.push("addons");
@@ -182,6 +183,7 @@ export default function BookContent() {
   }, []);
 
   const handleSelectTime = useCallback((time: string) => {
+    setSpamError("");
     setSelectedTime((prev) => (prev === time ? null : time));
   }, []);
 
