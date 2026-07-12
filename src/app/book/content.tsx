@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, Puzzle, Check } from "lucide-react";
+import { ChevronLeft, Puzzle, Check, AlertCircle } from "lucide-react";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { TimeSlots } from "@/components/booking/time-slots";
 import { BookingConfirm } from "@/components/booking/booking-confirm";
@@ -45,6 +45,13 @@ export default function BookContent() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string>("");
   const [spamError, setSpamError] = useState("");
+
+  // Auto-dismiss error after 5 seconds
+  useEffect(() => {
+    if (!spamError) return;
+    const timer = setTimeout(() => setSpamError(""), 5000);
+    return () => clearTimeout(timer);
+  }, [spamError]);
 
   // Auth state
   const [authPhone, setAuthPhone] = useState("");
@@ -296,14 +303,14 @@ export default function BookContent() {
       });
       if (!reserveRes.ok) {
         const data = await reserveRes.json();
-        setSpamError(data.error || "این زمان دیگر در دسترس نیست");
+        setSpamError("این زمان قبلاً رزرو شده — لطفاً ساعت دیگری انتخاب کنید");
         setIsLoading(false);
         isSubmittingRef.current = false;
         return;
       }
     } catch (e) {
       console.error("Slot validation failed:", e);
-      setSpamError("خطا در بررسی زمان. لطفاً دوباره تلاش کنید.");
+      setSpamError("خطا در بررسی زمان — لطفاً دوباره تلاش کنید");
       setIsLoading(false);
       isSubmittingRef.current = false;
       return;
@@ -339,7 +346,7 @@ export default function BookContent() {
     if (saved) {
       setStep("receipt");
     } else {
-      setSpamError("خطا در ذخیره رزرو. لطفاً دوباره تلاش کنید.");
+      setSpamError("خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید");
     }
   }, [selectedDate, selectedService, selectedTime, user, authPhone, addBooking, selectedAddons, totalDuration]);
 
@@ -601,7 +608,12 @@ export default function BookContent() {
                   </div>
                 </Card>
 
-                {spamError && <p className="text-[13px] text-destructive text-center">{spamError}</p>}
+                {spamError && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-slideUp">
+                    <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+                    <p className="text-[13px] text-destructive">{spamError}</p>
+                  </div>
+                )}
 
                 <Button onClick={handleConfirmBooking} disabled={isLoading} className="w-full h-12 bg-primary hover:bg-primary/90 text-white">
                   {isLoading ? "در حال ثبت..." : "تایید و رزرو"}
