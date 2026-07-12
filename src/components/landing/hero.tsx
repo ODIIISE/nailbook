@@ -16,8 +16,19 @@ function getWorkingHoursText(text: string): string {
 
 export function Hero({ salon, onBookNow }: HeroProps) {
   return (
-    <div className="px-4 pt-6 pb-4">
-      <div className="mx-auto max-w-lg text-center animate-stagger">
+    <div className="relative px-4 pt-6 pb-4 overflow-hidden">
+      {/* Background image with screen blend */}
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: "url(/hero-bg.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          opacity: 0.5,
+          mixBlendMode: "screen",
+        }}
+      />
+      <div className="relative z-10 mx-auto max-w-lg text-center animate-stagger">
         <div className="mx-auto mb-4 flex h-[72px] w-[72px] items-center justify-center rounded-[22px] glass-strong shadow-glass overflow-hidden">
           {salon.logo_url ? (
             <img
