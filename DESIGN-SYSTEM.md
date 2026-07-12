@@ -7,9 +7,9 @@
 ## 1. Philosophy
 
 - **Mobile-first** — every component designed for 375px+, thumb-friendly
-- **RTL** — full Persian/Arabic right-to-left layout
+- **RTL** — full Persian right-to-left layout
 - **Glassmorphism** — frosted glass cards over soft gradient blobs
-- **Minimal luxury** — warm neutrals, rose accents, clean whitespace
+- **Minimal luxury** — warm neutrals, black CTAs, rose accents, clean whitespace
 - **Accessible** — 44pt+ touch targets, focus-visible, reduced motion support
 
 ---
@@ -36,7 +36,7 @@
 |-------|-------|-------|
 | `--background` | `#F8F6F4` | Page background (warm white) |
 | `--foreground` | `#2C2424` | Primary text (dark brown) |
-| `--primary` | `#B87070` | Rose accent (CTAs, highlights) |
+| `--primary` | `#1A1A1A` | Button fill, CTAs (pure black) |
 | `--primary-foreground` | `#FFFFFF` | Text on primary |
 | `--secondary` | `#F0ECE8` | Subtle backgrounds |
 | `--secondary-foreground` | `#2C2424` | Text on secondary |
@@ -54,13 +54,13 @@
 | `--popover` | `rgba(255,255,255,0.92)` | Modal/dropdown background |
 | `--border` | `rgba(44,36,36,0.08)` | Subtle borders |
 | `--input` | `rgba(44,36,36,0.06)` | Input borders |
-| `--ring` | `#D4A0A0` | Focus ring |
+| `--ring` | `#1A1A1A` | Focus ring (black) |
 
 ### Accent Colors
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--rose` | `#B87070` | Primary accent |
+| `--rose` | `#B87070` | Calendar highlights, accent elements |
 | `--gold` | `#C49A5C` | Secondary accent |
 | `--navy` | `#2C2424` | Dark alternative |
 
@@ -108,10 +108,6 @@
 
 - Bottom nav: `paddingBottom: env(safe-area-inset-bottom, 0px)`
 - Viewport: `viewportFit: "cover"` (notch support)
-
-### Spacing Scale (Tailwind)
-
-Use Tailwind's spacing: `gap-1` (4px), `gap-2` (8px), `gap-3` (12px), `gap-4` (16px), `gap-6` (24px)
 
 ---
 
@@ -182,7 +178,7 @@ All: `filter: blur(100px)`, `opacity: 0.12`, `z-index: -1`, `pointer-events: non
 
 | Variant | Style |
 |---------|-------|
-| `default` | Rose background, white text, rose shadow |
+| `default` | Black bg (#1A1A1A), white text, dark shadow |
 | `outline` | Glass background, white border |
 | `secondary` | Glass background, subtle border |
 | `ghost` | Transparent, white hover |
@@ -218,11 +214,6 @@ All: `filter: blur(100px)`, `opacity: 0.12`, `z-index: -1`, `pointer-events: non
 
 - Toggle for boolean settings
 - Rose accent when active
-
-### Badge
-
-- Small status indicators
-- Variants: default, secondary, destructive
 
 ---
 
@@ -306,31 +297,7 @@ All: `filter: blur(100px)`, `opacity: 0.12`, `z-index: -1`, `pointer-events: non
 
 ---
 
-## 16. Patterns
-
-### Empty States
-
-- Icon (muted, 24px) + message (15px muted) + optional CTA button
-
-### Error States
-
-- Destructive text color + clear message + retry action
-
-### Toast Notifications
-
-- Sonner library
-- Success: green, Error: destructive
-- Auto-dismiss after 3-5 seconds
-
-### Form Validation
-
-- Error message below field
-- Red text color
-- Clear recovery path
-
----
-
-## 17. File Structure
+## 16. File Structure
 
 ```
 src/

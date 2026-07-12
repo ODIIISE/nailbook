@@ -230,8 +230,14 @@ Three blurred gradient blobs (rose, gold, rose) positioned behind all content vi
 | `hero_image_url` | text | Hero background |
 | `logo_url` | text | Logo image |
 | `working_hours` | jsonb | `{sat: {open, close}, ...}` |
-| `slot_buffer_minutes` | integer | Buffer between slots |
-| `slot_interval_minutes` | integer | Slot interval |
+| `slot_buffer_minutes` | integer | Buffer between slots (default 0) |
+| `slot_interval_minutes` | integer | Slot interval (default 15) |
+| `early_extra_hours` | integer | Hours before shift for expansion (default 0) |
+| `late_extra_hours` | integer | Hours after shift for expansion (default 0) |
+| `expand_threshold` | integer | Fill % to trigger expansion (default 80) |
+| `proximity_window_hours` | integer | ± hours around bookings (default 2) |
+| `allow_overflow` | boolean | Allow booking past shift end (default false) |
+| `overflow_minutes` | integer | Minutes past shift allowed (default 0) |
 | `specific_days_off` | text[] | Array of gregorian date strings |
 
 #### `services`
@@ -403,56 +409,71 @@ crypto.createHash("sha256").update(pin).digest("hex")
 
 ---
 
-## 8. Booking Engine (Slot Generation)
+## 8. Booking Engine v7 (Slot Generation)
 
 ### 8.1 Core Algorithm (`lib/slots.ts`)
 
-The booking engine calculates available time slots for a given date, service, and working hours.
+The booking engine calculates available time slots using a **3-level gap minimization model**.
 
 **Input parameters:**
 - `workingHours` — per-day open/close times
 - `date` — the target date
 - `serviceDurationMinutes` — base service duration
-- `bufferMinutes` — mandatory gap between bookings
+- `addonsDurationMinutes` — addon duration sum
+- `slotIntervalMinutes` — R (resolution)
+- `bufferMinutes` — mandatory gap after each booking
 - `existingBookings` — array of `{start_time, end_time}` for the day
 - `activeLocks` — blocked time ranges
+- `config` — owner settings (proximity, expansion, overflow)
 
 **Processing steps:**
 
-#### Step 1: Round Duration
-Service durations are rounded up to the nearest standard: `[15, 30, 45, 60, 90, 120]` minutes.
+#### Step 1: Compute Effective Duration
+```
+effectiveDuration = ceil((service + addons + buffer) / R) * R
+```
 
-#### Step 2: Build Free Intervals
-Merge all occupied ranges (bookings + blocked times), sort by start, then find the gaps within the working shift.
+#### Step 2: Determine Shift Boundaries
+- Raw shift: A → B
+- If fill % ≥ threshold: expand to (A - E_early) → (B + E_late)
+- Hard limit: B + overflow_minutes (if overflow enabled)
 
-#### Step 3: 80% Expansion Rule
-If 80%+ of the 12:00-18:00 window is booked, expand to 10:00-12:00.
+#### Step 3: Generate Candidates
+Loop from shiftStart to B at R intervals. Each candidate must:
+- Start before B
+- Not extend past hard limit
+- Not be in the past (today only)
 
-#### Step 4: Generate Candidates
-Within each free interval, generate slots at 30-minute intervals (:00, :30). Each candidate must fit the full `duration + buffer`.
+#### Step 4: Filter Overlaps
+Remove candidates that overlap existing bookings or blocked times.
 
-#### Step 5: Filter Past Slots
-For today, remove any slot starting before the current time in Tehran timezone.
+#### Step 5: Apply Level Filtering
+- **Level 1** (0 bookings): All valid slots shown
+- **Level 2** (1 booking): Only slots within ±P of existing booking
+- **Level 3** (2+ bookings): All valid slots, then classify suggested vs other
 
-#### Step 6: Dead Gap Removal
-Remove slots that would leave a gap of less than 15 minutes (either before an existing booking or at the end of an interval).
+#### Step 6: Classify Suggested vs Other
+- **Suggested**: Gap-filling slots or adjacent to booking edges
+- **Other**: All other valid slots
 
-#### Step 7: Mark Suggested
-First 4 available slots are marked as `suggested: true`. The rest are `suggested: false`.
-
-**Output:** Array of `TimeSlot` objects: `{time, available, booked, locked, suggested, score}`
+**Output:** Array of `TimeSlot` objects: `{time, available, booked, locked, suggested}`
 
 ### 8.2 Nearest Available Slot (14-day scan)
 
-`getNearestAvailableSlot()` scans 14 days forward from today (in Jalali calendar) and returns the first available slot for a given service. Used for "Next Available" feature.
+`getNearestAvailableSlot()` scans 14 days forward from today (Jalali) and returns the first available slot for a given service.
 
-### 8.3 Slot Interval
+### 8.3 Configurable Variables
 
-Default: 30 minutes (`:00` and `:30` only). Configurable via `salon.slot_interval_minutes`.
-
-### 8.4 Buffer Time
-
-Default: 15 minutes between bookings. Configurable via `salon.slot_buffer_minutes`. Added to service duration when calculating slot availability.
+| Variable | Default | Owner setting |
+|----------|---------|---------------|
+| Resolution (R) | 15 min | Segmented buttons: 5/10/15/20/30/60 |
+| Buffer | 0 min | Number input |
+| Proximity (P) | ±2h | Number input (1-8 hours) |
+| Early Extra (E_early) | 0 | Number input (0-4 hours) |
+| Late Extra (E_late) | 0 | Number input (0-4 hours) |
+| Threshold (T) | 80% | Number input (10-100%) |
+| Overflow | OFF | Toggle switch |
+| Overflow Minutes | 0 | Number input (0-180 min) |
 
 ---
 
@@ -621,13 +642,29 @@ Period selector (Today / This Week / This Month):
 
 ### 10.5 Schedule Management (`/owner/schedule`)
 
+**Working Hours section:**
 - **Per-day toggles:** Switch to enable/disable each day (Sat-Fri)
 - **Time pickers:** Open/close time for each active day
 - **"Apply to all"** — copies one day's hours to all active days
-- **Specific days off:** Two-month Jalali calendar grid (current + next month)
-  - Click a day to toggle it as a day off (red background)
-  - Shows count of selected days off
-  - Removable tags for each selected day
+
+**Slot Engine section (تنظیمات نوبت‌دهی):**
+- **Resolution (R):** Segmented buttons [5, 10, 15, 20, 30, 60] min, default 15
+- **Buffer:** Gap after each booking, default 0 min
+
+**Extra Hours section (ساعت اضافی):**
+- **Threshold (T):** Fill % to trigger expansion, default 80%
+- **Early extra hours (E_early):** Hours before shift start, default 0
+- **Late extra hours (E_late):** Hours after shift end, default 0
+
+**Smart Scheduling section (تنظیمات هوشمند):**
+- **Proximity window (P):** ± hours around existing bookings, default 2h
+- **Overflow toggle:** Allow booking past shift end
+- **Overflow minutes:** Minutes past shift allowed (shown when overflow ON)
+
+**Days Off section:**
+- Two-month Jalali calendar grid (current + next month)
+- Click a day to toggle as day off (red background)
+- Removable tags for each selected day
 
 ### 10.6 Salon Settings (`/owner/settings`)
 
