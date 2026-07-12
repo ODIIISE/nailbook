@@ -17,8 +17,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5,
+  userScalable: true,
   themeColor: "#E86A92",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -32,6 +34,9 @@ export default function RootLayout({
       dir="rtl"
       className="h-full antialiased"
     >
+      <head>
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+      </head>
       <body className="min-h-full flex flex-col">
         <GradientBackground />
         <Providers>

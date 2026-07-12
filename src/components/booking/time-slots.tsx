@@ -172,7 +172,7 @@ function SlotButton({
       onClick={onSelect}
       aria-label={`${formattedTime} ${slot.available ? "موجود" : slot.booked ? "رزرو شده" : slot.locked ? "مسدود" : "غیرقابل رزرو"}`}
       className={`
-        h-11 rounded-full text-[13px] font-bold transition-all duration-200
+        h-[46px] rounded-full text-[13px] font-bold transition-all duration-200 select-none
         focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:outline-none
         ${isSelected
           ? "bg-foreground text-background shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
