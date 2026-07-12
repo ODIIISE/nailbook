@@ -26,17 +26,19 @@ export default function HomePage() {
   return (
     <SalonGuard>
     <div className="relative min-h-screen">
-      {/* Hero background image — full width, top-aligned */}
-      <div
-        className="absolute top-0 left-0 right-0 h-[70vh] z-0 pointer-events-none"
-        style={{
-          backgroundImage: "url(/hero-bg.png)",
-          backgroundSize: "cover",
-          backgroundPosition: "center top",
-          opacity: 0.5,
-          mixBlendMode: "screen",
-        }}
-      />
+      {/* Hero background image */}
+      <div className="absolute top-0 left-0 right-0 z-0 pointer-events-none">
+        <div className="mx-auto max-w-lg">
+          <div
+            className="w-full h-[70vh]"
+            style={{
+              backgroundImage: "url(/hero-bg.png)",
+              backgroundSize: "cover",
+              backgroundPosition: "center top",
+            }}
+          />
+        </div>
+      </div>
 
       <div className="relative z-10">
         <AppHeader />
