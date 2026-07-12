@@ -11,6 +11,7 @@ import {
   saveServices,
   saveAddons,
   insertBooking,
+  cancelBooking as cancelBookingApi,
   updateWorkingHours as saveWorkingHours,
   fetchWorkingHours,
   fetchHighlights,
@@ -39,6 +40,7 @@ interface SalonContextType {
   updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
   updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => void;
   addBooking: (booking: Booking) => Promise<boolean>;
+  cancelBooking: (bookingId: string) => Promise<boolean>;
   refreshBookings: () => Promise<void>;
   refreshSalonData: () => Promise<void>;
   addHighlight: (highlight: Highlight) => Promise<void>;
@@ -215,6 +217,18 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const handleCancelBooking = useCallback(async (bookingId: string): Promise<boolean> => {
+    setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: "cancelled" } : b));
+    try {
+      await cancelBookingApi(bookingId);
+      return true;
+    } catch (e) {
+      console.error("Failed to cancel booking:", e);
+      setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: "confirmed" } : b));
+      return false;
+    }
+  }, []);
+
   const refreshBookings = useCallback(async () => {
     const data = await fetchBookings();
     setBookings(data);
@@ -361,6 +375,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         updateSalon: async () => {},
         updateBlockedTimes: () => {},
         addBooking: async () => false,
+        cancelBooking: async () => false,
         refreshBookings: async () => {},
         refreshSalonData: async () => {},
         addHighlight: async () => {},
@@ -390,6 +405,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       updateSalon: handleUpdateSalon,
         updateBlockedTimes: handleUpdateBlockedTimes,
       addBooking: handleAddBooking,
+      cancelBooking: handleCancelBooking,
       refreshBookings,
       refreshSalonData,
       addHighlight: handleAddHighlight,
@@ -403,7 +419,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, [
     loaded, salon, workingHours, specificDaysOff, services, addons, bookings, highlights, blockedTimes,
     handleUpdateWorkingHours, handleUpdateSpecificDaysOff, handleSaveSchedule, handleUpdateServices, handleUpdateAddons,
-    handleUpdateSalon, handleUpdateBlockedTimes, handleAddBooking, refreshBookings, refreshSalonData, handleAddHighlight, handleUpdateHighlight,
+    handleUpdateSalon, handleUpdateBlockedTimes, handleAddBooking, handleCancelBooking, refreshBookings, refreshSalonData, handleAddHighlight, handleUpdateHighlight,
     handleRemoveHighlight, handleAddHighlightImage, handleRemoveHighlightImage, handleUploadHighlightImage, handleToggleBookingPaid,
   ]);
 

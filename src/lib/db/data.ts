@@ -65,6 +65,18 @@ export async function insertBooking(booking: Booking) {
   }
 }
 
+export async function cancelBooking(bookingId: string) {
+  const res = await fetch(`/api/bookings/${bookingId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.error || "Failed to cancel booking");
+  }
+}
+
 export async function fetchWorkingHours() {
   const res = await fetch("/api/read/salon");
   if (!res.ok) return null;
