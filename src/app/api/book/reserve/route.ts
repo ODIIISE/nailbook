@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
       SELECT id FROM bookings
       WHERE date_gregorian = ${date_gregorian}::date
       AND status = 'confirmed'
-      AND start_time <= ${end_time}
-      AND end_time >= ${start_time}
+      AND start_time < ${end_time}
+      AND end_time > ${start_time}
     `;
 
     if (conflicts.length > 0) {
@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
     const { rows: blocked } = await sql`
       SELECT id FROM blocked_times
       WHERE date_gregorian = ${date_gregorian}::date
-      AND start_time <= ${end_time}
-      AND end_time >= ${start_time}
+      AND start_time < ${end_time}
+      AND end_time > ${start_time}
     `;
 
     if (blocked.length > 0) {
