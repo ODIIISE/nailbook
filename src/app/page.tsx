@@ -28,19 +28,15 @@ export default function HomePage() {
     <div className="relative min-h-screen">
       {/* Hero background image */}
       <div className="absolute top-0 left-0 right-0 z-0 pointer-events-none">
-        <div className="mx-auto max-w-lg">
-          <div
-            className="w-full h-[70vh] opacity-50"
-            style={{
-              backgroundImage: "url(/hero-bg.png)",
-              backgroundSize: "cover",
-              backgroundPosition: "center top",
-              filter: "blur(2px)",
-              maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
-            }}
-          />
-        </div>
+        <img
+          src="/hero-bg.png"
+          alt=""
+          className="w-full object-cover object-top opacity-90"
+          style={{
+            maskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
+          }}
+        />
       </div>
 
       <div className="relative z-10">
