@@ -41,23 +41,23 @@ export function Hero({ salon, onBookNow }: HeroProps) {
           {salon.description}
         </p>
 
-        {onBookNow && (
-          <Button
-            className="w-full h-14 text-[16px]"
-            onClick={onBookNow}
-          >
-            رزرو کن
-            <ChevronLeft className="h-5 w-5 mr-1" />
-          </Button>
-        )}
-
-        <div className="glass rounded-[20px] p-4 mt-5 shadow-card">
+        <div className="glass rounded-[20px] p-4 shadow-card">
           <div className="space-y-2.5">
             <InfoRow icon={<MapPin className="h-4 w-4" />} text={salon.address} />
             <InfoRow icon={<Phone className="h-4 w-4" />} text={toPersianDigits(salon.phone)} dir="ltr" />
             <InfoRow icon={<Clock className="h-4 w-4" />} text={getWorkingHoursText(salon.working_hours_text)} />
           </div>
         </div>
+
+        {onBookNow && (
+          <Button
+            className="w-full h-14 text-[16px] mt-5"
+            onClick={onBookNow}
+          >
+            رزرو کن
+            <ChevronLeft className="h-5 w-5 mr-1" />
+          </Button>
+        )}
       </div>
     </div>
   );
