@@ -291,21 +291,21 @@ export function generateTimeSlots(
     cfg
   );
 
-  // Determine shift end for slot fitting
-  const effectiveShiftEnd = cfg.allowOverflow
-    ? (isExpanded ? shiftEnd : rawShiftEnd + cfg.lateExtraHours * 60)
-    : shiftEnd;
+  // Hard limit: slot end must not exceed this
+  const hardEndLimit = rawShiftEnd + (cfg.allowOverflow ? cfg.lateExtraHours * 60 : 0);
 
   // Generate all candidate slots on the resolution grid
+  // Slots can start up to (rawShiftEnd - resolution) — last slot starts just before shift end
   const now = getTehranNow();
   const isToday = getTehranDateKey(date) === now.dateKey;
   const nowMinutes = now.minutes;
 
   const candidates: TimeBlock[] = [];
-  for (let m = shiftStart; m < effectiveShiftEnd; m += cfg.resolution) {
+  for (let m = shiftStart; m < rawShiftEnd; m += cfg.resolution) {
     const slot: TimeBlock = { start: m, end: m + effectiveDuration };
 
-    if (slot.end > effectiveShiftEnd) continue;
+    // Service can extend past shift end, but NOT past the hard limit (extra hours)
+    if (slot.end > hardEndLimit) continue;
     if (isToday && m < nowMinutes) continue;
 
     candidates.push(slot);
@@ -361,9 +361,9 @@ export function generateTimeSlots(
 
   // Build result — show ALL slots for display
   const result: TimeSlot[] = [];
-  for (let m = shiftStart; m < effectiveShiftEnd; m += cfg.resolution) {
+  for (let m = shiftStart; m < rawShiftEnd; m += cfg.resolution) {
     const slot: TimeBlock = { start: m, end: m + effectiveDuration };
-    if (slot.end > effectiveShiftEnd) continue;
+    if (slot.end > hardEndLimit) continue;
 
     const isBooked = bookings.some((b) => overlaps(slot, b));
     const isBlocked = blocks.some((b) => overlaps(slot, b));
