@@ -35,6 +35,7 @@ export default function HomePage() {
               backgroundImage: "url(/hero-bg.png)",
               backgroundSize: "cover",
               backgroundPosition: "center top",
+              filter: "blur(10px)",
               maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
               WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
             }}
