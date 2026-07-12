@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
     try { await sql`ALTER TABLE salon_info ADD COLUMN IF NOT EXISTS expand_threshold INT DEFAULT 80`; results.push("expand_threshold ✓"); } catch (e) { results.push(`expand_threshold: ${String(e)}`); }
     try { await sql`ALTER TABLE salon_info ADD COLUMN IF NOT EXISTS proximity_window_hours INT DEFAULT 2`; results.push("proximity_window_hours ✓"); } catch (e) { results.push(`proximity_window_hours: ${String(e)}`); }
     try { await sql`ALTER TABLE salon_info ADD COLUMN IF NOT EXISTS allow_overflow BOOLEAN DEFAULT false`; results.push("allow_overflow ✓"); } catch (e) { results.push(`allow_overflow: ${String(e)}`); }
+    try { await sql`ALTER TABLE salon_info ADD COLUMN IF NOT EXISTS overflow_minutes INT DEFAULT 0`; results.push("overflow_minutes ✓"); } catch (e) { results.push(`overflow_minutes: ${String(e)}`); }
     try { await sql`ALTER TABLE salon_info ADD COLUMN IF NOT EXISTS slot_interval_minutes INT DEFAULT 15`; results.push("slot_interval_minutes ✓"); } catch (e) { results.push(`slot_interval_minutes: ${String(e)}`); }
     try { await sql`ALTER TABLE salon_info ADD COLUMN IF NOT EXISTS slot_buffer_minutes INT DEFAULT 0`; results.push("slot_buffer_minutes ✓"); } catch (e) { results.push(`slot_buffer_minutes: ${String(e)}`); }
 

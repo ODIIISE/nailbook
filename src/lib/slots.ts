@@ -39,6 +39,7 @@ interface EngineConfig {
   lateExtraHours: number;
   expandThreshold: number;
   allowOverflow: boolean;
+  overflowMinutes: number;
 }
 
 // ─── Utilities ───
@@ -237,6 +238,7 @@ export function generateTimeSlots(
     late_extra_hours?: number;
     expand_threshold?: number;
     allow_overflow?: boolean;
+    overflow_minutes?: number;
   } = {}
 ): TimeSlot[] {
   const resolution = slotIntervalMinutes;
@@ -249,6 +251,7 @@ export function generateTimeSlots(
     lateExtraHours: config.late_extra_hours ?? 0,
     expandThreshold: config.expand_threshold ?? 80,
     allowOverflow: config.allow_overflow ?? false,
+    overflowMinutes: config.overflow_minutes ?? 0,
   };
 
   // Get working hours for this day
@@ -292,7 +295,7 @@ export function generateTimeSlots(
   );
 
   // Hard limit: slot end must not exceed this
-  const hardEndLimit = rawShiftEnd + (cfg.allowOverflow ? cfg.lateExtraHours * 60 : 0);
+  const hardEndLimit = rawShiftEnd + (cfg.allowOverflow ? (cfg.overflowMinutes ?? 0) : 0);
 
   // Generate all candidate slots on the resolution grid
   // Slots can start up to (rawShiftEnd - resolution) — last slot starts just before shift end
@@ -399,6 +402,7 @@ export function getNearestAvailableSlot(
     late_extra_hours?: number;
     expand_threshold?: number;
     allow_overflow?: boolean;
+    overflow_minutes?: number;
   } = {}
 ): { date: Date; time: string } | null {
   const todayJalali = gregorianToJalali(new Date());

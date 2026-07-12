@@ -26,6 +26,7 @@ interface ScheduleManagerProps {
   expandThreshold: number;
   proximityWindowHours: number;
   allowOverflow: boolean;
+  overflowMinutes: number;
   slotIntervalMinutes: number;
   slotBufferMinutes: number;
   onSave: (
@@ -37,6 +38,7 @@ interface ScheduleManagerProps {
       expand_threshold: number;
       proximity_window_hours: number;
       allow_overflow: boolean;
+      overflow_minutes: number;
       slot_interval_minutes: number;
       slot_buffer_minutes: number;
     }
@@ -201,6 +203,7 @@ export function ScheduleManager({
   expandThreshold: initialThreshold,
   proximityWindowHours: initialProximity,
   allowOverflow: initialOverflow,
+  overflowMinutes: initialOverflowMinutes,
   slotIntervalMinutes: initialInterval,
   slotBufferMinutes: initialBuffer,
   onSave,
@@ -212,6 +215,7 @@ export function ScheduleManager({
   const [expandThreshold, setExpandThreshold] = useState(initialThreshold);
   const [proximityWindowHours, setProximityWindowHours] = useState(initialProximity);
   const [allowOverflow, setAllowOverflow] = useState(initialOverflow);
+  const [overflowMinutes, setOverflowMinutes] = useState(initialOverflowMinutes);
   const [slotInterval, setSlotInterval] = useState(initialInterval);
   const [slotBuffer, setSlotBuffer] = useState(initialBuffer);
   const [hasChanges, setHasChanges] = useState(false);
@@ -224,10 +228,11 @@ export function ScheduleManager({
     setExpandThreshold(initialThreshold);
     setProximityWindowHours(initialProximity);
     setAllowOverflow(initialOverflow);
+    setOverflowMinutes(initialOverflowMinutes);
     setSlotInterval(initialInterval);
     setSlotBuffer(initialBuffer);
     setHasChanges(false);
-  }, [workingHours, specificDaysOff, initialEarly, initialLate, initialThreshold, initialProximity, initialOverflow, initialInterval, initialBuffer]);
+  }, [workingHours, specificDaysOff, initialEarly, initialLate, initialThreshold, initialProximity, initialOverflow, initialOverflowMinutes, initialInterval, initialBuffer]);
 
   const markChanged = () => setHasChanges(true);
 
@@ -288,6 +293,7 @@ export function ScheduleManager({
       expand_threshold: expandThreshold,
       proximity_window_hours: proximityWindowHours,
       allow_overflow: allowOverflow,
+      overflow_minutes: overflowMinutes,
       slot_interval_minutes: slotInterval,
       slot_buffer_minutes: slotBuffer,
     });
@@ -384,13 +390,23 @@ export function ScheduleManager({
             help="هر چند دقیقه یک ساعت نمایش داده شود. مثلاً ۱۵ یعنی ۱۲:۰۰، ۱۲:۱۵، ۱۲:۳۰..."
             description={`ساعت‌ها هر ${toPersianDigits(slotInterval)} دقیقه نمایش داده می‌شوند`}
           >
-            <NumberInput
-              value={slotInterval}
-              onChange={(v) => { setSlotInterval(v); markChanged(); }}
-              min={5}
-              max={60}
-              unit="دقیقه"
-            />
+            <div className="flex gap-1.5">
+              {[5, 10, 15, 20, 30, 60].map((v) => (
+                <button
+                  key={v}
+                  onClick={() => { setSlotInterval(v); markChanged(); }}
+                  className={`
+                    h-9 min-w-[40px] px-2 rounded-lg text-[13px] font-medium transition-all
+                    ${slotInterval === v
+                      ? "bg-foreground text-background shadow-sm"
+                      : "bg-secondary text-foreground hover:bg-secondary/80"
+                    }
+                  `}
+                >
+                  {toPersianDigits(v)}
+                </button>
+              ))}
+            </div>
           </SettingRow>
 
           <div className="border-t border-border/30" />
@@ -502,7 +518,7 @@ export function ScheduleManager({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Label className="text-[13px] font-medium">تمدید ساعت کاری</Label>
-                <Help text="اگر فعال شود، رزروها می‌توانند از ساعت پایان کاری فراتر بروند (حداکثر تا ساعت اضافی)." />
+                <Help text="اگر فعال شود، رزروها می‌توانند از ساعت پایان کاری فراتر بروند." />
               </div>
               <Switch
                 checked={allowOverflow}
@@ -511,10 +527,25 @@ export function ScheduleManager({
             </div>
             <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
               {allowOverflow
-                ? "رزروها می‌توانند تا ساعت اضافی بعد از پایان کار ادامه داشته باشند"
+                ? `رزروها می‌توانند تا ${toPersianDigits(overflowMinutes)} دقیقه بعد از پایان کار ادامه داشته باشند`
                 : "رزروها باید قبل از ساعت پایان کار تمام شوند"
               }
             </p>
+            {allowOverflow && (
+              <div className="flex items-center gap-3 mt-2">
+                <Input
+                  type="number"
+                  min={0}
+                  max={180}
+                  step={15}
+                  value={overflowMinutes}
+                  onChange={(e) => { setOverflowMinutes(Number(e.target.value)); markChanged(); }}
+                  className="w-20 text-center text-sm"
+                  dir="ltr"
+                />
+                <span className="text-[12px] text-muted-foreground">دقیقه</span>
+              </div>
+            )}
           </div>
         </div>
       </Card>

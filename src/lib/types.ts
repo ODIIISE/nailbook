@@ -19,6 +19,7 @@ export interface SalonInfo {
   expand_threshold: number;
   proximity_window_hours: number;
   allow_overflow: boolean;
+  overflow_minutes: number;
 }
 
 export interface Addon {

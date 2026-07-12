@@ -11,6 +11,7 @@ async function ensureColumns() {
     await sql`ALTER TABLE salon_info ADD COLUMN IF NOT EXISTS expand_threshold INT DEFAULT 80`;
     await sql`ALTER TABLE salon_info ADD COLUMN IF NOT EXISTS proximity_window_hours INT DEFAULT 2`;
     await sql`ALTER TABLE salon_info ADD COLUMN IF NOT EXISTS allow_overflow BOOLEAN DEFAULT false`;
+    await sql`ALTER TABLE salon_info ADD COLUMN IF NOT EXISTS overflow_minutes INT DEFAULT 0`;
     await sql`ALTER TABLE salon_info ADD COLUMN IF NOT EXISTS slot_interval_minutes INT DEFAULT 15`;
     await sql`ALTER TABLE salon_info ADD COLUMN IF NOT EXISTS slot_buffer_minutes INT DEFAULT 0`;
     migrated = true;
@@ -44,6 +45,7 @@ export async function GET() {
       expand_threshold: s.expand_threshold ?? 80,
       proximity_window_hours: s.proximity_window_hours ?? 2,
       allow_overflow: s.allow_overflow ?? false,
+      overflow_minutes: s.overflow_minutes ?? 0,
       specific_days_off: s.specific_days_off,
     });
   } catch (error) {

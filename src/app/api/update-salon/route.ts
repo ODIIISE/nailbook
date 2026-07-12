@@ -70,6 +70,9 @@ export async function POST(request: NextRequest) {
     if (updates.allow_overflow !== undefined) {
       await sql`UPDATE salon_info SET allow_overflow = ${updates.allow_overflow} WHERE id = ${salonId}`;
     }
+    if (updates.overflow_minutes !== undefined) {
+      await sql`UPDATE salon_info SET overflow_minutes = ${updates.overflow_minutes} WHERE id = ${salonId}`;
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

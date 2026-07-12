@@ -344,7 +344,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   const value = useMemo<SalonContextType>(() => {
     if (!loaded || !salon) {
       return {
-        salon: { id: "", name: "", description: "", slogan: "", phone: "", address: "", hero_image_url: null, logo_url: null, working_hours_text: "", working_hours: DEFAULT_WORKING_HOURS, slot_buffer_minutes: 15, slot_interval_minutes: 15, early_extra_hours: 0, late_extra_hours: 0, expand_threshold: 80, proximity_window_hours: 2, allow_overflow: false },
+        salon: { id: "", name: "", description: "", slogan: "", phone: "", address: "", hero_image_url: null, logo_url: null, working_hours_text: "", working_hours: DEFAULT_WORKING_HOURS, slot_buffer_minutes: 15, slot_interval_minutes: 15, early_extra_hours: 0, late_extra_hours: 0, expand_threshold: 80, proximity_window_hours: 2, allow_overflow: false, overflow_minutes: 0 },
         workingHours: DEFAULT_WORKING_HOURS,
         specificDaysOff: [],
         services: [],

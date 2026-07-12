@@ -138,6 +138,7 @@ export default function BookContent() {
         late_extra_hours: salon.late_extra_hours,
         expand_threshold: salon.expand_threshold,
         allow_overflow: salon.allow_overflow,
+        overflow_minutes: salon.overflow_minutes,
       }
     );
   }, [selectedDate, selectedService, selectedAddons, workingHours, salon, bookings, blockedTimes, addons]);
