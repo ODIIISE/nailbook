@@ -155,18 +155,21 @@ export default function BookContent() {
 
   const goBack = useCallback(() => {
     const steps: BookingStep[] = hasAddons
-      ? ["addons", "datetime", "auth", "confirm"]
-      : ["datetime", "auth", "confirm"];
+      ? user
+        ? ["addons", "datetime", "confirm"]
+        : ["addons", "datetime", "auth", "confirm"]
+      : user
+        ? ["datetime", "confirm"]
+        : ["datetime", "auth", "confirm"];
     const idx = steps.indexOf(step);
     if (idx > 0) {
       const prev = steps[idx - 1];
       setStep(prev);
-      // Reset auth state when leaving auth step
-      if (step === "auth" || prev !== "auth") resetAuth();
+      if (prev !== "auth") resetAuth();
     } else {
       router.push("/");
     }
-  }, [step, router, hasAddons, resetAuth]);
+  }, [step, router, hasAddons, user, resetAuth]);
 
   const handleAddonToggle = useCallback((addonId: string) => {
     setSelectedAddons((prev) =>
