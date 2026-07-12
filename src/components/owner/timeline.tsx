@@ -52,12 +52,13 @@ function getBlockPosition(
   startTime: string,
   endTime: string,
   startHour: number
-): { top: number; height: number } {
+): { top: number; height: number; durationMinutes: number } {
   const start = timeToMinutes(startTime) - startHour * 60;
   const end = timeToMinutes(endTime) - startHour * 60;
   return {
     top: (start / 60) * HOUR_HEIGHT,
     height: Math.max(((end - start) / 60) * HOUR_HEIGHT, 24),
+    durationMinutes: timeToMinutes(endTime) - timeToMinutes(startTime),
   };
 }
 
@@ -141,42 +142,42 @@ export function Timeline({
                     style={{ backgroundColor: color.bg, borderColor: color.border }}
                   >
                     {/* Row 1: Customer name + paid badge */}
-                    <div className="flex items-center justify-between mb-0.5">
-                      <div className="flex items-center gap-1 min-w-0">
-                        <User className="h-2.5 w-2.5 shrink-0" style={{ color: color.text }} />
-                        <span className="text-[10px] font-semibold truncate" style={{ color: color.text }}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <User className="h-3 w-3 shrink-0" style={{ color: color.text }} />
+                        <span className="text-[11px] font-bold truncate" style={{ color: color.text }}>
                           {booking.customer_name}
                         </span>
                       </div>
                       <Badge
                         variant="secondary"
-                        className={`text-[8px] px-1 py-0 h-3.5 ${booking.paid ? "bg-success text-white" : "bg-destructive/10 text-destructive"}`}
+                        className={`text-[9px] px-1.5 py-0 h-4 ${booking.paid ? "bg-success text-white" : "bg-destructive/10 text-destructive"}`}
                       >
                         {booking.paid ? "پرداخت شده" : "پرداخت نشده"}
                       </Badge>
                     </div>
 
                     {/* Row 2: Service name */}
-                    <p className="text-[9px] truncate" style={{ color: color.text, opacity: 0.7 }}>
+                    <p className="text-[10px] font-medium truncate" style={{ color: color.text, opacity: 0.8 }}>
                       {booking.service?.name}
                     </p>
 
                     {/* Row 3: Time range + price (if tall enough) */}
                     {pos.height > 40 && (
-                      <div className="flex items-center justify-between mt-0.5">
-                        <p className="text-[9px]" style={{ color: color.text, opacity: 0.5 }}>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-[10px]" style={{ color: color.text, opacity: 0.6 }}>
                           {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
                         </p>
-                        <p className="text-[9px] font-bold" style={{ color: color.text, opacity: 0.7 }}>
+                        <p className="text-[10px] font-bold" style={{ color: color.text, opacity: 0.8 }}>
                           {formatPrice(Number(price))}
                         </p>
                       </div>
                     )}
 
-                    {/* Row 4: Duration (if tall enough) */}
+                    {/* Row 4: Total duration (if tall enough) */}
                     {pos.height > 55 && (
-                      <p className="text-[8px] mt-0.5" style={{ color: color.text, opacity: 0.4 }}>
-                        {toPersianDigits(booking.service?.duration_minutes || 0)} دقیقه
+                      <p className="text-[9px] mt-1 font-medium" style={{ color: color.text, opacity: 0.5 }}>
+                        {toPersianDigits(pos.durationMinutes)} دقیقه
                       </p>
                     )}
                   </div>
