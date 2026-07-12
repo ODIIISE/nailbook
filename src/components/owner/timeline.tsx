@@ -25,6 +25,20 @@ interface TimelineProps {
 
 const HOUR_HEIGHT = 64;
 
+// Earth tone palette — one color per service
+const SERVICE_COLORS = [
+  { bg: "#F5E6E0", border: "#D4A08A", text: "#8B4513", badge: "bg-[#D4A08A] text-white" },   // terracotta
+  { bg: "#E8EDE5", border: "#A8B89C", text: "#4A5D3E", badge: "bg-[#A8B89C] text-white" },   // sage
+  { bg: "#F0E6D3", border: "#C4A97D", text: "#6B5B3E", badge: "bg-[#C4A97D] text-white" },   // sand
+  { bg: "#E0E4E8", border: "#8E9AAB", text: "#3D4F5F", badge: "bg-[#8E9AAB] text-white" },   // slate
+  { bg: "#EDE5E0", border: "#B8967A", text: "#6B4226", badge: "bg-[#B8967A] text-white" },   // clay
+  { bg: "#E5EBE5", border: "#7A9A7A", text: "#2D5A2D", badge: "bg-[#7A9A7A] text-white" },   // forest
+];
+
+function getServiceColor(index: number) {
+  return SERVICE_COLORS[index % SERVICE_COLORS.length];
+}
+
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
@@ -70,10 +84,21 @@ export function Timeline({
 
   const hasContent = bookings.length > 0 || blockedTimes.length > 0;
 
+  // Build service index map for consistent colors
+  const serviceIndexMap = useMemo(() => {
+    const map = new Map<string, number>();
+    let idx = 0;
+    for (const b of bookings) {
+      const sid = b.service_id;
+      if (!map.has(sid)) map.set(sid, idx++);
+    }
+    return map;
+  }, [bookings]);
+
   return (
     <Card className="overflow-hidden">
       <div className="relative" style={{ height: totalHeight }}>
-        {/* Hour grid lines — always visible */}
+        {/* Hour grid lines */}
         {hourMarks.map((hour, i) => (
           <div
             key={`hour-${hour}`}
@@ -86,7 +111,7 @@ export function Timeline({
           </div>
         ))}
 
-        {/* Half-hour dashed lines — half opacity */}
+        {/* Half-hour dashed lines */}
         {hourMarks.slice(0, -1).map((hour, i) => (
           <div
             key={`half-${hour}`}
@@ -101,6 +126,9 @@ export function Timeline({
             {bookings.map((booking) => {
               const pos = getBlockPosition(booking.start_time, booking.end_time, startHour);
               const price = booking.service?.price || 0;
+              const colorIdx = serviceIndexMap.get(booking.service_id) ?? 0;
+              const color = getServiceColor(colorIdx);
+
               return (
                 <div
                   key={booking.id}
@@ -108,34 +136,46 @@ export function Timeline({
                   style={{ top: pos.top, height: pos.height }}
                   onClick={() => onSelectBooking(booking)}
                 >
-                  <div className="h-full rounded-md bg-primary/10 border border-primary/30 p-1.5 hover:bg-primary/15 transition-colors overflow-hidden">
+                  <div
+                    className="h-full rounded-lg border p-2 hover:opacity-90 transition-opacity overflow-hidden"
+                    style={{ backgroundColor: color.bg, borderColor: color.border }}
+                  >
+                    {/* Row 1: Customer name + paid badge */}
                     <div className="flex items-center justify-between mb-0.5">
                       <div className="flex items-center gap-1 min-w-0">
-                        <User className="h-2.5 w-2.5 text-primary shrink-0" />
-                        <span className="text-[10px] font-semibold text-primary truncate">
+                        <User className="h-2.5 w-2.5 shrink-0" style={{ color: color.text }} />
+                        <span className="text-[10px] font-semibold truncate" style={{ color: color.text }}>
                           {booking.customer_name}
                         </span>
                       </div>
                       <Badge
-                        variant={booking.paid ? "default" : "secondary"}
+                        variant="secondary"
                         className={`text-[8px] px-1 py-0 h-3.5 ${booking.paid ? "bg-success text-white" : "bg-destructive/10 text-destructive"}`}
                       >
                         {booking.paid ? "پرداخت شده" : "پرداخت نشده"}
                       </Badge>
                     </div>
-                    <p className="text-[9px] text-primary/70 truncate">{booking.service?.name}</p>
+
+                    {/* Row 2: Service name */}
+                    <p className="text-[9px] truncate" style={{ color: color.text, opacity: 0.7 }}>
+                      {booking.service?.name}
+                    </p>
+
+                    {/* Row 3: Time range + price (if tall enough) */}
                     {pos.height > 40 && (
                       <div className="flex items-center justify-between mt-0.5">
-                        <p className="text-[9px] text-primary/50">
+                        <p className="text-[9px]" style={{ color: color.text, opacity: 0.5 }}>
                           {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
                         </p>
-                        <p className="text-[9px] font-bold text-primary/70">
+                        <p className="text-[9px] font-bold" style={{ color: color.text, opacity: 0.7 }}>
                           {formatPrice(Number(price))}
                         </p>
                       </div>
                     )}
+
+                    {/* Row 4: Duration (if tall enough) */}
                     {pos.height > 55 && (
-                      <p className="text-[8px] text-primary/40 mt-0.5">
+                      <p className="text-[8px] mt-0.5" style={{ color: color.text, opacity: 0.4 }}>
                         {toPersianDigits(booking.service?.duration_minutes || 0)} دقیقه
                       </p>
                     )}
@@ -181,7 +221,6 @@ export function Timeline({
             )}
           </>
         ) : (
-          /* Empty state — centered inside the timeline container */
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center opacity-40">
               <Clock className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
