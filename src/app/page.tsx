@@ -31,7 +31,7 @@ export default function HomePage() {
         <img
           src="/hero-bg.png"
           alt=""
-          className="w-full object-cover object-top opacity-90"
+          className="w-full object-cover object-top opacity-80"
           style={{
             maskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
             WebkitMaskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",

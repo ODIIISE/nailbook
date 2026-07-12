@@ -37,7 +37,7 @@ export function Hero({ salon, onBookNow }: HeroProps) {
             {salon.slogan}
           </p>
         )}
-        <p className="mb-5 text-caption text-muted-foreground max-w-[280px] mx-auto">
+        <p className="mb-5 text-caption text-muted-foreground">
           {salon.description}
         </p>
 
