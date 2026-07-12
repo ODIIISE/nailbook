@@ -279,7 +279,7 @@ export function ScheduleManager({
       <Card className="p-4">
         <h3 className="font-semibold text-foreground mb-1">ساعت اضافی</h3>
         <p className="text-xs text-muted-foreground mb-4">
-          باز شدن خودکار ساعت‌های بیشتر当 رزروها پر شود
+          باز شدن خودکار ساعت‌های بیشتر وقتی رزروها پر شود
         </p>
         <div className="space-y-4">
           {/* Threshold */}
@@ -351,7 +351,7 @@ export function ScheduleManager({
 
       {/* Proximity & Overflow Settings */}
       <Card className="p-4">
-        <h3 className="font-semibold text-foreground mb-1">规则</h3>
+        <h3 className="font-semibold text-foreground mb-1">تنظیمات هوشمند</h3>
         <p className="text-xs text-muted-foreground mb-4">
           هوشمندسازی نمایش ساعت‌ها برای مشتریان
         </p>
