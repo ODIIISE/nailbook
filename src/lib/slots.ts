@@ -77,8 +77,10 @@ function mergeBlocks(blocks: TimeBlock[]): TimeBlock[] {
 
 export function getIranWeekDay(date: Date): string {
   const jsDay = date.getDay();
+  // JS: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  // Iran week: 0=Sat, 1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu, 6=Fri
   const map = ["sat", "sun", "mon", "tue", "wed", "thu", "fri"];
-  return map[jsDay === 6 ? 0 : jsDay === 5 ? 6 : jsDay - 1];
+  return map[jsDay === 6 ? 0 : jsDay + 1];
 }
 
 // ─── Effective Duration ───
