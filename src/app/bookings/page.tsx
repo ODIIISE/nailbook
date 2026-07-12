@@ -26,7 +26,7 @@ const JALALI_MONTHS = ["", "فروردین", "اردیبهشت", "خرداد", "
 export default function BookingsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { bookings, services, addons } = useSalon();
+  const { bookings, services, addons, cancelBooking } = useSalon();
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   // Filter bookings by user_id OR customer_phone (handles both registered and guest bookings)
@@ -179,6 +179,10 @@ export default function BookingsPage() {
         <BookingDetailModal
           booking={selectedBooking}
           onClose={() => setSelectedBooking(null)}
+          onCancel={(id) => {
+            cancelBooking(id);
+            setSelectedBooking(null);
+          }}
           getServiceName={getServiceName}
           getAddonNames={getAddonNames}
           getServicePrice={getServicePrice}
@@ -194,16 +198,19 @@ export default function BookingsPage() {
 function BookingDetailModal({
   booking,
   onClose,
+  onCancel,
   getServiceName,
   getAddonNames,
   getServicePrice,
 }: {
   booking: Booking;
   onClose: () => void;
+  onCancel: (id: string) => void;
   getServiceName: (id: string) => string;
   getAddonNames: (ids: string[]) => string[];
   getServicePrice: (id: string) => number | null;
 }) {
+  const [showConfirm, setShowConfirm] = useState(false);
   const jalali = gregorianToJalali(new Date(booking.date_gregorian));
   const status = STATUS_MAP[booking.status] || STATUS_MAP.pending;
   const time = booking.start_time.slice(0, 5);
@@ -283,9 +290,48 @@ function BookingDetailModal({
           </div>
         </div>
 
+        {/* Confirmation dialog */}
+        {showConfirm && (
+          <div className="mt-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-slideUp">
+            <p className="text-[13px] text-destructive mb-3">آیا مطمئن هستید که می‌خواهید این نوبت را لغو کنید؟</p>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  onCancel(booking.id);
+                  onClose();
+                }}
+                className="flex-1"
+              >
+                بله، لغو
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowConfirm(false)}
+                className="flex-1"
+              >
+                انصراف
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Cancel button (only for confirmed bookings) */}
+        {booking.status === "confirmed" && !showConfirm && (
+          <Button
+            variant="outline"
+            className="w-full mt-4 text-destructive border-destructive/30 hover:bg-destructive/10"
+            onClick={() => setShowConfirm(true)}
+          >
+            لغو نوبت
+          </Button>
+        )}
+
         <Button
           onClick={onClose}
-          className="w-full mt-6 h-12"
+          className="w-full mt-3 h-12"
         >
           بستن
         </Button>
