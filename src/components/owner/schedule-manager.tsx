@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Save, Copy } from "lucide-react";
+import { Save, Copy, HelpCircle } from "lucide-react";
 import {
   toPersianDigits,
   gregorianToJalali,
@@ -278,83 +278,140 @@ export function ScheduleManager({
       {/* Extra Hours Configuration */}
       <Card className="p-4">
         <h3 className="font-semibold text-foreground mb-1">ساعت اضافی</h3>
-        <p className="text-xs text-muted-foreground mb-3">
-          زمان اضافی قبل و بعد از ساعت کاری (وقتی ۸۰٪ رزرو شده باشد باز می‌شود)
+        <p className="text-xs text-muted-foreground mb-4">
+          باز شدن خودکار ساعت‌های بیشتر当 رزروها پر شود
         </p>
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <Label className="text-[12px]">ساعت اضافی اولیه</Label>
-            <Input
-              type="number"
-              min={0}
-              max={4}
-              value={earlyExtraHours}
-              onChange={(e) => { setEarlyExtraHours(Number(e.target.value)); setHasChanges(true); }}
-              className="mt-1 text-center"
-              dir="ltr"
-            />
-            <p className="text-[10px] text-muted-foreground mt-1">ساعت قبل از شروع</p>
+        <div className="space-y-4">
+          {/* Threshold */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label className="text-[13px] font-medium">آستانه فعال‌سازی</Label>
+              <div className="group relative">
+                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 cursor-help" />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-2.5 rounded-xl bg-foreground text-background text-[11px] leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-elevated">
+                  وقتی درصد رزروهای یک روز از این عدد بیشتر شود، ساعت‌های اضافی باز می‌شوند.
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-foreground" />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={expandThreshold}
+                onChange={(e) => { setExpandThreshold(Number(e.target.value)); setHasChanges(true); }}
+                className="w-20 text-center text-sm"
+                dir="ltr"
+              />
+              <span className="text-[12px] text-muted-foreground">٪</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
+              وقتی <span className="font-medium text-foreground/70">{toPersianDigits(expandThreshold)}٪</span> روز پر شود، ساعت‌های اضافی قبل و بعد فعال می‌شوند
+            </p>
           </div>
-          <div>
-            <Label className="text-[12px]">آستانه فعال‌سازی</Label>
-            <Input
-              type="number"
-              min={0}
-              max={100}
-              value={expandThreshold}
-              onChange={(e) => { setExpandThreshold(Number(e.target.value)); setHasChanges(true); }}
-              className="mt-1 text-center"
-              dir="ltr"
-            />
-            <p className="text-[10px] text-muted-foreground mt-1">درصد رزرو شده</p>
-          </div>
-          <div>
-            <Label className="text-[12px]">ساعت اضافی پایانی</Label>
-            <Input
-              type="number"
-              min={0}
-              max={4}
-              value={lateExtraHours}
-              onChange={(e) => { setLateExtraHours(Number(e.target.value)); setHasChanges(true); }}
-              className="mt-1 text-center"
-              dir="ltr"
-            />
-            <p className="text-[10px] text-muted-foreground mt-1">ساعت بعد از پایان</p>
+
+          <div className="border-t border-border/30" />
+
+          {/* Early / Late hours */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[13px] font-medium">ساعات قبل از شروع</Label>
+              <Input
+                type="number"
+                min={0}
+                max={4}
+                value={earlyExtraHours}
+                onChange={(e) => { setEarlyExtraHours(Number(e.target.value)); setHasChanges(true); }}
+                className="text-center text-sm"
+                dir="ltr"
+              />
+              <p className="text-[11px] text-muted-foreground/70">
+                مثلاً اگر کار ۱۰ شروع شود و این عدد ۲ باشد، از ۸ باز می‌شود
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[13px] font-medium">ساعات بعد از پایان</Label>
+              <Input
+                type="number"
+                min={0}
+                max={4}
+                value={lateExtraHours}
+                onChange={(e) => { setLateExtraHours(Number(e.target.value)); setHasChanges(true); }}
+                className="text-center text-sm"
+                dir="ltr"
+              />
+              <p className="text-[11px] text-muted-foreground/70">
+                مثلاً اگر کار ۱۸ تمام شود و این عدد ۱ باشد، تا ۱۹ باز می‌شود
+              </p>
+            </div>
           </div>
         </div>
       </Card>
 
       {/* Proximity & Overflow Settings */}
       <Card className="p-4">
-        <h3 className="font-semibold text-foreground mb-1">تنظیمات موتور رزرو</h3>
-        <p className="text-xs text-muted-foreground mb-3">
-          پنجره نزدیکی و تمدید ساعت کاری
+        <h3 className="font-semibold text-foreground mb-1">规则</h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          هوشمندسازی نمایش ساعت‌ها برای مشتریان
         </p>
-        <div className="space-y-4">
-          <div>
-            <Label className="text-[12px]">پنجره نزدیکی (ساعت)</Label>
-            <Input
-              type="number"
-              min={1}
-              max={8}
-              value={proximityWindowHours}
-              onChange={(e) => { setProximityWindowHours(Number(e.target.value)); setHasChanges(true); }}
-              className="mt-1 text-center"
-              dir="ltr"
-            />
-            <p className="text-[10px] text-muted-foreground mt-1">فاصله مجاز از رزرو قبلی (± ساعت)</p>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label className="text-[12px]">اجازه تمدید ساعت کاری</Label>
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                رزرو می‌تواند از ساعت کاری فراتر رود (تا ساعت اضافی)
-              </p>
+        <div className="space-y-5">
+          {/* Proximity Window */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label className="text-[13px] font-medium">فاصله نزدیکی</Label>
+              <div className="group relative">
+                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 cursor-help" />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-2.5 rounded-xl bg-foreground text-background text-[11px] leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-elevated">
+                  وقتی مشتری ساعت ۱۰ را رزرو می‌کند، ساعت‌های بعدی فقط در بازه ±۲ ساعت از ۱۰ نمایش داده می‌شوند.
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-foreground" />
+                </div>
+              </div>
             </div>
-            <Switch
-              checked={allowOverflow}
-              onCheckedChange={(v) => { setAllowOverflow(v); setHasChanges(true); }}
-            />
+            <div className="flex items-center gap-3">
+              <Input
+                type="number"
+                min={1}
+                max={8}
+                value={proximityWindowHours}
+                onChange={(e) => { setProximityWindowHours(Number(e.target.value)); setHasChanges(true); }}
+                className="w-20 text-center text-sm"
+                dir="ltr"
+              />
+              <span className="text-[12px] text-muted-foreground">ساعت</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
+              ساعت‌های پیشنهادی در فاصله <span className="font-medium text-foreground/70">±{toPersianDigits(proximityWindowHours)} ساعت</span> از رزرو قبلی نمایش داده می‌شوند
+            </p>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-border/30" />
+
+          {/* Overflow Toggle */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Label className="text-[13px] font-medium">تمدید ساعت کاری</Label>
+                <div className="group relative">
+                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 cursor-help" />
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-2.5 rounded-xl bg-foreground text-background text-[11px] leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-elevated">
+                    اگر فعال شود، رزروها می‌توانند از ساعت پایان کاری فراتر بروند (حداکثر تا ساعت اضافی).
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-foreground" />
+                  </div>
+                </div>
+              </div>
+              <Switch
+                checked={allowOverflow}
+                onCheckedChange={(v) => { setAllowOverflow(v); setHasChanges(true); }}
+              />
+            </div>
+            <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
+              {allowOverflow
+                ? "رزروها می‌توانند تا ساعت اضافی بعد از پایان کار ادامه داشته باشند"
+                : "رزروها باید قبل از ساعت پایان کار تمام شوند"
+              }
+            </p>
           </div>
         </div>
       </Card>
