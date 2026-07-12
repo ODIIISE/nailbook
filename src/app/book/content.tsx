@@ -154,18 +154,17 @@ export default function BookContent() {
   }, []);
 
   const goBack = useCallback(() => {
-    const steps: BookingStep[] = hasAddons
-      ? user
-        ? ["addons", "datetime", "confirm"]
-        : ["addons", "datetime", "auth", "confirm"]
-      : user
-        ? ["datetime", "confirm"]
-        : ["datetime", "auth", "confirm"];
-    const idx = steps.indexOf(step);
+    // Build the actual step flow based on current state
+    const flow: BookingStep[] = [];
+    if (hasAddons) flow.push("addons");
+    flow.push("datetime");
+    if (!user) flow.push("auth");
+    flow.push("confirm");
+
+    const idx = flow.indexOf(step);
     if (idx > 0) {
-      const prev = steps[idx - 1];
-      setStep(prev);
-      if (prev !== "auth") resetAuth();
+      setStep(flow[idx - 1]);
+      resetAuth();
     } else {
       router.push("/");
     }
