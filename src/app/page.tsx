@@ -25,8 +25,21 @@ export default function HomePage() {
 
   return (
     <SalonGuard>
-    <div className="min-h-screen">
-      <AppHeader />
+    <div className="relative min-h-screen">
+      {/* Hero background image — full width, top-aligned */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[70vh] z-0 pointer-events-none"
+        style={{
+          backgroundImage: "url(/hero-bg.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center top",
+          opacity: 0.5,
+          mixBlendMode: "screen",
+        }}
+      />
+
+      <div className="relative z-10">
+        <AppHeader />
 
       <Highlights
         highlights={highlights}
@@ -57,6 +70,7 @@ export default function HomePage() {
           onClose={() => setViewingHighlight(null)}
         />
       )}
+      </div>
     </div>
     </SalonGuard>
   );
