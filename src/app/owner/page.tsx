@@ -24,7 +24,7 @@ interface BlockedTime {
 }
 
 export default function OwnerDashboard() {
-  const { salon, bookings, services, workingHours, blockedTimes, updateBlockedTimes, addBooking, refreshBookings, toggleBookingPaid } = useSalon();
+  const { salon, bookings, services, workingHours, blockedTimes, updateBlockedTimes, addBooking, cancelBooking, refreshBookings, toggleBookingPaid } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
@@ -248,6 +248,14 @@ export default function OwnerDashboard() {
           isPaid={selectedBooking.paid}
           onTogglePaid={() => {
             toggleBookingPaid(selectedBooking.id, !selectedBooking.paid);
+          }}
+          onCancel={(id) => {
+            cancelBooking(id);
+            setSelectedBooking(null);
+          }}
+          onDelete={(id) => {
+            cancelBooking(id);
+            setSelectedBooking(null);
           }}
           onClose={() => setSelectedBooking(null)}
         />
