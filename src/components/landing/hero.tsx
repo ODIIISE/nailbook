@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Phone, Clock, Sparkles, ChevronLeft } from "lucide-react";
+import { MapPin, Phone, Clock, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toPersianDigits } from "@/lib/jalali";
 import type { SalonInfo } from "@/lib/types";
@@ -26,7 +26,7 @@ export function Hero({ salon, onBookNow }: HeroProps) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <Sparkles className="h-7 w-7 text-primary" />
+            <img src="/logo-placeholder.svg" alt="" className="w-10 h-10 opacity-60" />
           )}
         </div>
         <h1 className="text-display text-foreground mb-1.5">
