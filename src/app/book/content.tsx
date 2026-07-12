@@ -430,6 +430,7 @@ export default function BookContent() {
                 late_extra_hours: salon.late_extra_hours,
                 expand_threshold: salon.expand_threshold,
                 allow_overflow: salon.allow_overflow,
+                overflow_minutes: salon.overflow_minutes,
               }}
               workingHours={workingHours}
               bookings={bookings.filter((b) => b.status === "confirmed")}

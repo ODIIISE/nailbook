@@ -19,6 +19,7 @@ interface JalaliCalendarProps {
     late_extra_hours?: number;
     expand_threshold?: number;
     allow_overflow?: boolean;
+    overflow_minutes?: number;
   };
   workingHours?: WorkingHours;
   bookings?: Array<{ date_gregorian: string; start_time: string; end_time: string; status?: string }>;
