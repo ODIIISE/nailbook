@@ -29,7 +29,7 @@ export default function HomePage() {
       {/* Hero background image */}
       <div className="absolute top-0 left-0 right-0 z-0 pointer-events-none">
         <img
-          src="/hero-bg.png"
+          src="/hero-bg.webp"
           alt=""
           className="w-full object-cover object-top opacity-80"
           style={{
