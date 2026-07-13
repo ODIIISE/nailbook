@@ -2,8 +2,9 @@
 
 import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { User, Ban, Clock, Check, Wallet } from "lucide-react";
-import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDateShort } from "@/lib/jalali";
+import { Badge } from "@/components/ui/badge";
+import { User, Ban, Clock } from "lucide-react";
+import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
 import type { Booking, Service } from "@/lib/types";
 
@@ -128,7 +129,6 @@ export function Timeline({
               const price = Number(booking.service?.price) || 0;
               const colorIdx = serviceIndexMap.get(booking.service_id) ?? 0;
               const color = getServiceColor(colorIdx);
-              const jalali = gregorianToJalali(new Date(booking.date_gregorian.split("T")[0]));
 
               return (
                 <div
@@ -138,75 +138,47 @@ export function Timeline({
                   onClick={() => onSelectBooking(booking)}
                 >
                   <div
-                    className="h-full border p-2.5 hover:brightness-95 transition-all overflow-hidden relative"
-                    style={{
-                      backgroundColor: color.bg,
-                      borderColor: color.border,
-                      borderRightWidth: "4px",
-                      borderRightColor: color.border,
-                      borderRadius: 0,
-                    }}
+                    className="h-full rounded-lg border p-2 hover:opacity-90 transition-opacity overflow-hidden"
+                    style={{ backgroundColor: color.bg, borderColor: color.border }}
                   >
-                    {/* Row 1: Name + Jalali date */}
+                    {/* Row 1: Customer name + paid badge */}
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[12px] font-bold truncate" style={{ color: color.text }}>
-                        {booking.customer_name}
-                      </span>
-                      {pos.height > 50 && (
-                        <span className="text-[9px] shrink-0 ml-1" style={{ color: color.text, opacity: 0.5 }}>
-                          {formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd)}
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <User className="h-3 w-3 shrink-0" style={{ color: color.text }} />
+                        <span className="text-[11px] font-bold truncate" style={{ color: color.text }}>
+                          {booking.customer_name}
                         </span>
-                      )}
+                      </div>
+                      <Badge
+                        variant="secondary"
+                        className={`text-[9px] px-1.5 py-0 h-4 ${booking.paid ? "bg-success text-white" : "bg-destructive/10 text-destructive"}`}
+                      >
+                        {booking.paid ? "پرداخت شده" : "پرداخت نشده"}
+                      </Badge>
                     </div>
 
-                    {/* Row 2: Service + Time */}
-                    {pos.height > 36 && (
-                      <p className="text-[10px] truncate mb-1.5" style={{ color: color.text, opacity: 0.7 }}>
-                        {booking.service?.name} · {booking.start_time.slice(0, 5)} تا {booking.end_time.slice(0, 5)}
-                      </p>
+                    {/* Row 2: Service name */}
+                    <p className="text-[10px] font-medium truncate" style={{ color: color.text, opacity: 0.8 }}>
+                      {booking.service?.name}
+                    </p>
+
+                    {/* Row 3: Time range + price (if tall enough) */}
+                    {pos.height > 40 && (
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-[10px]" style={{ color: color.text, opacity: 0.6 }}>
+                          {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
+                        </p>
+                        <p className="text-[10px] font-bold" style={{ color: color.text, opacity: 0.8 }}>
+                          {formatPrice(Number(price))}
+                        </p>
+                      </div>
                     )}
 
-                    {/* Row 3: Stats pills */}
+                    {/* Row 4: Total duration (if tall enough) */}
                     {pos.height > 55 && (
-                      <div className="flex gap-1 flex-wrap">
-                        {/* Duration pill */}
-                        <div
-                          className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
-                          style={{ backgroundColor: `${color.border}20` }}
-                        >
-                          <Clock className="h-2.5 w-2.5" style={{ color: color.text, opacity: 0.6 }} />
-                          <span className="text-[8px]" style={{ color: color.text, opacity: 0.7 }}>
-                            {toPersianDigits(pos.durationMinutes)} دقیقه
-                          </span>
-                        </div>
-
-                        {/* Payment pill */}
-                        <div
-                          className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
-                          style={{ backgroundColor: booking.paid ? "#dcfce7" : "#fef2f2" }}
-                        >
-                          <Check className="h-2.5 w-2.5" style={{ color: booking.paid ? "#166534" : "#dc2626" }} />
-                          <span
-                            className="text-[8px] font-medium"
-                            style={{ color: booking.paid ? "#166534" : "#dc2626" }}
-                          >
-                            {booking.paid ? "پرداخت" : "پرداخت نشده"}
-                          </span>
-                        </div>
-
-                        {/* Price pill */}
-                        {pos.height > 70 && (
-                          <div
-                            className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
-                            style={{ backgroundColor: `${color.border}20` }}
-                          >
-                            <Wallet className="h-2.5 w-2.5" style={{ color: color.text, opacity: 0.6 }} />
-                            <span className="text-[8px] font-semibold" style={{ color: color.text }}>
-                              {formatPrice(price)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                      <p className="text-[9px] mt-1 font-medium" style={{ color: color.text, opacity: 0.5 }}>
+                        {toPersianDigits(pos.durationMinutes)} دقیقه
+                      </p>
                     )}
                   </div>
                 </div>
@@ -223,7 +195,7 @@ export function Timeline({
                   style={{ top: pos.top, height: pos.height }}
                   onClick={() => onRemoveBlock?.(index)}
                 >
-                  <div className="h-full bg-amber-50 border border-amber-300/50 p-2 hover:bg-amber-100 transition-colors overflow-hidden" style={{ borderRadius: 0, borderRightWidth: "4px", borderRightColor: "#f59e0b" }}>
+                  <div className="h-full rounded-lg bg-amber-50 border border-amber-300/50 p-2 hover:bg-amber-100 transition-colors overflow-hidden">
                     <div className="flex items-center gap-1 mb-0.5">
                       <Ban className="h-3 w-3 text-amber-600 shrink-0" />
                       <span className="text-xs font-semibold text-amber-800 truncate">استراحت</span>
