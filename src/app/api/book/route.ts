@@ -25,10 +25,14 @@ export async function POST(request: NextRequest) {
     const normStart = normalizeTime(start_time);
     const normEnd = normalizeTime(end_time);
 
-    // Anti-spam check
-    const spamResult = await checkAntiSpam(phone);
-    if (!spamResult.allowed) {
-      return NextResponse.json({ error: spamResult.error }, { status: 429 });
+    // Anti-spam check (non-blocking — if it fails, allow the booking)
+    try {
+      const spamResult = await checkAntiSpam(phone);
+      if (!spamResult.allowed) {
+        return NextResponse.json({ error: spamResult.error }, { status: 429 });
+      }
+    } catch (e) {
+      console.warn("[BOOK] Anti-spam check failed, allowing booking:", e);
     }
 
     client = await sql.connect();
@@ -115,7 +119,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("Booking failed:", error);
+    console.error("Booking failed:", error?.message || error, error?.code || "");
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   } finally {
     if (client) client.release();
