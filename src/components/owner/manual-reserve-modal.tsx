@@ -36,33 +36,57 @@ export function ManualReserveModal({
   const [phone, setPhone] = useState("");
   const [serviceId, setServiceId] = useState(services[0]?.id || "");
 
-  // Derive default times from working hours
-  const defaultTimes = useMemo(() => {
-    const dayKey = getIranWeekDay(date);
-    const dayHours = workingHours[dayKey];
-    if (dayHours) {
-      const service = services[0];
-      const duration = service ? service.duration_minutes : 60;
-      const [h, m] = dayHours.open.split(":").map(Number);
-      const startMin = h * 60 + m;
-      const endMin = startMin + duration;
-      const endH = Math.floor(endMin / 60);
-      const endM = endMin % 60;
-      return {
-        start: dayHours.open,
-        end: `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`,
-      };
-    }
-    return { start: "09:00", end: "10:00" };
-  }, [date, workingHours, services]);
-
-  const [startTime, setStartTime] = useState(defaultTimes.start);
-  const [endTime, setEndTime] = useState(defaultTimes.end);
-
   const selectedService = services.find((s) => s.id === serviceId);
 
+  // Derive default start time from working hours
+  const defaultStartTime = useMemo(() => {
+    const dayKey = getIranWeekDay(date);
+    const dayHours = workingHours[dayKey];
+    return dayHours?.open || "09:00";
+  }, [date, workingHours]);
+
+  const [startTime, setStartTime] = useState(defaultStartTime);
+
+  // Auto-calculate end time from start time + service duration
+  const computedEndTime = useMemo(() => {
+    if (!selectedService) return startTime;
+    const [h, m] = startTime.split(":").map(Number);
+    const startMin = h * 60 + m + selectedService.duration_minutes;
+    const endH = Math.floor(startMin / 60);
+    const endM = startMin % 60;
+    return `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
+  }, [startTime, selectedService]);
+
+  const [endTime, setEndTime] = useState(computedEndTime);
+
+  // Update end time when service or start time changes
+  const handleServiceChange = (id: string) => {
+    setServiceId(id);
+    const svc = services.find((s) => s.id === id);
+    if (svc) {
+      const [h, m] = startTime.split(":").map(Number);
+      const startMin = h * 60 + m + svc.duration_minutes;
+      const endH = Math.floor(startMin / 60);
+      const endM = startMin % 60;
+      setEndTime(`${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`);
+    }
+  };
+
+  const handleStartTimeChange = (time: string) => {
+    setStartTime(time);
+    if (selectedService) {
+      const [h, m] = time.split(":").map(Number);
+      const startMin = h * 60 + m + selectedService.duration_minutes;
+      const endH = Math.floor(startMin / 60);
+      const endM = startMin % 60;
+      setEndTime(`${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`);
+    }
+  };
+
+  const isValid = name && phone && serviceId && startTime && endTime && endTime > startTime;
+
   const handleSubmit = () => {
-    if (!name || !phone || !serviceId || !startTime || !endTime) return;
+    if (!isValid) return;
     onReserve({
       customer_name: name,
       customer_phone: normalizeDigits(phone),
@@ -100,7 +124,7 @@ export function ManualReserveModal({
           <Label className="text-[13px]">خدمت</Label>
           <select
             value={serviceId}
-            onChange={(e) => setServiceId(e.target.value)}
+            onChange={(e) => handleServiceChange(e.target.value)}
             className="mt-1 w-full h-12 rounded-2xl glass px-3 text-[15px] appearance-none cursor-pointer"
             dir="rtl"
           >
@@ -118,7 +142,7 @@ export function ManualReserveModal({
             <Input
               type="time"
               value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
+              onChange={(e) => handleStartTimeChange(e.target.value)}
               className="mt-1 text-center"
               dir="ltr"
             />
@@ -134,10 +158,14 @@ export function ManualReserveModal({
             />
           </div>
         </div>
+
+        {endTime <= startTime && (
+          <p className="text-[12px] text-destructive text-center">ساعت پایان باید بعد از ساعت شروع باشد</p>
+        )}
       </div>
 
       <div className="flex gap-3 mt-5">
-        <Button onClick={handleSubmit} className="flex-1">
+        <Button onClick={handleSubmit} className="flex-1" disabled={!isValid}>
           ثبت رزرو
         </Button>
         <Button variant="outline" onClick={onClose} className="flex-1">

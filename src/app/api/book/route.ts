@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { checkAntiSpam } from "@/lib/anti-spam";
+import { verifyCustomerSession } from "@/lib/customer-auth";
 
 // Normalize time to HH:MM format (strip seconds if present)
 function normalizeTime(t: string): string {
@@ -15,6 +16,12 @@ export async function POST(request: NextRequest) {
 
     if (!phone || !service_id || !date_gregorian || !start_time || !end_time) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
+    }
+
+    // Verify customer is authenticated
+    const sessionUserId = verifyCustomerSession(request.cookies.get("session")?.value);
+    if (!sessionUserId) {
+      return NextResponse.json({ error: "لطفاً ابتدا وارد شوید" }, { status: 401 });
     }
 
     // Normalize times to HH:MM format
@@ -79,7 +86,7 @@ export async function POST(request: NextRequest) {
       ) VALUES ($1, $2, $3, $4, $5, $6::date, ($7 || ':00')::time, ($8 || ':00')::time, 'confirmed', true, NOW())
       RETURNING id, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time`,
       [
-        user_id || null,
+        sessionUserId,
         phone,
         customer_name || "",
         service_id,

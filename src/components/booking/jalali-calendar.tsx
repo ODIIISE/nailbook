@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useEffect, useState, useCallback } from "react";
-import { gregorianToJalali, jalaliToGregorian, toPersianDigits, PERSIAN_MONTHS, DAYS_IN_MONTH, JS_TO_IRAN_DAY } from "@/lib/jalali";
+import { gregorianToJalali, jalaliToGregorian, toPersianDigits, PERSIAN_MONTHS, DAYS_IN_MONTH, JS_TO_IRAN_DAY, getJalaliMonthDays } from "@/lib/jalali";
 import { CalendarDays, ChevronRight, ChevronLeft, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { generateTimeSlots, type WorkingHours } from "@/lib/slots";
@@ -53,9 +53,16 @@ export function JalaliCalendar({
   const scrollLeft = useRef(0);
 
   const today = useMemo(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
+    // Use Tehran time for "today" calculation
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Tehran",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(now);
+    const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "0";
+    return new Date(Number(get("year")), Number(get("month")) - 1, Number(get("day")));
   }, []);
 
   const days = useMemo(() => {
@@ -289,7 +296,7 @@ function CalendarModal({
   const [viewMonth, setViewMonth] = useState(jalaliToday.jm);
   const [viewYear, setViewYear] = useState(jalaliToday.jy);
 
-  const daysInMonth = DAYS_IN_MONTH[viewMonth - 1];
+  const daysInMonth = getJalaliMonthDays(viewYear, viewMonth);
 
   const firstDayDate = jalaliToGregorian(viewYear, viewMonth, 1);
   const firstDayJs = firstDayDate.getDay();
