@@ -287,7 +287,7 @@ export default function BookContent() {
     const customerPhone = user?.phone || authPhone;
     const [h, m] = selectedTime.split(":").map(Number);
     const endMinutes = h * 60 + m + totalDuration;
-    const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}:00`;
+    const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
 
     const id = crypto.randomUUID();
     setBookingId(`BK-${Date.now().toString(36).toUpperCase()}`);
@@ -301,7 +301,7 @@ export default function BookContent() {
       customer_phone: customerPhone,
       date: (() => { const j = gregorianToJalali(selectedDate); return `${j.jy}/${String(j.jm).padStart(2, "0")}/${String(j.jd).padStart(2, "0")}`; })(),
       date_gregorian: getTehranDateKey(selectedDate),
-      start_time: `${selectedTime}:00`,
+      start_time: selectedTime,
       end_time: endTime,
       status: "confirmed",
       phone_verified: true,
@@ -314,6 +314,8 @@ export default function BookContent() {
     setIsLoading(false);
     isSubmittingRef.current = false;
     if (result.success) {
+      // Use server-generated booking ID for display
+      if (result.id) setBookingId(`BK-${result.id.slice(-6).toUpperCase()}`);
       setStep("receipt");
     } else {
       setSpamError(result.error || "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید");

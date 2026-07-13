@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { checkAntiSpam } from "@/lib/anti-spam";
+
+// Normalize time to HH:MM format (strip seconds if present)
+function normalizeTime(t: string): string {
+  return t.length > 5 ? t.slice(0, 5) : t;
+}
 
 export async function POST(request: NextRequest) {
   let client;
@@ -11,17 +17,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
 
+    // Normalize times to HH:MM format
+    const normStart = normalizeTime(start_time);
+    const normEnd = normalizeTime(end_time);
+
+    // Anti-spam check
+    const spamResult = await checkAntiSpam(phone);
+    if (!spamResult.allowed) {
+      return NextResponse.json({ error: spamResult.error }, { status: 429 });
+    }
+
     client = await sql.connect();
     await client.query("BEGIN");
 
+    // Use ::time cast for proper time comparison (not string comparison)
     const conflictCheck = await client.query(
-      `SELECT id FROM bookings
+      `SELECT id, customer_name,
+              TO_CHAR(start_time, 'HH24:MI') as start_time,
+              TO_CHAR(end_time, 'HH24:MI') as end_time
+       FROM bookings
        WHERE date_gregorian = $1::date
        AND status = 'confirmed'
-       AND start_time <= $2
-       AND end_time >= $3
+       AND start_time < ($2 || ':00')::time
+       AND end_time > ($3 || ':00')::time
        FOR UPDATE`,
-      [date_gregorian, end_time, start_time]
+      [date_gregorian, normEnd, normStart]
     );
 
     if (conflictCheck.rows.length > 0) {
@@ -33,11 +53,14 @@ export async function POST(request: NextRequest) {
     }
 
     const blockedCheck = await client.query(
-      `SELECT id FROM blocked_times
+      `SELECT id,
+              TO_CHAR(start_time, 'HH24:MI') as start_time,
+              TO_CHAR(end_time, 'HH24:MI') as end_time
+       FROM blocked_times
        WHERE date_gregorian = $1::date
-       AND start_time <= $2
-       AND end_time >= $3`,
-      [date_gregorian, end_time, start_time]
+       AND start_time < ($2 || ':00')::time
+       AND end_time > ($3 || ':00')::time`,
+      [date_gregorian, normEnd, normStart]
     );
 
     if (blockedCheck.rows.length > 0) {
@@ -53,8 +76,8 @@ export async function POST(request: NextRequest) {
         user_id, customer_phone, customer_name, service_id,
         selected_addons, date_gregorian, start_time, end_time,
         status, phone_verified, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6::date, $7, $8, 'confirmed', true, NOW())
-      RETURNING id`,
+      ) VALUES ($1, $2, $3, $4, $5, $6::date, ($7 || ':00')::time, ($8 || ':00')::time, 'confirmed', true, NOW())
+      RETURNING id, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time`,
       [
         user_id || null,
         phone,
@@ -62,8 +85,8 @@ export async function POST(request: NextRequest) {
         service_id,
         JSON.stringify(selected_addons || []),
         date_gregorian,
-        start_time,
-        end_time,
+        normStart,
+        normEnd,
       ]
     );
 
@@ -73,6 +96,8 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Booking confirmed",
       booking_id: result.rows[0].id,
+      start_time: result.rows[0].start_time,
+      end_time: result.rows[0].end_time,
     });
   } catch (error: any) {
     if (client) {

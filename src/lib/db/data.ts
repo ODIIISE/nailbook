@@ -68,7 +68,7 @@ export async function saveAddons(addons: Addon[]) {
   if (!res.ok) throw new Error(body.error || "Failed to save addons");
 }
 
-export async function insertBooking(booking: Booking) {
+export async function insertBooking(booking: Booking): Promise<{ id: string; start_time: string; end_time: string }> {
   const res = await fetch("/api/book", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -87,6 +87,7 @@ export async function insertBooking(booking: Booking) {
   if (!res.ok) {
     throw new Error(body.error || "Failed to save booking");
   }
+  return { id: body.booking_id, start_time: body.start_time, end_time: body.end_time };
 }
 
 export async function cancelBooking(bookingId: string) {

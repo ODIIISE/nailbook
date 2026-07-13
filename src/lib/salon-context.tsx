@@ -39,7 +39,7 @@ interface SalonContextType {
   updateAddons: (addons: Addon[]) => Promise<string | null>;
   updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
   updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => void;
-  addBooking: (booking: Booking) => Promise<{ success: boolean; error?: string }>;
+  addBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   cancelBooking: (bookingId: string) => Promise<boolean>;
   refreshBookings: () => Promise<void>;
   refreshSalonData: () => Promise<void>;
@@ -205,11 +205,15 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, [blockedTimes]);
 
-  const handleAddBooking = useCallback(async (booking: Booking): Promise<{ success: boolean; error?: string }> => {
+  const handleAddBooking = useCallback(async (booking: Booking): Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }> => {
     setBookings((prev) => [...prev, booking]);
     try {
-      await insertBooking(booking);
-      return { success: true };
+      const result = await insertBooking(booking);
+      // Update local state with server-generated ID and normalized times
+      setBookings((prev) => prev.map((b) =>
+        b.id === booking.id ? { ...b, id: result.id, start_time: result.start_time, end_time: result.end_time } : b
+      ));
+      return { success: true, id: result.id, start_time: result.start_time, end_time: result.end_time };
     } catch (e) {
       console.error("Failed to save booking:", e);
       setBookings((prev) => prev.filter((b) => b.id !== booking.id));
