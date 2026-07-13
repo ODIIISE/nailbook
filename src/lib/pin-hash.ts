@@ -7,6 +7,7 @@ export function hashPin(pin: string): string {
 }
 
 export function verifyPin(plaintext: string, storedHash: string): boolean {
+  if (!storedHash || storedHash.length !== 64) return false;
   const computed = hashPin(plaintext);
   return crypto.timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(storedHash, "hex"));
 }
