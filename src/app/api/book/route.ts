@@ -119,7 +119,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("Booking failed:", error?.message || error, error?.code || "");
+    console.error("[BOOK] Failed:", {
+      message: error?.message,
+      code: error?.code,
+      detail: error?.detail,
+      stack: error?.stack?.split("\n").slice(0, 3),
+    });
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   } finally {
     if (client) client.release();
