@@ -1,0 +1,124 @@
+<h2>Timeline Card — Improved Variations</h2>
+<p class="subtitle">Glass card style with better information hierarchy. Which layout works best?</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 16px; background: #f8f6f4;">
+      <!-- Variation A: Two-Row Compact -->
+      <div style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border-radius: 14px; padding: 0; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02); overflow: hidden;">
+        <!-- Top bar: Time + Price -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background: linear-gradient(135deg, rgba(201,123,123,0.08), rgba(232,180,184,0.08)); border-bottom: 1px solid rgba(0,0,0,0.04);">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C97B7B" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span style="font-size: 12px; font-weight: 600; color: #2C2424; font-variant-numeric: tabular-nums;">۱۰:۰۰ - ۱۱:۳۰</span>
+          </div>
+          <span style="font-size: 13px; font-weight: 700; color: #C97B7B;">۲۵۰,۰۰۰ <span style="font-size: 10px; font-weight: 500; color: #999;">تومان</span></span>
+        </div>
+        <!-- Main content -->
+        <div style="padding: 10px 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #C97B7B, #E8B4B8); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: 700;">ن</div>
+              <div>
+                <div style="font-size: 14px; font-weight: 600; color: #2C2424; line-height: 1.2;">نازنین محمدی</div>
+                <div style="font-size: 11px; color: #888; margin-top: 2px;">manicure · ۹۰ دقیقه</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; background: #dcfce7;">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <span style="font-size: 10px; font-weight: 600; color: #166534;">پرداخت</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Two-Row Compact</h3>
+      <p>Time/price on top bar, customer info below. Clean separation.一眼能看到关键信息。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 16px; background: #f8f6f4;">
+      <!-- Variation B: Left Accent + Details -->
+      <div style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border-radius: 14px; padding: 12px 14px; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02); display: flex; gap: 12px;">
+        <!-- Left accent -->
+        <div style="min-width: 4px; border-radius: 2px; background: linear-gradient(180deg, #C97B7B, #E8B4B8);"></div>
+        <!-- Content -->
+        <div style="flex: 1; min-width: 0;">
+          <!-- Row 1: Name + Status -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #C97B7B, #E8B4B8); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 700;">ن</div>
+              <span style="font-size: 14px; font-weight: 600; color: #2C2424;">نازنین محمدی</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 12px; background: #dcfce7;">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <span style="font-size: 9px; font-weight: 600; color: #166534;">پرداخت</span>
+            </div>
+          </div>
+          <!-- Row 2: Service + Duration -->
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <span style="font-size: 11px; color: #666; padding: 2px 6px; background: #f5f5f5; border-radius: 4px;">manicure</span>
+            <span style="font-size: 11px; color: #999;">۹۰ دقیقه</span>
+          </div>
+          <!-- Row 3: Time + Price -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 6px; border-top: 1px solid rgba(0,0,0,0.04);">
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              <span style="font-size: 11px; color: #666; font-variant-numeric: tabular-nums;">۱۰:۰۰ - ۱۱:۳۰</span>
+            </div>
+            <span style="font-size: 13px; font-weight: 700; color: #2C2424;">۲۵۰,۰۰۰ <span style="font-size: 10px; font-weight: 400; color: #999;">تومان</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Accent + Details</h3>
+      <p>Gradient accent bar, 3-row hierarchy: name → service → time+price. Scannable and organized.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 16px; background: #f8f6f4;">
+      <!-- Variation C: Minimal Info Pill -->
+      <div style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border-radius: 14px; padding: 12px 14px; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02);">
+        <!-- Top: Name + Price aligned -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #C97B7B, #E8B4B8); display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: 700;">ن</div>
+            <div>
+              <span style="font-size: 14px; font-weight: 600; color: #2C2424;">نازنین محمدی</span>
+              <div style="font-size: 11px; color: #888;">manicure</div>
+            </div>
+          </div>
+          <div style="text-align: left;">
+            <div style="font-size: 14px; font-weight: 700; color: #C97B7B;">۲۵۰,۰۰۰</div>
+            <div style="font-size: 9px; color: #999;">تومان</div>
+          </div>
+        </div>
+        <!-- Bottom pills -->
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 8px; background: #f5f5f5;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span style="font-size: 10px; color: #666;">۱۰:۰۰ - ۱۱:۳۰</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 8px; background: #f5f5f5;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span style="font-size: 10px; color: #666;">۹۰ دقیقه</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 8px; background: #dcfce7;">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+            <span style="font-size: 10px; font-weight: 600; color: #166534;">پرداخت شده</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Info Pills</h3>
+      <p>Name + price at top, metadata as pill badges below. Modern, scannable, touch-friendly.</p>
+    </div>
+  </div>
+</div>
+
+<p style="text-align: center; margin-top: 20px; color: #666; font-size: 13px;">Click a card to select your preferred variation</p>

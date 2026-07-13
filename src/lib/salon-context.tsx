@@ -39,7 +39,7 @@ interface SalonContextType {
   updateAddons: (addons: Addon[]) => Promise<string | null>;
   updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
   updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => void;
-  addBooking: (booking: Booking) => Promise<boolean>;
+  addBooking: (booking: Booking) => Promise<{ success: boolean; error?: string }>;
   cancelBooking: (bookingId: string) => Promise<boolean>;
   refreshBookings: () => Promise<void>;
   refreshSalonData: () => Promise<void>;
@@ -205,15 +205,16 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, [blockedTimes]);
 
-  const handleAddBooking = useCallback(async (booking: Booking): Promise<boolean> => {
+  const handleAddBooking = useCallback(async (booking: Booking): Promise<{ success: boolean; error?: string }> => {
     setBookings((prev) => [...prev, booking]);
     try {
       await insertBooking(booking);
-      return true;
+      return { success: true };
     } catch (e) {
       console.error("Failed to save booking:", e);
       setBookings((prev) => prev.filter((b) => b.id !== booking.id));
-      return false;
+      const message = e instanceof Error ? e.message : "خطای ناشناخته";
+      return { success: false, error: message };
     }
   }, []);
 
@@ -374,7 +375,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         updateAddons: async () => null,
         updateSalon: async () => {},
         updateBlockedTimes: () => {},
-        addBooking: async () => false,
+        addBooking: async () => ({ success: false }),
         cancelBooking: async () => false,
         refreshBookings: async () => {},
         refreshSalonData: async () => {},

@@ -1,0 +1,84 @@
+<h2>Timeline Booking Card Redesign</h2>
+<p class="subtitle">Which style feels right for your salon dashboard?</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 20px; background: #f8f6f4;">
+      <!-- Style A: Clean Minimal -->
+      <div style="background: white; border-radius: 12px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #C97B7B;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #C97B7B; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: bold;">ن</div>
+            <div>
+              <div style="font-size: 14px; font-weight: 600; color: #2C2424;">نازنین محمدی</div>
+              <div style="font-size: 11px; color: #888;"> manicure</div>
+            </div>
+          </div>
+          <div style="font-size: 12px; color: #28A745; font-weight: 600;">✓ پرداخت</div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid #f0f0f0;">
+          <span style="font-size: 12px; color: #666;">۱۰:۰۰ - ۱۱:۳۰</span>
+          <span style="font-size: 13px; font-weight: 700; color: #2C2424;">۲۵۰,۰۰۰ تومان</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Clean Minimal</h3>
+      <p>White card, colored left border, subtle shadow. Inspired by Google Calendar. Clean and professional.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 20px; background: #f8f6f4;">
+      <!-- Style B: Glassmorphism -->
+      <div style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border-radius: 16px; padding: 14px; border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="display: flex; gap: 12px; align-items: flex-start;">
+          <div style="min-width: 4px; height: 48px; border-radius: 2px; background: linear-gradient(180deg, #C97B7B, #E8B4B8);"></div>
+          <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="font-size: 14px; font-weight: 600; color: #2C2424;">نازنین محمدی</div>
+              <div style="font-size: 11px; padding: 2px 8px; border-radius: 20px; background: #dcfce7; color: #166534;">پرداخت شده</div>
+            </div>
+            <div style="font-size: 12px; color: #888; margin: 4px 0;">manicure · ۹۰ دقیقه</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+              <span style="font-size: 11px; color: #999;">🕐 ۱۰:۰۰ - ۱۱:۳۰</span>
+              <span style="font-size: 13px; font-weight: 700; color: #C97B7B;">۲۵۰,۰۰۰</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Glass Card</h3>
+      <p>Frosted glass effect, gradient accent bar, rounded badges. Modern and trendy, fits the salon aesthetic.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 20px; background: #f8f6f4;">
+      <!-- Style C: Compact Block -->
+      <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <div style="background: linear-gradient(135deg, #C97B7B, #E8B4B8); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">ن</div>
+            <span style="font-size: 13px; font-weight: 600; color: white;">نازنین محمدی</span>
+          </div>
+          <span style="font-size: 12px; font-weight: 700; color: white;">۲۵۰,۰۰۰</span>
+        </div>
+        <div style="padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 11px; color: #666;">manicure</span>
+            <span style="font-size: 11px; color: #999;">۱۰:۰۰ - ۱۱:۳۰</span>
+          </div>
+          <div style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #dcfce7; color: #166534;">✓</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Color Header</h3>
+      <p>Gradient header with customer info, clean body with details. Compact and information-dense.</p>
+    </div>
+  </div>
+</div>
+
+<p style="text-align: center; margin-top: 20px; color: #666; font-size: 13px;">Click a card to select your preferred style</p>

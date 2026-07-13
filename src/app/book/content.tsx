@@ -310,13 +310,13 @@ export default function BookContent() {
       service: selectedService,
     };
 
-    const saved = await addBooking(newBooking);
+    const result = await addBooking(newBooking);
     setIsLoading(false);
     isSubmittingRef.current = false;
-    if (saved) {
+    if (result.success) {
       setStep("receipt");
     } else {
-      setSpamError("این زمان قبلاً رزرو شده — لطفاً ساعت دیگری انتخاب کنید");
+      setSpamError(result.error || "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید");
     }
   }, [selectedDate, selectedService, selectedTime, user, authPhone, addBooking, selectedAddons, totalDuration]);
 
