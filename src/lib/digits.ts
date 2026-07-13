@@ -18,7 +18,7 @@ export function normalizeDigits(input: string): string {
 
 export function isValidIranianPhone(phone: string): boolean {
   const clean = normalizeDigits(phone);
-  return /^09\d{8}$/.test(clean);
+  return /^09\d{9}$/.test(clean);
 }
 
 export function displayDigits(input: string): string {
