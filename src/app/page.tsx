@@ -56,7 +56,7 @@ export default function HomePage() {
         <ServiceCardGrid services={services} />
       </div>
 
-      <TrustSignals totalBookings={bookings.length || 527} />
+      <TrustSignals totalBookings={bookings.length} />
 
       <ContactButtons phone={salon.phone} />
 

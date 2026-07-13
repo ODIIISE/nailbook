@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import crypto from "crypto";
 import { hashPin } from "@/lib/pin-hash";
+import { signCustomerSession } from "@/lib/customer-auth";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
         success: true,
         user: { id: existing[0].id, phone, name: trimmedName, role: "customer" },
       });
-      response.cookies.set("session", existing[0].id, {
+      response.cookies.set("session", signCustomerSession(existing[0].id), {
         httpOnly: true,
         secure: true,
         sameSite: "lax",
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
       success: true,
       user: { id: userId, phone, name: trimmedName, role: "customer" },
     });
-    response.cookies.set("session", userId, {
+    response.cookies.set("session", signCustomerSession(userId), {
       httpOnly: true,
       secure: true,
       sameSite: "lax",

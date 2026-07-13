@@ -19,8 +19,8 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
       icon: <LogOut className="h-4 w-4" />,
       label: "خروج",
       destructive: true,
-      onClick: () => {
-        document.cookie = "owner_session=; path=/owner; max-age=0";
+      onClick: async () => {
+        await fetch("/api/owner-logout", { method: "POST" });
         router.push("/owner/login");
       },
     },

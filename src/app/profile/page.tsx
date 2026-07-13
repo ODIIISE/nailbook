@@ -38,9 +38,8 @@ export default function ProfilePage() {
         body: JSON.stringify({ userId: user.id, name: editName.trim() }),
       });
       if (res.ok) {
-        // Update local storage
         const updated = { ...user, name: editName.trim() };
-        localStorage.setItem("auth_user", JSON.stringify(updated));
+        localStorage.setItem("nailbook_user", JSON.stringify(updated));
         window.location.reload();
       }
     } catch {}

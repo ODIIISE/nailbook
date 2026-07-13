@@ -27,9 +27,9 @@ export function BookingConfirm({
   price,
   customerName,
   bookingId,
-  salonName = "استدیو تخصصی ناخن فورهند",
-  salonAddress = "مشهد، نبش صارمی ۳۸/۱۲، پلاک ۷۷",
-  phone = "09308681363",
+  salonName = "",
+  salonAddress = "",
+  phone = "",
 }: BookingConfirmProps) {
   const jalali = gregorianToJalali(date);
   const shortDate = formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd);

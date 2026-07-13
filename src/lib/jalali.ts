@@ -84,3 +84,7 @@ export function formatJalaliTime(time: string): string {
 }
 
 export { PERSIAN_WEEKDAYS, PERSIAN_MONTHS, DAYS_IN_MONTH, JS_TO_IRAN_DAY };
+
+export function isJalaliLeapYear(jy: number): boolean {
+  return jalaali.isLeapJalaaliYear(jy);
+}

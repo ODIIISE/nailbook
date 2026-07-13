@@ -289,33 +289,6 @@ export default function BookContent() {
     const endMinutes = h * 60 + m + totalDuration;
     const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}:00`;
 
-    // Validate slot
-    try {
-      const reserveRes = await fetch("/api/book/reserve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          service_id: selectedService.id,
-          date_gregorian: getTehranDateKey(selectedDate),
-          start_time: `${selectedTime}:00`,
-          end_time: endTime,
-        }),
-      });
-      if (!reserveRes.ok) {
-        const data = await reserveRes.json();
-        setSpamError("این زمان قبلاً رزرو شده — لطفاً ساعت دیگری انتخاب کنید");
-        setIsLoading(false);
-        isSubmittingRef.current = false;
-        return;
-      }
-    } catch (e) {
-      console.error("Slot validation failed:", e);
-      setSpamError("خطا در بررسی زمان — لطفاً دوباره تلاش کنید");
-      setIsLoading(false);
-      isSubmittingRef.current = false;
-      return;
-    }
-
     const id = crypto.randomUUID();
     setBookingId(`BK-${Date.now().toString(36).toUpperCase()}`);
 
@@ -337,16 +310,13 @@ export default function BookContent() {
       service: selectedService,
     };
 
-    // Debug log for troubleshooting
-    console.log("[Booking] Creating:", { id, date_gregorian: newBooking.date_gregorian, service_id: newBooking.service_id });
-
     const saved = await addBooking(newBooking);
     setIsLoading(false);
     isSubmittingRef.current = false;
     if (saved) {
       setStep("receipt");
     } else {
-      setSpamError("خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید");
+      setSpamError("این زمان قبلاً رزرو شده — لطفاً ساعت دیگری انتخاب کنید");
     }
   }, [selectedDate, selectedService, selectedTime, user, authPhone, addBooking, selectedAddons, totalDuration]);
 

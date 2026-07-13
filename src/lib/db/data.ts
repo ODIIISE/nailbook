@@ -2,6 +2,19 @@ import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } fr
 
 // All reads go through API routes (Vercel Postgres is server-side only)
 
+// Postgres returns numeric columns as strings — normalize at the source
+function normalizeService(s: Service): Service {
+  return { ...s, price: Number(s.price), duration_minutes: Number(s.duration_minutes) };
+}
+
+function normalizeAddon(a: Addon): Addon {
+  return { ...a, price: Number(a.price), duration_minutes: Number(a.duration_minutes) };
+}
+
+function normalizeBooking(b: Booking): Booking {
+  return { ...b, paid: Boolean(b.paid) };
+}
+
 export async function fetchSalonInfo(): Promise<SalonInfo | null> {
   const res = await fetch("/api/read/salon");
   if (!res.ok) return null;
@@ -11,19 +24,22 @@ export async function fetchSalonInfo(): Promise<SalonInfo | null> {
 export async function fetchServices(): Promise<Service[]> {
   const res = await fetch("/api/read/services");
   if (!res.ok) return [];
-  return res.json();
+  const data: Service[] = await res.json();
+  return data.map(normalizeService);
 }
 
 export async function fetchAddons(): Promise<Addon[]> {
   const res = await fetch("/api/read/addons");
   if (!res.ok) return [];
-  return res.json();
+  const data: Addon[] = await res.json();
+  return data.map(normalizeAddon);
 }
 
 export async function fetchBookings(): Promise<Booking[]> {
   const res = await fetch("/api/read/bookings", { credentials: "include" });
   if (!res.ok) return [];
-  return res.json();
+  const data: Booking[] = await res.json();
+  return data.map(normalizeBooking);
 }
 
 export async function fetchHighlights(): Promise<Highlight[]> {
@@ -53,15 +69,23 @@ export async function saveAddons(addons: Addon[]) {
 }
 
 export async function insertBooking(booking: Booking) {
-  const res = await fetch("/api/read/booking", {
+  const res = await fetch("/api/book", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(booking),
+    body: JSON.stringify({
+      phone: booking.customer_phone,
+      service_id: booking.service_id,
+      date_gregorian: booking.date_gregorian,
+      start_time: booking.start_time,
+      end_time: booking.end_time,
+      customer_name: booking.customer_name,
+      selected_addons: booking.selected_addons,
+      user_id: booking.user_id,
+    }),
   });
   const body = await res.json();
   if (!res.ok) {
-    const details = body.debug ? ` (${JSON.stringify(body.debug)})` : "";
-    throw new Error(body.error + details || "Failed to save booking");
+    throw new Error(body.error || "Failed to save booking");
   }
 }
 

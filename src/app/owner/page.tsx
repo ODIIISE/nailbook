@@ -15,6 +15,7 @@ import { ChevronLeft, Plus, Search } from "lucide-react";
 import { toPersianDigits, formatPrice, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey } from "@/lib/time";
+import { calculateEarnings } from "@/lib/pricing";
 import type { Booking } from "@/lib/types";
 
 interface BlockedTime {
@@ -24,7 +25,7 @@ interface BlockedTime {
 }
 
 export default function OwnerDashboard() {
-  const { salon, bookings, services, workingHours, blockedTimes, updateBlockedTimes, addBooking, cancelBooking, refreshBookings, toggleBookingPaid } = useSalon();
+  const { salon, bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addBooking, cancelBooking, refreshBookings, toggleBookingPaid } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
@@ -67,30 +68,11 @@ export default function OwnerDashboard() {
   }, [currentDate, blockedTimes]);
 
   const accounting = useMemo(() => {
-    const today = getTehranDateKey(currentDate);
-    const todayBookings = bookings.filter(
-      (b) => {
-        const bookingDate = b.date_gregorian.split("T")[0];
-        return bookingDate === today && b.status === "confirmed";
-      }
-    );
-
-    const paid = todayBookings
-      .filter((b) => b.paid)
-      .reduce((sum, b) => {
-        const svc = services.find((s) => s.id === b.service_id);
-        return sum + (svc?.price || 0);
-      }, 0);
-
-    const unpaid = todayBookings
-      .filter((b) => !b.paid)
-      .reduce((sum, b) => {
-        const svc = services.find((s) => s.id === b.service_id);
-        return sum + (svc?.price || 0);
-      }, 0);
-
-    return { paid, unpaid, total: paid + unpaid };
-  }, [currentDate, bookings, services]);
+    const today = new Date(getTehranDateKey(currentDate));
+    const endOfToday = new Date(today);
+    endOfToday.setHours(23, 59, 59, 999);
+    return calculateEarnings(bookings, services, addons, today, endOfToday);
+  }, [currentDate, bookings, services, addons]);
 
   const handleBlockTime = (startTime: string, endTime: string, reason: string) => {
     const dateStr = getTehranDateKey(currentDate);
@@ -245,6 +227,8 @@ export default function OwnerDashboard() {
       {selectedBooking && (
         <BookingModal
           booking={selectedBooking}
+          services={services}
+          addons={addons}
           isPaid={selectedBooking.paid}
           onTogglePaid={() => {
             toggleBookingPaid(selectedBooking.id, !selectedBooking.paid);
@@ -265,6 +249,7 @@ export default function OwnerDashboard() {
         <EarningsModal
           bookings={bookings}
           services={services}
+          addons={addons}
           currentDate={currentDate}
           onClose={() => setShowEarnings(false)}
         />

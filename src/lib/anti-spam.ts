@@ -1,4 +1,5 @@
 import { sql } from "@vercel/postgres";
+import { getTehranDateKey } from "./time";
 
 const MAX_BOOKINGS_PER_DAY = 3;
 const COOLDOWN_MINUTES = 120;
@@ -10,9 +11,7 @@ export interface AntiSpamResult {
 
 export async function checkAntiSpam(phone: string): Promise<AntiSpamResult> {
   const now = new Date();
-  const tehranOffset = 3.5 * 60 * 60 * 1000;
-  const tehranDate = new Date(now.getTime() + tehranOffset);
-  const todayStr = tehranDate.toISOString().split("T")[0];
+  const todayStr = getTehranDateKey(now);
 
   const { rows } = await sql`
     SELECT COUNT(*) as count FROM bookings

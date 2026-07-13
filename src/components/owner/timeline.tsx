@@ -126,7 +126,7 @@ export function Timeline({
             {/* Booking blocks */}
             {bookings.map((booking) => {
               const pos = getBlockPosition(booking.start_time, booking.end_time, startHour);
-              const price = booking.service?.price || 0;
+              const price = Number(booking.service?.price) || 0;
               const colorIdx = serviceIndexMap.get(booking.service_id) ?? 0;
               const color = getServiceColor(colorIdx);
 

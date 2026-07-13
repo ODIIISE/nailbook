@@ -10,7 +10,6 @@ import {
   X,
   ArrowRight,
   Phone,
-  AtSign,
   MapPin,
   Clock,
 } from "lucide-react";
@@ -129,16 +128,6 @@ export function AppHeader({
                     >
                       <Phone className="h-4 w-4 text-muted-foreground" />
                       <span className="text-[14px]" dir="ltr">{toPersianDigits(salon.phone)}</span>
-                    </a>
-
-                    <a
-                      href="https://instagram.com/forehandnailstudio"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] hover:bg-white/40 text-right transition-colors duration-150"
-                    >
-                      <AtSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-[14px]">اینستاگرام</span>
                     </a>
 
                     <Separator className="my-2 bg-black/5" />

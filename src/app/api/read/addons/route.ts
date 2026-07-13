@@ -7,8 +7,8 @@ export async function GET() {
     return NextResponse.json(rows.map((a) => ({
       id: a.id,
       name: a.name,
-      price: a.price,
-      duration_minutes: a.duration_minutes,
+      price: Number(a.price),
+      duration_minutes: Number(a.duration_minutes),
       is_active: a.is_active,
       sort_order: a.sort_order || 0,
     })));

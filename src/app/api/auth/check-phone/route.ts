@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const { phone } = await request.json();
     if (!phone) return NextResponse.json({ error: "شماره الزامی است" }, { status: 400 });
 
-    const { rows } = await sql`SELECT id, name, role, pin FROM users WHERE phone = ${phone}`;
+    const { rows } = await sql`SELECT pin IS NOT NULL AS has_pin FROM users WHERE phone = ${phone} LIMIT 1`;
 
     if (rows.length === 0) {
       return NextResponse.json({ exists: false });
@@ -14,8 +14,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       exists: true,
-      hasPin: !!rows[0].pin,
-      role: rows[0].role,
+      hasPin: rows[0].has_pin,
     });
   } catch (error) {
     console.error("check-phone error:", error);

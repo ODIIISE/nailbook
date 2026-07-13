@@ -1,20 +1,22 @@
 import crypto from "crypto";
 import { sql } from "@vercel/postgres";
 
-const SECRET = process.env.OWNER_SESSION_SECRET || "nailbook-owner-secret-key-change-in-production";
-if (!process.env.OWNER_SESSION_SECRET) {
-  console.warn("OWNER_SESSION_SECRET not set, using fallback");
-}
+const SECRET = process.env.OWNER_SESSION_SECRET;
+const SECRET_KEY = SECRET || "nailbook-dev-insecure-fallback";
 
 export function verifyOwnerSession(cookieValue: string | undefined): string | null {
-  if (!cookieValue || !SECRET) return null;
+  if (!cookieValue) return null;
+  if (!SECRET && process.env.NODE_ENV === "production") {
+    console.error("OWNER_SESSION_SECRET must be set in production");
+    return null;
+  }
 
   const parts = cookieValue.split(":");
   if (parts.length !== 3) return null;
 
   const [userId, timestamp, signature] = parts;
   const payload = `${userId}:${timestamp}`;
-  const expectedSig = crypto.createHmac("sha256", SECRET).update(payload).digest("hex");
+  const expectedSig = crypto.createHmac("sha256", SECRET_KEY).update(payload).digest("hex");
 
   try {
     const sigBuf = Buffer.from(signature, "hex");

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyPin } from "@/lib/pin-hash";
+import { signCustomerSession } from "@/lib/customer-auth";
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
       success: true,
       user: { id: user.id, phone: user.phone, name: user.name, role: user.role },
     });
-    response.cookies.set("session", user.id, {
+    response.cookies.set("session", signCustomerSession(user.id), {
       httpOnly: true,
       secure: true,
       sameSite: "lax",

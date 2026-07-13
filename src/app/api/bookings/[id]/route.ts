@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
+import { verifyCustomerSession } from "@/lib/customer-auth";
 
 // PATCH: Cancel a booking (owner or the booking's user)
 export async function PATCH(
@@ -21,12 +22,12 @@ export async function PATCH(
 
     const booking = rows[0];
 
-    // If not owner, check if the user owns this booking (via cookie or phone)
+    // If not owner, verify the customer owns this booking
     if (!owner) {
-      // For customer cancel, we check the auth_token cookie
-      // The customer can only cancel their own bookings
-      // For now, allow any authenticated user to cancel (owner check above handles authorization)
-      // A more strict check would verify the user owns this booking
+      const customerUserId = verifyCustomerSession(request.cookies.get("session")?.value);
+      if (!customerUserId || booking.user_id !== customerUserId) {
+        return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+      }
     }
 
     if (booking.status === "cancelled") {

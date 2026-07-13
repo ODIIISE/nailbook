@@ -2,73 +2,55 @@
 
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { X, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
-import type { Booking, Service } from "@/lib/types";
+import { calculateEarnings } from "@/lib/pricing";
+import type { Booking, Service, Addon } from "@/lib/types";
 
 interface EarningsModalProps {
   bookings: Booking[];
   services: Service[];
+  addons: Addon[];
   currentDate: Date;
   onClose: () => void;
+}
+
+function getPeriodRange(currentDate: Date, period: "day" | "week" | "month") {
+  const now = new Date(currentDate);
+
+  if (period === "day") {
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    return { start, end: now };
+  }
+
+  if (period === "week") {
+    const start = new Date(now);
+    const dayOfWeek = start.getDay();
+    const daysSinceSaturday = (dayOfWeek + 1) % 7;
+    start.setDate(start.getDate() - daysSinceSaturday);
+    start.setHours(0, 0, 0, 0);
+    return { start, end: now };
+  }
+
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  return { start, end: now };
 }
 
 export function EarningsModal({
   bookings,
   services,
+  addons,
   currentDate,
   onClose,
 }: EarningsModalProps) {
   const [period, setPeriod] = useState<"day" | "week" | "month">("day");
 
   const earnings = useMemo(() => {
-    const now = new Date(currentDate);
-
-    let startDate: Date;
-    if (period === "day") {
-      startDate = new Date(now);
-      startDate.setHours(0, 0, 0, 0);
-    } else if (period === "week") {
-      startDate = new Date(now);
-      const dayOfWeek = startDate.getDay(); // 0=Sun, 6=Sat
-      // Iran week starts on Saturday (day 6)
-      const daysSinceSaturday = (dayOfWeek + 1) % 7;
-      startDate.setDate(startDate.getDate() - daysSinceSaturday);
-      startDate.setHours(0, 0, 0, 0);
-    } else {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-    }
-
-    const filtered = bookings.filter((b) => {
-      const d = new Date(b.date_gregorian);
-      return d >= startDate && d <= now && b.status === "confirmed";
-    });
-
-    const paid = filtered
-      .filter((b) => b.paid)
-      .reduce((sum, b) => {
-        const svc = services.find((s) => s.id === b.service_id);
-        return sum + (svc?.price || 0);
-      }, 0);
-
-    const unpaid = filtered
-      .filter((b) => !b.paid)
-      .reduce((sum, b) => {
-        const svc = services.find((s) => s.id === b.service_id);
-        return sum + (svc?.price || 0);
-      }, 0);
-
-    return {
-      paid,
-      unpaid,
-      total: paid + unpaid,
-      count: filtered.length,
-      paidCount: filtered.filter((b) => b.paid).length,
-      unpaidCount: filtered.filter((b) => !b.paid).length,
-    };
-  }, [bookings, services, currentDate, period]);
+    const { start, end } = getPeriodRange(currentDate, period);
+    return calculateEarnings(bookings, services, addons, start, end);
+  }, [bookings, services, addons, currentDate, period]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

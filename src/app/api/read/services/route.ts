@@ -8,12 +8,12 @@ export async function GET() {
       id: s.id,
       name: s.name,
       description: s.description,
-      duration_minutes: s.duration_minutes,
-      price: s.price,
+      duration_minutes: Number(s.duration_minutes),
+      price: Number(s.price),
       is_active: s.is_active,
       sort_order: s.sort_order,
       addon_ids: s.addon_ids || [],
-      priority_score: s.priority_score || 5,
+      priority_score: Number(s.priority_score) || 5,
     })));
   } catch (error) {
     return NextResponse.json({ error: String(error) }, { status: 500 });

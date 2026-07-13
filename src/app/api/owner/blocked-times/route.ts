@@ -12,25 +12,34 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
+  let client;
   try {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const { blockedTimes } = await request.json();
 
-    await sql`DELETE FROM blocked_times`;
+    client = await sql.connect();
+    await client.query("BEGIN");
+    await client.query("DELETE FROM blocked_times");
 
     if (blockedTimes && blockedTimes.length > 0) {
       for (const b of blockedTimes) {
-        await sql`
-          INSERT INTO blocked_times (date_gregorian, start_time, end_time)
-          VALUES (${b.date_gregorian}, ${b.start_time}, ${b.end_time})
-        `;
+        await client.query(
+          "INSERT INTO blocked_times (date_gregorian, start_time, end_time) VALUES ($1, $2, $3)",
+          [b.date_gregorian, b.start_time, b.end_time]
+        );
       }
     }
 
+    await client.query("COMMIT");
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    if (client) {
+      try { await client.query("ROLLBACK"); } catch {}
+    }
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+  } finally {
+    if (client) client.release();
   }
 }

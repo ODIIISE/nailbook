@@ -10,7 +10,7 @@
  */
 
 import { getTehranDateKey, getTehranNow } from "./time";
-import { gregorianToJalali, jalaliToGregorian, DAYS_IN_MONTH } from "./jalali";
+import { gregorianToJalali, jalaliToGregorian, DAYS_IN_MONTH, isJalaliLeapYear } from "./jalali";
 
 // ─── Types ───
 
@@ -405,15 +405,17 @@ export function getNearestAvailableSlot(
     overflow_minutes?: number;
   } = {}
 ): { date: Date; time: string } | null {
-  const todayJalali = gregorianToJalali(new Date());
+  const now = getTehranNow();
+  const todayJalali = gregorianToJalali(new Date(now.dateKey));
 
   for (let offset = 0; offset < 14; offset++) {
     let jy = todayJalali.jy;
     let jm = todayJalali.jm;
     let jd = todayJalali.jd + offset;
 
-    while (jd > DAYS_IN_MONTH[jm - 1]) {
-      jd -= DAYS_IN_MONTH[jm - 1];
+    const monthLength = isJalaliLeapYear(jy) && jm === 12 ? 30 : DAYS_IN_MONTH[jm - 1];
+    while (jd > monthLength) {
+      jd -= monthLength;
       jm++;
       if (jm > 12) { jm = 1; jy++; }
     }

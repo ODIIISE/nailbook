@@ -6,10 +6,13 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { X, User, Phone, Clock, CreditCard, Trash2, CheckCircle, AlertTriangle } from "lucide-react";
 import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
-import type { Booking } from "@/lib/types";
+import { calculateBookingPrice } from "@/lib/pricing";
+import type { Booking, Service, Addon } from "@/lib/types";
 
 interface BookingModalProps {
   booking: Booking;
+  services: Service[];
+  addons: Addon[];
   isPaid: boolean;
   onTogglePaid: () => void;
   onCancel: (id: string) => void;
@@ -17,12 +20,12 @@ interface BookingModalProps {
   onClose: () => void;
 }
 
-export function BookingModal({ booking, isPaid, onTogglePaid, onCancel, onDelete, onClose }: BookingModalProps) {
+export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, onCancel, onDelete, onClose }: BookingModalProps) {
   const [confirmAction, setConfirmAction] = useState<"cancel" | "delete" | null>(null);
 
   const jalali = gregorianToJalali(new Date(booking.date_gregorian));
   const shortDate = formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd);
-  const price = booking.service?.price || 0;
+  const price = calculateBookingPrice(booking, services, addons);
 
   const startMinutes = parseInt(booking.start_time.split(":")[0]) * 60 + parseInt(booking.start_time.split(":")[1]);
   const endMinutes = parseInt(booking.end_time.split(":")[0]) * 60 + parseInt(booking.end_time.split(":")[1]);
