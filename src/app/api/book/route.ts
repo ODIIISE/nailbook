@@ -50,13 +50,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "این زمان مسدود شده", conflict: true }, { status: 409 });
     }
 
-    // Step 6: Insert booking
+    // Step 6: Insert booking (include Jalali date column)
+    const jalaliDate = body.date || date_gregorian;
     const result = await client.query(
       `INSERT INTO bookings (
         user_id, customer_phone, customer_name, service_id,
-        selected_addons, date_gregorian, start_time, end_time,
+        selected_addons, date, date_gregorian, start_time, end_time,
         status, phone_verified, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6::date, ($7 || ':00')::time, ($8 || ':00')::time, 'confirmed', true, NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, ($8 || ':00')::time, ($9 || ':00')::time, 'confirmed', true, NOW())
       RETURNING id, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time`,
       [
         user_id || null,
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
         customer_name || "",
         service_id,
         JSON.stringify(selected_addons || []),
+        jalaliDate,
         date_gregorian,
         normStart,
         normEnd,

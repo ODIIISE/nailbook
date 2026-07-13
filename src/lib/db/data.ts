@@ -75,6 +75,7 @@ export async function insertBooking(booking: Booking): Promise<{ id: string; sta
     body: JSON.stringify({
       phone: booking.customer_phone,
       service_id: booking.service_id,
+      date: booking.date,
       date_gregorian: booking.date_gregorian,
       start_time: booking.start_time,
       end_time: booking.end_time,
