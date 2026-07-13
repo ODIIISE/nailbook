@@ -18,11 +18,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
 
-    // Verify customer is authenticated
+    // Verify customer session if present (optional — booking works without login too)
     const sessionUserId = verifyCustomerSession(request.cookies.get("session")?.value);
-    if (!sessionUserId) {
-      return NextResponse.json({ error: "لطفاً ابتدا وارد شوید" }, { status: 401 });
-    }
 
     // Normalize times to HH:MM format
     const normStart = normalizeTime(start_time);
