@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { checkAntiSpam } from "@/lib/anti-spam";
 import { verifyCustomerSession } from "@/lib/customer-auth";
+import { getTehranDateKey } from "@/lib/time";
 
 // Normalize time to HH:MM format (strip seconds if present)
 function normalizeTime(t: string): string {
@@ -25,18 +25,24 @@ export async function POST(request: NextRequest) {
     const normStart = normalizeTime(start_time);
     const normEnd = normalizeTime(end_time);
 
-    // Anti-spam check (non-blocking — if it fails, allow the booking)
+    client = await sql.connect();
+    await client.query("BEGIN");
+
+    // Anti-spam check using the same client (avoids pool exhaustion)
     try {
-      const spamResult = await checkAntiSpam(phone);
-      if (!spamResult.allowed) {
-        return NextResponse.json({ error: spamResult.error }, { status: 429 });
+      const todayStr = getTehranDateKey(new Date());
+      const { rows: spamRows } = await client.query(
+        `SELECT COUNT(*) as count FROM bookings WHERE customer_phone = $1 AND date_gregorian = $2::date AND status IN ('confirmed', 'pending')`,
+        [phone, todayStr]
+      );
+      const todayBookings = parseInt(spamRows[0]?.count || "0");
+      if (todayBookings >= 3) {
+        await client.query("ROLLBACK");
+        return NextResponse.json({ error: "شما امروز قبلاً ۳ رزرو انجام داده‌اید. لطفاً فردا تلاش کنید." }, { status: 429 });
       }
     } catch (e) {
       console.warn("[BOOK] Anti-spam check failed, allowing booking:", e);
     }
-
-    client = await sql.connect();
-    await client.query("BEGIN");
 
     // Use ::time cast for proper time comparison (not string comparison)
     const conflictCheck = await client.query(
