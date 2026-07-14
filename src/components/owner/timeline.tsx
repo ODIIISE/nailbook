@@ -208,12 +208,27 @@ export function Timeline({
                           {toPersianDigits(booking.start_time.slice(0, 5))}–{toPersianDigits(booking.end_time.slice(0, 5))}
                         </span>
 
-                        {/* Price with icon */}
-                        <div className="flex items-center gap-1 shrink ml-auto">
-                          <DollarSign className="h-[10px] w-[10px] text-black/25" />
-                          <span className="text-[10px] text-black/50 font-bold whitespace-nowrap">
-                            {formatPrice(totalPrice)}
-                          </span>
+                        {/* Tags — same style as normal card */}
+                        <div className="flex items-center gap-1.5 shrink ml-auto">
+                          <div className="flex items-center gap-0.5">
+                            <Clock className="h-2.5 w-2.5 text-black/25" />
+                            <span className="text-[10px] text-black/40 font-medium whitespace-nowrap">
+                              {toPersianDigits(totalDuration)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-0.5">
+                            <DollarSign className="h-2.5 w-2.5 text-black/25" />
+                            <span className="text-[10px] text-black/50 font-bold whitespace-nowrap">
+                              {formatPrice(totalPrice)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-0.5">
+                            {booking.paid ? (
+                              <CreditCard className="h-2.5 w-2.5 text-[#2E7D32]" />
+                            ) : (
+                              <CreditCard className="h-2.5 w-2.5 text-black/20" />
+                            )}
+                          </div>
                         </div>
 
                         {/* Status badge */}
