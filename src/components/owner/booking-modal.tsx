@@ -16,7 +16,7 @@ interface BookingModalProps {
   onClose: () => void;
 }
 
-const STATUS_OPTIONS = [
+const STATUS_OPTIONS: { value: Booking["status"]; label: string; color: string }[] = [
   { value: "confirmed", label: "تایید شده", color: "#2E7D32" },
   { value: "in_progress", label: "در حال انجام", color: "#1565C0" },
   { value: "completed", label: "تکمیل شده", color: "#7B1FA2" },
