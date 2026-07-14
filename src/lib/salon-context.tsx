@@ -50,6 +50,7 @@ interface SalonContextType {
   removeHighlightImage: (id: string) => Promise<void>;
   uploadHighlightImage: (file: File) => Promise<string | null>;
   toggleBookingPaid: (bookingId: string, paid: boolean) => Promise<void>;
+  updateBookingStatus: (bookingId: string, status: string) => Promise<void>;
 }
 
 const SalonContext = createContext<SalonContextType | null>(null);
@@ -360,6 +361,25 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const handleUpdateBookingStatus = useCallback(async (bookingId: string, status: string) => {
+    const prev = bookings.find((b) => b.id === bookingId)?.status;
+    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: status as Booking["status"] } : b)));
+    try {
+      const res = await fetch("/api/owner/bookings/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId, status }),
+      });
+      if (!res.ok && prev) {
+        setBookings((prev2) => prev2.map((b) => (b.id === bookingId ? { ...b, status: prev } : b)));
+      }
+    } catch {
+      if (prev) {
+        setBookings((prev2) => prev2.map((b) => (b.id === bookingId ? { ...b, status: prev } : b)));
+      }
+    }
+  }, [bookings]);
+
   const value = useMemo<SalonContextType>(() => {
     if (!loaded || !salon) {
       return {
@@ -390,6 +410,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         removeHighlightImage: async () => {},
         uploadHighlightImage: async () => null,
         toggleBookingPaid: async () => {},
+        updateBookingStatus: async () => {},
       };
     }
     return {
@@ -420,12 +441,13 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       removeHighlightImage: handleRemoveHighlightImage,
       uploadHighlightImage: handleUploadHighlightImage,
       toggleBookingPaid: handleToggleBookingPaid,
+      updateBookingStatus: handleUpdateBookingStatus,
     };
   }, [
     loaded, salon, workingHours, specificDaysOff, services, addons, bookings, highlights, blockedTimes,
     handleUpdateWorkingHours, handleUpdateSpecificDaysOff, handleSaveSchedule, handleUpdateServices, handleUpdateAddons,
     handleUpdateSalon, handleUpdateBlockedTimes, handleAddBooking, handleCancelBooking, refreshBookings, refreshSalonData, handleAddHighlight, handleUpdateHighlight,
-    handleRemoveHighlight, handleAddHighlightImage, handleRemoveHighlightImage, handleUploadHighlightImage, handleToggleBookingPaid,
+    handleRemoveHighlight, handleAddHighlightImage, handleRemoveHighlightImage, handleUploadHighlightImage, handleToggleBookingPaid, handleUpdateBookingStatus,
   ]);
 
   return (

@@ -12,6 +12,7 @@ interface BookingModalProps {
   addons: Addon[];
   isPaid: boolean;
   onTogglePaid: () => void;
+  onStatusChange: (status: string) => void;
   onDelete: (id: string) => void;
   onClose: () => void;
 }
@@ -22,7 +23,7 @@ const STATUS_OPTIONS: { value: Booking["status"]; label: string; color: string }
   { value: "completed", label: "تکمیل شده", color: "#7B1FA2" },
 ];
 
-export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, onDelete, onClose }: BookingModalProps) {
+export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, onStatusChange, onDelete, onClose }: BookingModalProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(booking.status);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -42,6 +43,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
 
   const statusConfig = STATUS_OPTIONS.find((s) => s.value === currentStatus) || STATUS_OPTIONS[0];
   const shortId = `BK-${booking.id.slice(-6).toUpperCase()}`;
+  const createdAtTime = booking.created_at ? new Date(booking.created_at).toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit", hour12: false }) : "";
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -166,7 +168,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
               </div>
               <span className="text-[12px] text-muted-foreground font-medium">ثبت شده</span>
             </div>
-            <span className="text-[12px] font-medium text-muted-foreground">{shortDate} {toPersianDigits(booking.created_at.slice(11, 16))}</span>
+            <span className="text-[12px] font-medium text-muted-foreground">{shortDate} {createdAtTime}</span>
           </div>
         </div>
 
@@ -203,7 +205,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
                 {STATUS_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
-                    onClick={() => { setCurrentStatus(opt.value); setStatusOpen(false); }}
+                    onClick={() => { setCurrentStatus(opt.value); setStatusOpen(false); onStatusChange(opt.value); }}
                     className={`w-full flex items-center gap-2 px-3 py-2.5 text-[12px] font-medium hover:bg-black/[0.03] ${currentStatus === opt.value ? "bg-black/[0.04] font-bold" : ""}`}
                   >
                     <div className="w-[7px] h-[7px] rounded-full" style={{ backgroundColor: opt.color }} />
