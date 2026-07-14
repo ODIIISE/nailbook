@@ -126,27 +126,40 @@ export function Timeline({
   const hasContent = bookings.length > 0 || blockedTimes.length > 0;
 
   return (
-    <Card className="overflow-hidden py-4">
-      <div className="relative" style={{ height: totalHeight }}>
-        {/* Hour grid lines */}
+    <Card className="overflow-hidden">
+      <div className="relative overflow-y-auto scrollbar-none" style={{ height: Math.min(totalHeight, 560) }}>
+        <div className="relative" style={{ height: totalHeight }}>
+        {/* Hour labels — RTL: left side */}
         {hourMarks.map((hour, i) => (
-          <div
+          <span
             key={`hour-${hour}`}
-            className="absolute w-full border-t border-border/60"
-            style={{ top: i * HOUR_HEIGHT }}
+            className="absolute left-0 w-11 text-center text-[11px] font-bold text-black/30 z-5"
+            style={{ top: i * HOUR_HEIGHT, fontVariantNumeric: "tabular-nums", transform: "translateY(-50%)" }}
           >
-            <span className="absolute -top-3.5 right-0 text-[12px] font-bold text-black/50 font-mono bg-card px-1.5">
-              {formatHourPersian(hour)}
-            </span>
-          </div>
+            {formatHourPersian(hour)}
+          </span>
         ))}
 
-        {/* Half-hour dashed lines */}
+        {/* Hour grid lines — left offset from labels */}
+        {hourMarks.map((hour, i) => (
+          <div
+            key={`line-${hour}`}
+            className="absolute h-px bg-black/[0.04]"
+            style={{ top: i * HOUR_HEIGHT, left: 44, right: 0 }}
+          />
+        ))}
+
+        {/* Half-hour dotted lines */}
         {hourMarks.slice(0, -1).map((hour, i) => (
           <div
             key={`half-${hour}`}
-            className="absolute w-full border-t border-dashed border-black/10"
-            style={{ top: (i + 0.5) * HOUR_HEIGHT }}
+            className="absolute h-px"
+            style={{
+              top: (i + 0.5) * HOUR_HEIGHT,
+              left: 44,
+              right: 0,
+              backgroundImage: "repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 3px, transparent 3px, transparent 6px)",
+            }}
           />
         ))}
 
@@ -327,25 +340,29 @@ export function Timeline({
               );
             })}
 
-            {/* Current time indicator — dot centered on line */}
+            {/* Current time indicator — dot on left edge, centered on line */}
             {showNow && (
               <div
-                className="absolute left-0 right-0 z-20 pointer-events-none"
-                style={{ top: nowPosition - 4 }}
+                className="absolute z-20 pointer-events-none"
+                style={{ top: nowPosition, left: 44, right: 0 }}
               >
-                <div className="h-[2px] bg-[#5B9BD5]/30 mt-[4px]" />
-                <div className="absolute left-0 top-[4px] w-2 h-2 rounded-full bg-[#5B9BD5]/40 -translate-x-1/2 -translate-y-1/2" />
+                <div className="h-[2px] bg-[#5B9BD5]/30" />
+                <div className="absolute left-0 top-[3px] w-2 h-2 rounded-full bg-[#5B9BD5]/40 -translate-x-1/2 -translate-y-1/2" />
               </div>
             )}
           </>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center opacity-40">
-              <Clock className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-              <p className="text-muted-foreground text-[15px]">برنامه‌ای برای این روز ثبت نشده</p>
+            <div className="flex flex-col items-center gap-2.5">
+              <div className="w-[52px] h-[52px] rounded-[14px] bg-black/[0.025] flex items-center justify-center">
+                <Calendar className="h-[22px] w-[22px] text-black/[0.18]" />
+              </div>
+              <p className="text-[14px] text-black/[0.28] font-medium">برنامه‌ای برای این روز نیست</p>
+              <p className="text-[11px] text-black/[0.18]">رزرو جدید یا زمان مسدود اضافه کنید</p>
             </div>
           </div>
         )}
+        </div>
       </div>
     </Card>
   );
