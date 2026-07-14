@@ -327,14 +327,14 @@ export function Timeline({
               );
             })}
 
-            {/* Current time indicator */}
+            {/* Current time indicator — dot centered on line */}
             {showNow && (
               <div
                 className="absolute left-0 right-0 z-20 pointer-events-none"
                 style={{ top: nowPosition }}
               >
                 <div className="h-[2px] bg-[#5B9BD5]/30" />
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#5B9BD5]/30" />
+                <div className="absolute left-0 top-0 w-2 h-2 rounded-full bg-[#5B9BD5]/40 -translate-x-1/2 -translate-y-1/2" />
               </div>
             )}
           </>

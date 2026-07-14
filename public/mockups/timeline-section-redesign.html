@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timeline Section Redesign</title>
+  <link href="https://cdn.jsdelivr.net/gh/rastadfar/rastadfar-fonts@main/Vazirmatn/vazirmatn.css" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Vazirmatn', -apple-system, sans-serif;
+      background: #F8F6F4;
+      color: #2C2424;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      padding: 40px 20px;
+      flex-wrap: wrap;
+    }
+
+    .mockup-label {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #1A1A1A;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: system-ui;
+      z-index: 100;
+    }
+
+    .panel { width: 390px; }
+    .panel-title { font-size: 14px; font-weight: 700; color: #7A7068; margin-bottom: 16px; }
+
+    /* ─── Timeline Container ─── */
+
+    .timeline-container {
+      background: white;
+      border: 1px solid rgba(0,0,0,0.04);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .timeline-scroll {
+      position: relative;
+      height: 560px;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .timeline-scroll::-webkit-scrollbar { display: none; }
+
+    /* ─── Hour Labels (RTL: left side) ─── */
+
+    .hour-label {
+      position: absolute;
+      left: 0;
+      width: 44px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(0,0,0,0.3);
+      font-variant-numeric: tabular-nums;
+      transform: translateY(-50%);
+      z-index: 5;
+    }
+
+    /* ─── Grid Lines ─── */
+
+    .grid-line {
+      position: absolute;
+      left: 44px;
+      right: 0;
+      height: 1px;
+      background: rgba(0,0,0,0.04);
+    }
+
+    .grid-line-half {
+      position: absolute;
+      left: 44px;
+      right: 0;
+      height: 1px;
+      background-image: repeating-linear-gradient(
+        90deg,
+        rgba(0,0,0,0.05) 0px,
+        rgba(0,0,0,0.05) 3px,
+        transparent 3px,
+        transparent 6px
+      );
+    }
+
+    /* ─── Current Time Indicator ─── */
+
+    .now-container {
+      position: absolute;
+      left: 44px;
+      right: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .now-line {
+      width: 100%;
+      height: 2px;
+      background: #5B9BD5;
+      opacity: 0.35;
+    }
+
+    .now-dot {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 8px;
+      height: 8px;
+      background: #5B9BD5;
+      opacity: 0.5;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 0 3px rgba(91, 155, 213, 0.12);
+    }
+
+    .now-label {
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-size: 9px;
+      font-weight: 600;
+      color: #5B9BD5;
+      opacity: 0.65;
+      transform: translate(-50%, -100%);
+      background: white;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-top: -6px;
+    }
+
+    /* ─── Booking Block — matches production timeline.tsx ─── */
+
+    .booking-block {
+      position: absolute;
+      left: 48px;
+      right: 8px;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    .booking-inner {
+      height: 100%;
+      border: 1px solid rgba(0,0,0,0.04);
+      overflow: hidden;
+      display: flex;
+    }
+
+    .booking-accent {
+      width: 3px;
+      flex-shrink: 0;
+    }
+
+    .booking-content {
+      flex: 1;
+      min-width: 0;
+      padding: 8px;
+    }
+
+    /* Row 1: Name + Status */
+    .b-row1 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+    }
+
+    .b-name-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .b-name-group svg {
+      width: 12px;
+      height: 12px;
+      color: rgba(0,0,0,0.25);
+      flex-shrink: 0;
+    }
+
+    .b-name {
+      font-size: 12px;
+      font-weight: 800;
+      color: #2C2424;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
+    }
+
+    .b-status {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .b-status svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    .b-s-confirmed { background: #E8F5E9; color: #2E7D32; }
+    .b-s-progress { background: #E3F2FD; color: #1565C0; }
+    .b-s-completed { background: #F3E5F5; color: #7B1FA2; }
+
+    /* Row 2: Service + Time */
+    .b-row2 {
+      font-size: 10px;
+      color: rgba(0,0,0,0.4);
+      font-weight: 500;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .b-addon-icon {
+      width: 9px;
+      height: 9px;
+      vertical-align: middle;
+      margin: 0 2px;
+    }
+
+    /* Row 3: Tags */
+    .b-row3 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .b-tag {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      color: rgba(0,0,0,0.35);
+    }
+
+    .b-tag svg {
+      width: 10px;
+      height: 10px;
+      color: rgba(0,0,0,0.25);
+    }
+
+    .b-tag-paid svg { color: #2E7D32; }
+    .b-tag-paid span { color: #2E7D32; }
+    .b-tag-unpaid svg { color: rgba(0,0,0,0.2); }
+    .b-tag-unpaid span { color: rgba(0,0,0,0.3); }
+
+    /* ─── Compact Card — matches production ─── */
+
+    .booking-compact {
+      position: absolute;
+      left: 48px;
+      right: 8px;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    .compact-inner {
+      height: 100%;
+      border: 1px solid rgba(0,0,0,0.04);
+      overflow: hidden;
+      display: flex;
+      align-items: stretch;
+    }
+
+    .compact-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 8px;
+    }
+
+    .compact-name {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+      flex-shrink: 0;
+    }
+
+    .compact-name svg {
+      width: 11px;
+      height: 11px;
+      color: rgba(0,0,0,0.25);
+    }
+
+    .compact-name span {
+      font-size: 12px;
+      font-weight: 800;
+      color: #2C2424;
+      white-space: nowrap;
+    }
+
+    .compact-service {
+      font-size: 10px;
+      color: rgba(0,0,0,0.35);
+      font-weight: 500;
+      white-space: nowrap;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .compact-metrics {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: auto;
+      flex-shrink: 0;
+    }
+
+    .compact-metrics svg {
+      width: 10px;
+      height: 10px;
+      color: rgba(0,0,0,0.25);
+    }
+
+    .compact-price {
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(0,0,0,0.4);
+    }
+
+    .compact-status {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 8px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .compact-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+
+    /* ─── Blocked Block ─── */
+
+    .blocked-block {
+      position: absolute;
+      left: 48px;
+      right: 8px;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    .blocked-inner {
+      height: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .blocked-accent {
+      width: 3px;
+      flex-shrink: 0;
+      background: #FFB300;
+    }
+
+    .blocked-content {
+      flex: 1;
+      padding: 8px 10px;
+      background: #FFFBEB;
+      border: 1px solid rgba(255, 193, 7, 0.15);
+    }
+
+    .blocked-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #E65100;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .blocked-label svg { width: 12px; height: 12px; }
+
+    .blocked-time {
+      font-size: 9px;
+      color: rgba(245, 127, 23, 0.6);
+      margin-top: 2px;
+    }
+
+    /* ─── Empty State ─── */
+
+    .empty-state {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .empty-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.025);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .empty-icon svg { width: 22px; height: 22px; color: rgba(0,0,0,0.18); }
+
+    .empty-text { font-size: 14px; color: rgba(0,0,0,0.28); font-weight: 500; }
+    .empty-sub { font-size: 11px; color: rgba(0,0,0,0.18); }
+
+    /* ─── Legend ─── */
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      padding: 10px 16px;
+      border-top: 1px solid rgba(0,0,0,0.04);
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 9px;
+      color: rgba(0,0,0,0.35);
+    }
+
+    .legend-dot { width: 5px; height: 5px; border-radius: 50%; }
+    .legend-line { width: 14px; height: 2px; border-radius: 1px; }
+  </style>
+</head>
+<body>
+  <div class="mockup-label">MOCKUP — Timeline Section Redesign</div>
+
+  <div class="panel">
+    <div class="panel-title">Timeline — با رزرو</div>
+
+    <div class="timeline-container">
+      <div class="timeline-scroll">
+        <!-- Hour labels -->
+        <div class="hour-label" style="top: 0px;">۰۸:۰۰</div>
+        <div class="hour-label" style="top: 64px;">۰۹:۰۰</div>
+        <div class="hour-label" style="top: 128px;">۱۰:۰۰</div>
+        <div class="hour-label" style="top: 192px;">۱۱:۰۰</div>
+        <div class="hour-label" style="top: 256px;">۱۲:۰۰</div>
+        <div class="hour-label" style="top: 320px;">۱۳:۰۰</div>
+        <div class="hour-label" style="top: 384px;">۱۴:۰۰</div>
+        <div class="hour-label" style="top: 448px;">۱۵:۰۰</div>
+        <div class="hour-label" style="top: 512px;">۱۶:۰۰</div>
+
+        <!-- Grid lines -->
+        <div class="grid-line" style="top: 0px;"></div>
+        <div class="grid-line" style="top: 64px;"></div>
+        <div class="grid-line" style="top: 128px;"></div>
+        <div class="grid-line" style="top: 192px;"></div>
+        <div class="grid-line" style="top: 256px;"></div>
+        <div class="grid-line" style="top: 320px;"></div>
+        <div class="grid-line" style="top: 384px;"></div>
+        <div class="grid-line" style="top: 448px;"></div>
+        <div class="grid-line" style="top: 512px;"></div>
+        <div class="grid-line" style="top: 576px;"></div>
+
+        <!-- Half-hour lines -->
+        <div class="grid-line-half" style="top: 32px;"></div>
+        <div class="grid-line-half" style="top: 96px;"></div>
+        <div class="grid-line-half" style="top: 160px;"></div>
+        <div class="grid-line-half" style="top: 224px;"></div>
+        <div class="grid-line-half" style="top: 288px;"></div>
+        <div class="grid-line-half" style="top: 352px;"></div>
+        <div class="grid-line-half" style="top: 416px;"></div>
+        <div class="grid-line-half" style="top: 480px;"></div>
+        <div class="grid-line-half" style="top: 544px;"></div>
+
+        <!-- Current time at 11:20 — dot centered on line -->
+        <div class="now-container" style="top: 213px;">
+          <div class="now-line"></div>
+          <div class="now-dot"></div>
+          <div class="now-label">الان</div>
+        </div>
+
+        <!-- ═══ Normal card: 09:00–10:00 (Rose) ═══ -->
+        <div class="booking-block" style="top: 64px; height: 64px;">
+          <div class="booking-inner" style="background: #FFF5F6;">
+            <div class="booking-accent" style="background: #FDA4AF;"></div>
+            <div class="booking-content">
+              <div class="b-row1">
+                <div class="b-name-group">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <span class="b-name">سارا احمدی</span>
+                </div>
+                <div class="b-status b-s-confirmed">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                  تایید شده
+                </div>
+              </div>
+              <div class="b-row2">
+                ژلیش ناخن
+                <svg class="b-addon-icon" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                · ۰۹:۰۰–۱۰:۰۰
+              </div>
+              <div class="b-row3">
+                <div class="b-tag">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  <span>۶۰ دقیقه</span>
+                </div>
+                <div class="b-tag">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  <span>۳۵۰,۰۰۰</span>
+                </div>
+                <div class="b-tag b-tag-paid">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+                  <span>پرداخت شده</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ Blocked: 10:00–11:00 ═══ -->
+        <div class="blocked-block" style="top: 128px; height: 64px;">
+          <div class="blocked-inner">
+            <div class="blocked-accent"></div>
+            <div class="blocked-content">
+              <div class="blocked-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m9 9 6 6M15 9l-6 6"/></svg>
+                استراحت
+              </div>
+              <div class="blocked-time">۱۰:۰۰ – ۱۱:۰۰</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ Compact card: 12:00–12:30 (Amber) ═══ -->
+        <div class="booking-compact" style="top: 256px; height: 32px;">
+          <div class="compact-inner" style="background: #FFFCF0;">
+            <div class="booking-accent" style="background: #FCD34D;"></div>
+            <div class="compact-content">
+              <div class="compact-name">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>نیلوفر عباسی</span>
+              </div>
+              <span class="compact-service">ژلیش · ۱۲:۰۰–۱۲:۳۰</span>
+              <div class="compact-metrics">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span class="compact-price">۳۸۰,۰۰۰</span>
+              </div>
+              <div class="compact-status b-s-progress">
+                <div class="compact-dot" style="background: #1565C0;"></div>
+                در حال
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ Normal card: 13:00–14:30 (Emerald) ═══ -->
+        <div class="booking-block" style="top: 320px; height: 96px;">
+          <div class="booking-inner" style="background: #F0FDF8;">
+            <div class="booking-accent" style="background: #6EE7B7;"></div>
+            <div class="booking-content">
+              <div class="b-row1">
+                <div class="b-name-group">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <span class="b-name">الناز رضایی</span>
+                </div>
+                <div class="b-status b-s-completed">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+                  تکمیل شده
+                </div>
+              </div>
+              <div class="b-row2">طراحی ناخن · ۱۳:۰۰–۱۴:۳۰</div>
+              <div class="b-row3">
+                <div class="b-tag">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  <span>۹۰ دقیقه</span>
+                </div>
+                <div class="b-tag">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  <span>۶۰۰,۰۰۰</span>
+                </div>
+                <div class="b-tag b-tag-paid">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+                  <span>پرداخت شده</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ Normal card: 15:00–15:45 (Blue) ═══ -->
+        <div class="booking-block" style="top: 448px; height: 64px;">
+          <div class="booking-inner" style="background: #F0F7FF;">
+            <div class="booking-accent" style="background: #93C5FD;"></div>
+            <div class="booking-content">
+              <div class="b-row1">
+                <div class="b-name-group">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <span class="b-name">ثریا حسینی</span>
+                </div>
+                <div class="b-status b-s-progress">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  در حال انجام
+                </div>
+              </div>
+              <div class="b-row2">پدیکور · ۱۵:۰۰–۱۵:۴۵</div>
+              <div class="b-row3">
+                <div class="b-tag">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  <span>۴۵ دقیقه</span>
+                </div>
+                <div class="b-tag">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  <span>۴۰۰,۰۰۰</span>
+                </div>
+                <div class="b-tag b-tag-unpaid">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+                  <span>پرداخت نشده</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #2E7D32;"></div>
+          تایید شده
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #1565C0;"></div>
+          در حال
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #7B1FA2;"></div>
+          تکمیل شده
+        </div>
+        <div class="legend-item">
+          <div class="legend-line" style="background: #5B9BD5; opacity: 0.4;"></div>
+          ساعت فعلی
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 2: Empty state -->
+  <div class="panel">
+    <div class="panel-title">Timeline — خالی</div>
+
+    <div class="timeline-container">
+      <div class="timeline-scroll" style="height: 320px;">
+        <div class="hour-label" style="top: 0px;">۰۸:۰۰</div>
+        <div class="hour-label" style="top: 64px;">۰۹:۰۰</div>
+        <div class="hour-label" style="top: 128px;">۱۰:۰۰</div>
+        <div class="hour-label" style="top: 192px;">۱۱:۰۰</div>
+        <div class="hour-label" style="top: 256px;">۱۲:۰۰</div>
+
+        <div class="grid-line" style="top: 0px;"></div>
+        <div class="grid-line" style="top: 64px;"></div>
+        <div class="grid-line" style="top: 128px;"></div>
+        <div class="grid-line" style="top: 192px;"></div>
+        <div class="grid-line" style="top: 256px;"></div>
+        <div class="grid-line" style="top: 320px;"></div>
+
+        <div class="grid-line-half" style="top: 32px;"></div>
+        <div class="grid-line-half" style="top: 96px;"></div>
+        <div class="grid-line-half" style="top: 160px;"></div>
+        <div class="grid-line-half" style="top: 224px;"></div>
+        <div class="grid-line-half" style="top: 288px;"></div>
+
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <path d="M16 2v4M8 2v4M3 10h18"/>
+              <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
+            </svg>
+          </div>
+          <div class="empty-text">برنامه‌ای برای این روز نیست</div>
+          <div class="empty-sub">رزرو جدید یا زمان مسدود اضافه کنید</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
