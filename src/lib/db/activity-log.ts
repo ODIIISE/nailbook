@@ -65,7 +65,7 @@ export async function fetchActivityLogs(
         ORDER BY created_at DESC
         LIMIT 100
       `;
-      return rows;
+      return rows as ActivityLog[];
     }
 
     const { rows } = await sql`
@@ -73,7 +73,7 @@ export async function fetchActivityLogs(
       ORDER BY created_at DESC
       LIMIT 100
     `;
-    return rows;
+    return rows as ActivityLog[];
   } catch (error) {
     console.error("Failed to fetch activity logs:", error);
     return [];
