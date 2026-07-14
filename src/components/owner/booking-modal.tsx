@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { X, User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, CreditCard, ChevronDown, Check, Trash2 } from "lucide-react";
+import { X, User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, CreditCard, ChevronDown, Check, Trash2, AlertTriangle } from "lucide-react";
 import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
 import { calculateBookingPrice } from "@/lib/pricing";
 import type { Booking, Service, Addon } from "@/lib/types";
@@ -25,6 +25,7 @@ const STATUS_OPTIONS: { value: Booking["status"]; label: string; color: string }
 export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, onDelete, onClose }: BookingModalProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(booking.status);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const jalali = gregorianToJalali(new Date(booking.date_gregorian));
@@ -97,80 +98,97 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
 
         {/* Details */}
         <div className="mb-3">
-          {/* Service */}
-          <div className="flex items-center justify-between py-[7px] border-b border-black/[0.04]">
-            <div className="flex items-center gap-1.5">
-              <div className="w-6 h-6 rounded-md bg-black/[0.03] flex items-center justify-center">
-                <Wrench className="h-[11px] w-[11px] text-black/40" />
+          {/* Service + Addons */}
+          <div className="py-[7px] border-b border-black/[0.04]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <div className="w-6 h-6 rounded-md bg-black/[0.03] flex items-center justify-center">
+                  <Wrench className="h-[11px] w-[11px] text-black/40" />
+                </div>
+                <span className="text-[12px] text-muted-foreground font-medium">خدمت</span>
               </div>
-              <span className="text-[12px] text-muted-foreground font-medium">خدمت</span>
+              <span className="text-[12px] font-bold">{booking.service?.name || "نامعلوم"}</span>
             </div>
-            <span className="text-[12px] font-bold">{booking.service?.name || "نامعلوم"}</span>
+            {selectedAddons.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap mt-1.5 pr-7.5">
+                {selectedAddons.slice(0, 2).map((addon) => (
+                  <span key={addon!.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[5px] bg-[#7B1FA2]/[0.06] text-[10px] font-semibold text-[#7B1FA2]">
+                    {addon!.name}
+                  </span>
+                ))}
+                {selectedAddons.length > 2 && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-[5px] bg-black/[0.04] text-[10px] font-semibold text-muted-foreground">
+                    +{toPersianDigits(selectedAddons.length - 2)}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Addons */}
-          {selectedAddons.length > 0 && (
-            <div className="flex items-center gap-1.5 flex-wrap py-1.5 pr-7 border-b border-black/[0.04]">
-              {selectedAddons.slice(0, 2).map((addon) => (
-                <span key={addon!.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[5px] bg-[#7B1FA2]/[0.06] text-[10px] font-semibold text-[#7B1FA2]">
-                  {addon!.name}
-                </span>
-              ))}
-              {selectedAddons.length > 2 && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-[5px] bg-black/[0.04] text-[10px] font-semibold text-muted-foreground">
-                  +{toPersianDigits(selectedAddons.length - 2)}
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Date + Time */}
-          <div className="flex items-center justify-between py-[7px] border-b border-black/[0.04]">
-            <div className="flex items-center gap-1.5">
-              <div className="w-6 h-6 rounded-md bg-[#1976D2]/[0.08] flex items-center justify-center">
-                <Calendar className="h-[11px] w-[11px] text-[#1976D2]" />
+          {/* 2x2 Grid */}
+          <div className="grid grid-cols-2 gap-px bg-black/[0.04]">
+            {/* Date + Time */}
+            <div className="bg-white p-2.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <div className="w-5 h-5 rounded bg-[#1976D2]/[0.08] flex items-center justify-center">
+                  <Calendar className="h-[10px] w-[10px] text-[#1976D2]" />
+                </div>
+                <span className="text-[10px] text-muted-foreground font-medium">تاریخ و ساعت</span>
               </div>
-              <span className="text-[12px] text-muted-foreground font-medium">تاریخ و ساعت</span>
+              <span className="text-[12px] font-bold leading-tight">{shortDate}<br/>{toPersianDigits(booking.start_time.slice(0, 5))} – {toPersianDigits(booking.end_time.slice(0, 5))}</span>
             </div>
-            <span className="text-[12px] font-bold">{shortDate} · {toPersianDigits(booking.start_time.slice(0, 5))} – {toPersianDigits(booking.end_time.slice(0, 5))}</span>
-          </div>
 
-          {/* Duration */}
-          <div className="flex items-center justify-between py-[7px] border-b border-black/[0.04]">
-            <div className="flex items-center gap-1.5">
-              <div className="w-6 h-6 rounded-md bg-black/[0.03] flex items-center justify-center">
-                <Clock className="h-[11px] w-[11px] text-black/40" />
+            {/* Duration */}
+            <div className="bg-white p-2.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <div className="w-5 h-5 rounded bg-black/[0.03] flex items-center justify-center">
+                  <Clock className="h-[10px] w-[10px] text-black/40" />
+                </div>
+                <span className="text-[10px] text-muted-foreground font-medium">مدت</span>
               </div>
-              <span className="text-[12px] text-muted-foreground font-medium">مدت</span>
+              <span className="text-[12px] font-bold">{toPersianDigits(duration)} دقیقه</span>
             </div>
-            <span className="text-[12px] font-bold">{toPersianDigits(duration)} دقیقه</span>
-          </div>
 
-          {/* Price */}
-          <div className="flex items-center justify-between py-[7px] border-b border-black/[0.04]">
-            <div className="flex items-center gap-1.5">
-              <div className="w-6 h-6 rounded-md bg-[#E65100]/[0.08] flex items-center justify-center">
-                <DollarSign className="h-[11px] w-[11px] text-[#E65100]" />
+            {/* Price */}
+            <div className="bg-white p-2.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <div className="w-5 h-5 rounded bg-[#E65100]/[0.08] flex items-center justify-center">
+                  <DollarSign className="h-[10px] w-[10px] text-[#E65100]" />
+                </div>
+                <span className="text-[10px] text-muted-foreground font-medium">هزینه</span>
               </div>
-              <span className="text-[12px] text-muted-foreground font-medium">هزینه</span>
+              <span className="text-[12px] font-bold text-[#E65100]">{formatPrice(Number(price))} ت</span>
             </div>
-            <span className="text-[12px] font-bold text-[#E65100]">{formatPrice(Number(price))} تومان</span>
-          </div>
 
-          {/* Created */}
-          <div className="flex items-center justify-between py-[7px]">
-            <div className="flex items-center gap-1.5">
-              <div className="w-6 h-6 rounded-md bg-black/[0.03] flex items-center justify-center">
-                <Clock className="h-[11px] w-[11px] text-black/30" />
+            {/* Created */}
+            <div className="bg-white p-2.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <div className="w-5 h-5 rounded bg-black/[0.03] flex items-center justify-center">
+                  <Clock className="h-[10px] w-[10px] text-black/30" />
+                </div>
+                <span className="text-[10px] text-muted-foreground font-medium">ثبت شده</span>
               </div>
-              <span className="text-[12px] text-muted-foreground font-medium">ثبت شده</span>
+              <span className="text-[12px] font-medium text-muted-foreground">{shortDate} {toPersianDigits(booking.created_at.slice(11, 16))}</span>
             </div>
-            <span className="text-[12px] font-medium text-muted-foreground">{formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd)} {toPersianDigits(booking.created_at.slice(11, 16))}</span>
           </div>
         </div>
 
-        {/* Status + Payment */}
+        {/* Payment + Status */}
         <div className="flex gap-2 mb-3">
+          {/* Payment */}
+          <div className="flex-1 flex items-center justify-between px-3 py-[9px] bg-black/[0.02] rounded-[10px]">
+            <span className="text-[12px] font-semibold flex items-center gap-1">
+              <CreditCard className="h-3.5 w-3.5 text-black/35" />
+              پرداخت
+            </span>
+            <button
+              onClick={onTogglePaid}
+              className={`w-9 h-5 rounded-full relative transition-colors ${isPaid ? "bg-[#2E7D32]" : "bg-black/10"}`}
+            >
+              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isPaid ? "right-0.5" : "right-[18px]"}`} />
+            </button>
+          </div>
+
           {/* Status Dropdown */}
           <div className="flex-1 relative" ref={dropdownRef}>
             <button
@@ -199,38 +217,48 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
               </div>
             )}
           </div>
-
-          {/* Payment */}
-          <div className="flex-1 flex items-center justify-between px-3 py-[9px] bg-black/[0.02] rounded-[10px]">
-            <span className="text-[12px] font-semibold flex items-center gap-1">
-              <CreditCard className="h-3.5 w-3.5 text-black/35" />
-              پرداخت
-            </span>
-            <button
-              onClick={onTogglePaid}
-              className={`w-9 h-5 rounded-full relative transition-colors ${isPaid ? "bg-[#2E7D32]" : "bg-black/10"}`}
-            >
-              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isPaid ? "right-0.5" : "right-[18px]"}`} />
-            </button>
-          </div>
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-1.5">
-          <button
-            onClick={() => { onDelete(booking.id); onClose(); }}
-            className="flex-1 py-2.5 rounded-[10px] bg-[#C62828]/[0.08] text-[#C62828] text-[12px] font-semibold flex items-center justify-center gap-1.5 hover:bg-[#C62828]/[0.12] transition-colors"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            حذف نوبت
-          </button>
-          <button
-            onClick={onClose}
-            className="flex-1 py-2.5 rounded-[10px] bg-black/[0.04] text-[12px] font-semibold hover:bg-black/[0.06] transition-colors"
-          >
-            بستن
-          </button>
-        </div>
+        {!confirmDelete ? (
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="flex-1 py-2.5 rounded-[10px] bg-[#C62828]/[0.08] text-[#C62828] text-[12px] font-semibold flex items-center justify-center gap-1.5 hover:bg-[#C62828]/[0.12] transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              حذف نوبت
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-[10px] bg-black/[0.04] text-[12px] font-semibold hover:bg-black/[0.06] transition-colors"
+            >
+              بستن
+            </button>
+          </div>
+        ) : (
+          <div className="p-3 rounded-[10px] bg-[#C62828]/[0.06] border border-[#C62828]/[0.12] animate-scale">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="h-4 w-4 text-[#C62828]" />
+              <span className="text-[12px] font-bold text-[#C62828]">حذف نوبت</span>
+            </div>
+            <p className="text-[11px] text-[#C62828]/70 mb-3">آیا مطمئن هستید؟ این عمل غیرقابل بازگشت است.</p>
+            <div className="flex gap-1.5">
+              <button
+                onClick={() => { onDelete(booking.id); onClose(); }}
+                className="flex-1 py-2 rounded-lg bg-[#C62828] text-white text-[11px] font-semibold hover:bg-[#B71C1C] transition-colors"
+              >
+                بله، حذف
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="flex-1 py-2 rounded-lg bg-black/[0.06] text-[11px] font-semibold hover:bg-black/[0.08] transition-colors"
+              >
+                انصراف
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
