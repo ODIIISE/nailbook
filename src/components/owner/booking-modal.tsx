@@ -125,51 +125,48 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
             )}
           </div>
 
-          {/* 2x2 Grid */}
-          <div className="grid grid-cols-2 gap-px bg-black/[0.04]">
-            {/* Date + Time */}
-            <div className="bg-white p-2.5">
-              <div className="flex items-center gap-1.5 mb-1">
-                <div className="w-5 h-5 rounded bg-[#1976D2]/[0.08] flex items-center justify-center">
-                  <Calendar className="h-[10px] w-[10px] text-[#1976D2]" />
-                </div>
-                <span className="text-[10px] text-muted-foreground font-medium">تاریخ و ساعت</span>
+          {/* Date + Time */}
+          <div className="flex items-center justify-between py-[7px] border-b border-black/[0.04]">
+            <div className="flex items-center gap-1.5">
+              <div className="w-6 h-6 rounded-md bg-[#1976D2]/[0.08] flex items-center justify-center">
+                <Calendar className="h-[11px] w-[11px] text-[#1976D2]" />
               </div>
-              <span className="text-[12px] font-bold leading-tight">{shortDate}<br/>{toPersianDigits(booking.start_time.slice(0, 5))} – {toPersianDigits(booking.end_time.slice(0, 5))}</span>
+              <span className="text-[12px] text-muted-foreground font-medium">تاریخ و ساعت</span>
             </div>
+            <span className="text-[12px] font-bold">{shortDate} · {toPersianDigits(booking.start_time.slice(0, 5))} – {toPersianDigits(booking.end_time.slice(0, 5))}</span>
+          </div>
 
-            {/* Duration */}
-            <div className="bg-white p-2.5">
-              <div className="flex items-center gap-1.5 mb-1">
-                <div className="w-5 h-5 rounded bg-black/[0.03] flex items-center justify-center">
-                  <Clock className="h-[10px] w-[10px] text-black/40" />
-                </div>
-                <span className="text-[10px] text-muted-foreground font-medium">مدت</span>
+          {/* Duration */}
+          <div className="flex items-center justify-between py-[7px] border-b border-black/[0.04]">
+            <div className="flex items-center gap-1.5">
+              <div className="w-6 h-6 rounded-md bg-black/[0.03] flex items-center justify-center">
+                <Clock className="h-[11px] w-[11px] text-black/40" />
               </div>
-              <span className="text-[12px] font-bold">{toPersianDigits(duration)} دقیقه</span>
+              <span className="text-[12px] text-muted-foreground font-medium">مدت</span>
             </div>
+            <span className="text-[12px] font-bold">{toPersianDigits(duration)} دقیقه</span>
+          </div>
 
-            {/* Price */}
-            <div className="bg-white p-2.5">
-              <div className="flex items-center gap-1.5 mb-1">
-                <div className="w-5 h-5 rounded bg-[#E65100]/[0.08] flex items-center justify-center">
-                  <DollarSign className="h-[10px] w-[10px] text-[#E65100]" />
-                </div>
-                <span className="text-[10px] text-muted-foreground font-medium">هزینه</span>
+          {/* Price */}
+          <div className="flex items-center justify-between py-[7px] border-b border-black/[0.04]">
+            <div className="flex items-center gap-1.5">
+              <div className="w-6 h-6 rounded-md bg-[#E65100]/[0.08] flex items-center justify-center">
+                <DollarSign className="h-[11px] w-[11px] text-[#E65100]" />
               </div>
-              <span className="text-[12px] font-bold text-[#E65100]">{formatPrice(Number(price))} ت</span>
+              <span className="text-[12px] text-muted-foreground font-medium">هزینه</span>
             </div>
+            <span className="text-[12px] font-bold text-[#E65100]">{formatPrice(Number(price))} تومان</span>
+          </div>
 
-            {/* Created */}
-            <div className="bg-white p-2.5">
-              <div className="flex items-center gap-1.5 mb-1">
-                <div className="w-5 h-5 rounded bg-black/[0.03] flex items-center justify-center">
-                  <Clock className="h-[10px] w-[10px] text-black/30" />
-                </div>
-                <span className="text-[10px] text-muted-foreground font-medium">ثبت شده</span>
+          {/* Created */}
+          <div className="flex items-center justify-between py-[7px]">
+            <div className="flex items-center gap-1.5">
+              <div className="w-6 h-6 rounded-md bg-black/[0.03] flex items-center justify-center">
+                <Clock className="h-[11px] w-[11px] text-black/30" />
               </div>
-              <span className="text-[12px] font-medium text-muted-foreground">{shortDate} {toPersianDigits(booking.created_at.slice(11, 16))}</span>
+              <span className="text-[12px] text-muted-foreground font-medium">ثبت شده</span>
             </div>
+            <span className="text-[12px] font-medium text-muted-foreground">{shortDate} {toPersianDigits(booking.created_at.slice(11, 16))}</span>
           </div>
         </div>
 
