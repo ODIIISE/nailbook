@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { User, Ban, Clock, CreditCard, CheckCircle2, Loader, XCircle, Layers, DollarSign } from "lucide-react";
+import { User, Ban, Clock, CreditCard, CheckCircle2, Loader, XCircle, Layers, DollarSign, Calendar } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
 import type { Booking, Service, Addon } from "@/lib/types";
