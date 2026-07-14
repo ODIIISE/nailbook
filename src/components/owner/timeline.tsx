@@ -179,7 +179,7 @@ export function Timeline({
                 return (
                   <div
                     key={booking.id}
-                    className="absolute right-14 left-2 cursor-pointer z-10"
+                    className="absolute left-12 right-2 cursor-pointer z-10"
                     style={{ top: pos.top, height: pos.height }}
                     onClick={() => onSelectBooking(booking)}
                   >
@@ -251,7 +251,7 @@ export function Timeline({
               return (
                 <div
                   key={booking.id}
-                  className="absolute right-14 left-2 cursor-pointer z-10"
+                  className="absolute left-12 right-2 cursor-pointer z-10"
                   style={{ top: pos.top, height: pos.height }}
                   onClick={() => onSelectBooking(booking)}
                 >
@@ -330,7 +330,7 @@ export function Timeline({
               return (
                 <div
                   key={`block-${index}`}
-                  className="absolute right-14 left-2 cursor-pointer z-10"
+                  className="absolute left-12 right-2 cursor-pointer z-10"
                   style={{ top: pos.top, height: pos.height }}
                   onClick={() => onRemoveBlock?.(index)}
                 >
