@@ -166,7 +166,7 @@ export function Timeline({
                       <div className="w-[3px] shrink-0" style={{ backgroundColor: style.accent }} />
 
                       {/* Horizontal content: 3 columns */}
-                      <div className="flex-1 min-w-0 flex items-center gap-3 px-2.5">
+                      <div className="flex-1 min-w-0 flex items-center gap-2.5 px-2">
                         {/* Col 1: Customer name */}
                         <div className="flex items-center gap-1 min-w-0 shrink">
                           <User className="h-3 w-3 shrink-0 text-black/30" />
@@ -176,25 +176,16 @@ export function Timeline({
                         </div>
 
                         {/* Col 2: Service + Time */}
-                        <div className="flex items-center gap-1 min-w-0 shrink">
-                          <span className="text-[10px] text-black/45 font-medium truncate">
-                            {booking.service?.name}
-                          </span>
-                          <span className="text-[10px] text-black/30">·</span>
-                          <span className="text-[10px] text-black/45 font-mono whitespace-nowrap">
-                            {toPersianDigits(booking.start_time.slice(0, 5))}–{toPersianDigits(booking.end_time.slice(0, 5))}
-                          </span>
-                        </div>
+                        <span className="text-[10px] text-black/45 font-medium truncate min-w-0 shrink">
+                          {booking.service?.name} · {toPersianDigits(booking.start_time.slice(0, 5))}–{toPersianDigits(booking.end_time.slice(0, 5))}
+                        </span>
 
                         {/* Col 3: Duration + Price */}
-                        <div className="flex items-center gap-2 shrink ml-auto">
-                          <div className="flex items-center gap-0.5">
-                            <Clock className="h-2.5 w-2.5 text-black/25" />
-                            <span className="text-[9px] text-black/40 font-medium whitespace-nowrap">
-                              {toPersianDigits(totalDuration)} دقیقه
-                            </span>
-                          </div>
-                          <span className="text-[9px] text-black/40 font-bold whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 shrink ml-auto">
+                          <span className="text-[10px] text-black/40 font-medium whitespace-nowrap">
+                            {toPersianDigits(totalDuration)} دقیقه
+                          </span>
+                          <span className="text-[10px] text-black/50 font-bold whitespace-nowrap">
                             {formatPrice(totalPrice)}
                           </span>
                           {booking.paid && (
@@ -228,7 +219,7 @@ export function Timeline({
                       <div className="flex items-center justify-between gap-1">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <User className="h-3 w-3 shrink-0 text-black/30" />
-                          <span className="text-[13px] font-extrabold text-black truncate leading-tight">
+                          <span className="text-[12px] font-extrabold text-black truncate leading-tight">
                             {booking.customer_name}
                           </span>
                         </div>
@@ -245,13 +236,10 @@ export function Timeline({
                       {/* Row 3: Duration + Price (if tall enough) */}
                       {pos.height > 55 && (
                         <div className="flex items-center gap-2 mt-1">
-                          <div className="flex items-center gap-0.5">
-                            <Clock className="h-2.5 w-2.5 text-black/30" />
-                            <span className="text-[9px] text-black/40 font-medium">
-                              {toPersianDigits(totalDuration)} دقیقه
-                            </span>
-                          </div>
-                          <span className="text-[9px] text-black/40 font-bold">
+                          <span className="text-[10px] text-black/40 font-medium">
+                            {toPersianDigits(totalDuration)} دقیقه
+                          </span>
+                          <span className="text-[10px] text-black/50 font-bold">
                             {formatPrice(totalPrice)}
                           </span>
                         </div>
