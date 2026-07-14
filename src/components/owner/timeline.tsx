@@ -116,7 +116,7 @@ export function Timeline({
   const hasContent = bookings.length > 0 || blockedTimes.length > 0;
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden py-4">
       <div className="relative" style={{ height: totalHeight }}>
         {/* Hour grid lines */}
         {hourMarks.map((hour, i) => (
