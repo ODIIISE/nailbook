@@ -45,7 +45,7 @@ export default function OwnerDashboard() {
     return bookings
       .filter((b) => {
         const bookingDate = b.date_gregorian.split("T")[0];
-        if (bookingDate !== dateStr || (b.status !== "reserved" && b.status !== "confirmed")) return false;
+        if (bookingDate !== dateStr || b.status === "cancelled") return false;
         if (!bookingSearch) return true;
         const q = bookingSearch.toLowerCase();
         return (

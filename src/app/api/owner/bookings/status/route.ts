@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "داده ناقص" }, { status: 400 });
     }
 
-    const validStatuses = ["pending", "confirmed", "in_progress", "completed", "cancelled"];
+    const validStatuses = ["pending", "reserved", "confirmed", "in_progress", "completed", "cancelled"];
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: "وضعیت نامعتبر" }, { status: 400 });
     }
