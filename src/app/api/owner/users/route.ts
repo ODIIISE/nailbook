@@ -3,6 +3,7 @@ import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { hashPin } from "@/lib/pin-hash";
 import crypto from "crypto";
+import { logActivity } from "@/lib/db/activity-log";
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,6 +31,15 @@ export async function POST(request: NextRequest) {
       INSERT INTO users (id, phone, pin, name, role)
       VALUES (${userId}, ${phone}, ${hashPin(String(pin))}, ${name.trim()}, ${role || "customer"})
     `;
+
+    logActivity({
+      eventType: "user_registered",
+      entityType: "user",
+      entityId: userId,
+      description: `کاربر جدید ${name.trim()} توسط مدیر اضافه شد`,
+      metadata: { phone, name: name.trim(), role: role || "customer" },
+    });
+
     return NextResponse.json({ success: true, userId });
   } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
@@ -97,6 +107,15 @@ export async function DELETE(request: NextRequest) {
     }
 
     await sql`DELETE FROM users WHERE id = ${userId}`;
+
+    logActivity({
+      eventType: "user_deleted",
+      entityType: "user",
+      entityId: userId,
+      description: `کاربر حذف شد`,
+      metadata: { userId },
+    });
+
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });

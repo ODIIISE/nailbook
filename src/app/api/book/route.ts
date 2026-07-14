@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { logActivity } from "@/lib/db/activity-log";
 
 export async function POST(request: NextRequest) {
   let client;
@@ -74,6 +75,15 @@ export async function POST(request: NextRequest) {
 
     // Step 7: Commit
     await client.query("COMMIT");
+
+    // Log the booking creation
+    logActivity({
+      eventType: "booking_created",
+      entityType: "booking",
+      entityId: result.rows[0].id,
+      description: `${customer_name || "مشتری"} نوبت جدید رزرو کرد`,
+      metadata: { service_id, date_gregorian, start_time: normStart, end_time: normEnd, phone },
+    });
 
     return NextResponse.json({
       success: true,

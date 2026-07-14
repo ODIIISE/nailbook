@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
+import { logActivity } from "@/lib/db/activity-log";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -39,6 +40,12 @@ export async function PUT(request: NextRequest) {
         await sql`UPDATE bookings SET service_id = NULL WHERE service_id = ${id}`;
         await sql`DELETE FROM services WHERE id = ${id}`;
       }
+      logActivity({
+        eventType: "service_deleted",
+        entityType: "service",
+        description: `${deletedIds.length} خدمت حذف شد`,
+        metadata: { deletedIds },
+      });
     }
 
     for (const [i, s] of services.entries()) {
@@ -51,6 +58,13 @@ export async function PUT(request: NextRequest) {
           addon_ids = ${JSON.stringify(s.addon_ids || [])}, priority_score = ${s.priority_score || 5}
       `;
     }
+
+    logActivity({
+      eventType: "service_updated",
+      entityType: "service",
+      description: `${services.length} خدمت به‌روزرسانی شد`,
+      metadata: { count: services.length },
+    });
 
     return NextResponse.json({ success: true });
   } catch {

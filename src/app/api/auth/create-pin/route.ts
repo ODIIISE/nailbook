@@ -3,6 +3,7 @@ import { sql } from "@vercel/postgres";
 import crypto from "crypto";
 import { hashPin } from "@/lib/pin-hash";
 import { signCustomerSession } from "@/lib/customer-auth";
+import { logActivity } from "@/lib/db/activity-log";
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,6 +51,15 @@ export async function POST(request: NextRequest) {
       INSERT INTO users (id, phone, pin, name, role)
       VALUES (${userId}, ${phone}, ${hashedPin}, ${trimmedName}, 'customer')
     `;
+
+    // Log new user registration
+    logActivity({
+      eventType: "user_registered",
+      entityType: "user",
+      entityId: userId,
+      description: `کاربر جدید ${trimmedName} ثبت‌نام کرد`,
+      metadata: { phone, name: trimmedName },
+    });
 
     const response = NextResponse.json({
       success: true,

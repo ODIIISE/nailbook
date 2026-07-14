@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
+import { logActivity } from "@/lib/db/activity-log";
 
 export async function GET() {
   try {
@@ -33,6 +34,14 @@ export async function PUT(request: NextRequest) {
     }
 
     await client.query("COMMIT");
+
+    logActivity({
+      eventType: "time_blocked",
+      entityType: "blocked_time",
+      description: `${blockedTimes?.length || 0} زمان مسدود شد`,
+      metadata: { count: blockedTimes?.length || 0 },
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     if (client) {

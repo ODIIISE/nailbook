@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
+import { logActivity } from "@/lib/db/activity-log";
 
 export async function POST(request: NextRequest) {
   try {
@@ -72,6 +73,17 @@ export async function POST(request: NextRequest) {
     }
     if (updates.overflow_minutes !== undefined) {
       await sql`UPDATE salon_info SET overflow_minutes = ${updates.overflow_minutes} WHERE id = ${salonId}`;
+    }
+
+    // Determine what was updated for logging
+    const updatedFields = Object.keys(updates).filter((k) => updates[k] !== undefined);
+    if (updatedFields.length > 0) {
+      logActivity({
+        eventType: "salon_updated",
+        entityType: "salon",
+        description: `تنظیمات سالن به‌روزرسانی شد`,
+        metadata: { fields: updatedFields },
+      });
     }
 
     return NextResponse.json({ success: true });

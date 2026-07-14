@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { verifyCustomerSession } from "@/lib/customer-auth";
+import { logActivity } from "@/lib/db/activity-log";
 
 // PATCH: Cancel a booking (owner or the booking's user)
 export async function PATCH(
@@ -35,6 +36,15 @@ export async function PATCH(
     }
 
     await sql`UPDATE bookings SET status = 'cancelled' WHERE id = ${id}`;
+
+    // Log the cancellation
+    logActivity({
+      eventType: "booking_cancelled",
+      entityType: "booking",
+      entityId: id,
+      description: `نوبت ${booking.customer_phone} لغو شد`,
+      metadata: { booking_id: id, customer_phone: booking.customer_phone },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
