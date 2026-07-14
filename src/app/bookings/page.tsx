@@ -318,8 +318,8 @@ function BookingDetailModal({
           </div>
         )}
 
-        {/* Cancel button (only for confirmed bookings) */}
-        {booking.status === "confirmed" && !showConfirm && (
+        {/* Cancel button (only for reserved or confirmed bookings) */}
+        {(booking.status === "reserved" || booking.status === "confirmed") && !showConfirm && (
           <Button
             variant="outline"
             className="w-full mt-4 text-destructive border-destructive/30 hover:bg-destructive/10"

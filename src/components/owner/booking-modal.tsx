@@ -18,8 +18,9 @@ interface BookingModalProps {
 }
 
 const STATUS_OPTIONS: { value: Booking["status"]; label: string; color: string }[] = [
+  { value: "reserved", label: "رزرو شده", color: "#1565C0" },
   { value: "confirmed", label: "تایید شده", color: "#2E7D32" },
-  { value: "in_progress", label: "در حال انجام", color: "#1565C0" },
+  { value: "in_progress", label: "در حال انجام", color: "#E65100" },
   { value: "completed", label: "تکمیل شده", color: "#7B1FA2" },
 ];
 

@@ -54,7 +54,7 @@ export interface Booking {
   date_gregorian: string;
   start_time: string;
   end_time: string;
-  status: "pending" | "confirmed" | "in_progress" | "completed" | "cancelled";
+  status: "pending" | "reserved" | "confirmed" | "in_progress" | "completed" | "cancelled";
   phone_verified: boolean;
   paid: boolean;
   created_at: string;

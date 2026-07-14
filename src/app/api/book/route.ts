@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const conflictCheck = await client.query(
       `SELECT id FROM bookings
        WHERE date_gregorian = $1::date
-       AND status = 'confirmed'
+       AND status IN ('reserved', 'confirmed')
        AND start_time < ($2 || ':00')::time
        AND end_time > ($3 || ':00')::time
        FOR UPDATE`,

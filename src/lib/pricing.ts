@@ -24,7 +24,7 @@ export function calculateEarnings(
   endDate: Date
 ) {
   const filtered = bookings.filter((b) => {
-    if (b.status !== "confirmed") return false;
+    if (b.status !== "reserved" && b.status !== "confirmed") return false;
     const d = new Date(b.date_gregorian.split("T")[0]);
     return d >= startDate && d <= endDate;
   });

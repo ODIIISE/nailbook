@@ -102,7 +102,7 @@ export function JalaliCalendar({
       if (workingHours && salonConfig && serviceDuration > 0) {
         const dateStr = getTehranDateKey(date);
         const dayBookings = bookings
-          .filter((b) => b.date_gregorian === dateStr && b.status === "confirmed")
+          .filter((b) => b.date_gregorian === dateStr && (b.status === "reserved" || b.status === "confirmed"))
           .map((b) => ({ start_time: b.start_time, end_time: b.end_time }));
         const dayBlocked = blockedTimes.filter((b) => b.date_gregorian === dateStr);
 

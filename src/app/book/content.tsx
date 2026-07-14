@@ -117,7 +117,7 @@ export default function BookContent() {
     const dayBookings = bookings
       .filter((b) => {
         const bookingDate = b.date_gregorian.split("T")[0];
-        return bookingDate === dateStr && b.status === "confirmed";
+        return bookingDate === dateStr && (b.status === "reserved" || b.status === "confirmed");
       })
       .map((b) => ({ start_time: b.start_time, end_time: b.end_time }));
     const dayBlocked = blockedTimes.filter((b) => {
@@ -303,7 +303,7 @@ export default function BookContent() {
       date_gregorian: getTehranDateKey(selectedDate),
       start_time: selectedTime,
       end_time: endTime,
-      status: "confirmed",
+      status: "reserved",
       phone_verified: true,
       paid: false,
       created_at: new Date().toISOString(),

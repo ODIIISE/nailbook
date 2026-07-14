@@ -17,7 +17,7 @@ export async function checkAntiSpam(phone: string): Promise<AntiSpamResult> {
     SELECT COUNT(*) as count FROM bookings
     WHERE customer_phone = ${phone}
     AND date_gregorian = ${todayStr}::date
-    AND status IN ('confirmed', 'pending')
+    AND status IN ('reserved', 'confirmed', 'pending')
   `;
   const todayBookings = parseInt(rows[0]?.count || "0");
 
@@ -34,7 +34,7 @@ export async function checkAntiSpam(phone: string): Promise<AntiSpamResult> {
     SELECT created_at FROM bookings
     WHERE customer_phone = ${phone}
     AND created_at >= ${cooldownTime.toISOString()}
-    AND status IN ('confirmed', 'pending')
+    AND status IN ('reserved', 'confirmed', 'pending')
     ORDER BY created_at DESC
     LIMIT 1
   `;

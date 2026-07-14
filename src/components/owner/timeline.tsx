@@ -36,8 +36,9 @@ const SERVICE_PALETTE = [
 
 // Status config
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; icon: typeof CheckCircle2; dotColor: string }> = {
+  reserved: { label: "رزرو شده", bg: "#E3F2FD", color: "#1565C0", icon: Clock, dotColor: "#1565C0" },
   confirmed: { label: "تایید شده", bg: "#E8F5E9", color: "#2E7D32", icon: CheckCircle2, dotColor: "#2E7D32" },
-  in_progress: { label: "در حال انجام", bg: "#E3F2FD", color: "#1565C0", icon: Loader, dotColor: "#1565C0" },
+  in_progress: { label: "در حال انجام", bg: "#FFF3E0", color: "#E65100", icon: Loader, dotColor: "#E65100" },
   completed: { label: "تکمیل شده", bg: "#F3E5F5", color: "#7B1FA2", icon: CheckCircle2, dotColor: "#7B1FA2" },
   cancelled: { label: "لغو شده", bg: "#FFEBEE", color: "#C62828", icon: XCircle, dotColor: "#C62828" },
   pending: { label: "در انتظار", bg: "#FFF3E0", color: "#E65100", icon: Clock, dotColor: "#E65100" },
