@@ -2,8 +2,7 @@
 
 import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { User, Ban, Clock } from "lucide-react";
+import { User, Ban, Clock, CreditCard } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
 import type { Booking, Service } from "@/lib/types";
@@ -25,14 +24,14 @@ interface TimelineProps {
 
 const HOUR_HEIGHT = 64;
 
-// Earth tone palette — one color per service
+// Service-colored accent strokes — one color per service
 const SERVICE_COLORS = [
-  { bg: "#F5E6E0", border: "#D4A08A", text: "#8B4513", badge: "bg-[#D4A08A] text-white" },   // terracotta
-  { bg: "#E8EDE5", border: "#A8B89C", text: "#4A5D3E", badge: "bg-[#A8B89C] text-white" },   // sage
-  { bg: "#F0E6D3", border: "#C4A97D", text: "#6B5B3E", badge: "bg-[#C4A97D] text-white" },   // sand
-  { bg: "#E0E4E8", border: "#8E9AAB", text: "#3D4F5F", badge: "bg-[#8E9AAB] text-white" },   // slate
-  { bg: "#EDE5E0", border: "#B8967A", text: "#6B4226", badge: "bg-[#B8967A] text-white" },   // clay
-  { bg: "#E5EBE5", border: "#7A9A7A", text: "#2D5A2D", badge: "bg-[#7A9A7A] text-white" },   // forest
+  "#D4A08A", // terracotta
+  "#A8B89C", // sage
+  "#C4A97D", // sand
+  "#8E9AAB", // slate
+  "#B8967A", // clay
+  "#7A9A7A", // forest
 ];
 
 function getServiceColor(index: number) {
@@ -123,12 +122,13 @@ export function Timeline({
 
         {hasContent ? (
           <>
-            {/* Booking blocks */}
+            {/* Booking blocks — Task-card pattern */}
             {bookings.map((booking) => {
               const pos = getBlockPosition(booking.start_time, booking.end_time, startHour);
               const price = Number(booking.service?.price) || 0;
               const colorIdx = serviceIndexMap.get(booking.service_id) ?? 0;
-              const color = getServiceColor(colorIdx);
+              const accentColor = getServiceColor(colorIdx);
+              const isLong = pos.height >= 60; // 60+ min = long variant
 
               return (
                 <div
@@ -137,49 +137,47 @@ export function Timeline({
                   style={{ top: pos.top, height: pos.height }}
                   onClick={() => onSelectBooking(booking)}
                 >
-                  <div
-                    className="h-full rounded-lg border p-2 hover:opacity-90 transition-opacity overflow-hidden"
-                    style={{ backgroundColor: color.bg, borderColor: color.border }}
-                  >
-                    {/* Row 1: Customer name + paid badge */}
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <User className="h-3 w-3 shrink-0" style={{ color: color.text }} />
-                        <span className="text-[11px] font-bold truncate" style={{ color: color.text }}>
+                  <div className="h-full bg-white border border-black/[0.06] overflow-hidden flex">
+                    {/* Right accent stroke (RTL: right side) */}
+                    <div
+                      className="w-[3px] shrink-0"
+                      style={{ backgroundColor: accentColor }}
+                    />
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 p-2">
+                      {/* Title: Customer name (king) */}
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[13px] font-extrabold text-black truncate leading-tight">
                           {booking.customer_name}
                         </span>
+                        {booking.paid && (
+                          <CreditCard className="h-3 w-3 shrink-0 text-[#28A745]" />
+                        )}
                       </div>
-                      <Badge
-                        variant="secondary"
-                        className={`text-[9px] px-1.5 py-0 h-4 ${booking.paid ? "bg-success text-white" : "bg-destructive/10 text-destructive"}`}
-                      >
-                        {booking.paid ? "پرداخت شده" : "پرداخت نشده"}
-                      </Badge>
-                    </div>
 
-                    {/* Row 2: Service name */}
-                    <p className="text-[10px] font-medium truncate" style={{ color: color.text, opacity: 0.8 }}>
-                      {booking.service?.name}
-                    </p>
-
-                    {/* Row 3: Time range + price (if tall enough) */}
-                    {pos.height > 40 && (
-                      <div className="flex items-center justify-between mt-1">
-                        <p className="text-[10px]" style={{ color: color.text, opacity: 0.6 }}>
-                          {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
-                        </p>
-                        <p className="text-[10px] font-bold" style={{ color: color.text, opacity: 0.8 }}>
-                          {formatPrice(Number(price))}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Row 4: Total duration (if tall enough) */}
-                    {pos.height > 55 && (
-                      <p className="text-[9px] mt-1 font-medium" style={{ color: color.text, opacity: 0.5 }}>
-                        {toPersianDigits(pos.durationMinutes)} دقیقه
+                      {/* Subtitle: Service + Time */}
+                      <p className="text-[10px] text-black/50 font-medium mt-0.5 truncate">
+                        {booking.service?.name} · {booking.start_time.slice(0, 5)}-{booking.end_time.slice(0, 5)}
                       </p>
-                    )}
+
+                      {/* Stats row (if tall enough) */}
+                      {isLong && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-0.5">
+                            <Clock className="h-2.5 w-2.5 text-black/30" />
+                            <span className="text-[9px] text-black/40 font-medium">
+                              {toPersianDigits(pos.durationMinutes)} دقیقه
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-0.5">
+                            <span className="text-[9px] text-black/40 font-bold">
+                              {formatPrice(price)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -195,19 +193,24 @@ export function Timeline({
                   style={{ top: pos.top, height: pos.height }}
                   onClick={() => onRemoveBlock?.(index)}
                 >
-                  <div className="h-full rounded-lg bg-amber-50 border border-amber-300/50 p-2 hover:bg-amber-100 transition-colors overflow-hidden">
-                    <div className="flex items-center gap-1 mb-0.5">
-                      <Ban className="h-3 w-3 text-amber-600 shrink-0" />
-                      <span className="text-xs font-semibold text-amber-800 truncate">استراحت</span>
+                  <div className="h-full bg-[#FFF8E1] border border-[#FFD54F]/40 overflow-hidden flex">
+                    {/* Right accent stroke */}
+                    <div className="w-[3px] shrink-0 bg-[#FFB300]" />
+
+                    <div className="flex-1 min-w-0 p-2">
+                      <div className="flex items-center gap-1">
+                        <Ban className="h-3 w-3 text-[#F57F17] shrink-0" />
+                        <span className="text-[11px] font-bold text-[#E65100] truncate">استراحت</span>
+                      </div>
+                      {pos.height > 30 && (
+                        <p className="text-[9px] text-[#F57F17]/70 mt-0.5">
+                          {block.start_time.slice(0, 5)} - {block.end_time.slice(0, 5)}
+                        </p>
+                      )}
+                      {pos.height > 50 && (
+                        <p className="text-[8px] text-[#F57F17]/50 mt-0.5">حذف: کلیک کنید</p>
+                      )}
                     </div>
-                    {pos.height > 30 && (
-                      <p className="text-[10px] text-amber-600">
-                        {block.start_time.slice(0, 5)} - {block.end_time.slice(0, 5)}
-                      </p>
-                    )}
-                    {pos.height > 50 && (
-                      <p className="text-[10px] text-amber-500 mt-0.5">حذف: کلیک کنید</p>
-                    )}
                   </div>
                 </div>
               );
