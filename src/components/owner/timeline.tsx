@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { User, Ban, Clock, CreditCard } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
-import type { Booking, Service } from "@/lib/types";
+import type { Booking, Service, Addon } from "@/lib/types";
 
 interface BlockedTime {
   date_gregorian: string;
@@ -18,24 +18,38 @@ interface TimelineProps {
   blockedTimes: BlockedTime[];
   onSelectBooking: (booking: Booking) => void;
   onRemoveBlock?: (index: number) => void;
+  addons?: Addon[];
   startHour?: number;
   endHour?: number;
 }
 
 const HOUR_HEIGHT = 64;
 
-// Service-colored accent strokes — one color per service
-const SERVICE_COLORS = [
-  "#D4A08A", // terracotta
-  "#A8B89C", // sage
-  "#C4A97D", // sand
-  "#8E9AAB", // slate
-  "#B8967A", // clay
-  "#7A9A7A", // forest
+// Fixed color palette — deterministic by service ID hash
+const SERVICE_PALETTE = [
+  { accent: "#D4A08A", bg: "#FDFAF8" }, // terracotta
+  { accent: "#A8B89C", bg: "#F8FAF6" }, // sage
+  { accent: "#C4A97D", bg: "#FBF8F3" }, // sand
+  { accent: "#8E9AAB", bg: "#F6F8FA" }, // slate
+  { accent: "#B8967A", bg: "#FAF7F4" }, // clay
+  { accent: "#7A9A7A", bg: "#F5F9F5" }, // forest
 ];
 
-function getServiceColor(index: number) {
-  return SERVICE_COLORS[index % SERVICE_COLORS.length];
+/**
+ * Deterministic color assignment based on service ID.
+ * Same service always gets the same color, regardless of booking order.
+ */
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 31 + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function getServiceStyle(serviceId: string) {
+  const idx = hashString(serviceId) % SERVICE_PALETTE.length;
+  return SERVICE_PALETTE[idx];
 }
 
 function timeToMinutes(time: string): number {
@@ -43,8 +57,8 @@ function timeToMinutes(time: string): number {
   return h * 60 + m;
 }
 
-function formatHour(hour: number): string {
-  return String(hour).padStart(2, "0") + ":00";
+function formatHourPersian(hour: number): string {
+  return toPersianDigits(String(hour).padStart(2, "0") + ":00");
 }
 
 function getBlockPosition(
@@ -61,11 +75,28 @@ function getBlockPosition(
   };
 }
 
+function computeBookingTotal(
+  booking: Booking,
+  service?: Service,
+  addons?: Addon[]
+): { totalPrice: number; totalDuration: number } {
+  const servicePrice = Number(service?.price) || 0;
+  const addonsPrice = (booking.selected_addons || []).reduce((sum, addonId) => {
+    const addon = addons?.find((a) => a.id === addonId);
+    return sum + (Number(addon?.price) || 0);
+  }, 0);
+  return {
+    totalPrice: servicePrice + addonsPrice,
+    totalDuration: getBlockPosition(booking.start_time, booking.end_time, 0).durationMinutes,
+  };
+}
+
 export function Timeline({
   bookings,
   blockedTimes,
   onSelectBooking,
   onRemoveBlock,
+  addons = [],
   startHour = 8,
   endHour = 22,
 }: TimelineProps) {
@@ -84,17 +115,6 @@ export function Timeline({
 
   const hasContent = bookings.length > 0 || blockedTimes.length > 0;
 
-  // Build service index map for consistent colors
-  const serviceIndexMap = useMemo(() => {
-    const map = new Map<string, number>();
-    let idx = 0;
-    for (const b of bookings) {
-      const sid = b.service_id;
-      if (!map.has(sid)) map.set(sid, idx++);
-    }
-    return map;
-  }, [bookings]);
-
   return (
     <Card className="overflow-hidden">
       <div className="relative" style={{ height: totalHeight }}>
@@ -102,34 +122,92 @@ export function Timeline({
         {hourMarks.map((hour, i) => (
           <div
             key={`hour-${hour}`}
-            className="absolute w-full border-t border-border/50"
+            className="absolute w-full border-t border-border/60"
             style={{ top: i * HOUR_HEIGHT }}
           >
-            <span className="absolute -top-3 right-0 text-[10px] text-muted-foreground font-mono bg-card px-1">
-              {formatHour(hour)}
+            <span className="absolute -top-3.5 right-0 text-[11px] text-muted-foreground font-mono bg-card px-1.5">
+              {formatHourPersian(hour)}
             </span>
           </div>
         ))}
 
-        {/* Half-hour dashed lines */}
+        {/* Half-hour dashed lines — increased opacity for visibility */}
         {hourMarks.slice(0, -1).map((hour, i) => (
           <div
             key={`half-${hour}`}
-            className="absolute w-full border-t border-dashed border-border/25"
+            className="absolute w-full border-t border-dashed border-black/10"
             style={{ top: (i + 0.5) * HOUR_HEIGHT }}
           />
         ))}
 
         {hasContent ? (
           <>
-            {/* Booking blocks — Task-card pattern */}
+            {/* Booking blocks */}
             {bookings.map((booking) => {
               const pos = getBlockPosition(booking.start_time, booking.end_time, startHour);
-              const price = Number(booking.service?.price) || 0;
-              const colorIdx = serviceIndexMap.get(booking.service_id) ?? 0;
-              const accentColor = getServiceColor(colorIdx);
-              const isLong = pos.height >= 60; // 60+ min = long variant
+              const { totalPrice, totalDuration } = computeBookingTotal(booking, booking.service, addons);
+              const style = getServiceStyle(booking.service_id);
+              const isCompact = pos.height < 60; // <1h = compact horizontal
 
+              if (isCompact) {
+                // ─── Compact variant: horizontal layout ───
+                return (
+                  <div
+                    key={booking.id}
+                    className="absolute right-14 left-2 cursor-pointer z-10"
+                    style={{ top: pos.top, height: pos.height }}
+                    onClick={() => onSelectBooking(booking)}
+                  >
+                    <div
+                      className="h-full border border-black/[0.06] overflow-hidden flex items-stretch"
+                      style={{ backgroundColor: style.bg }}
+                    >
+                      {/* Right accent stroke */}
+                      <div className="w-[3px] shrink-0" style={{ backgroundColor: style.accent }} />
+
+                      {/* Horizontal content: 3 columns */}
+                      <div className="flex-1 min-w-0 flex items-center gap-3 px-2.5">
+                        {/* Col 1: Customer name */}
+                        <div className="flex items-center gap-1 min-w-0 shrink">
+                          <User className="h-3 w-3 shrink-0 text-black/30" />
+                          <span className="text-[12px] font-extrabold text-black truncate">
+                            {booking.customer_name}
+                          </span>
+                        </div>
+
+                        {/* Col 2: Service + Time */}
+                        <div className="flex items-center gap-1 min-w-0 shrink">
+                          <span className="text-[10px] text-black/45 font-medium truncate">
+                            {booking.service?.name}
+                          </span>
+                          <span className="text-[10px] text-black/30">·</span>
+                          <span className="text-[10px] text-black/45 font-mono whitespace-nowrap">
+                            {toPersianDigits(booking.start_time.slice(0, 5))}–{toPersianDigits(booking.end_time.slice(0, 5))}
+                          </span>
+                        </div>
+
+                        {/* Col 3: Duration + Price */}
+                        <div className="flex items-center gap-2 shrink ml-auto">
+                          <div className="flex items-center gap-0.5">
+                            <Clock className="h-2.5 w-2.5 text-black/25" />
+                            <span className="text-[9px] text-black/40 font-medium whitespace-nowrap">
+                              {toPersianDigits(totalDuration)} دقیقه
+                            </span>
+                          </div>
+                          <span className="text-[9px] text-black/40 font-bold whitespace-nowrap">
+                            {formatPrice(totalPrice)}
+                          </span>
+                          {booking.paid && (
+                            <CreditCard className="h-3 w-3 shrink-0 text-[#28A745]" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // ─── Normal variant: vertical layout ───
               return (
                 <div
                   key={booking.id}
@@ -137,44 +215,45 @@ export function Timeline({
                   style={{ top: pos.top, height: pos.height }}
                   onClick={() => onSelectBooking(booking)}
                 >
-                  <div className="h-full bg-white border border-black/[0.06] overflow-hidden flex">
-                    {/* Right accent stroke (RTL: right side) */}
-                    <div
-                      className="w-[3px] shrink-0"
-                      style={{ backgroundColor: accentColor }}
-                    />
+                  <div
+                    className="h-full border border-black/[0.06] overflow-hidden flex"
+                    style={{ backgroundColor: style.bg }}
+                  >
+                    {/* Right accent stroke */}
+                    <div className="w-[3px] shrink-0" style={{ backgroundColor: style.accent }} />
 
                     {/* Content */}
                     <div className="flex-1 min-w-0 p-2">
-                      {/* Title: Customer name (king) */}
+                      {/* Row 1: Customer name + paid icon */}
                       <div className="flex items-center justify-between gap-1">
-                        <span className="text-[13px] font-extrabold text-black truncate leading-tight">
-                          {booking.customer_name}
-                        </span>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <User className="h-3 w-3 shrink-0 text-black/30" />
+                          <span className="text-[13px] font-extrabold text-black truncate leading-tight">
+                            {booking.customer_name}
+                          </span>
+                        </div>
                         {booking.paid && (
                           <CreditCard className="h-3 w-3 shrink-0 text-[#28A745]" />
                         )}
                       </div>
 
-                      {/* Subtitle: Service + Time */}
+                      {/* Row 2: Service + Time */}
                       <p className="text-[10px] text-black/50 font-medium mt-0.5 truncate">
-                        {booking.service?.name} · {booking.start_time.slice(0, 5)}-{booking.end_time.slice(0, 5)}
+                        {booking.service?.name} · {toPersianDigits(booking.start_time.slice(0, 5))}–{toPersianDigits(booking.end_time.slice(0, 5))}
                       </p>
 
-                      {/* Stats row (if tall enough) */}
-                      {isLong && (
+                      {/* Row 3: Duration + Price (if tall enough) */}
+                      {pos.height > 55 && (
                         <div className="flex items-center gap-2 mt-1">
                           <div className="flex items-center gap-0.5">
                             <Clock className="h-2.5 w-2.5 text-black/30" />
                             <span className="text-[9px] text-black/40 font-medium">
-                              {toPersianDigits(pos.durationMinutes)} دقیقه
+                              {toPersianDigits(totalDuration)} دقیقه
                             </span>
                           </div>
-                          <div className="flex items-center gap-0.5">
-                            <span className="text-[9px] text-black/40 font-bold">
-                              {formatPrice(price)}
-                            </span>
-                          </div>
+                          <span className="text-[9px] text-black/40 font-bold">
+                            {formatPrice(totalPrice)}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -204,7 +283,7 @@ export function Timeline({
                       </div>
                       {pos.height > 30 && (
                         <p className="text-[9px] text-[#F57F17]/70 mt-0.5">
-                          {block.start_time.slice(0, 5)} - {block.end_time.slice(0, 5)}
+                          {toPersianDigits(block.start_time.slice(0, 5))} – {toPersianDigits(block.end_time.slice(0, 5))}
                         </p>
                       )}
                       {pos.height > 50 && (
@@ -216,12 +295,17 @@ export function Timeline({
               );
             })}
 
-            {/* Current time line */}
+            {/* Current time indicator — full width with dot + gradient */}
             {showNow && (
               <div
-                className="absolute right-14 left-2 h-[2px] bg-primary z-20 pointer-events-none"
+                className="absolute left-0 right-0 z-20 pointer-events-none"
                 style={{ top: nowPosition }}
-              />
+              >
+                {/* Full-width gradient line */}
+                <div className="h-[2px] bg-gradient-to-l from-primary/80 via-primary to-primary/20" />
+                {/* Left dot indicator */}
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_rgba(0,0,0,0.3)]" />
+              </div>
             )}
           </>
         ) : (

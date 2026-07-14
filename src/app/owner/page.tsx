@@ -183,6 +183,7 @@ export default function OwnerDashboard() {
           blockedTimes={dayBlockedTimes}
           onSelectBooking={setSelectedBooking}
           onRemoveBlock={handleRemoveBlock}
+          addons={addons}
         />
 
         <div className="flex gap-2">

@@ -78,7 +78,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
           <DetailRow label="تاریخ" value={shortDate} />
           <DetailRow
             label="ساعت"
-            value={`${booking.start_time.slice(0, 5)} تا ${booking.end_time.slice(0, 5)}`}
+            value={`${toPersianDigits(booking.start_time.slice(0, 5))} تا ${toPersianDigits(booking.end_time.slice(0, 5))}`}
           />
           <DetailRow label="مدت" value={`${toPersianDigits(duration)} دقیقه`} />
 
