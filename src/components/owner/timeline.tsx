@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { User, Ban, Clock, CreditCard, CheckCircle2, Loader, XCircle, Layers, DollarSign, Calendar } from "lucide-react";
+import { User, Ban, Clock, CreditCard, CheckCircle2, Loader, XCircle, Layers, DollarSign, Calendar, AlertTriangle } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
 import type { Booking, Service, Addon } from "@/lib/types";
@@ -111,6 +111,7 @@ export function Timeline({
   startHour = 8,
   endHour = 22,
 }: TimelineProps) {
+  const [confirmRemoveIndex, setConfirmRemoveIndex] = useState<number | null>(null);
   const totalHours = endHour - startHour;
   const totalHeight = totalHours * HOUR_HEIGHT;
 
@@ -327,30 +328,56 @@ export function Timeline({
             {/* Blocked time blocks */}
             {blockedTimes.map((block, index) => {
               const pos = getBlockPosition(block.start_time, block.end_time, startHour);
+              const isConfirming = confirmRemoveIndex === index;
               return (
                 <div
                   key={`block-${index}`}
-                  className="absolute left-12 right-2 cursor-pointer z-10"
+                  className="absolute left-12 right-2 z-10"
                   style={{ top: pos.top, height: pos.height }}
-                  onClick={() => onRemoveBlock?.(index)}
                 >
-                  <div className="h-full bg-[#FFF8E1] border border-[#FFD54F]/40 overflow-hidden flex">
-                    <div className="w-[3px] shrink-0 bg-[#FFB300]" />
-                    <div className="flex-1 min-w-0 p-2">
-                      <div className="flex items-center gap-1">
-                        <Ban className="h-3 w-3 text-[#F57F17] shrink-0" />
-                        <span className="text-[11px] font-bold text-[#E65100] truncate">استراحت</span>
+                  {isConfirming ? (
+                    /* Confirmation state */
+                    <div className="h-full bg-[#FFF3E0] border border-[#FF9800]/40 overflow-hidden flex flex-col justify-center items-center p-2 animate-scale">
+                      <AlertTriangle className="h-4 w-4 text-[#F57F17] mb-1" />
+                      <p className="text-[9px] text-[#E65100] font-semibold mb-1.5 text-center">حذف شود؟</p>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onRemoveBlock?.(index); setConfirmRemoveIndex(null); }}
+                          className="px-2 py-0.5 bg-[#C62828] text-white text-[8px] font-semibold rounded"
+                        >
+                          بله
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setConfirmRemoveIndex(null); }}
+                          className="px-2 py-0.5 bg-black/10 text-[8px] font-semibold rounded"
+                        >
+                          خیر
+                        </button>
                       </div>
-                      {pos.height > 30 && (
-                        <p className="text-[9px] text-[#F57F17]/70 mt-0.5">
-                          {toPersianDigits(block.start_time.slice(0, 5))} – {toPersianDigits(block.end_time.slice(0, 5))}
-                        </p>
-                      )}
-                      {pos.height > 50 && (
-                        <p className="text-[8px] text-[#F57F17]/50 mt-0.5">حذف: کلیک کنید</p>
-                      )}
                     </div>
-                  </div>
+                  ) : (
+                    /* Normal state */
+                    <div
+                      className="h-full bg-[#FFF8E1] border border-[#FFD54F]/40 overflow-hidden flex cursor-pointer hover:bg-[#FFF3E0] transition-colors"
+                      onClick={() => setConfirmRemoveIndex(index)}
+                    >
+                      <div className="w-[3px] shrink-0 bg-[#FFB300]" />
+                      <div className="flex-1 min-w-0 p-2">
+                        <div className="flex items-center gap-1">
+                          <Ban className="h-3 w-3 text-[#F57F17] shrink-0" />
+                          <span className="text-[11px] font-bold text-[#E65100] truncate">استراحت</span>
+                        </div>
+                        {pos.height > 30 && (
+                          <p className="text-[9px] text-[#F57F17]/70 mt-0.5">
+                            {toPersianDigits(block.start_time.slice(0, 5))} – {toPersianDigits(block.end_time.slice(0, 5))}
+                          </p>
+                        )}
+                        {pos.height > 50 && (
+                          <p className="text-[8px] text-[#F57F17]/50 mt-0.5">حذف: کلیک کنید</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
