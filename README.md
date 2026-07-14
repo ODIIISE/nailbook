@@ -7,7 +7,7 @@ A Persian-language online booking platform for nail salons, built with Next.js 1
 - **Framework**: Next.js 16 (App Router, Turbopack)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4 + shadcn/ui (Radix UI + Base UI)
-- **Database**: Vercel Postgres (Neon)
+- **Database**: Vercel Postgres (`@vercel/postgres` — Neon-backed)
 - **File Storage**: Vercel Blob
 - **Hosting**: Vercel (serverless functions)
 - **Font**: Vazirmatn (Persian/Arabic)
@@ -67,15 +67,26 @@ cp .env.local.example .env.local
 ```
 
 Required variables:
-- `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anonymous key
-- `SUPABASE_URL` — Supabase project URL (server)
-- `SUPABASE_SERVICE_ROLE_KEY` — Supabase service role key (server)
-- `OWNER_SESSION_SECRET` — Secret for signing owner session cookies
+- `POSTGRES_URL` — Vercel Postgres connection string (auto-set by Vercel)
+- `POSTGRES_PRISMA_URL` — Vercel Postgres Prisma-compatible URL (auto-set by Vercel)
+- `OWNER_SESSION_SECRET` — Secret for signing owner session cookies (min 32 chars)
+
+Optional variables:
+- `CUSTOMER_SESSION_SECRET` — Secret for customer sessions (falls back to OWNER_SESSION_SECRET)
 
 ### Database Setup
 
-The app auto-migrates missing columns on first load. No manual migration needed.
+The app auto-migrates missing columns on first load via `/api/read/salon`. No manual migration needed.
+
+Tables are created automatically by Vercel Postgres on first write. Required tables:
+- `users` — Customer and owner accounts
+- `salon_info` — Salon configuration (singleton)
+- `services` — Available services
+- `addons` — Service add-ons
+- `bookings` — Customer reservations
+- `blocked_times` — Owner-blocked time slots
+- `highlights` — Instagram-style highlight groups
+- `highlight_images` — Images within highlights
 
 ### Development
 
@@ -103,14 +114,22 @@ Push to `main` branch — Vercel auto-deploys.
 | `/api/auth/create-pin` | POST | None | Register new customer |
 | `/api/auth/verify-pin` | POST | None | Login with PIN |
 | `/api/owner-login` | POST | None | Owner login |
+| `/api/owner-logout` | POST | None | Owner logout (clears cookie) |
 | `/api/owner/services` | PUT | Owner | Save services |
+| `/api/owner/addons` | PUT | Owner | Save addons |
 | `/api/owner/users` | GET/POST/PUT/DELETE | Owner | User CRUD |
 | `/api/owner/blocked-times` | GET/PUT | Owner (PUT) | Manage blocked times |
+| `/api/owner/reset-pin` | POST | Owner | Reset a user's PIN |
 | `/api/update-salon` | POST | Owner | Update salon info + config |
 | `/api/read/salon` | GET | None | Public salon info (auto-migrates) |
 | `/api/read/services` | GET | None | Public services list |
 | `/api/read/addons` | GET | None | Public addons list |
+| `/api/read/bookings` | GET | None | List bookings |
+| `/api/read/highlights` | GET/PUT/DELETE | None | Highlight CRUD |
+| `/api/read/highlight-images` | POST/DELETE | None | Highlight image CRUD |
+| `/api/book` | POST | None | Create booking (transactional) |
 | `/api/book/reserve` | POST | None | Server-side slot validation |
+| `/api/bookings/[id]` | PATCH | None | Cancel booking |
 | `/api/upload-logo` | POST | Owner | Upload salon logo |
 | `/api/upload-highlight` | POST | Owner | Upload highlight image |
 

@@ -41,16 +41,17 @@
 | UI | shadcn/ui (Radix UI + Tailwind CSS v4) |
 | Styling | Tailwind CSS v4, custom CSS variables, glassmorphism |
 | Font | Vazirmatn (Persian font, loaded via CDN) |
-| Backend DB | Supabase (PostgreSQL + Storage) |
+| Backend DB | Vercel Postgres (`@vercel/postgres` — Neon-backed) |
+| File Storage | Vercel Blob |
 | Auth | Custom PIN-based auth (SHA-256 hashed), no OAuth |
 | Calendar | Jalali (Persian) calendar via `jalaali-js` |
 | Timezone | Asia/Tehran (UTC+03:30, fixed — no DST) |
 | Image Crop | `react-easy-crop` |
 | Notifications | Sonner (toast) |
-| Icons | Lucide React, Heroicons, Iconscout Unicons |
+| Icons | Lucide React, Heroicons |
 | PWA | `manifest.json` with standalone display |
 
-**Architecture pattern:** Client-side SPA with server-side API routes. All pages are `"use client"` components. Data flows through two React contexts (`AuthProvider` + `SalonProvider`). Supabase client SDK is used on the client; `supabaseAdmin` (service role key) is used server-side in API routes.
+**Architecture pattern:** Client-side SPA with server-side API routes. All pages are `"use client"` components. Data flows through two React contexts (`AuthProvider` + `SalonProvider`). All database access is server-side via API routes using `@vercel/postgres` with tagged template SQL. Client-side data fetching goes through `lib/db/data.ts` which calls API routes.
 
 ---
 
@@ -68,10 +69,11 @@ nailbook/
 │   │   ├── page.tsx           # Home / landing page
 │   │   ├── providers.tsx      # AuthProvider + SalonProvider wrapper
 │   │   ├── globals.css        # Tailwind + design tokens + glassmorphism
+│   │   ├── loading.tsx        # Global loading state
 │   │   ├── login/             # Customer login/register page
 │   │   ├── book/              # Booking flow (5-step wizard)
 │   │   │   ├── page.tsx       # Suspense wrapper
-│   │   │   └── content.tsx    # Main booking logic (542 lines)
+│   │   │   └── content.tsx    # Main booking logic (~640 lines)
 │   │   ├── bookings/          # Customer's booking history
 │   │   ├── profile/           # Customer profile (edit name, logout)
 │   │   ├── owner/             # Owner admin panel
@@ -89,39 +91,56 @@ nailbook/
 │   │       │   ├── create-pin/
 │   │       │   ├── verify-pin/
 │   │       │   └── update-profile/
-│   │       ├── book/reserve/
+│   │       ├── book/
+│   │       │   ├── route.ts   # Create booking (transactional)
+│   │       │   └── reserve/   # Slot validation
+│   │       ├── bookings/
+│   │       │   └── [id]/      # Cancel booking (PATCH)
 │   │       ├── anti-spam/
 │   │       ├── owner-login/
+│   │       ├── owner-logout/
 │   │       ├── owner/
 │   │       │   ├── blocked-times/
 │   │       │   ├── reset-pin/
+│   │       │   ├── services/
+│   │       │   ├── addons/
 │   │       │   └── users/
+│   │       ├── read/
+│   │       │   ├── salon/     # Public salon info (auto-migrates)
+│   │       │   ├── services/
+│   │       │   ├── addons/
+│   │       │   ├── bookings/
+│   │       │   ├── highlights/
+│   │       │   └── highlight-images/
 │   │       ├── update-salon/
 │   │       ├── upload-logo/
 │   │       └── upload-highlight/
 │   ├── components/
 │   │   ├── booking/           # JalaliCalendar, TimeSlots, BookingConfirm, PinInput
 │   │   ├── landing/           # Hero, Highlights, HighlightViewer, ServiceCardGrid, etc.
-│   │   ├── layout/            # Header, CustomerNav, GradientBackground
+│   │   ├── layout/            # AppHeader, AppNavbar, GradientBackground, MenuContext
 │   │   ├── owner/             # Timeline, ServiceManager, ScheduleManager, modals
 │   │   └── ui/                # shadcn/ui primitives (Button, Card, Input, etc.)
 │   ├── lib/
 │   │   ├── auth-context.tsx   # Customer auth state + API calls
 │   │   ├── salon-context.tsx  # Salon data state + CRUD operations
 │   │   ├── slots.ts           # Booking engine (slot generation algorithm)
-│   │   ├── mock-data.ts       # TypeScript interfaces + mock data defaults
 │   │   ├── time.ts            # Asia/Tehran timezone helpers
 │   │   ├── jalali.ts          # Jalali calendar conversion + formatting
 │   │   ├── owner-auth.ts      # Owner session verification (HMAC-signed cookie)
+│   │   ├── customer-auth.ts   # Customer session signing/verification
+│   │   ├── pin-hash.ts        # SHA-256 PIN hashing with timing-safe comparison
 │   │   ├── digits.ts          # Persian ↔ English digit conversion
 │   │   ├── anti-spam.ts       # Rate limiting logic
+│   │   ├── pricing.ts         # Booking price calculation
 │   │   ├── utils.ts           # cn() helper (clsx + tailwind-merge)
-│   │   └── supabase/
-│   │       ├── client.ts      # Supabase client (anon key, browser)
-│   │       ├── server.ts      # Supabase admin (service role key, server)
-│   │       └── data.ts        # All Supabase CRUD functions
-│   └── types/
-│       └── unicons.d.ts       # Icon type declarations
+│   │   └── db/
+│   │       └── data.ts        # Client-side data fetching (calls API routes)
+│   └── middleware.ts          # Owner route protection
+├── supabase/                  # Supabase config (if used for migrations)
+└── docs/
+    └── compose/
+        └── reports/           # Code review reports
 ```
 
 ---
@@ -195,7 +214,7 @@ Three blurred gradient blobs (rose, gold, rose) positioned behind all content vi
 
 ---
 
-## 5. Database Schema (Supabase)
+## 5. Database Schema (Vercel Postgres)
 
 ### Tables
 
@@ -230,6 +249,7 @@ Three blurred gradient blobs (rose, gold, rose) positioned behind all content vi
 | `hero_image_url` | text | Hero background |
 | `logo_url` | text | Logo image |
 | `working_hours` | jsonb | `{sat: {open, close}, ...}` |
+| `working_hours_text` | text | Human-readable hours (e.g., "شنبه تا پنج شنبه . ۱۰ تا ۱۸") |
 | `slot_buffer_minutes` | integer | Buffer between slots (default 0) |
 | `slot_interval_minutes` | integer | Slot interval (default 15) |
 | `early_extra_hours` | integer | Hours before shift for expansion (default 0) |
@@ -272,9 +292,9 @@ Three blurred gradient blobs (rose, gold, rose) positioned behind all content vi
 | `customer_name` | text | Customer display name |
 | `customer_phone` | text | Customer phone |
 | `date` | text | Jalali date string |
-| `date_gregorian` | text | Gregorian date (YYYY-MM-DD) |
-| `start_time` | text | HH:MM:SS |
-| `end_time` | text | HH:MM:SS |
+| `date_gregorian` | date | Gregorian date (DATE type) |
+| `start_time` | time | HH:MM:SS (TIME type) |
+| `end_time` | time | HH:MM:SS (TIME type) |
 | `status` | text | `"pending"`, `"confirmed"`, `"completed"`, `"cancelled"` |
 | `phone_verified` | boolean | Always true on create |
 | `paid` | boolean | Payment tracking |
@@ -284,9 +304,9 @@ Three blurred gradient blobs (rose, gold, rose) positioned behind all content vi
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | UUID | Primary key |
-| `date_gregorian` | text | Date string |
-| `start_time` | text | Start time |
-| `end_time` | text | End time |
+| `date_gregorian` | date | Date (DATE type) |
+| `start_time` | time | Start time (TIME type) |
+| `end_time` | time | End time (TIME type) |
 
 #### `highlights`
 | Column | Type | Notes |
@@ -305,7 +325,7 @@ Three blurred gradient blobs (rose, gold, rose) positioned behind all content vi
 | `caption` | text | Optional caption |
 | `sort_order` | integer | Display order |
 
-### Storage Buckets
+### Storage (Vercel Blob)
 
 - `logos` — Salon logo uploads (path: `logos/{timestamp}_{random}.{ext}`)
 - `highlights` — Highlight image uploads (path: `highlights/{timestamp}_{random}.{ext}`)
@@ -329,28 +349,31 @@ Three blurred gradient blobs (rose, gold, rose) positioned behind all content vi
 **State:** `user` (persisted to `localStorage`), `isLoading`
 
 **Methods:**
-- `checkPhone(phone)` → POST `/api/auth/check-phone` → `{exists, locked, hasPin}`
-- `createPin(phone, pin, name)` → POST `/api/auth/create-pin` → `{success, user}`
-- `verifyPin(phone, pin)` → POST `/api/auth/verify-pin` → `{success, user, attemptsLeft}`
-- `logout()` → clears localStorage + cookie
+- `checkPhone(phone)` → POST `/api/auth/check-phone` → `{exists, hasPin}`
+- `signup(phone, pin, name)` → POST `/api/auth/create-pin` → `{success, user}`
+- `login(phone, pin)` → POST `/api/auth/verify-pin` → `{success, user}`
+- `logout()` → clears localStorage (cookie cleared by server)
 
-**Persistence:** User object stored in `localStorage` as `"auth_user"`. Cookie `"auth_token"` set by API routes (httpOnly, secure, 30-day expiry).
+**Persistence:** User object stored in `localStorage` as `"nailbook_user"`. Session cookie set by API routes (httpOnly, secure, 30-day expiry).
 
 ### 6.3 SalonContext (`lib/salon-context.tsx`)
 
 **State:** `salon`, `workingHours`, `specificDaysOff`, `services`, `addons`, `bookings`, `highlights`, `blockedTimes`, `loaded`
 
-**On mount:** Parallel fetches all data from Supabase via `Promise.all` (7 queries). Falls back to mock data if DB empty.
+**On mount:** Parallel fetches all data via API routes using `Promise.all` (7 queries). Data flows through `lib/db/data.ts` which calls API routes.
 
-**Optimistic updates:** All mutations update local state first, then persist to Supabase. On failure, reverts to previous state.
+**Optimistic updates:** All mutations update local state first, then persist to Vercel Postgres via API routes. On failure, reverts to previous state.
 
 **Methods:**
 - `updateWorkingHours(hours)` / `updateSpecificDaysOff(daysOff)` / `saveSchedule(hours, daysOff)`
 - `updateServices(services)` / `updateAddons(addons)`
 - `updateSalon(updates)` → POST `/api/update-salon`
 - `updateBlockedTimes(blocks)` → PUT `/api/owner/blocked-times`
-- `addBooking(booking)` → inserts to Supabase
+- `addBooking(booking)` → POST `/api/book` (transactional)
+- `cancelBooking(id)` → PATCH `/api/bookings/[id]`
 - `refreshBookings()` → re-fetches all bookings
+- `refreshSalonData()` → re-fetches salon info + working hours
+- `toggleBookingPaid(bookingId, paid)` → POST `/api/owner/bookings/paid`
 - `addHighlight/updateHighlight/removeHighlight` — CRUD for highlights
 - `addHighlightImage/removeHighlightImage/uploadHighlightImage` — image management
 
@@ -365,9 +388,9 @@ Three blurred gradient blobs (rose, gold, rose) positioned behind all content vi
 **Registration flow:**
 1. User enters phone number
 2. `checkPhone` API checks if phone exists in `users` table
-3. If new user → "Create PIN" step → enter 4-digit PIN → confirm PIN → `createPin` API
+3. If new user → "Create PIN" step → enter 4-digit PIN → confirm PIN → enter name → `createPin` API
 4. If existing user → "Verify PIN" step → enter PIN → `verifyPin` API
-5. On success: session token created in `sessions` table, cookie set, user stored in localStorage
+5. On success: session cookie set (`session` cookie, httpOnly), user stored in localStorage
 
 **Login flow:**
 1. Same as registration — phone check determines path
@@ -378,7 +401,7 @@ Three blurred gradient blobs (rose, gold, rose) positioned behind all content vi
 | Rule | Value |
 |------|-------|
 | Max failed attempts | 5 |
-| Lockout duration (customer) | 60 minutes |
+| Lockout duration (customer) | 30 minutes |
 | Lockout duration (owner) | 30 minutes |
 | Reset on success | `failed_attempts = 0`, `locked_until = null` |
 
@@ -388,24 +411,37 @@ Separate from customer auth. Two paths:
 1. **Owner Login page** (`/owner/login`) — phone + PIN → POST `/api/owner-login`
 2. **Owner session cookie** — HMAC-signed (`userId:timestamp:signature`), 7-day expiry, verified by `verifyOwner()` in every owner API route
 
-**Owner session signing:** `crypto.createHmac("sha256", SECRET).update(payload).digest("hex")` where SECRET is from `OWNER_SESSION_SECRET` env var.
+**Owner session signing:**
+```ts
+const payload = `${userId}:${Date.now()}`;
+const signature = crypto.createHmac("sha256", SECRET).update(payload).digest("hex");
+return `${payload}:${signature}`;
+```
 
-**Owner logout:** Clears `owner_session` cookie, redirects to `/owner/login`.
+**Owner logout:** POST `/api/owner-logout` clears `owner_session` cookie.
 
 ### 7.4 PIN Hashing
 
 All PINs are hashed with SHA-256 before storage:
 ```ts
-crypto.createHash("sha256").update(pin).digest("hex")
+crypto.createHash("sha256").update(String(pin).trim()).digest("hex")
+```
+
+Verification uses timing-safe comparison:
+```ts
+crypto.timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(storedHash, "hex"))
 ```
 
 ### 7.5 Anti-Enumeration
 
-`checkPhone` API returns consistent response structure for both existing and non-existing users: `{exists: boolean, locked: false, hasPin: boolean}`. This prevents attackers from determining if a phone number is registered.
+`checkPhone` API returns consistent response structure: `{exists: boolean, hasPin: boolean}`. Does not reveal whether phone exists.
 
-### 7.6 Delayed Response
+### 7.6 Session Management
 
-`verifyPin` API includes a 2-second delay (`await new Promise(resolve => setTimeout(resolve, 2000))`) to slow brute-force attacks.
+- **Customer session:** 30-day expiry, signed with `CUSTOMER_SESSION_SECRET` (falls back to `OWNER_SESSION_SECRET`)
+- **Owner session:** 7-day expiry, signed with `OWNER_SESSION_SECRET`
+- Both use timing-safe comparison for signature verification
+- Session format: `userId:timestamp:hexSignature`
 
 ---
 
@@ -702,7 +738,7 @@ Period selector (Today / This Week / This Month):
 
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
-| POST | `/api/auth/check-phone` | None | Check if phone exists, check lockout |
+| POST | `/api/auth/check-phone` | None | Check if phone exists |
 | POST | `/api/auth/create-pin` | None | Register new user with PIN |
 | POST | `/api/auth/verify-pin` | None | Verify PIN for existing user |
 | POST | `/api/auth/update-profile` | None | Update user name |
@@ -711,7 +747,9 @@ Period selector (Today / This Week / This Month):
 
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
+| POST | `/api/book` | None | Create booking (transactional with row locking) |
 | POST | `/api/book/reserve` | None | Validate slot availability (conflict check) |
+| PATCH | `/api/bookings/[id]` | None | Cancel booking |
 | POST | `/api/anti-spam` | None | Check rate limits for phone |
 
 ### 11.3 Owner
@@ -719,6 +757,7 @@ Period selector (Today / This Week / This Month):
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
 | POST | `/api/owner-login` | None | Owner login (PIN → HMAC cookie) |
+| POST | `/api/owner-logout` | None | Owner logout (clears cookie) |
 | GET | `/api/owner/blocked-times` | None | Fetch blocked times |
 | PUT | `/api/owner/blocked-times` | Owner | Replace all blocked times |
 | POST | `/api/owner/reset-pin` | Owner | Reset a user's PIN |
@@ -726,22 +765,48 @@ Period selector (Today / This Week / This Month):
 | POST | `/api/owner/users` | Owner | Create new user |
 | PUT | `/api/owner/users` | Owner | Update user (name, phone, role, PIN, lock) |
 | DELETE | `/api/owner/users` | Owner | Delete user |
+| PUT | `/api/owner/services` | Owner | Save services |
+| PUT | `/api/owner/addons` | Owner | Save addons |
 
 ### 11.4 Salon
 
 | Method | Route | Auth | Description |
 |--------|-------|------|-------------|
-| POST | `/api/update-salon` | None | Update salon info |
-| POST | `/api/upload-logo` | None | Upload logo to Supabase storage |
-| POST | `/api/upload-highlight` | None | Upload highlight image to Supabase storage |
+| POST | `/api/update-salon` | Owner | Update salon info + config |
+| POST | `/api/upload-logo` | Owner | Upload logo to Vercel Blob |
+| POST | `/api/upload-highlight` | Owner | Upload highlight image to Vercel Blob |
 
-### 11.5 Slot Validation (`/api/book/reserve`)
+### 11.5 Read (Public)
+
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | `/api/read/salon` | None | Public salon info (auto-migrates columns) |
+| GET | `/api/read/services` | None | Public services list |
+| GET | `/api/read/addons` | None | Public addons list |
+| GET | `/api/read/bookings` | None | List bookings |
+| GET/PUT/DELETE | `/api/read/highlights` | None | Highlight CRUD |
+| POST/DELETE | `/api/read/highlight-images` | None | Highlight image CRUD |
+
+### 11.6 Slot Validation (`/api/book/reserve`)
 
 Checks two things before allowing a booking:
 1. **Booking conflicts:** Queries `bookings` for overlapping confirmed slots on the same date
 2. **Blocked times:** Queries `blocked_times` for overlapping blocks on the same date
 
 Returns `409 Conflict` with `{conflict: true}` if either check fails.
+
+### 11.7 Booking Creation (`/api/book`)
+
+Transactional booking creation with row-level locking:
+1. Validates input fields
+2. Begins database transaction
+3. Checks for conflicts with `FOR UPDATE` lock
+4. Checks blocked times
+5. Inserts booking with proper TIME type casting
+6. Commits transaction
+7. Returns booking ID and normalized times
+
+Handles unique constraint violations (code `23505`) gracefully.
 
 ---
 
@@ -815,15 +880,17 @@ Returns `409 Conflict` with `{conflict: true}` if either check fails.
 
 Jalali (Persian) calendar utilities:
 - `gregorianToJalali(date)` — converts Date to `{jy, jm, jd}`
-- `jalaliToGregorian(jy, jm, jd)` — converts to Date
+- `jalaliToGregorian(jy, jm, jd)` — converts to Date (uses UTC noon to avoid timezone drift)
 - `getJalaliDate(date)` — shorthand
 - `getJalaliMonthDays(year, month)` — days in Jalali month
 - `formatJalaliDate(y, m, d)` — "۱۵ تیر ۱۴۰۵"
 - `formatJalaliDateShort(y, m, d)` — "۱۵ تیر"
 - `formatJalaliTime(time)` — "۱۲:۳۰"
 - `toPersianDigits(num)` — converts "123" to "۱۲۳"
+- `formatPrice(price)` — formats number with separators + Persian digits
 - `getJalaliWeekdayName(date)` — short Persian weekday
 - `getJalaliWeekdayFullName(date)` — full Persian weekday
+- `isJalaliLeapYear(jy)` — checks if Jalali year is leap
 
 ### 13.2 `lib/time.ts`
 
@@ -832,32 +899,55 @@ Timezone helpers:
 - `getTehranNow()` — `{dateKey, minutes}` of current Tehran time
 - `isTehranToday(date)` — checks if date is today in Tehran
 
-Uses `Intl.DateTimeFormat` with `"Asia/Tehran"` for timezone-independent calculations.
+Uses `Intl.DateTimeFormat` with `"Asia/Tehran"` for timezone-independent calculations. Iran has no DST (abolished 2022).
 
 ### 13.3 `lib/digits.ts`
 
 - `normalizeDigits(input)` — converts Persian digits to English + strips non-digits
 - `displayDigits(input)` — converts English digits to Persian
+- `isValidIranianPhone(phone)` — validates 10-digit Iranian mobile format (`^09\d{9}$`)
 
 ### 13.4 `lib/owner-auth.ts`
 
 - `verifyOwnerSession(cookieValue)` — validates HMAC signature + 7-day expiry
-- `verifyOwner(request)` — extracts cookie + verifies against `users` table
+- `verifyOwner(request)` — extracts cookie + verifies against `users` table with `role = 'owner'`
 
-### 13.5 `lib/anti-spam.ts`
+### 13.5 `lib/customer-auth.ts`
+
+- `signCustomerSession(userId)` — signs session with HMAC-SHA256
+- `verifyCustomerSession(cookieValue)` — validates HMAC signature + 30-day expiry
+
+### 13.6 `lib/pin-hash.ts`
+
+- `hashPin(pin)` — SHA-256 hash of trimmed PIN string
+- `verifyPin(plaintext, storedHash)` — timing-safe comparison of hashes
+
+### 13.7 `lib/anti-spam.ts`
 
 Rate limiting:
 - Max 3 bookings per day per phone number
 - 120-minute cooldown between bookings
 - Queries `bookings` table for recent activity
 
-### 13.6 `lib/slots.ts`
+### 13.8 `lib/pricing.ts`
+
+- `calculateBookingPrice(booking, services, addons)` — calculates total price for a booking
+- `calculateEarnings(bookings, services, addons, startDate, endDate)` — calculates paid/unpaid totals for a date range
+
+### 13.9 `lib/slots.ts`
 
 Booking engine (detailed in Section 8).
 
-### 13.7 `lib/utils.ts`
+### 13.10 `lib/utils.ts`
 
 - `cn(...inputs)` — merges Tailwind classes via `clsx` + `tailwind-merge`
+
+### 13.11 `lib/db/data.ts`
+
+Client-side data fetching layer:
+- All functions call API routes (Vercel Postgres is server-side only)
+- Normalizes numeric columns from Postgres (returned as strings)
+- Handles fetch errors gracefully
 
 ---
 
@@ -866,15 +956,23 @@ Booking engine (detailed in Section 8).
 ### 14.1 PIN Security
 
 - PINs are SHA-256 hashed before storage (never stored in plaintext)
-- 5 failed attempts → 60-minute lockout (customers) / 30-minute lockout (owners)
+- Hashing: `crypto.createHash("sha256").update(pin).digest("hex")`
+- Verification uses timing-safe comparison to prevent timing attacks
+- 5 failed attempts → 30-minute lockout (both customers and owners)
 - Lockout checked before revealing if user exists (anti-enumeration)
-- 2-second delay on verify to slow brute-force
 
 ### 14.2 Session Security
 
-- `auth_token` cookie: httpOnly, secure, sameSite: lax, 30-day expiry
-- `owner_session` cookie: HMAC-signed, httpOnly, secure, sameSite: lax, 7-day expiry
-- Owner session verified on every owner API route via `verifyOwner()`
+- **Customer sessions:**
+  - `session` cookie: httpOnly, secure, sameSite: lax, 30-day expiry
+  - Format: `userId:timestamp:signature` (HMAC-SHA256)
+  - Signed with `CUSTOMER_SESSION_SECRET` or `OWNER_SESSION_SECRET`
+
+- **Owner sessions:**
+  - `owner_session` cookie: httpOnly, secure, sameSite: lax, 7-day expiry
+  - Format: `userId:timestamp:signature` (HMAC-SHA256)
+  - Signed with `OWNER_SESSION_SECRET`
+  - Verified on every owner API route via `verifyOwner()`
 
 ### 14.3 Anti-Spam
 
@@ -884,24 +982,33 @@ Booking engine (detailed in Section 8).
 
 ### 14.4 Double-Booking Prevention
 
-- `/api/book/reserve` checks for overlapping confirmed bookings before allowing reservation
+- `/api/book/route.ts` uses database transactions with `FOR UPDATE` row locking
 - Checks both `bookings` and `blocked_times` tables
 - Returns `409 Conflict` if slot is taken
+- Handles unique constraint violations gracefully
 
 ### 14.5 Input Validation
 
-- Phone numbers: minimum 10 characters after normalization
+- Phone numbers: validated via regex `^09\d{9}$` (10-digit Iranian mobile)
 - PINs: exactly 4 digits
 - All API routes validate required fields before processing
 
 ### 14.6 Owner Authorization
 
+- Middleware protects `/owner/*` pages and `/api/owner/*` routes
 - All owner API routes call `verifyOwner(request)` which:
   1. Extracts `owner_session` cookie
-  2. Verifies HMAC signature
+  2. Verifies HMAC signature with timing-safe comparison
   3. Checks 7-day expiry
-  4. Verifies user exists in DB with `role: "owner"`
+  4. Verifies user exists in DB with `role: 'owner'`
 - Returns `401 Unauthorized` if any check fails
+
+### 14.7 Route Protection (Middleware)
+
+- `/owner/*` pages → redirect to `/owner/login` if no session
+- `/api/owner/*` routes → return 401 if no session
+- `/api/update-salon`, `/api/upload/*` → require owner session
+- `/api/owner-logout` → accessible without session (clears cookie)
 
 ---
 
@@ -996,8 +1103,10 @@ Friday:      Closed
 
 | Variable | Scope | Description |
 |----------|-------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Client | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client | Supabase anonymous key |
-| `SUPABASE_URL` | Server | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server | Supabase service role key |
-| `OWNER_SESSION_SECRET` | Server | HMAC secret for owner sessions |
+| `POSTGRES_URL` | Server | Vercel Postgres connection string (auto-set by Vercel) |
+| `POSTGRES_PRISMA_URL` | Server | Vercel Postgres Prisma-compatible URL (auto-set by Vercel) |
+| `OWNER_SESSION_SECRET` | Server | HMAC secret for owner sessions (min 32 chars) |
+| `CUSTOMER_SESSION_SECRET` | Server | HMAC secret for customer sessions (optional, falls back to OWNER_SESSION_SECRET) |
+| `BLOB_READ_WRITE_TOKEN` | Server | Vercel Blob access token (auto-set by Vercel) |
+
+**Note:** Supabase is NOT used in this codebase. The app uses Vercel Postgres (Neon-backed) for all database operations.
