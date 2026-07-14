@@ -331,10 +331,10 @@ export function Timeline({
             {showNow && (
               <div
                 className="absolute left-0 right-0 z-20 pointer-events-none"
-                style={{ top: nowPosition }}
+                style={{ top: nowPosition - 4 }}
               >
-                <div className="h-[2px] bg-[#5B9BD5]/30" />
-                <div className="absolute left-0 top-0 w-2 h-2 rounded-full bg-[#5B9BD5]/40 -translate-x-1/2 -translate-y-1/2" />
+                <div className="h-[2px] bg-[#5B9BD5]/30 mt-[4px]" />
+                <div className="absolute left-0 top-[4px] w-2 h-2 rounded-full bg-[#5B9BD5]/40 -translate-x-1/2 -translate-y-1/2" />
               </div>
             )}
           </>
