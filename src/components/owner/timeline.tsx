@@ -231,14 +231,14 @@ export function Timeline({
                           </div>
                         </div>
 
-                        {/* Status badge */}
+                        {/* Status badge — same as normal card */}
                         <div
                           className="flex items-center gap-1 px-1.5 py-0.5 shrink-0"
                           style={{ backgroundColor: statusCfg.bg, borderRadius: 4 }}
                         >
-                          <div className="w-[5px] h-[5px] rounded-full" style={{ backgroundColor: statusCfg.dotColor }} />
-                          <span className="text-[8px] font-semibold" style={{ color: statusCfg.color }}>
-                            {statusCfg.label.split(' ')[0]}
+                          <StatusIcon className="h-2.5 w-2.5" style={{ color: statusCfg.color }} />
+                          <span className="text-[9px] font-semibold" style={{ color: statusCfg.color }}>
+                            {statusCfg.label}
                           </span>
                         </div>
                       </div>
