@@ -1,8 +1,24 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 
+// Auto-migrate: run DDL on first read per instance
+let migrated = false;
+async function ensureSchema() {
+  if (migrated) return;
+  try {
+    // Add reserved status to bookings CHECK constraint
+    await sql`ALTER TABLE bookings DROP CONSTRAINT IF EXISTS bookings_status_check`;
+    await sql`ALTER TABLE bookings ADD CONSTRAINT bookings_status_check CHECK (status IN ('pending', 'reserved', 'confirmed', 'in_progress', 'completed', 'cancelled'))`;
+    await sql`ALTER TABLE bookings ALTER COLUMN status SET DEFAULT 'reserved'`;
+    migrated = true;
+  } catch {
+    // Table may not exist yet — skip silently
+  }
+}
+
 export async function GET() {
   try {
+    await ensureSchema();
 
     const { rows } = await sql`SELECT * FROM salon_info LIMIT 1`;
     if (!rows[0]) return NextResponse.json(null);
