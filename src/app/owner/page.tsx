@@ -234,10 +234,6 @@ export default function OwnerDashboard() {
           onTogglePaid={() => {
             toggleBookingPaid(selectedBooking.id, !selectedBooking.paid);
           }}
-          onCancel={(id) => {
-            cancelBooking(id);
-            setSelectedBooking(null);
-          }}
           onDelete={(id) => {
             cancelBooking(id);
             setSelectedBooking(null);
