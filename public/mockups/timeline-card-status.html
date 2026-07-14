@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timeline Card + Status Mockup</title>
+  <link href="https://cdn.jsdelivr.net/gh/rastadfar/rastadfar-fonts@main/Vazirmatn/vazirmatn.css" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Vazirmatn', -apple-system, sans-serif;
+      background: #F8F6F4;
+      color: #2C2424;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      padding: 40px 20px;
+      flex-wrap: wrap;
+    }
+
+    .mockup-label {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #1A1A1A;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: system-ui;
+      z-index: 100;
+    }
+
+    .panel {
+      width: 380px;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #7A7068;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ─── Timeline Card Styles ─── */
+
+    .timeline-card {
+      background: white;
+      border: 1px solid rgba(0,0,0,0.06);
+      overflow: hidden;
+      display: flex;
+      margin-bottom: 12px;
+    }
+
+    .accent-stroke {
+      width: 3px;
+      flex-shrink: 0;
+    }
+
+    .card-content {
+      flex: 1;
+      min-width: 0;
+      padding: 12px;
+    }
+
+    /* ─── Normal Variant (1h+) ─── */
+
+    .normal-card {
+      min-height: 80px;
+    }
+
+    .normal-card .row-1 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .normal-card .name-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .normal-card .name {
+      font-size: 13px;
+      font-weight: 800;
+      color: #2C2424;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .normal-card .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-confirmed { background: #E8F5E9; color: #2E7D32; }
+    .status-progress { background: #E3F2FD; color: #1565C0; }
+    .status-completed { background: #F3E5F5; color: #7B1FA2; }
+    .status-cancelled { background: #FFEBEE; color: #C62828; }
+
+    .normal-card .row-2 {
+      font-size: 10px;
+      color: #7A7068;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .normal-card .row-3 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tag {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: #7A7068;
+    }
+
+    .tag svg {
+      width: 12px;
+      height: 12px;
+      opacity: 0.5;
+    }
+
+    .tag-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tag-icon svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    .tag-icon-duration { background: #F5F5F5; color: #757575; }
+    .tag-icon-price { background: #FFF3E0; color: #E65100; }
+    .tag-icon-paid { background: #E8F5E9; color: #2E7D32; }
+    .tag-icon-unpaid { background: #FFEBEE; color: #C62828; }
+
+    /* ─── Compact Variant (<1h) ─── */
+
+    .compact-card {
+      min-height: 44px;
+    }
+
+    .compact-card .card-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+    }
+
+    .compact-card .name-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      flex-shrink: 0;
+    }
+
+    .compact-card .name {
+      font-size: 12px;
+      font-weight: 800;
+      color: #2C2424;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .compact-card .service-time {
+      font-size: 10px;
+      color: #7A7068;
+      font-weight: 500;
+      white-space: nowrap;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .compact-card .metrics {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-right: auto;
+      flex-shrink: 0;
+    }
+
+    .compact-card .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 8px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .compact-card .status-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+
+    .dot-confirmed { background: #2E7D32; }
+    .dot-progress { background: #1565C0; }
+    .dot-completed { background: #7B1FA2; }
+    .dot-cancelled { background: #C62828; }
+
+    /* ─── Modal Mockup ─── */
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .modal {
+      width: 340px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(24px);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.05);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      font-size: 13px;
+      color: #7A7068;
+    }
+
+    .detail-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2C2424;
+    }
+
+    /* Status selector */
+    .status-selector {
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(0,0,0,0.02);
+      border-radius: 12px;
+    }
+
+    .status-selector-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #7A7068;
+      margin-bottom: 10px;
+    }
+
+    .status-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .status-option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1.5px solid rgba(0,0,0,0.08);
+      background: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .status-option:hover {
+      border-color: rgba(0,0,0,0.15);
+    }
+
+    .status-option.selected {
+      border-color: #1A1A1A;
+      background: #1A1A1A;
+      color: white;
+    }
+
+    .status-option .option-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-option .option-label {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-option.selected .option-label {
+      color: white;
+    }
+
+    /* Paid toggle */
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: rgba(0,0,0,0.02);
+      border-radius: 12px;
+    }
+
+    .toggle-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .toggle {
+      width: 44px;
+      height: 24px;
+      border-radius: 12px;
+      background: #E0E0E0;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .toggle.on {
+      background: #2E7D32;
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+
+    .toggle.on::after {
+      transform: translateX(-20px);
+    }
+  </style>
+</head>
+<body>
+  <div class="mockup-label">MOCKUP — Timeline Cards + Status</div>
+
+  <!-- Panel 1: Normal Cards -->
+  <div class="panel">
+    <div class="panel-title">Normal Variant (1h+)</div>
+
+    <!-- Confirmed -->
+    <div class="timeline-card normal-card">
+      <div class="accent-stroke" style="background: #D4A08A;"></div>
+      <div class="card-content">
+        <div class="row-1">
+          <div class="name-group">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#757575" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="name">سارا احمدی</span>
+          </div>
+          <div class="status-badge status-confirmed">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+            تایید شده
+          </div>
+        </div>
+        <div class="row-2">
+          ژلیش ناخن
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2" style="vertical-align: middle; margin: 0 2px;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          · ۱۴:۰۰–۱۴:۴۵
+        </div>
+        <div class="row-3">
+          <div class="tag">
+            <div class="tag-icon tag-icon-duration">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <span>۴۵ دقیقه</span>
+          </div>
+          <div class="tag">
+            <div class="tag-icon tag-icon-price">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <span>۳۵۰,۰۰۰</span>
+          </div>
+          <div class="tag">
+            <div class="tag-icon tag-icon-paid">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+            </div>
+            <span>پرداخت شده</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- In Progress -->
+    <div class="timeline-card normal-card">
+      <div class="accent-stroke" style="background: #A8B89C;"></div>
+      <div class="card-content">
+        <div class="row-1">
+          <div class="name-group">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#757575" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="name">مریم کریمی</span>
+          </div>
+          <div class="status-badge status-progress">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            در حال انجام
+          </div>
+        </div>
+        <div class="row-2">
+          فرنچ ناخن
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2" style="vertical-align: middle; margin: 0 2px;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          · ۱۱:۰۰–۱۲:۰۰
+        </div>
+        <div class="row-3">
+          <div class="tag">
+            <div class="tag-icon tag-icon-duration">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <span>۶۰ دقیقه</span>
+          </div>
+          <div class="tag">
+            <div class="tag-icon tag-icon-price">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <span>۴۵۰,۰۰۰</span>
+          </div>
+          <div class="tag">
+            <div class="tag-icon tag-icon-unpaid">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+            </div>
+            <span>پرداخت نشده</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Completed -->
+    <div class="timeline-card normal-card">
+      <div class="accent-stroke" style="background: #C4A97D;"></div>
+      <div class="card-content">
+        <div class="row-1">
+          <div class="name-group">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#757575" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="name">الناز رضایی</span>
+          </div>
+          <div class="status-badge status-completed">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+            تکمیل شده
+          </div>
+        </div>
+        <div class="row-2">طراحی ناخن · ۰۹:۰۰–۱۰:۳۰</div>
+        <div class="row-3">
+          <div class="tag">
+            <div class="tag-icon tag-icon-duration">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <span>۹۰ دقیقه</span>
+          </div>
+          <div class="tag">
+            <div class="tag-icon tag-icon-price">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <span>۶۰۰,۰۰۰</span>
+          </div>
+          <div class="tag">
+            <div class="tag-icon tag-icon-paid">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+            </div>
+            <span>پرداخت شده</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 2: Compact Cards -->
+  <div class="panel">
+    <div class="panel-title">Compact Variant (&lt;1h)</div>
+
+    <!-- Confirmed — with addon -->
+    <div class="timeline-card compact-card">
+      <div class="accent-stroke" style="background: #D4A08A;"></div>
+      <div class="card-content">
+        <div class="name-group">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#757575" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="name">زهرا محمدی</span>
+        </div>
+        <span class="service-time">
+          پدیکور
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2" style="vertical-align: middle; margin: 0 2px;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          · ۱۵:۰۰–۱۵:۳۰
+        </span>
+        <div class="metrics">
+          <div class="tag-icon tag-icon-price">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <span style="font-size: 10px; color: #7A7068; font-weight: 600;">۴۰۰,۰۰۰</span>
+        </div>
+        <div class="status-badge status-confirmed">
+          <div class="status-dot dot-confirmed"></div>
+          تایید
+        </div>
+      </div>
+    </div>
+
+    <!-- In Progress — no addon -->
+    <div class="timeline-card compact-card">
+      <div class="accent-stroke" style="background: #8E9AAB;"></div>
+      <div class="card-content">
+        <div class="name-group">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#757575" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="name">نیلوفر عباسی</span>
+        </div>
+        <span class="service-time">ژلیش · ۱۶:۰۰–۱۶:۳۰</span>
+        <div class="metrics">
+          <div class="tag-icon tag-icon-price">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <span style="font-size: 10px; color: #7A7068; font-weight: 600;">۳۵۰,۰۰۰</span>
+        </div>
+        <div class="status-badge status-progress">
+          <div class="status-dot dot-progress"></div>
+          در حال
+        </div>
+      </div>
+    </div>
+
+    <!-- Cancelled — with addon -->
+    <div class="timeline-card compact-card">
+      <div class="accent-stroke" style="background: #B8967A;"></div>
+      <div class="card-content">
+        <div class="name-group">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#757575" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="name">ثریا حسینی</span>
+        </div>
+        <span class="service-time">
+          ترمیم
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2" style="vertical-align: middle; margin: 0 2px;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          · ۱۷:۰۰–۱۷:۳۰
+        </span>
+        <div class="metrics">
+          <div class="tag-icon tag-icon-price">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <span style="font-size: 10px; color: #7A7068; font-weight: 600;">۳۳۰,۰۰۰</span>
+        </div>
+        <div class="status-badge status-cancelled">
+          <div class="status-dot dot-cancelled"></div>
+          لغو شده
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Mockup -->
+    <div class="panel-title" style="margin-top: 32px;">Booking Modal — Status Selector</div>
+
+    <div class="modal">
+      <div class="modal-header">
+        <h2>جزئیات نوبت</h2>
+        <button class="modal-close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A7068" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">خدمت</span>
+        <span class="detail-value">ژلیش ناخن</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">تاریخ</span>
+        <span class="detail-value">۲۴ تیر</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">ساعت</span>
+        <span class="detail-value">۱۴:۰۰ تا ۱۴:۴۵</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">هزینه</span>
+        <span class="detail-value">۳۵۰,۰۰۰ تومان</span>
+      </div>
+
+      <!-- Status Selector -->
+      <div class="status-selector">
+        <div class="status-selector-title">وضعیت نوبت</div>
+        <div class="status-options">
+          <div class="status-option selected">
+            <div class="option-dot" style="background: #2E7D32;"></div>
+            <span class="option-label">تایید شده</span>
+          </div>
+          <div class="status-option">
+            <div class="option-dot" style="background: #1565C0;"></div>
+            <span class="option-label">در حال انجام</span>
+          </div>
+          <div class="status-option">
+            <div class="option-dot" style="background: #7B1FA2;"></div>
+            <span class="option-label">تکمیل شده</span>
+          </div>
+          <div class="status-option">
+            <div class="option-dot" style="background: #C62828;"></div>
+            <span class="option-label">لغو شده</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paid Toggle -->
+      <div class="toggle-row">
+        <span class="toggle-label">پرداخت شده</span>
+        <div class="toggle on"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Interactive status selector
+    document.querySelectorAll('.status-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.querySelectorAll('.status-option').forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+      });
+    });
+
+    // Interactive toggle
+    document.querySelectorAll('.toggle').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        toggle.classList.toggle('on');
+      });
+    });
+  </script>
+</body>
+</html>

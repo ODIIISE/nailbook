@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { User, Ban, Clock, CreditCard } from "lucide-react";
+import { User, Ban, Clock, CreditCard, CheckCircle2, Loader, XCircle, Layers, DollarSign } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
 import type { Booking, Service, Addon } from "@/lib/types";
@@ -35,10 +35,15 @@ const SERVICE_PALETTE = [
   { accent: "#7A9A7A", bg: "#F5F9F5" }, // forest
 ];
 
-/**
- * Deterministic color assignment based on service ID.
- * Same service always gets the same color, regardless of booking order.
- */
+// Status config
+const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; icon: typeof CheckCircle2; dotColor: string }> = {
+  confirmed: { label: "تایید شده", bg: "#E8F5E9", color: "#2E7D32", icon: CheckCircle2, dotColor: "#2E7D32" },
+  in_progress: { label: "در حال انجام", bg: "#E3F2FD", color: "#1565C0", icon: Loader, dotColor: "#1565C0" },
+  completed: { label: "تکمیل شده", bg: "#F3E5F5", color: "#7B1FA2", icon: CheckCircle2, dotColor: "#7B1FA2" },
+  cancelled: { label: "لغو شده", bg: "#FFEBEE", color: "#C62828", icon: XCircle, dotColor: "#C62828" },
+  pending: { label: "در انتظار", bg: "#FFF3E0", color: "#E65100", icon: Clock, dotColor: "#E65100" },
+};
+
 function hashString(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -50,6 +55,10 @@ function hashString(str: string): number {
 function getServiceStyle(serviceId: string) {
   const idx = hashString(serviceId) % SERVICE_PALETTE.length;
   return SERVICE_PALETTE[idx];
+}
+
+function getStatusConfig(status: string) {
+  return STATUS_CONFIG[status] || STATUS_CONFIG.pending;
 }
 
 function timeToMinutes(time: string): number {
@@ -79,15 +88,17 @@ function computeBookingTotal(
   booking: Booking,
   service?: Service,
   addons?: Addon[]
-): { totalPrice: number; totalDuration: number } {
+): { totalPrice: number; totalDuration: number; hasAddons: boolean } {
   const servicePrice = Number(service?.price) || 0;
-  const addonsPrice = (booking.selected_addons || []).reduce((sum, addonId) => {
+  const selectedAddons = booking.selected_addons || [];
+  const addonsPrice = selectedAddons.reduce((sum, addonId) => {
     const addon = addons?.find((a) => a.id === addonId);
     return sum + (Number(addon?.price) || 0);
   }, 0);
   return {
     totalPrice: servicePrice + addonsPrice,
     totalDuration: getBlockPosition(booking.start_time, booking.end_time, 0).durationMinutes,
+    hasAddons: selectedAddons.length > 0,
   };
 }
 
@@ -131,7 +142,7 @@ export function Timeline({
           </div>
         ))}
 
-        {/* Half-hour dashed lines — increased opacity for visibility */}
+        {/* Half-hour dashed lines */}
         {hourMarks.slice(0, -1).map((hour, i) => (
           <div
             key={`half-${hour}`}
@@ -145,12 +156,14 @@ export function Timeline({
             {/* Booking blocks */}
             {bookings.map((booking) => {
               const pos = getBlockPosition(booking.start_time, booking.end_time, startHour);
-              const { totalPrice, totalDuration } = computeBookingTotal(booking, booking.service, addons);
+              const { totalPrice, totalDuration, hasAddons } = computeBookingTotal(booking, booking.service, addons);
               const style = getServiceStyle(booking.service_id);
-              const isCompact = pos.height < 60; // <1h = compact horizontal
+              const statusCfg = getStatusConfig(booking.status);
+              const StatusIcon = statusCfg.icon;
+              const isCompact = pos.height < 60;
 
               if (isCompact) {
-                // ─── Compact variant: horizontal layout ───
+                // ─── Compact variant ───
                 return (
                   <div
                     key={booking.id}
@@ -162,35 +175,44 @@ export function Timeline({
                       className="h-full border border-black/[0.06] overflow-hidden flex items-stretch"
                       style={{ backgroundColor: style.bg }}
                     >
-                      {/* Right accent stroke */}
                       <div className="w-[3px] shrink-0" style={{ backgroundColor: style.accent }} />
 
-                      {/* Horizontal content: 3 columns */}
-                      <div className="flex-1 min-w-0 flex items-center gap-2.5 px-2">
-                        {/* Col 1: Customer name */}
+                      <div className="flex-1 min-w-0 flex items-center gap-2 px-2">
+                        {/* Name */}
                         <div className="flex items-center gap-1 min-w-0 shrink">
-                          <User className="h-3 w-3 shrink-0 text-black/30" />
+                          <User className="h-[11px] w-[11px] shrink-0 text-black/30" />
                           <span className="text-[12px] font-extrabold text-black truncate">
                             {booking.customer_name}
                           </span>
                         </div>
 
-                        {/* Col 2: Service + Time */}
+                        {/* Service + Addon icon + Time */}
                         <span className="text-[10px] text-black/45 font-medium truncate min-w-0 shrink">
-                          {booking.service?.name} · {toPersianDigits(booking.start_time.slice(0, 5))}–{toPersianDigits(booking.end_time.slice(0, 5))}
+                          {booking.service?.name}
+                          {hasAddons && (
+                            <Layers className="inline h-[9px] w-[9px] mx-0.5 text-[#7B1FA2]" />
+                          )}
+                          {' · '}
+                          {toPersianDigits(booking.start_time.slice(0, 5))}–{toPersianDigits(booking.end_time.slice(0, 5))}
                         </span>
 
-                        {/* Col 3: Duration + Price */}
-                        <div className="flex items-center gap-1.5 shrink ml-auto">
-                          <span className="text-[10px] text-black/40 font-medium whitespace-nowrap">
-                            {toPersianDigits(totalDuration)} دقیقه
-                          </span>
+                        {/* Price with icon */}
+                        <div className="flex items-center gap-1 shrink ml-auto">
+                          <DollarSign className="h-[10px] w-[10px] text-black/25" />
                           <span className="text-[10px] text-black/50 font-bold whitespace-nowrap">
                             {formatPrice(totalPrice)}
                           </span>
-                          {booking.paid && (
-                            <CreditCard className="h-3 w-3 shrink-0 text-[#28A745]" />
-                          )}
+                        </div>
+
+                        {/* Status badge */}
+                        <div
+                          className="flex items-center gap-1 px-1.5 py-0.5 shrink-0"
+                          style={{ backgroundColor: statusCfg.bg, borderRadius: 4 }}
+                        >
+                          <div className="w-[5px] h-[5px] rounded-full" style={{ backgroundColor: statusCfg.dotColor }} />
+                          <span className="text-[8px] font-semibold" style={{ color: statusCfg.color }}>
+                            {statusCfg.label.split(' ')[0]}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -198,7 +220,7 @@ export function Timeline({
                 );
               }
 
-              // ─── Normal variant: vertical layout ───
+              // ─── Normal variant ───
               return (
                 <div
                   key={booking.id}
@@ -210,12 +232,10 @@ export function Timeline({
                     className="h-full border border-black/[0.06] overflow-hidden flex"
                     style={{ backgroundColor: style.bg }}
                   >
-                    {/* Right accent stroke */}
                     <div className="w-[3px] shrink-0" style={{ backgroundColor: style.accent }} />
 
-                    {/* Content */}
                     <div className="flex-1 min-w-0 p-2">
-                      {/* Row 1: Customer name + paid icon */}
+                      {/* Row 1: Name + Status badge */}
                       <div className="flex items-center justify-between gap-1">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <User className="h-3 w-3 shrink-0 text-black/30" />
@@ -223,25 +243,52 @@ export function Timeline({
                             {booking.customer_name}
                           </span>
                         </div>
-                        {booking.paid && (
-                          <CreditCard className="h-3 w-3 shrink-0 text-[#28A745]" />
-                        )}
+                        <div
+                          className="flex items-center gap-1 px-1.5 py-0.5 shrink-0"
+                          style={{ backgroundColor: statusCfg.bg, borderRadius: 4 }}
+                        >
+                          <StatusIcon className="h-2.5 w-2.5" style={{ color: statusCfg.color }} />
+                          <span className="text-[9px] font-semibold" style={{ color: statusCfg.color }}>
+                            {statusCfg.label}
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Row 2: Service + Time */}
+                      {/* Row 2: Service + Addon icon + Time */}
                       <p className="text-[10px] text-black/50 font-medium mt-0.5 truncate">
-                        {booking.service?.name} · {toPersianDigits(booking.start_time.slice(0, 5))}–{toPersianDigits(booking.end_time.slice(0, 5))}
+                        {booking.service?.name}
+                        {hasAddons && (
+                          <Layers className="inline h-[9px] w-[9px] mx-0.5 text-[#7B1FA2]" />
+                        )}
+                        {' · '}
+                        {toPersianDigits(booking.start_time.slice(0, 5))}–{toPersianDigits(booking.end_time.slice(0, 5))}
                       </p>
 
-                      {/* Row 3: Duration + Price (if tall enough) */}
+                      {/* Row 3: Tags with icons */}
                       {pos.height > 55 && (
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[10px] text-black/40 font-medium">
-                            {toPersianDigits(totalDuration)} دقیقه
-                          </span>
-                          <span className="text-[10px] text-black/50 font-bold">
-                            {formatPrice(totalPrice)}
-                          </span>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-2.5 w-2.5 text-black/25" />
+                            <span className="text-[10px] text-black/40 font-medium">
+                              {toPersianDigits(totalDuration)} دقیقه
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-2.5 w-2.5 text-black/25" />
+                            <span className="text-[10px] text-black/50 font-bold">
+                              {formatPrice(totalPrice)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {booking.paid ? (
+                              <CreditCard className="h-2.5 w-2.5 text-[#2E7D32]" />
+                            ) : (
+                              <CreditCard className="h-2.5 w-2.5 text-black/20" />
+                            )}
+                            <span className={`text-[10px] font-medium ${booking.paid ? 'text-[#2E7D32]' : 'text-black/35'}`}>
+                              {booking.paid ? "پرداخت شده" : "پرداخت نشده"}
+                            </span>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -261,9 +308,7 @@ export function Timeline({
                   onClick={() => onRemoveBlock?.(index)}
                 >
                   <div className="h-full bg-[#FFF8E1] border border-[#FFD54F]/40 overflow-hidden flex">
-                    {/* Right accent stroke */}
                     <div className="w-[3px] shrink-0 bg-[#FFB300]" />
-
                     <div className="flex-1 min-w-0 p-2">
                       <div className="flex items-center gap-1">
                         <Ban className="h-3 w-3 text-[#F57F17] shrink-0" />
@@ -283,7 +328,7 @@ export function Timeline({
               );
             })}
 
-            {/* Current time indicator — full width, light blue, 30% opacity */}
+            {/* Current time indicator */}
             {showNow && (
               <div
                 className="absolute left-0 right-0 z-20 pointer-events-none"
