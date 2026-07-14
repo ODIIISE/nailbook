@@ -25,14 +25,13 @@ interface TimelineProps {
 
 const HOUR_HEIGHT = 64;
 
-// Fixed color palette — deterministic by service ID hash
+// Fixed color palette — from homepage service card gradients
 const SERVICE_PALETTE = [
-  { accent: "#D4A08A", bg: "#FDFAF8" }, // terracotta
-  { accent: "#A8B89C", bg: "#F8FAF6" }, // sage
-  { accent: "#C4A97D", bg: "#FBF8F3" }, // sand
-  { accent: "#8E9AAB", bg: "#F6F8FA" }, // slate
-  { accent: "#B8967A", bg: "#FAF7F4" }, // clay
-  { accent: "#7A9A7A", bg: "#F5F9F5" }, // forest
+  { accent: "#FDA4AF", bg: "#FFF5F6" }, // rose
+  { accent: "#FCD34D", bg: "#FFFCF0" }, // amber
+  { accent: "#6EE7B7", bg: "#F0FDF8" }, // emerald
+  { accent: "#93C5FD", bg: "#F0F7FF" }, // blue
+  { accent: "#C4B5FD", bg: "#F5F3FF" }, // purple
 ];
 
 // Status config
