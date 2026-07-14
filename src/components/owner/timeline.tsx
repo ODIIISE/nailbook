@@ -125,7 +125,7 @@ export function Timeline({
             className="absolute w-full border-t border-border/60"
             style={{ top: i * HOUR_HEIGHT }}
           >
-            <span className="absolute -top-3.5 right-0 text-[11px] text-muted-foreground font-mono bg-card px-1.5">
+            <span className="absolute -top-3.5 right-0 text-[12px] font-bold text-black/50 font-mono bg-card px-1.5">
               {formatHourPersian(hour)}
             </span>
           </div>
@@ -295,16 +295,14 @@ export function Timeline({
               );
             })}
 
-            {/* Current time indicator — full width with dot + gradient */}
+            {/* Current time indicator — full width, light blue, 30% opacity */}
             {showNow && (
               <div
                 className="absolute left-0 right-0 z-20 pointer-events-none"
                 style={{ top: nowPosition }}
               >
-                {/* Full-width gradient line */}
-                <div className="h-[2px] bg-gradient-to-l from-primary/80 via-primary to-primary/20" />
-                {/* Left dot indicator */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_rgba(0,0,0,0.3)]" />
+                <div className="h-[2px] bg-[#5B9BD5]/30" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#5B9BD5]/30" />
               </div>
             )}
           </>
