@@ -127,8 +127,7 @@ export function Timeline({
 
   return (
     <Card className="overflow-hidden">
-      <div className="relative overflow-y-auto scrollbar-none" style={{ height: Math.min(totalHeight, 560) }}>
-        <div className="relative" style={{ height: totalHeight }}>
+      <div className="relative" style={{ height: totalHeight }}>
         {/* Hour labels — RTL: left side */}
         {hourMarks.map((hour, i) => (
           <span
@@ -377,7 +376,6 @@ export function Timeline({
             </div>
           </div>
         )}
-        </div>
       </div>
     </Card>
   );
