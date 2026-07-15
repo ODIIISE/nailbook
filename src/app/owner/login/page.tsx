@@ -45,11 +45,7 @@ export default function OwnerLoginPage() {
         setIsLoading(false);
         return;
       }
-      toast.success("خوش آمدید مدیر", {
-        description: "ورود شما با موفقیت انجام شد",
-        duration: 3000,
-      });
-      router.push("/owner");
+      router.push("/owner?welcome=1");
     } catch {
       setError("خطای سرور");
       setIsLoading(false);

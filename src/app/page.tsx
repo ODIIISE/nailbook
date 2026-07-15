@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppNavbar } from "@/components/layout/app-navbar";
 import { Hero } from "@/components/landing/hero";
@@ -15,12 +15,27 @@ import { Heart, Sparkles } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 
 import { useSalon } from "@/lib/salon-context";
+import { toast } from "sonner";
 import type { Highlight } from "@/lib/types";
 
 export default function HomePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { salon, bookings, highlights, services } = useSalon();
   const [viewingHighlight, setViewingHighlight] = useState<Highlight | null>(null);
+
+  // Show welcome toast on login/signup
+  useEffect(() => {
+    const welcome = searchParams.get("welcome");
+    if (welcome === "1") {
+      const name = searchParams.get("name");
+      toast.success(name ? `خوش آمدید ${name}` : "خوش آمدید", {
+        description: searchParams.get("name") ? "حساب شما با موفقیت ساخته شد" : "ورود شما با موفقیت انجام شد",
+        duration: 3000,
+      });
+      window.history.replaceState({}, "", "/");
+    }
+  }, [searchParams]);
 
   const scrollToServices = () => {
     document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { toPersianDigits, formatPrice, gregorianToJalali, formatJalaliDate } fro
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey } from "@/lib/time";
 import { calculateEarnings } from "@/lib/pricing";
+import { toast } from "sonner";
 import type { Booking } from "@/lib/types";
 
 interface BlockedTime {
@@ -25,6 +27,7 @@ interface BlockedTime {
 }
 
 export default function OwnerDashboard() {
+  const searchParams = useSearchParams();
   const { salon, bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
@@ -32,6 +35,17 @@ export default function OwnerDashboard() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showEarnings, setShowEarnings] = useState(false);
   const [bookingSearch, setBookingSearch] = useState("");
+
+  // Show welcome toast on first login
+  useEffect(() => {
+    if (searchParams.get("welcome") === "1") {
+      toast.success("خوش آمدید مدیر", {
+        description: "ورود شما با موفقیت انجام شد",
+        duration: 3000,
+      });
+      window.history.replaceState({}, "", "/owner");
+    }
+  }, [searchParams]);
 
   // Poll for new bookings every 30 seconds
   useEffect(() => {
