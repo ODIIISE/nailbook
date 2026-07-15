@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Settings, Clock, CircleDot, Users, LogOut, History } from "lucide-react";
+import { Settings, CircleDot, Users, LogOut, History, Briefcase } from "lucide-react";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppNavbar } from "@/components/layout/app-navbar";
 import { SalonGuard } from "@/components/ui/salon-guard";
@@ -11,10 +11,9 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
 
   const menuItems = [
     { icon: <span className="text-[14px]">🏠</span>, label: "صفحه اصلی", onClick: () => router.push("/") },
-    { icon: <Clock className="h-4 w-4" />, label: "ساعات کاری", onClick: () => router.push("/owner/schedule") },
+    { icon: <Briefcase className="h-4 w-4" />, label: "خدمات", onClick: () => router.push("/owner/services") },
     { icon: <CircleDot className="h-4 w-4" />, label: "مدیریت هایلایت", onClick: () => router.push("/owner/highlights") },
     { icon: <Users className="h-4 w-4" />, label: "کاربران", onClick: () => router.push("/owner/users") },
-    { icon: <History className="h-4 w-4" />, label: "تاریخچه فعالیت", onClick: () => router.push("/owner/activity") },
     { icon: <Settings className="h-4 w-4" />, label: "تنظیمات سالن", onClick: () => router.push("/owner/settings") },
     {
       icon: <LogOut className="h-4 w-4" />,

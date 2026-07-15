@@ -9,6 +9,7 @@ import {
   Briefcase,
   Clock,
   Menu,
+  History,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useMenu } from "./menu-context";
@@ -31,8 +32,8 @@ const defaultCustomerItems: NavItem[] = [
 
 const defaultOwnerItems: NavItem[] = [
   { path: "/owner", icon: LayoutGrid, label: "زمان‌بندی" },
-  { path: "/owner/services", icon: Briefcase, label: "خدمات" },
   { path: "/owner/schedule", icon: Clock, label: "ساعات" },
+  { path: "/owner/activity", icon: History, label: "تاریخچه" },
 ];
 
 export function AppNavbar({ items }: AppNavbarProps) {
