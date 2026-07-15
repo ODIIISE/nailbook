@@ -2,6 +2,22 @@
 
 # Project Rules — NailBook Booking Platform
 
+## Prompt Shortcuts
+
+When you see these keywords in a user message, expand them automatically:
+
+| Keyword | Expands To |
+|---------|-----------|
+| `bp` | "Use best practices, modern strategies, and clean code principles" |
+| `rtl` | "Ensure full RTL support, Persian text, and right-to-left layout" |
+| `secure` | "Follow OWASP security guidelines, validate inputs, sanitize outputs" |
+| `perf` | "Optimize for performance: lazy load, memoize, minimize re-renders" |
+| `a11y` | "Follow WCAG accessibility guidelines: semantic HTML, ARIA labels, keyboard nav" |
+| `test` | "Write tests for all new code, run existing tests, ensure nothing breaks" |
+| `clean` | "Keep code DRY, minimal, well-named, no unnecessary abstractions" |
+
+Example: "add a login page `bp` `secure`" → "add a login page, use best practices, modern strategies, clean code principles, follow OWASP security guidelines, validate inputs, sanitize outputs"
+
 ## CRITICAL: Before Changing Any Function/API
 
 1. **Grep for ALL callers** before modifying any function signature, API response, or data format. Use `grep -r "functionName\|/api/endpoint"` to find every consumer.
