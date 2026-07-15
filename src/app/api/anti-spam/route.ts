@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ allowed: true });
   } catch (error) {
     console.error("Anti-spam check error:", error);
-    return NextResponse.json({ allowed: true });
+    // Fail closed — reject if we can't verify
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

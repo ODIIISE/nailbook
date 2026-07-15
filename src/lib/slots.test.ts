@@ -497,12 +497,10 @@ describe("getNearestAvailableSlot", () => {
       30,
       0,
       15,
+      0,
       [],
       [],
-      {},
-      1405,
-      4,
-      23
+      {}
     );
 
     // Should find a slot
@@ -528,12 +526,10 @@ describe("getNearestAvailableSlot", () => {
       30,
       0,
       15,
+      0,
       [],
       [],
-      {},
-      1405,
-      4,
-      23
+      {}
     );
 
     expect(result).toBeNull();

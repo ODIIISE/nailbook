@@ -1,22 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { hashPin } from "@/lib/pin-hash";
+import crypto from "crypto";
 
 const SECRET = process.env.OWNER_SESSION_SECRET;
-const SECRET_KEY = SECRET || "nailbook-dev-insecure-fallback";
+
+function getSecretKey(): string {
+  if (!SECRET) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("OWNER_SESSION_SECRET must be set in production");
+    }
+    return "nailbook-dev-insecure-fallback";
+  }
+  return SECRET;
+}
 
 function signSession(userId: string): string {
   const payload = `${userId}:${Date.now()}`;
-  const signature = require("crypto").createHmac("sha256", SECRET_KEY).update(payload).digest("hex");
+  const signature = crypto.createHmac("sha256", getSecretKey()).update(payload).digest("hex");
   return `${payload}:${signature}`;
 }
 
 export async function POST(request: NextRequest) {
   try {
-    if (!SECRET && process.env.NODE_ENV === "production") {
-      console.error("OWNER_SESSION_SECRET must be set in production");
-      return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
-    }
+    getSecretKey(); // Throws in production if not configured
 
     const { phone, pin } = await request.json();
 
@@ -62,7 +69,7 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

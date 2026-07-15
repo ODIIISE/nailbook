@@ -7,10 +7,20 @@ interface SalonGuardProps {
   fallback?: React.ReactNode;
 }
 
-export function SalonGuard({ children }: SalonGuardProps) {
+export function SalonGuard({ children, fallback }: SalonGuardProps) {
   const { loaded } = useSalon();
 
-  if (!loaded) return null;
+  if (!loaded) {
+    return fallback ?? (
+      <div className="min-h-screen bg-background">
+        <div className="h-16 w-full skeleton" />
+        <div className="p-4 space-y-4">
+          <div className="h-48 w-full skeleton rounded-2xl" />
+          <div className="h-24 w-full skeleton rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
 
   return <>{children}</>;
 }

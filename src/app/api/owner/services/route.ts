@@ -67,7 +67,8 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error("Failed to update services:", error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

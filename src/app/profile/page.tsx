@@ -42,7 +42,9 @@ export default function ProfilePage() {
         localStorage.setItem("nailbook_user", JSON.stringify(updated));
         window.location.reload();
       }
-    } catch {}
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+    }
     setSaving(false);
   };
 

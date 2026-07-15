@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
 
     const { rows } = await sql`SELECT id, phone, name, role, created_at FROM users ORDER BY created_at DESC`;
     return NextResponse.json(rows);
-  } catch {
+  } catch (error) {
+    console.error("Failed to fetch users:", error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }
@@ -41,7 +42,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, userId });
-  } catch {
+  } catch (error) {
+    console.error("Failed to create user:", error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }
@@ -117,7 +119,8 @@ export async function DELETE(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error("Failed to delete user:", error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

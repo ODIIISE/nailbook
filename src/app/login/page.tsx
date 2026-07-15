@@ -21,6 +21,7 @@ export default function LoginPage() {
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
+  const [nameValue, setNameValue] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -76,8 +77,6 @@ export default function LoginPage() {
 
   // Step 4 (signup): Enter name → complete signup
   const handleNameSubmit = useCallback(async () => {
-    const nameInput = document.querySelector<HTMLInputElement>('[data-name-input]');
-    const nameValue = nameInput?.value || "";
     if (!nameValue.trim()) { setError("نام الزامی است"); return; }
 
     setIsLoading(true);
@@ -86,7 +85,7 @@ export default function LoginPage() {
     setIsLoading(false);
     if (result.success) router.replace("/");
     else setError(result.error || "خطا در ثبت‌نام");
-  }, [phone, pin, signup, router]);
+  }, [phone, pin, nameValue, signup, router]);
 
   if (user) return null;
 
@@ -168,7 +167,8 @@ export default function LoginPage() {
               </div>
               <div>
                 <Label className="text-[13px]">نام</Label>
-                <Input data-name-input placeholder="نام و نام خانوادگی" className="mt-1" autoFocus
+                <Input value={nameValue} onChange={(e) => setNameValue(e.target.value)}
+                  placeholder="نام و نام خانوادگی" className="mt-1" autoFocus
                   onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()} />
               </div>
               {error && <p className="text-[13px] text-destructive text-center">{error}</p>}
