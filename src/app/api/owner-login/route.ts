@@ -1,30 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { hashPin } from "@/lib/pin-hash";
-import crypto from "crypto";
-
-const SECRET = process.env.OWNER_SESSION_SECRET;
-
-function getSecretKey(): string {
-  if (!SECRET) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("OWNER_SESSION_SECRET must be set in production");
-    }
-    return "nailbook-dev-insecure-fallback";
-  }
-  return SECRET;
-}
-
-function signSession(userId: string): string {
-  const payload = `${userId}:${Date.now()}`;
-  const signature = crypto.createHmac("sha256", getSecretKey()).update(payload).digest("hex");
-  return `${payload}:${signature}`;
-}
+import { signOwnerSession } from "@/lib/owner-auth";
 
 export async function POST(request: NextRequest) {
   try {
-    getSecretKey(); // Throws in production if not configured
-
     const { phone, pin } = await request.json();
 
     if (!phone || !pin) {
@@ -43,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { rows: users } = await sql`
-      SELECT id, phone, name, role, pin, failed_attempts FROM users
+      SELECT id, phone, name, role, pin, failed_attempts, session_version FROM users
       WHERE phone = ${phone} AND role = 'owner'
     `;
     const user = users[0];
@@ -60,7 +40,7 @@ export async function POST(request: NextRequest) {
     await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
 
     const response = NextResponse.json({ success: true });
-    response.cookies.set("owner_session", signSession(user.id), {
+    response.cookies.set("owner_session", signOwnerSession(user.id, user.session_version || 0), {
       httpOnly: true,
       secure: true,
       sameSite: "lax",

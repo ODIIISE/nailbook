@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { rows: users } = await sql`
-      SELECT id, phone, name, role, pin, failed_attempts, locked_until
+      SELECT id, phone, name, role, pin, failed_attempts, locked_until, session_version
       FROM users WHERE phone = ${phone}
     `;
     const user = users[0];
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       success: true,
       user: { id: user.id, phone: user.phone, name: user.name, role: user.role },
     });
-    response.cookies.set("session", signCustomerSession(user.id), {
+    response.cookies.set("session", signCustomerSession(user.id, user.session_version || 0), {
       httpOnly: true,
       secure: true,
       sameSite: "lax",

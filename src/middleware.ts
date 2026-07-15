@@ -1,13 +1,56 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+const SECRET = process.env.OWNER_SESSION_SECRET;
+
+async function verifySessionSignature(cookieValue: string): Promise<boolean> {
+  if (!SECRET) return false;
+
+  const parts = cookieValue.split(":");
+  if (parts.length !== 3) return false;
+
+  const [userId, timestamp, signature] = parts;
+  const payload = `${userId}:${timestamp}`;
+
+  try {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(SECRET),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+
+    const expectedSig = Array.from(
+      new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload)))
+    )
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    // Constant-time comparison
+    if (signature.length !== expectedSig.length) return false;
+    let result = 0;
+    for (let i = 0; i < signature.length; i++) {
+      result |= signature.charCodeAt(i) ^ expectedSig.charCodeAt(i);
+    }
+    return result === 0;
+  } catch {
+    return false;
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Protect /owner/* pages (not /owner/login)
   if (pathname.startsWith("/owner") && pathname !== "/owner/login") {
     const session = request.cookies.get("owner_session")?.value;
     if (!session) {
+      return NextResponse.redirect(new URL("/owner/login", request.url));
+    }
+    // Verify HMAC signature
+    const valid = await verifySessionSignature(session);
+    if (!valid) {
       return NextResponse.redirect(new URL("/owner/login", request.url));
     }
   }
@@ -22,6 +65,13 @@ export function middleware(request: NextRequest) {
     const session = request.cookies.get("owner_session")?.value;
     if (!session && pathname !== "/api/owner-logout") {
       return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    }
+    // Verify HMAC signature for API routes too
+    if (session && pathname !== "/api/owner-logout") {
+      const valid = await verifySessionSignature(session);
+      if (!valid) {
+        return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+      }
     }
   }
 

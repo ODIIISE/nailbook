@@ -14,6 +14,13 @@ function getSecretKey(): string {
   return SECRET;
 }
 
+export function signOwnerSession(userId: string, version: number = 0): string {
+  const secretKey = getSecretKey();
+  const payload = `${userId}:${Date.now()}:${version}`;
+  const signature = crypto.createHmac("sha256", secretKey).update(payload).digest("hex");
+  return `${payload}:${signature}`;
+}
+
 export function verifyOwnerSession(cookieValue: string | undefined): string | null {
   if (!cookieValue) return null;
 
@@ -25,10 +32,10 @@ export function verifyOwnerSession(cookieValue: string | undefined): string | nu
   }
 
   const parts = cookieValue.split(":");
-  if (parts.length !== 3) return null;
+  if (parts.length !== 4) return null;
 
-  const [userId, timestamp, signature] = parts;
-  const payload = `${userId}:${timestamp}`;
+  const [userId, timestamp, version, signature] = parts;
+  const payload = `${userId}:${timestamp}:${version}`;
   const expectedSig = crypto.createHmac("sha256", secretKey).update(payload).digest("hex");
 
   try {

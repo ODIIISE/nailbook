@@ -81,7 +81,7 @@ describe("getJalaliWeekdayFullName", () => {
 describe("isJalaliLeapYear", () => {
   it("should identify leap years correctly", () => {
     // These are known leap years in Jalali calendar
-    expect(isJalaliLeapYear(1404)).toBe(true);
-    expect(isJalaliLeapYear(1403)).toBe(false);
+    expect(isJalaliLeapYear(1403)).toBe(true);
+    expect(isJalaliLeapYear(1404)).toBe(false);
   });
 });

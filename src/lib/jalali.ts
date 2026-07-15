@@ -64,13 +64,15 @@ export function formatJalaliDateShort(
 
 export function getJalaliWeekdayName(date: Date): string {
   const dayOfWeek = date.getDay();
-  const mapping = [6, 0, 1, 2, 3, 4, 5];
+  // JS: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  // Persian: 0=Shanbeh(Sat), 1=Yekshanbeh(Sun), 2=Doshanbeh(Mon), 3=Seshanbeh(Tue), 4=Chaharshanbeh(Wed), 5=Panjshanbeh(Thu), 6=Jomeh(Fri)
+  const mapping = [1, 2, 3, 4, 5, 6, 0];
   return PERSIAN_WEEKDAYS[mapping[dayOfWeek]];
 }
 
 export function getJalaliWeekdayFullName(date: Date): string {
   const dayOfWeek = date.getDay();
-  const mapping = [6, 0, 1, 2, 3, 4, 5];
+  const mapping = [1, 2, 3, 4, 5, 6, 0];
   return PERSIAN_WEEKDAYS_FULL[mapping[dayOfWeek]];
 }
 

@@ -91,9 +91,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   specificDaysOffRef.current = specificDaysOff;
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
     async function load() {
       try {
+        const signal = controller.signal;
         const [salonData, servicesData, addonsData, bookingsData, hoursData, highlightsData, blockedData] = await Promise.all([
           fetchSalonInfo(),
           fetchServices(),
@@ -101,9 +102,9 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           fetchBookings(),
           fetchWorkingHours(),
           fetchHighlights(),
-          fetch("/api/owner/blocked-times").then((r) => r.json()).catch(() => ({ blockedTimes: [] })),
+          fetch("/api/owner/blocked-times", { signal }).then((r) => r.json()).catch(() => ({ blockedTimes: [] })),
         ]);
-        if (cancelled) return;
+        if (signal.aborted) return;
         if (salonData) setSalon(salonData);
         if (servicesData.length) setServices(servicesData);
         if (addonsData.length) setAddons(addonsData);
@@ -117,12 +118,12 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           setBlockedTimes(blockedData.blockedTimes);
         }
       } catch (e) {
-        if (!cancelled) console.error("Failed to load salon data:", e);
+        if (!controller.signal.aborted) console.error("Failed to load salon data:", e);
       }
-      if (!cancelled) setLoaded(true);
+      if (!controller.signal.aborted) setLoaded(true);
     }
     load();
-    return () => { cancelled = true; };
+    return () => controller.abort();
   }, []);
 
   const handleUpdateWorkingHours = useCallback(async (hours: WorkingHours) => {
