@@ -20,8 +20,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "حساب قفل شده است. لطفاً بعداً تلاش کنید" }, { status: 423 });
     }
 
+    // Ensure session_version column exists (safe to run multiple times)
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version INTEGER DEFAULT 0`;
+
     const { rows: users } = await sql`
-      SELECT id, phone, name, role, pin, failed_attempts, session_version FROM users
+      SELECT id, phone, name, role, pin, failed_attempts FROM users
       WHERE phone = ${phone} AND role = 'owner'
     `;
     const user = users[0];
@@ -38,7 +41,7 @@ export async function POST(request: NextRequest) {
     await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
 
     const response = NextResponse.json({ success: true });
-    response.cookies.set("owner_session", signOwnerSession(user.id, user.session_version || 0), {
+    response.cookies.set("owner_session", signOwnerSession(user.id), {
       httpOnly: true,
       secure: true,
       sameSite: "lax",

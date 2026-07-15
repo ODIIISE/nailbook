@@ -11,8 +11,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
 
+    // Ensure session_version column exists (safe to run multiple times)
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version INTEGER DEFAULT 0`;
+
     const { rows: users } = await sql`
-      SELECT id, phone, name, role, pin, failed_attempts, locked_until, session_version
+      SELECT id, phone, name, role, pin, failed_attempts, locked_until
       FROM users WHERE phone = ${phone}
     `;
     const user = users[0];
@@ -42,7 +45,7 @@ export async function POST(request: NextRequest) {
       success: true,
       user: { id: user.id, phone: user.phone, name: user.name, role: user.role },
     });
-    response.cookies.set("session", signCustomerSession(user.id, user.session_version || 0), {
+    response.cookies.set("session", signCustomerSession(user.id), {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
