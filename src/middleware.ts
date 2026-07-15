@@ -7,10 +7,16 @@ async function verifySessionSignature(cookieValue: string): Promise<boolean> {
   if (!SECRET) return false;
 
   const parts = cookieValue.split(":");
-  if (parts.length !== 3) return false;
+  // Accept both 3-part (legacy) and 4-part (versioned) tokens
+  if (parts.length !== 3 && parts.length !== 4) return false;
 
-  const [userId, timestamp, signature] = parts;
-  const payload = `${userId}:${timestamp}`;
+  const userId = parts[0];
+  const timestamp = parts[1];
+  const signature = parts[parts.length - 1]; // Last part is always signature
+
+  // Build payload: for 3-part it's "userId:timestamp", for 4-part it's "userId:timestamp:version"
+  const payloadParts = parts.slice(0, -1); // Everything except signature
+  const payload = payloadParts.join(":");
 
   try {
     const key = await crypto.subtle.importKey(

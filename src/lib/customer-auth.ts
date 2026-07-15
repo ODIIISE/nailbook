@@ -32,10 +32,17 @@ export function verifyCustomerSession(cookieValue: string | undefined): string |
   }
 
   const parts = cookieValue.split(":");
-  if (parts.length !== 4) return null;
+  // Accept both 3-part (legacy) and 4-part (versioned) tokens
+  if (parts.length !== 3 && parts.length !== 4) return null;
 
-  const [userId, timestamp, version, signature] = parts;
-  const payload = `${userId}:${timestamp}:${version}`;
+  const userId = parts[0];
+  const timestamp = parts[1];
+  const signature = parts[parts.length - 1]; // Last part is always signature
+
+  // Build payload: for 3-part it's "userId:timestamp", for 4-part it's "userId:timestamp:version"
+  const payloadParts = parts.slice(0, -1); // Everything except signature
+  const payload = payloadParts.join(":");
+
   const expectedSig = crypto.createHmac("sha256", secretKey).update(payload).digest("hex");
 
   try {
@@ -61,7 +68,8 @@ export async function verifyCustomerSessionWithVersion(cookieValue: string | und
 
   // Check session version against DB
   const parts = cookieValue.split(":");
-  const sessionVersion = parseInt(parts[2]) || 0;
+  // For 4-part tokens, version is at index 2; for 3-part legacy tokens, version is 0
+  const sessionVersion = parts.length === 4 ? (parseInt(parts[2]) || 0) : 0;
 
   try {
     const { rows } = await sql`SELECT session_version FROM users WHERE id = ${userId}`;

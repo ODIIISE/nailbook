@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { hashPin } from "@/lib/pin-hash";
+import { verifyPin } from "@/lib/pin-hash";
 import { signOwnerSession } from "@/lib/owner-auth";
 
 export async function POST(request: NextRequest) {
@@ -10,8 +10,6 @@ export async function POST(request: NextRequest) {
     if (!phone || !pin) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
-
-    const hashedPin = hashPin(pin);
 
     const { rows: checkUser } = await sql`
       SELECT id, locked_until, failed_attempts FROM users
@@ -28,7 +26,7 @@ export async function POST(request: NextRequest) {
     `;
     const user = users[0];
 
-    if (!user || user.pin !== hashedPin) {
+    if (!user || !verifyPin(pin, user.pin)) {
       const attempts = (user?.failed_attempts || 0) + 1;
       const lockUntil = attempts >= 5 ? new Date(Date.now() + 30 * 60 * 1000).toISOString() : null;
       if (user?.id) {
@@ -49,7 +47,8 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch {
+  } catch (error) {
+    console.error("Owner login error:", error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }
