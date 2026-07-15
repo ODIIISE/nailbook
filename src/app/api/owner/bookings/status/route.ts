@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
+import { logActivity } from "@/lib/db/activity-log";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +19,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "وضعیت نامعتبر" }, { status: 400 });
     }
 
+    // Get current status for logging
+    const { rows: current } = await sql`SELECT status, customer_name, customer_phone FROM bookings WHERE id = ${bookingId}`;
+    const oldStatus = current[0]?.status || "unknown";
+
     await sql`UPDATE bookings SET status = ${status} WHERE id = ${bookingId}`;
+
+    const statusLabels: Record<string, string> = {
+      pending: "در انتظار",
+      reserved: "رزرو شده",
+      confirmed: "تایید شده",
+      in_progress: "در حال انجام",
+      completed: "انجام شده",
+      cancelled: "لغو شده",
+    };
+
+    logActivity({
+      eventType: status === "cancelled" ? "booking_cancelled" : "booking_status_changed",
+      entityType: "booking",
+      entityId: bookingId,
+      description: `وضعیت نوبت ${current[0]?.customer_name || current[0]?.customer_phone || ""} از ${statusLabels[oldStatus] || oldStatus} به ${statusLabels[status] || status} تغییر کرد`,
+      metadata: { bookingId, oldStatus, newStatus: status, customer_name: current[0]?.customer_name, customer_phone: current[0]?.customer_phone },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

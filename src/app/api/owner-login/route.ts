@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyPin } from "@/lib/pin-hash";
 import { signOwnerSession } from "@/lib/owner-auth";
+import { logActivity } from "@/lib/db/activity-log";
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,6 +40,14 @@ export async function POST(request: NextRequest) {
     }
 
     await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
+
+    logActivity({
+      eventType: "owner_login",
+      entityType: "user",
+      entityId: user.id,
+      description: `مدیر "${user.name || user.phone}" وارد شد`,
+      metadata: { phone: user.phone, name: user.name },
+    });
 
     const response = NextResponse.json({ success: true });
     response.cookies.set("owner_session", signOwnerSession(user.id), {

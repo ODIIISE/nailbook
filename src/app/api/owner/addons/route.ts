@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
+import { logActivity } from "@/lib/db/activity-log";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -57,6 +58,13 @@ export async function PUT(request: NextRequest) {
           is_active = ${a.is_active !== false}, sort_order = ${a.sort_order || i + 1}
       `;
     }
+
+    logActivity({
+      eventType: "addon_updated",
+      entityType: "addon",
+      description: `${addons.length} آپشن به‌روزرسانی شد`,
+      metadata: { count: addons.length, deleted: deletedIds.length },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

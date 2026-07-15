@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
+import { logActivity } from "@/lib/db/activity-log";
 
 export async function GET() {
   try {
@@ -44,6 +45,15 @@ export async function PUT(request: NextRequest) {
       VALUES (${h.id}, ${h.name}, ${h.cover_url || null}, ${h.sort_order || 0})
       ON CONFLICT (id) DO UPDATE SET name = ${h.name}, cover_url = ${h.cover_url || null}, sort_order = ${h.sort_order || 0}
     `;
+
+    logActivity({
+      eventType: "highlight_updated",
+      entityType: "highlight",
+      entityId: h.id,
+      description: `هایلایت "${h.name}" به‌روزرسانی شد`,
+      metadata: { name: h.name },
+    });
+
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
@@ -60,8 +70,21 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
+
+    // Get highlight name for logging
+    const { rows: highlight } = await sql`SELECT name FROM highlights WHERE id = ${id}`;
+
     await sql`DELETE FROM highlight_images WHERE highlight_id = ${id}`;
     await sql`DELETE FROM highlights WHERE id = ${id}`;
+
+    logActivity({
+      eventType: "highlight_deleted",
+      entityType: "highlight",
+      entityId: id,
+      description: `هایلایت "${highlight[0]?.name || id}" حذف شد`,
+      metadata: { name: highlight[0]?.name },
+    });
+
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
