@@ -47,10 +47,23 @@ export default function OwnerDashboard() {
     }
   }, [searchParams]);
 
-  // Poll for new bookings every 30 seconds
+  // Refresh bookings: 10s polling + instant refresh on tab focus
   useEffect(() => {
-    const id = setInterval(refreshBookings, 30000);
-    return () => clearInterval(id);
+    const id = setInterval(refreshBookings, 10000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") refreshBookings();
+    };
+    const handleFocus = () => refreshBookings();
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleFocus);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
