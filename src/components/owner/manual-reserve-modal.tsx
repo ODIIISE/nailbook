@@ -83,7 +83,7 @@ export function ManualReserveModal({
     }
   };
 
-  const isValid = name && phone && serviceId && startTime && endTime && endTime > startTime;
+  const isValid = phone && serviceId && startTime && endTime && endTime > startTime;
 
   const handleSubmit = () => {
     if (!isValid) return;
@@ -104,7 +104,7 @@ export function ManualReserveModal({
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="نام و نام خانوادگی"
+            placeholder="نام (اختیاری)"
             className="mt-1"
           />
         </div>
@@ -118,6 +118,9 @@ export function ManualReserveModal({
             dir="ltr"
             className="mt-1 text-left"
           />
+          <p className="text-[11px] text-muted-foreground mt-1">
+            اگر شماره جدید باشد، کاربر خودکار ساخته می‌شود
+          </p>
         </div>
 
         <div>

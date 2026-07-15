@@ -111,7 +111,7 @@ export default function OwnerDashboard() {
     updateBlockedTimes(blockedTimes.filter((_, i) => i !== index));
   };
 
-  const handleManualReserve = (data: {
+  const handleManualReserve = async (data: {
     customer_name: string;
     customer_phone: string;
     service_id: string;
@@ -122,8 +122,38 @@ export default function OwnerDashboard() {
     const service = services.find((s) => s.id === data.service_id);
     const j = gregorianToJalali(currentDate);
 
+    // Check if user exists, if not create a placeholder
+    let userId: string | undefined;
+    try {
+      const checkRes = await fetch("/api/auth/check-phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: data.customer_phone }),
+      });
+      const checkData = await checkRes.json();
+      if (!checkData.exists) {
+        // Create placeholder user with just phone number
+        const createRes = await fetch("/api/owner/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            phone: data.customer_phone,
+            pin: "0000", // Temporary PIN, user will set their own on first login
+            name: data.customer_name || "مشتری",
+            role: "customer",
+          }),
+        });
+        const createData = await createRes.json();
+        if (createData.userId) userId = createData.userId;
+      }
+    } catch (e) {
+      console.error("Failed to ensure user:", e);
+    }
+
     addBooking({
       id: crypto.randomUUID(),
+      user_id: userId,
       service_id: data.service_id,
       selected_addons: [],
       customer_name: data.customer_name,
