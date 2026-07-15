@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
 import { PinInput } from "@/components/booking/pin-input";
 import { normalizeDigits } from "@/lib/digits";
+import { toast } from "sonner";
 
 const salon = { name: "استدیو تخصصی ناخن فورهند" };
 
@@ -44,6 +45,10 @@ export default function OwnerLoginPage() {
         setIsLoading(false);
         return;
       }
+      toast.success("خوش آمدید مدیر", {
+        description: "ورود شما با موفقیت انجام شد",
+        duration: 3000,
+      });
       router.push("/owner");
     } catch {
       setError("خطای سرور");

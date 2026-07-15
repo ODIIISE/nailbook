@@ -11,6 +11,7 @@ import { PinInput } from "@/components/booking/pin-input";
 import { useAuth } from "@/lib/auth-context";
 import { normalizeDigits } from "@/lib/digits";
 import { LogIn } from "lucide-react";
+import { toast } from "sonner";
 
 type Step = "phone" | "verify-pin" | "create-pin" | "confirm-pin" | "name";
 
@@ -57,6 +58,12 @@ export default function LoginPage() {
     const result = await login(phone, enteredPin);
     setIsLoading(false);
     if (result.success) {
+      const stored = localStorage.getItem("nailbook_user");
+      const userName = stored ? JSON.parse(stored).name : "";
+      toast.success(userName ? `خوش آمدید ${userName}` : "خوش آمدید", {
+        description: "ورود شما با موفقیت انجام شد",
+        duration: 3000,
+      });
       router.replace("/");
     } else {
       setError(result.error || "کد نادرست است");
@@ -83,8 +90,13 @@ export default function LoginPage() {
     setError("");
     const result = await signup(phone, pin, nameValue.trim());
     setIsLoading(false);
-    if (result.success) router.replace("/");
-    else setError(result.error || "خطا در ثبت‌نام");
+    if (result.success) {
+      toast.success(`خوش آمدید ${nameValue.trim()}`, {
+        description: "حساب شما با موفقیت ساخته شد",
+        duration: 3000,
+      });
+      router.replace("/");
+    } else setError(result.error || "خطا در ثبت‌نام");
   }, [phone, pin, nameValue, signup, router]);
 
   if (user) return null;
