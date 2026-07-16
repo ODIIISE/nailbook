@@ -24,13 +24,14 @@ export async function POST(request: NextRequest) {
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const { phone, pin, name, role } = await request.json();
-    if (!phone || !pin) return NextResponse.json({ error: "داده ناقص" }, { status: 400 });
+    if (!phone) return NextResponse.json({ error: "شماره الزامی است" }, { status: 400 });
     if (!name || !name.trim()) return NextResponse.json({ error: "نام الزامی است" }, { status: 400 });
 
     const userId = crypto.randomUUID();
+    const hashedPin = pin ? hashPin(String(pin)) : null;
     await sql`
       INSERT INTO users (id, phone, pin, name, role)
-      VALUES (${userId}, ${phone}, ${hashPin(String(pin))}, ${name.trim()}, ${role || "customer"})
+      VALUES (${userId}, ${phone}, ${hashedPin}, ${name.trim()}, ${role || "customer"})
     `;
 
     logActivity({

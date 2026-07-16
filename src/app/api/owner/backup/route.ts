@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
+import { logActivity } from "@/lib/db/activity-log";
 
 // GET: Export all salon data as JSON backup
 export async function GET(request: NextRequest) {
@@ -131,6 +132,13 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
+    logActivity({
+      eventType: "salon_updated",
+      entityType: "backup",
+      description: `بکاپ بازیابی شد (${results.length} آیتم)`,
+      metadata: { restored: results.length, mode, items: results.slice(0, 20) },
+    });
 
     return NextResponse.json({ success: true, restored: results.length, items: results });
   } catch (error) {

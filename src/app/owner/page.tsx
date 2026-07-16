@@ -132,14 +132,13 @@ export default function OwnerDashboard() {
       });
       const checkData = await checkRes.json();
       if (!checkData.exists) {
-        // Create placeholder user with just phone number
+        // Create placeholder user with just phone number (no PIN — user sets their own on first login)
         const createRes = await fetch("/api/owner/users", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
             phone: data.customer_phone,
-            pin: "0000", // Temporary PIN, user will set their own on first login
             name: data.customer_name || "مشتری",
             role: "customer",
           }),

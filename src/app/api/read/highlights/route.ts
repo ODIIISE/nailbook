@@ -5,8 +5,12 @@ import { logActivity } from "@/lib/db/activity-log";
 
 export async function GET() {
   try {
-    const { rows: highlights } = await sql`SELECT * FROM highlights ORDER BY sort_order`;
-    const { rows: images } = await sql`SELECT * FROM highlight_images ORDER BY sort_order`;
+    const { rows: highlights } = await sql`
+      SELECT id, name, cover_url, sort_order FROM highlights ORDER BY sort_order
+    `;
+    const { rows: images } = await sql`
+      SELECT id, highlight_id, image_url, caption, sort_order FROM highlight_images ORDER BY sort_order
+    `;
 
     const imageMap = new Map<string, unknown[]>();
     for (const img of images) {

@@ -3,7 +3,10 @@ import { sql } from "@vercel/postgres";
 
 export async function GET() {
   try {
-    const { rows } = await sql`SELECT * FROM services ORDER BY sort_order`;
+    const { rows } = await sql`
+      SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score
+      FROM services ORDER BY sort_order
+    `;
     return NextResponse.json(rows.map((s) => ({
       id: s.id,
       name: s.name,
@@ -15,7 +18,7 @@ export async function GET() {
       addon_ids: s.addon_ids || [],
       priority_score: Number(s.priority_score) || 5,
     })));
-  } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

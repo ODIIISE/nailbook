@@ -21,9 +21,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "حساب قفل شده است. لطفاً بعداً تلاش کنید" }, { status: 423 });
     }
 
-    // Ensure session_version column exists (safe to run multiple times)
-    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version INTEGER DEFAULT 0`;
-
     const { rows: users } = await sql`
       SELECT id, phone, name, role, pin, failed_attempts FROM users
       WHERE phone = ${phone} AND role = 'owner'

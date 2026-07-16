@@ -45,7 +45,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     if (client) {
-      try { await client.query("ROLLBACK"); } catch {}
+      try { await client.query("ROLLBACK"); } catch (rbError) { console.error("ROLLBACK failed:", rbError); }
     }
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   } finally {

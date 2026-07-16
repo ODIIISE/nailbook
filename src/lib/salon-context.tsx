@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react";
 import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "@/lib/types";
 import type { WorkingHours } from "@/lib/slots";
+import { toast } from "sonner";
 import {
   fetchSalonInfo,
   fetchServices,
@@ -118,7 +119,13 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           setBlockedTimes(blockedData.blockedTimes);
         }
       } catch (e) {
-        if (!controller.signal.aborted) console.error("Failed to load salon data:", e);
+        if (!controller.signal.aborted) {
+          console.error("Failed to load salon data:", e);
+          toast.error("خطا در بارگذاری اطلاعات", {
+            description: "لطفاً صفحه را رفرش کنید",
+            duration: 5000,
+          });
+        }
       }
       if (!controller.signal.aborted) setLoaded(true);
     }

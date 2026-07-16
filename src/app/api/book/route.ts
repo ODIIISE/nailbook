@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     // Rollback on error
     if (client) {
-      try { await client.query("ROLLBACK"); } catch {}
+      try { await client.query("ROLLBACK"); } catch (rbError) { console.error("ROLLBACK failed:", rbError); }
     }
 
     // Log the actual error

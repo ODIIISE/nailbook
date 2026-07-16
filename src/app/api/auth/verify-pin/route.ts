@@ -11,9 +11,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
 
-    // Ensure session_version column exists (safe to run multiple times)
-    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version INTEGER DEFAULT 0`;
-
     const { rows: users } = await sql`
       SELECT id, phone, name, role, pin, failed_attempts, locked_until
       FROM users WHERE phone = ${phone}
