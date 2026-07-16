@@ -9,17 +9,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") || "200"), 500);
-    const offset = parseInt(searchParams.get("offset") || "0");
-
     const { rows } = await sql`
       SELECT id, service_id, selected_addons, customer_name, customer_phone,
              date, date_gregorian::text as date_gregorian, start_time, end_time, status, paid,
              phone_verified, created_at
       FROM bookings
       ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
     `;
     const normalized = rows.map((r) => ({
       ...r,
