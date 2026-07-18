@@ -421,15 +421,6 @@ export default function BookContent() {
               <div className="w-2 h-2 rounded-full bg-black/10" />
             </div>
 
-            {/* Header */}
-            <div className="text-center mb-2">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--rose)]/10">
-                <span className="text-xl">📅</span>
-              </div>
-              <h2 className="text-h2 text-foreground">انتخاب زمان</h2>
-              <p className="text-[13px] text-muted-foreground mt-1">تاریخ و ساعت مورد نظر خود را انتخاب کنید</p>
-            </div>
-
             <JalaliCalendar
               selectedDate={selectedDate}
               onSelectDate={handleSelectDate}
