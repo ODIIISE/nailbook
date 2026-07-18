@@ -1,13 +1,11 @@
 import crypto from "crypto";
 import { sql } from "@vercel/postgres";
 
-const SECRET = process.env.CUSTOMER_SESSION_SECRET
-  ?? (process.env.NODE_ENV === "development"
-    ? "nailbook-dev-customer-fallback"
-    : (() => { throw new Error("CUSTOMER_SESSION_SECRET is required in production"); })());
-
 function getSecretKey(): string {
-  return SECRET;
+  const secret = process.env.CUSTOMER_SESSION_SECRET;
+  if (secret) return secret;
+  if (process.env.NODE_ENV === "development") return "nailbook-dev-customer-fallback";
+  throw new Error("CUSTOMER_SESSION_SECRET is required in production");
 }
 
 export function signCustomerSession(userId: string, version: number = 0): string {

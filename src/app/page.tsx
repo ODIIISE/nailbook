@@ -44,18 +44,6 @@ export default function HomePage() {
   return (
     <SalonGuard>
     <div className="relative min-h-screen">
-      {/* Hero background image */}
-      <div className="absolute top-0 left-0 right-0 z-0 pointer-events-none">
-        <img
-          src="/hero-bg.webp"
-          alt=""
-          className="w-full object-cover object-top opacity-80"
-          style={{
-            maskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
-            WebkitMaskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
-          }}
-        />
-      </div>
 
       <div className="relative z-10">
         <AppHeader />

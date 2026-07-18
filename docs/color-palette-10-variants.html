@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Palette Variants — V2 Soft Rounded</title>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2" rel="stylesheet" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2" rel="stylesheet" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2" rel="stylesheet" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-ExtraBold.woff2" rel="stylesheet" crossorigin>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Vazirmatn',-apple-system,sans-serif;background:#09090b;color:#fff;padding:24px 16px;}
+h1{text-align:center;font-size:22px;font-weight:800;margin-bottom:4px;}
+.sub{text-align:center;color:#52525b;font-size:13px;margin-bottom:8px;}
+.note{text-align:center;color:#C4A882;font-size:12px;margin-bottom:32px;}
+
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;max-width:1800px;margin:0 auto;}
+@media(max-width:1400px){.grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:900px){.grid{grid-template-columns:1fr;max-width:380px;margin:0 auto;}}
+
+.col{border-radius:16px;overflow:hidden;background:#18181b;}
+.col-h{padding:12px 14px 10px;border-bottom:1px solid #27272a;}
+.col-h h3{font-size:14px;font-weight:700;}
+.col-h .meta{font-size:10px;color:#71717a;margin-top:3px;line-height:1.5;}
+.col-b{padding:12px;}
+.palette{display:flex;gap:4px;margin-top:6px;}
+.sw{width:100%;height:16px;border-radius:4px;}
+
+.phone{border-radius:20px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.06);}
+.scr{min-height:520px;display:flex;flex-direction:column;}
+
+/* V2 Soft Rounded — shared component style */
+.topbar{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-t{font-size:14px;font-weight:700;}
+.hero{padding:28px 18px 22px;text-align:center;}
+.salon{font-size:18px;font-weight:800;}
+.sub-t{font-size:10px;margin-top:3px;opacity:0.6;}
+.tagln{font-size:12px;line-height:1.6;margin-top:10px;opacity:0.7;}
+.cta{margin-top:14px;padding:10px 32px;font-size:12px;font-weight:600;border:none;border-radius:50px;cursor:pointer;font-family:inherit;}
+.section-label{font-size:11px;padding:14px 18px 8px;font-weight:600;opacity:0.5;}
+.svc{margin:3px 18px;padding:10px 12px;border-radius:12px;display:flex;align-items:center;gap:10px;}
+.svc-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.svc-n{font-size:12px;font-weight:600;}
+.svc-d{font-size:9px;opacity:0.5;}
+.svc-p{font-size:12px;font-weight:700;margin-right:auto;}
+.acts{display:flex;gap:6px;padding:8px 18px;}
+.act{flex:1;height:36px;border-radius:12px;border:1px solid;display:flex;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:500;cursor:pointer;font-family:inherit;background:transparent;}
+.nav{display:flex;justify-content:space-around;padding:10px 0 14px;margin-top:auto;border-top:1px solid;}
+.ni{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:9px;opacity:0.4;}
+.ni.on{opacity:1;font-weight:600;}
+</style>
+</head>
+<body>
+
+<h1>Color Palette Variants — V2 Soft Rounded</h1>
+<p class="sub">Same 12px radius, pill buttons, subtle shadows — different color palettes</p>
+<p class="note">Pick the palette you like and I'll implement it</p>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const palettes = [
+  {
+    name: "Warm Cream", trend: "Current",
+    bg: "#FAF8F5", text: "#2D2926", muted: "#A89888", border: "#E8E0D6",
+    card: "#FFFFFF", cardBorder: "#E8E0D6",
+    cta: "#2D2926", ctaText: "#FAF8F5",
+    accent: "#C4A882", accentText: "#2D2926",
+    nav: "#FAF8F5", navBorder: "#E8E0D6",
+    iconBg: "#F2EDE6",
+    desc: "Warm neutrals, gold accent — your current palette, refined"
+  },
+  {
+    name: "Sage Garden", trend: "Earthy",
+    bg: "#F5F7F0", text: "#2D3B2D", muted: "#7A8A6A", border: "#D4DEC8",
+    card: "#FFFFFF", cardBorder: "#D4DEC8",
+    cta: "#2D3B2D", ctaText: "#FFFFFF",
+    accent: "#7A9A5A", accentText: "#FFFFFF",
+    nav: "#F5F7F0", navBorder: "#D4DEC8",
+    iconBg: "#E8F0E0",
+    desc: "Sage green + warm white — nature-inspired, calming"
+  },
+  {
+    name: "Dusty Rose", trend: "Romantic",
+    bg: "#FDF5F5", text: "#3D2828", muted: "#A88888", border: "#F0D8D8",
+    card: "#FFFFFF", cardBorder: "#F0D8D8",
+    cta: "#3D2828", ctaText: "#FFFFFF",
+    accent: "#C47070", accentText: "#FFFFFF",
+    nav: "#FDF5F5", navBorder: "#F0D8D8",
+    iconBg: "#FAE8E8",
+    desc: "Soft pink tones — romantic, feminine, gentle luxury"
+  },
+  {
+    name: "Terracotta", trend: "Warm",
+    bg: "#FAF5F0", text: "#3D2E1E", muted: "#A88868", border: "#E8D8C4",
+    card: "#FFFFFF", cardBorder: "#E8D8C4",
+    cta: "#3D2E1E", ctaText: "#FFFFFF",
+    accent: "#C47040", accentText: "#FFFFFF",
+    nav: "#FAF5F0", navBorder: "#E8D8C4",
+    iconBg: "#F5E8D8",
+    desc: "Warm clay tones — earthy, organic, Mediterranean"
+  },
+  {
+    name: "Ocean Navy", trend: "Professional",
+    bg: "#F5F7FA", text: "#1A2A3A", muted: "#6A7A8A", border: "#D0D8E0",
+    card: "#FFFFFF", cardBorder: "#D0D8E0",
+    cta: "#1A2A3A", ctaText: "#FFFFFF",
+    accent: "#2A6A8A", accentText: "#FFFFFF",
+    nav: "#F5F7FA", navBorder: "#D0D8E0",
+    iconBg: "#E0EAF4",
+    desc: "Deep navy + teal — professional, trustworthy"
+  },
+  {
+    name: "Lavender", trend: "Soft",
+    bg: "#F8F5FC", text: "#2D2040", muted: "#8A7A9A", border: "#E0D8EC",
+    card: "#FFFFFF", cardBorder: "#E0D8EC",
+    cta: "#2D2040", ctaText: "#FFFFFF",
+    accent: "#8A6AB4", accentText: "#FFFFFF",
+    nav: "#F8F5FC", navBorder: "#E0D8EC",
+    iconBg: "#F0E8F8",
+    desc: "Soft purple tones — dreamy, creative, playful"
+  },
+  {
+    name: "Charcoal", trend: "Modern",
+    bg: "#F5F5F5", text: "#1A1A1A", muted: "#777777", border: "#E0E0E0",
+    card: "#FFFFFF", cardBorder: "#E0E0E0",
+    cta: "#1A1A1A", ctaText: "#FFFFFF",
+    accent: "#555555", accentText: "#FFFFFF",
+    nav: "#F5F5F5", navBorder: "#E0E0E0",
+    iconBg: "#ECECEC",
+    desc: "Pure gray scale — minimal, modern, universal"
+  },
+  {
+    name: "Blush Pink", trend: "Elegant",
+    bg: "#FFF8F8", text: "#3D2830", muted: "#A88898", border: "#F0E0E4",
+    card: "#FFFFFF", cardBorder: "#F0E0E4",
+    cta: "#3D2830", ctaText: "#FFFFFF",
+    accent: "#D4708A", accentText: "#FFFFFF",
+    nav: "#FFF8F8", navBorder: "#F0E0E4",
+    iconBg: "#FAE8EC",
+    desc: "Blush pink + rose gold — elegant, premium feel"
+  },
+  {
+    name: "Forest", trend: "Bold",
+    bg: "#F5F8F2", text: "#1A2A1A", muted: "#6A8A5A", border: "#D0E0C8",
+    card: "#FFFFFF", cardBorder: "#D0E0C8",
+    cta: "#1A2A1A", ctaText: "#FFFFFF",
+    accent: "#4A7A3A", accentText: "#FFFFFF",
+    nav: "#F5F8F2", navBorder: "#D0E0C8",
+    iconBg: "#E0F0D8",
+    desc: "Deep forest green + gold — bold, natural luxury"
+  },
+  {
+    name: "Midnight", trend: "Dark",
+    bg: "#0F1218", text: "#E8E4F0", muted: "#6A6A7A", border: "#2A2A3A",
+    card: "#1A1E28", cardBorder: "#2A2A3A",
+    cta: "#E8E4F0", ctaText: "#0F1218",
+    accent: "#7A8AB4", accentText: "#FFFFFF",
+    nav: "#0F1218", navBorder: "#2A2A3A",
+    iconBg: "#252A35",
+    desc: "Dark mode luxury — deep blue-black, silver accent"
+  }
+];
+
+const grid = document.getElementById('grid');
+
+palettes.forEach((p, i) => {
+  const card = document.createElement('div');
+  card.className = 'col';
+  card.innerHTML = `
+    <div class="col-h">
+      <h3>${i+1}. ${p.name}</h3>
+      <div class="meta">${p.desc}</div>
+      <div class="palette">
+        <div class="sw" style="background:${p.bg};border:1px solid ${p.border};"></div>
+        <div class="sw" style="background:${p.text};"></div>
+        <div class="sw" style="background:${p.accent};"></div>
+        <div class="sw" style="background:${p.muted};"></div>
+        <div class="sw" style="background:${p.card};border:1px solid ${p.border};"></div>
+        <div class="sw" style="background:${p.iconBg};border:1px solid ${p.border};"></div>
+      </div>
+    </div>
+    <div class="col-b" style="padding:0;">
+      <div class="phone">
+        <div class="scr" style="background:${p.bg};color:${p.text};">
+          <div class="topbar" style="background:${p.bg};border-bottom:1px solid ${p.border};">
+            <span class="topbar-t">زمان‌بندی</span>
+            <span style="opacity:0.4;">☰</span>
+          </div>
+          <div class="hero">
+            <div class="salon" style="color:${p.text};">فورهند نیل استودیو</div>
+            <div class="sub-t" style="color:${p.muted};">沙龙美甲工作室</div>
+            <div class="tagln" style="color:${p.muted};">جایی که ظرافت با دقت همراه می‌شود</div>
+            <button class="cta" style="background:${p.cta};color:${p.ctaText};">رزرو کن</button>
+          </div>
+          <div class="section-label" style="color:${p.muted};">خدمات ما</div>
+          <div class="svc" style="background:${p.card};border:1px solid ${p.cardBorder};">
+            <div class="svc-ic" style="background:${p.iconBg};border:1px solid ${p.cardBorder};">💅</div>
+            <div><div class="svc-n" style="color:${p.text};">مانیکور کلاسیک</div><div class="svc-d" style="color:${p.muted};">۴۵ دقیقه</div></div>
+            <div class="svc-p" style="color:${p.accent};">۴۵۰,۰۰۰ ت</div>
+          </div>
+          <div class="svc" style="background:${p.card};border:1px solid ${p.cardBorder};">
+            <div class="svc-ic" style="background:${p.iconBg};border:1px solid ${p.cardBorder};">✨</div>
+            <div><div class="svc-n" style="color:${p.text};">طراحی ناخن</div><div class="svc-d" style="color:${p.muted};">۶۰ دقیقه</div></div>
+            <div class="svc-p" style="color:${p.accent};">۶۵۰,۰۰۰ ت</div>
+          </div>
+          <div class="svc" style="background:${p.card};border:1px solid ${p.cardBorder};">
+            <div class="svc-ic" style="background:${p.iconBg};border:1px solid ${p.cardBorder};">🦶</div>
+            <div><div class="svc-n" style="color:${p.text};">پدیکور</div><div class="svc-d" style="color:${p.muted};">۶۰ دقیقه</div></div>
+            <div class="svc-p" style="color:${p.accent};">۵۵۰,۰۰۰ ت</div>
+          </div>
+          <div class="acts">
+            <button class="act" style="color:${p.text};border-color:${p.cardBorder};">+ مسدود</button>
+            <button class="act" style="color:${p.text};border-color:${p.cardBorder};">+ رزرو</button>
+          </div>
+          <div class="nav" style="background:${p.nav};border-color:${p.navBorder};">
+            <div class="ni on" style="color:${p.accent};">📅<span>زمان‌بندی</span></div>
+            <div class="ni" style="color:${p.muted};">💼<span>خدمات</span></div>
+            <div class="ni" style="color:${p.muted};">🕐<span>ساعات</span></div>
+            <div class="ni" style="color:${p.muted};">☰<span>منو</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>
