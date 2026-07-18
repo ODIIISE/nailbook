@@ -8,6 +8,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SalonGuard } from "@/components/ui/salon-guard";
+import { Drawer, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle } from "@/components/ui/drawer";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Clock, Calendar, User, ArrowLeft } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
@@ -222,120 +224,119 @@ function BookingDetailModal({
   const endMinutes = parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
   const duration = endMinutes - startMinutes;
 
+  const canCancel = booking.status === "reserved" || booking.status === "confirmed";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg glass rounded-t-3xl p-6 pb-8 animate-slideUp">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-h2 text-foreground">جزئیات نوبت</h2>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-foreground/5">
-            <span className="text-muted-foreground">✕</span>
-          </button>
-        </div>
+    <>
+      <Drawer open onOpenChange={(open) => { if (!open) onClose(); }}>
+        <DrawerContent>
+          <DrawerHeader>
+            <div className="flex items-center justify-between">
+              <DrawerTitle className="text-h2">جزئیات نوبت</DrawerTitle>
+              <button onClick={onClose} className="p-2 rounded-full hover:bg-foreground/5">
+                <span className="text-muted-foreground">✕</span>
+              </button>
+            </div>
+          </DrawerHeader>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between py-2 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">خدمت</span>
-            <span className="text-sm font-bold text-foreground">{getServiceName(booking.service_id)}</span>
-          </div>
-
-          <div className="flex items-center justify-between py-2 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">مشتری</span>
-            <span className="text-sm font-bold text-foreground">{booking.customer_name}</span>
-          </div>
-
-          <div className="flex items-center justify-between py-2 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">تاریخ</span>
-            <span className="text-sm font-bold text-foreground">
-              {toPersianDigits(jalali.jd)} {JALALI_MONTHS[jalali.jm]} {toPersianDigits(jalali.jy)}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between py-2 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">ساعت</span>
-            <span className="text-sm font-bold text-foreground">
-              {formatJalaliTime(time)} تا {formatJalaliTime(endTime)}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between py-2 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">مدت</span>
-            <span className="text-sm font-bold text-foreground">{toPersianDigits(duration)} دقیقه</span>
-          </div>
-
-          {addonNames.length > 0 && (
+          <div className="px-6 pb-6 space-y-3 overflow-y-auto">
             <div className="flex items-center justify-between py-2 border-b border-border/30">
-              <span className="text-sm text-muted-foreground">آپشن‌ها</span>
-              <span className="text-sm font-bold text-foreground">{addonNames.join("، ")}</span>
+              <span className="text-sm text-muted-foreground">خدمت</span>
+              <span className="text-sm font-bold text-foreground">{getServiceName(booking.service_id)}</span>
             </div>
-          )}
 
-          <div className="flex items-center justify-between py-2 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">هزینه</span>
-            <span className="text-base font-bold text-foreground">
-              {getServicePrice(booking.service_id) !== null
-                ? `${formatPrice(getServicePrice(booking.service_id)!)} تومان`
-                : "نامعلوم"}
-            </span>
+            <div className="flex items-center justify-between py-2 border-b border-border/30">
+              <span className="text-sm text-muted-foreground">مشتری</span>
+              <span className="text-sm font-bold text-foreground">{booking.customer_name}</span>
+            </div>
+
+            <div className="flex items-center justify-between py-2 border-b border-border/30">
+              <span className="text-sm text-muted-foreground">تاریخ</span>
+              <span className="text-sm font-bold text-foreground">
+                {toPersianDigits(jalali.jd)} {JALALI_MONTHS[jalali.jm]} {toPersianDigits(jalali.jy)}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between py-2 border-b border-border/30">
+              <span className="text-sm text-muted-foreground">ساعت</span>
+              <span className="text-sm font-bold text-foreground">
+                {formatJalaliTime(time)} تا {formatJalaliTime(endTime)}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between py-2 border-b border-border/30">
+              <span className="text-sm text-muted-foreground">مدت</span>
+              <span className="text-sm font-bold text-foreground">{toPersianDigits(duration)} دقیقه</span>
+            </div>
+
+            {addonNames.length > 0 && (
+              <div className="flex items-center justify-between py-2 border-b border-border/30">
+                <span className="text-sm text-muted-foreground">آپشن‌ها</span>
+                <span className="text-sm font-bold text-foreground">{addonNames.join("، ")}</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between py-2 border-b border-border/30">
+              <span className="text-sm text-muted-foreground">هزینه</span>
+              <span className="text-base font-bold text-foreground">
+                {getServicePrice(booking.service_id) !== null
+                  ? `${formatPrice(getServicePrice(booking.service_id)!)} تومان`
+                  : "نامعلوم"}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between py-2 border-b border-border/30">
+              <span className="text-sm text-muted-foreground">وضعیت</span>
+              <Badge variant={status.variant}>{status.label}</Badge>
+            </div>
+
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm text-muted-foreground">کد رهگیری</span>
+              <span className="text-sm font-bold text-foreground font-mono">#{shortId}</span>
+            </div>
           </div>
 
-          <div className="flex items-center justify-between py-2 border-b border-border/30">
-            <span className="text-sm text-muted-foreground">وضعیت</span>
-            <Badge variant={status.variant}>{status.label}</Badge>
-          </div>
-
-          <div className="flex items-center justify-between py-2">
-            <span className="text-sm text-muted-foreground">کد رهگیری</span>
-            <span className="text-sm font-bold text-foreground font-mono">#{shortId}</span>
-          </div>
-        </div>
-
-        {/* Confirmation dialog */}
-        {showConfirm && (
-          <div className="mt-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-slideUp">
-            <p className="text-[13px] text-destructive mb-3">آیا مطمئن هستید که می‌خواهید این نوبت را لغو کنید؟</p>
-            <div className="flex gap-2">
+          <DrawerFooter>
+            {canCancel && (
               <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => {
-                  onCancel(booking.id);
-                  onClose();
-                }}
-                className="flex-1"
-              >
-                بله، لغو
-              </Button>
-              <Button
-                size="sm"
                 variant="outline"
-                onClick={() => setShowConfirm(false)}
-                className="flex-1"
+                className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+                onClick={() => setShowConfirm(true)}
               >
-                انصراف
+                لغو نوبت
               </Button>
-            </div>
-          </div>
-        )}
+            )}
+            <Button onClick={onClose} className="w-full h-12">
+              بستن
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
 
-        {/* Cancel button (only for reserved or confirmed bookings) */}
-        {(booking.status === "reserved" || booking.status === "confirmed") && !showConfirm && (
-          <Button
-            variant="outline"
-            className="w-full mt-4 text-destructive border-destructive/30 hover:bg-destructive/10"
-            onClick={() => setShowConfirm(true)}
-          >
-            لغو نوبت
-          </Button>
-        )}
-
-        <Button
-          onClick={onClose}
-          className="w-full mt-3 h-12"
-        >
-          بستن
-        </Button>
-      </div>
-    </div>
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>لغو نوبت</AlertDialogTitle>
+            <AlertDialogDescription>
+              آیا مطمئن هستید که می‌خواهید این نوبت را لغو کنید؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowConfirm(false)}>
+              انصراف
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                onCancel(booking.id);
+                onClose();
+              }}
+            >
+              بله، لغو
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
