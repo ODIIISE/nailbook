@@ -66,12 +66,20 @@ export async function DELETE(
 
     const { id } = await params;
 
-    const { rows } = await sql`SELECT id FROM bookings WHERE id = ${id}`;
+    const { rows } = await sql`SELECT id, customer_phone, customer_name FROM bookings WHERE id = ${id}`;
     if (!rows[0]) {
       return NextResponse.json({ error: "نوبت یافت نشد" }, { status: 404 });
     }
 
     await sql`DELETE FROM bookings WHERE id = ${id}`;
+
+    logActivity({
+      eventType: "booking_deleted",
+      entityType: "booking",
+      entityId: id,
+      description: `نوبت ${rows[0].customer_name || rows[0].customer_phone} حذف شد`,
+      metadata: { booking_id: id, customer_phone: rows[0].customer_phone },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

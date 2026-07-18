@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyPin } from "@/lib/pin-hash";
 import { signCustomerSession } from "@/lib/customer-auth";
+import { logActivity } from "@/lib/db/activity-log";
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,6 +38,14 @@ export async function POST(request: NextRequest) {
     }
 
     await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
+
+    logActivity({
+      eventType: "user_login",
+      entityType: "user",
+      entityId: user.id,
+      description: `کاربر "${user.name || user.phone}" وارد شد`,
+      metadata: { userId: user.id, phone: user.phone, name: user.name },
+    });
 
     const response = NextResponse.json({
       success: true,

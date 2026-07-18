@@ -84,6 +84,18 @@ export async function PUT(request: NextRequest) {
       await sql`UPDATE users SET pin = ${storePin(String(body.pin))}, failed_attempts = 0, locked_until = NULL WHERE id = ${userId}`;
     }
 
+    // Log the update
+    const updatedFields = Object.keys(body).filter((k) => k !== "userId" && body[k] !== undefined);
+    if (updatedFields.length > 0) {
+      logActivity({
+        eventType: "user_updated",
+        entityType: "user",
+        entityId: userId,
+        description: `کاربر به‌روزرسانی شد`,
+        metadata: { userId, fields: updatedFields },
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("User update error:", error);

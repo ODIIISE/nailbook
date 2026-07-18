@@ -3,11 +3,14 @@ import { sql } from "@vercel/postgres";
 export type EventType =
   | "booking_created"
   | "booking_cancelled"
+  | "booking_deleted"
   | "booking_status_changed"
   | "payment_received"
   | "payment_reverted"
   | "user_registered"
+  | "user_updated"
   | "user_deleted"
+  | "user_login"
   | "user_pin_reset"
   | "service_created"
   | "service_updated"
@@ -18,10 +21,13 @@ export type EventType =
   | "highlight_created"
   | "highlight_updated"
   | "highlight_deleted"
+  | "highlight_uploaded"
+  | "logo_updated"
   | "time_blocked"
   | "time_unblocked"
   | "hours_updated"
   | "salon_updated"
+  | "database_migrated"
   | "owner_login";
 
 export interface ActivityLog {

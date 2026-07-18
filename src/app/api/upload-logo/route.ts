@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { verifyOwner } from "@/lib/owner-auth";
+import { logActivity } from "@/lib/db/activity-log";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
@@ -33,6 +34,13 @@ export async function POST(request: NextRequest) {
     const blob = await put(path, file, {
       access: "public",
       contentType: file.type,
+    });
+
+    logActivity({
+      eventType: "logo_updated",
+      entityType: "salon",
+      description: `لوگوی سالن به‌روزرسانی شد`,
+      metadata: { fileName: file.name, fileSize: file.size },
     });
 
     return NextResponse.json({ url: blob.url });
