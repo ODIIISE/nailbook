@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { Plus, X, Trash2, ImagePlus, ChevronDown, ChevronUp } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useSalon } from "@/lib/salon-context";
 import type { Highlight, HighlightImage } from "@/lib/types";
 
@@ -272,42 +273,36 @@ export default function OwnerHighlightsPage() {
       )}
 
       {/* Create modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} />
-          <div className="relative w-full max-w-sm glass rounded-3xl p-6 animate-scale">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-h2 text-foreground">هایلایت جدید</h2>
-              <Button variant="ghost" size="icon-sm" onClick={() => setShowCreateModal(false)}>
-                <X className="h-5 w-5" />
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>هایلایت جدید</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label className="text-[13px]">نام هایلایت</Label>
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="مثلاً: نمونه کار"
+                className="mt-1"
+                onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+                autoFocus
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <Button onClick={handleCreate} className="flex-1" disabled={!newName.trim()}>
+                ایجاد
+              </Button>
+              <Button variant="outline" onClick={() => setShowCreateModal(false)} className="flex-1">
+                انصراف
               </Button>
             </div>
-
-            <div className="space-y-4">
-              <div>
-                <Label className="text-[13px]">نام هایلایت</Label>
-                <Input
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder="مثلاً: نمونه کار"
-                  className="mt-1"
-                  onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                  autoFocus
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <Button onClick={handleCreate} className="flex-1" disabled={!newName.trim()}>
-                  ایجاد
-                </Button>
-                <Button variant="outline" onClick={() => setShowCreateModal(false)} className="flex-1">
-                  انصراف
-                </Button>
-              </div>
-            </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
     </SalonGuard>
   );
