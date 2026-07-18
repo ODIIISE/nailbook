@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
-import { hashPin } from "@/lib/pin-hash";
+import { storePin } from "@/lib/pin-hash";
 import crypto from "crypto";
 import { logActivity } from "@/lib/db/activity-log";
 
@@ -27,11 +27,12 @@ export async function POST(request: NextRequest) {
     if (!phone) return NextResponse.json({ error: "شماره الزامی است" }, { status: 400 });
     if (!name || !name.trim()) return NextResponse.json({ error: "نام الزامی است" }, { status: 400 });
 
+    const validRole = role === "owner" ? "owner" : "customer";
     const userId = crypto.randomUUID();
-    const hashedPin = pin ? hashPin(String(pin)) : null;
+    const hashedPin = pin ? storePin(String(pin)) : null;
     await sql`
       INSERT INTO users (id, phone, pin, name, role)
-      VALUES (${userId}, ${phone}, ${hashedPin}, ${name.trim()}, ${role || "customer"})
+      VALUES (${userId}, ${phone}, ${hashedPin}, ${name.trim()}, ${validRole})
     `;
 
     logActivity({
@@ -80,7 +81,7 @@ export async function PUT(request: NextRequest) {
       await sql`UPDATE users SET role = ${body.role} WHERE id = ${userId}`;
     }
     if (body.pin !== undefined && String(body.pin).length === 4) {
-      await sql`UPDATE users SET pin = ${hashPin(String(body.pin))}, failed_attempts = 0, locked_until = NULL WHERE id = ${userId}`;
+      await sql`UPDATE users SET pin = ${storePin(String(body.pin))}, failed_attempts = 0, locked_until = NULL WHERE id = ${userId}`;
     }
 
     return NextResponse.json({ success: true });

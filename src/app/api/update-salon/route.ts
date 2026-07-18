@@ -12,6 +12,24 @@ export async function POST(request: NextRequest) {
 
     const updates = await request.json();
 
+    // Validate numeric fields
+    if (updates.slot_buffer_minutes !== undefined) {
+      const v = Number(updates.slot_buffer_minutes);
+      if (isNaN(v) || v < 0 || v > 120) return NextResponse.json({ error: "مقدار نامعتبر" }, { status: 400 });
+    }
+    if (updates.slot_interval_minutes !== undefined) {
+      const v = Number(updates.slot_interval_minutes);
+      if (isNaN(v) || v < 5 || v > 60) return NextResponse.json({ error: "مقدار نامعتبر" }, { status: 400 });
+    }
+    if (updates.expand_threshold !== undefined) {
+      const v = Number(updates.expand_threshold);
+      if (isNaN(v) || v < 0 || v > 100) return NextResponse.json({ error: "مقدار نامعتبر" }, { status: 400 });
+    }
+    if (updates.proximity_window_hours !== undefined) {
+      const v = Number(updates.proximity_window_hours);
+      if (isNaN(v) || v < 0 || v > 48) return NextResponse.json({ error: "مقدار نامعتبر" }, { status: 400 });
+    }
+
     const { rows: existing } = await sql`SELECT id FROM salon_info LIMIT 1`;
     if (!existing[0]) {
       return NextResponse.json({ error: "Salon not found" }, { status: 404 });

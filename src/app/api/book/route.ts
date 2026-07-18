@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "این زمان همین الان رزرو شد" }, { status: 409 });
     }
 
-    return NextResponse.json({ error: "خطای سرور: " + (error?.message || "unknown") }, { status: 500 });
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   } finally {
     if (client) client.release();
   }

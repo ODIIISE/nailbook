@@ -118,18 +118,30 @@ export async function POST(request: NextRequest) {
 
     // Restore bookings (only in full restore mode)
     if (mode === "full" && data.bookings && Array.isArray(data.bookings)) {
-      // Clear existing bookings first
-      await sql`DELETE FROM bookings`;
-      for (const b of data.bookings) {
-        try {
-          await sql`
-            INSERT INTO bookings (id, service_id, selected_addons, customer_name, customer_phone, date, date_gregorian, start_time, end_time, status, paid, phone_verified, created_at)
-            VALUES (${b.id}, ${b.service_id}, ${JSON.stringify(b.selected_addons || [])}, ${b.customer_name}, ${b.customer_phone}, ${b.date}, ${b.date_gregorian}::date, ${b.start_time}, ${b.end_time}, ${b.status || "confirmed"}, ${b.paid ?? false}, ${b.phone_verified ?? true}, ${b.created_at || new Date().toISOString()})
-          `;
-          results.push(`booking:${b.id}`);
-        } catch (e) {
-          console.error(`Failed to restore booking ${b.id}:`, e);
+      // Use transaction for safe restore
+      let client;
+      try {
+        client = await sql.connect();
+        await client.query("BEGIN");
+        await client.query("DELETE FROM bookings");
+        for (const b of data.bookings) {
+          try {
+            await client.query(
+              `INSERT INTO bookings (id, service_id, selected_addons, customer_name, customer_phone, date, date_gregorian, start_time, end_time, status, paid, phone_verified, created_at)
+               VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8, $9, $10, $11, $12, $13)`,
+              [b.id, b.service_id, JSON.stringify(b.selected_addons || []), b.customer_name, b.customer_phone, b.date, b.date_gregorian, b.start_time, b.end_time, b.status || "confirmed", b.paid ?? false, b.phone_verified ?? true, b.created_at || new Date().toISOString()]
+            );
+            results.push(`booking:${b.id}`);
+          } catch (e) {
+            console.error(`Failed to restore booking ${b.id}:`, e);
+          }
         }
+        await client.query("COMMIT");
+      } catch (e) {
+        if (client) try { await client.query("ROLLBACK"); } catch {}
+        console.error("Backup restore bookings failed:", e);
+      } finally {
+        if (client) client.release();
       }
     }
 
