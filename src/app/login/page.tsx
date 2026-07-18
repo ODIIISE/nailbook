@@ -114,7 +114,7 @@ export default function LoginPage() {
                   placeholder="۰۹۱۲۱۲۳۴۵۶۷" dir="ltr" className="mt-1 text-left" />
               </div>
               {error && <p className="text-[13px] text-destructive text-center">{error}</p>}
-              <Button size="xl" className="w-full !h-12" onClick={handlePhoneSubmit} disabled={isLoading || phone.length < 10}>
+              <Button size="xl" className="w-full" style={{ height: '48px' }} onClick={handlePhoneSubmit} disabled={isLoading || phone.length < 10}>
                 {isLoading ? "در حال بررسی..." : "ادامه"}
               </Button>
             </div>
@@ -174,7 +174,7 @@ export default function LoginPage() {
                   onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()} />
               </div>
               {error && <p className="text-[13px] text-destructive text-center">{error}</p>}
-              <Button size="xl" className="w-full !h-12" onClick={handleNameSubmit} disabled={isLoading}>
+              <Button size="xl" className="w-full" style={{ height: '48px' }} onClick={handleNameSubmit} disabled={isLoading}>
                 {isLoading ? "در حال ثبت‌نام..." : "ثبت‌نام"}
               </Button>
               <Button variant="ghost" className="w-full" onClick={() => { setStep("confirm-pin"); setError(""); }}>بازگشت</Button>
