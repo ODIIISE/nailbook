@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toPersianDigits } from "@/lib/jalali";
+import { useAuth } from "@/lib/auth-context";
 import {
   Menu,
   X,
@@ -13,6 +14,9 @@ import {
   MapPin,
   Clock,
   Home,
+  LogIn,
+  LogOut,
+  User,
 } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "./menu-context";
@@ -44,13 +48,37 @@ export function AppHeader({
   const router = useRouter();
   const pathname = usePathname();
   const { salon } = useSalon();
+  const { user, logout } = useAuth();
   const { open: menuOpen, openMenu, closeMenu } = useMenu();
 
   const isHome = pathname === "/";
+  const isOwner = pathname.startsWith("/owner");
 
-  const defaultMenuItems: MenuItem[] = menuItems ?? [
-    { icon: <Home className="h-4 w-4" />, label: "صفحه اصلی", onClick: () => router.push("/") },
-  ];
+  // Build menu items based on auth state
+  const defaultMenuItems: MenuItem[] = menuItems ?? (() => {
+    const items: MenuItem[] = [
+      { icon: <Home className="h-4 w-4" />, label: "صفحه اصلی", onClick: () => router.push("/") },
+    ];
+
+    if (user) {
+      // Logged in as customer
+      items.push({ icon: <User className="h-4 w-4" />, label: "پروفایل", onClick: () => router.push("/profile") });
+      items.push({
+        icon: <LogOut className="h-4 w-4" />,
+        label: "خروج",
+        destructive: true,
+        onClick: () => {
+          logout();
+          window.location.href = "/";
+        },
+      });
+    } else {
+      // Not logged in
+      items.push({ icon: <LogIn className="h-4 w-4" />, label: "ورود", onClick: () => router.push("/login") });
+    }
+
+    return items;
+  })();
 
   // Close menu on route change
   useEffect(() => {
@@ -149,14 +177,16 @@ export function AppHeader({
                 )}
               </div>
 
-              <div className="pt-2 border-t border-black/5">
-                <button
-                  onClick={() => { router.push("/owner/login"); closeMenu(); }}
-                  className="w-full flex items-center justify-center px-3 py-2.5 rounded-[12px] hover:bg-white/40 text-right transition-colors duration-150"
-                >
-                  <span className="text-[13px] text-muted-foreground/60">ورود مدیر</span>
-                </button>
-              </div>
+              {!isOwner && (
+                <div className="pt-2 border-t border-black/5">
+                  <button
+                    onClick={() => { router.push("/owner/login"); closeMenu(); }}
+                    className="w-full flex items-center justify-center px-3 py-2.5 rounded-[12px] hover:bg-white/40 text-right transition-colors duration-150"
+                  >
+                    <span className="text-[13px] text-muted-foreground/60">ورود مدیر</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
