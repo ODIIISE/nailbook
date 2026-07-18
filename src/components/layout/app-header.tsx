@@ -12,6 +12,7 @@ import {
   Phone,
   MapPin,
   Clock,
+  Home,
 } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "./menu-context";
@@ -48,7 +49,7 @@ export function AppHeader({
   const isHome = pathname === "/";
 
   const defaultMenuItems: MenuItem[] = menuItems ?? [
-    { icon: <span className="text-[14px]">🏠</span>, label: "صفحه اصلی", onClick: () => router.push("/") },
+    { icon: <Home className="h-4 w-4" />, label: "صفحه اصلی", onClick: () => router.push("/") },
   ];
 
   // Close menu on route change
