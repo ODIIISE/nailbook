@@ -1,6 +1,7 @@
 "use client";
 
 import { useSalon } from "@/lib/salon-context";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SalonGuardProps {
   children: React.ReactNode;
@@ -13,10 +14,10 @@ export function SalonGuard({ children, fallback }: SalonGuardProps) {
   if (!loaded) {
     return fallback ?? (
       <div className="min-h-screen bg-background">
-        <div className="h-16 w-full skeleton" />
+        <Skeleton className="h-16 w-full" />
         <div className="p-4 space-y-4">
-          <div className="h-48 w-full skeleton rounded-2xl" />
-          <div className="h-24 w-full skeleton rounded-2xl" />
+          <Skeleton className="h-48 w-full rounded-2xl" />
+          <Skeleton className="h-24 w-full rounded-2xl" />
         </div>
       </div>
     );

@@ -3,9 +3,10 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { X, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { calculateEarnings } from "@/lib/pricing";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Booking, Service, Addon } from "@/lib/types";
 
 interface EarningsModalProps {
@@ -53,16 +54,12 @@ export function EarningsModal({
   }, [bookings, services, addons, currentDate, period]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-
-      <div className="relative w-full max-w-sm glass rounded-3xl p-6 animate-scale max-h-[80vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-h2 text-foreground">درآمد</h2>
-          <Button variant="ghost" size="icon-sm" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent
+        showCloseButton={false}
+        className="glass rounded-3xl p-6 max-h-[80vh] overflow-y-auto bg-black/40 backdrop-blur-sm"
+      >
+        <DialogTitle className="text-h2 text-foreground">درآمد</DialogTitle>
 
         <div className="flex gap-2 mb-4">
           {(["day", "week", "month"] as const).map((p) => (
@@ -132,7 +129,7 @@ export function EarningsModal({
         <Button variant="outline" className="w-full mt-4" onClick={onClose}>
           بستن
         </Button>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

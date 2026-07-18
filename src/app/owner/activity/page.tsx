@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ActivityLog } from "@/components/owner/activity-log";
 import { SalonGuard } from "@/components/ui/salon-guard";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ActivityLogEntry {
   id: string;
@@ -52,7 +53,7 @@ export default function ActivityPage() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="skeleton h-16 rounded-xl" />
+              <Skeleton key={i} className="h-16 rounded-xl" />
             ))}
           </div>
         ) : (

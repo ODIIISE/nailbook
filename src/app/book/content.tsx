@@ -13,6 +13,7 @@ import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { TimeSlots } from "@/components/booking/time-slots";
 import { BookingConfirm } from "@/components/booking/booking-confirm";
 import { PinInput } from "@/components/booking/pin-input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
@@ -546,8 +547,8 @@ export default function BookContent() {
           <div className="space-y-4">
             {isLoading ? (
               <div className="space-y-3">
-                <div className="skeleton h-48 w-full rounded-2xl" />
-                <div className="skeleton h-12 w-full rounded-xl" />
+                <Skeleton className="h-48 w-full rounded-2xl" />
+                <Skeleton className="h-12 w-full rounded-xl" />
               </div>
             ) : (
               <>
