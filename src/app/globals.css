@@ -140,9 +140,6 @@
     touch-action: manipulation;
     user-select: none;
   }
-  button {
-    height: unset;
-  }
   ::selection {
     background: var(--primary);
     color: #FFFFFF;
