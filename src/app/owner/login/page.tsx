@@ -88,7 +88,7 @@ export default function OwnerLoginPage() {
               )}
               <Button
                 size="xl"
-                className="w-full"
+                className="w-full !h-12"
                 onClick={handlePhoneSubmit}
                 disabled={phone.length < 10}
               >
