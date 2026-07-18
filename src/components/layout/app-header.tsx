@@ -144,18 +144,17 @@ export function AppHeader({
                         </span>
                       </div>
                     </div>
-
-                    <Separator className="my-2 bg-black/5" />
-
-                    <button
-                      onClick={() => { router.push("/owner/login"); closeMenu(); }}
-                      className="w-full flex items-center justify-center px-3 py-2 rounded-[12px] hover:bg-white/40 text-right transition-colors duration-150"
-                    >
-                      <span className="text-[13px] text-muted-foreground/60">ورود مدیر</span>
-                    </button>
-
                   </>
                 )}
+
+                <Separator className="my-2 bg-black/5" />
+
+                <button
+                  onClick={() => { router.push("/owner/login"); closeMenu(); }}
+                  className="w-full flex items-center justify-center px-3 py-2 rounded-[12px] hover:bg-white/40 text-right transition-colors duration-150"
+                >
+                  <span className="text-[13px] text-muted-foreground/60">ورود مدیر</span>
+                </button>
               </div>
             </div>
           </div>
