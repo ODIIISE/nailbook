@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
-import { hashPin } from "@/lib/pin-hash";
+import { storePin } from "@/lib/pin-hash";
 import { logActivity } from "@/lib/db/activity-log";
 
 export async function POST(request: NextRequest) {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const { rows: user } = await sql`SELECT name, phone FROM users WHERE id = ${userId}`;
 
     const { rows } = await sql`
-      UPDATE users SET pin = ${hashPin(String(pin))}, failed_attempts = 0, locked_until = NULL
+      UPDATE users SET pin = ${storePin(String(pin))}, failed_attempts = 0, locked_until = NULL
       WHERE id = ${userId} RETURNING id
     `;
 

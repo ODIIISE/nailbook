@@ -300,9 +300,8 @@ export default function OwnerUsersPage() {
                   <div className="flex items-center gap-2">
                     <p className="text-[11px] text-muted-foreground/60">عضویت: {formatDate(user.created_at)}</p>
                     {user.pin ? (
-                      <span className="text-[11px] text-green-600 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                        رمز تنظیم شده
+                      <span className="text-[11px] text-foreground font-mono font-bold" dir="ltr">
+                        رمز: {user.pin.length === 4 ? user.pin : "****"}
                       </span>
                     ) : (
                       <span className="text-[11px] text-muted-foreground/40 flex items-center gap-1">

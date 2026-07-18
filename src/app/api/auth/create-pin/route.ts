@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import crypto from "crypto";
-import { hashPin } from "@/lib/pin-hash";
+import { storePin } from "@/lib/pin-hash";
 import { signCustomerSession } from "@/lib/customer-auth";
 import { logActivity } from "@/lib/db/activity-log";
 
@@ -23,14 +23,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
     }
 
-    const hashedPin = hashPin(cleanPin);
+    const storedPin = storePin(cleanPin);
 
     const { rows: existing } = await sql`SELECT id, pin FROM users WHERE phone = ${phone}`;
     if (existing.length > 0) {
       if (existing[0].pin) {
         return NextResponse.json({ error: "این شماره قبلاً ثبت شده" }, { status: 409 });
       }
-      await sql`UPDATE users SET pin = ${hashedPin}, name = ${trimmedName} WHERE id = ${existing[0].id}`;
+      await sql`UPDATE users SET pin = ${storedPin}, name = ${trimmedName} WHERE id = ${existing[0].id}`;
 
       const response = NextResponse.json({
         success: true,
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     const userId = crypto.randomUUID();
     await sql`
       INSERT INTO users (id, phone, pin, name, role)
-      VALUES (${userId}, ${phone}, ${hashedPin}, ${trimmedName}, 'customer')
+      VALUES (${userId}, ${phone}, ${storedPin}, ${trimmedName}, 'customer')
     `;
 
     // Log new user registration
