@@ -91,8 +91,8 @@ export function AppHeader({
             className="absolute inset-0 bg-black/15 backdrop-blur-sm"
             onClick={closeMenu}
           />
-          <div className="absolute top-0 right-0 h-full w-[280px] glass-strong rounded-l-[24px] shadow-floating animate-slideUp">
-            <div className="p-5">
+          <div className="absolute top-0 right-0 h-full w-[280px] glass-strong rounded-l-[24px] shadow-floating animate-slideUp flex flex-col">
+            <div className="p-5 flex-1 flex flex-col">
               <div className="flex items-center justify-between mb-5">
                 <span className="text-[15px] font-bold text-foreground">{salon.name}</span>
                 <Button variant="ghost" size="icon-sm" onClick={closeMenu}>
@@ -100,7 +100,7 @@ export function AppHeader({
                 </Button>
               </div>
 
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 flex-1">
                 {defaultMenuItems.map((item, i) => (
                   <div key={i}>
                     {item.icon === undefined && <Separator className="my-2 bg-black/5" />}
@@ -147,14 +147,16 @@ export function AppHeader({
                   </>
                 )}
 
-                <Separator className="my-2 bg-black/5" />
+                <div className="mt-auto">
+                  <Separator className="my-2 bg-black/5" />
 
-                <button
-                  onClick={() => { router.push("/owner/login"); closeMenu(); }}
-                  className="w-full flex items-center justify-center px-3 py-2 rounded-[12px] hover:bg-white/40 text-right transition-colors duration-150"
-                >
-                  <span className="text-[13px] text-muted-foreground/60">ورود مدیر</span>
-                </button>
+                  <button
+                    onClick={() => { router.push("/owner/login"); closeMenu(); }}
+                    className="w-full flex items-center justify-center px-3 py-2 rounded-[12px] hover:bg-white/40 text-right transition-colors duration-150"
+                  >
+                    <span className="text-[13px] text-muted-foreground/60">ورود مدیر</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
