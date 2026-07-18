@@ -20,8 +20,8 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
       label: "خروج",
       destructive: true,
       onClick: async () => {
-        await fetch("/api/owner-logout", { method: "POST" });
-        router.push("/owner/login");
+        await fetch("/api/owner-logout", { method: "POST", credentials: "include" });
+        window.location.href = "/owner/login";
       },
     },
   ];

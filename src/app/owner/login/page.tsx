@@ -45,7 +45,7 @@ export default function OwnerLoginPage() {
         setIsLoading(false);
         return;
       }
-      router.push("/owner?welcome=1");
+      window.location.href = "/owner?welcome=1";
     } catch {
       setError("خطای سرور");
       setIsLoading(false);
