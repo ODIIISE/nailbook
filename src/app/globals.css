@@ -59,11 +59,28 @@
   --color-navy: var(--navy);
   --color-gold: var(--gold);
   --color-warm-white: var(--warm-white);
+
+  /* ── Radius ── */
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 18px;
   --radius-xl: 24px;
   --radius-3xl: 32px;
+
+  /* ── Form Field Heights ── */
+  --field-xs: 32px;
+  --field-sm: 36px;
+  --field-md: 40px;
+  --field-lg: 44px;
+  --field-xl: 48px;
+
+  /* ── Component Heights ── */
+  --btn-xs: 28px;
+  --btn-sm: 32px;
+  --btn-md: 36px;
+  --btn-lg: 40px;
+  --btn-xl: 48px;
+  --btn-2xl: 56px;
 }
 
 :root {
