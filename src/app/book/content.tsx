@@ -414,6 +414,22 @@ export default function BookContent() {
         {/* ─── Step 2: Date & Time ─── */}
         {step === "datetime" && (
           <div className="space-y-4">
+            {/* Step Indicator */}
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <div className="w-2 h-2 rounded-full bg-[var(--rose)]" />
+              <div className="w-2 h-2 rounded-full bg-[var(--rose)]" />
+              <div className="w-2 h-2 rounded-full bg-black/10" />
+            </div>
+
+            {/* Header */}
+            <div className="text-center mb-2">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--rose)]/10">
+                <span className="text-xl">📅</span>
+              </div>
+              <h2 className="text-h2 text-foreground">انتخاب زمان</h2>
+              <p className="text-[13px] text-muted-foreground mt-1">تاریخ و ساعت مورد نظر خود را انتخاب کنید</p>
+            </div>
+
             <JalaliCalendar
               selectedDate={selectedDate}
               onSelectDate={handleSelectDate}
@@ -439,11 +455,12 @@ export default function BookContent() {
               }}
             />
 
+            {/* Selected Date Display */}
             {selectedDate && (
-              <div className="py-2">
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-[13px] text-muted-foreground">تاریخ:</span>
-                  <span className="text-[17px] font-bold text-foreground">
+              <div className="mx-auto max-w-lg">
+                <div className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-[var(--rose)]/5 border border-[var(--rose)]/10">
+                  <CalendarDays className="h-4 w-4 text-[var(--rose)]" />
+                  <span className="text-[15px] font-bold text-foreground">
                     {(() => {
                       const j = gregorianToJalali(selectedDate);
                       return formatJalaliDate(j.jy, j.jm, j.jd);
