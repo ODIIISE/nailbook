@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useRef, useEffect, useState, useCallback } from "react";
+import { useMemo, useRef, useEffect, useState } from "react";
 import { gregorianToJalali, jalaliToGregorian, toPersianDigits, PERSIAN_MONTHS, DAYS_IN_MONTH, JS_TO_IRAN_DAY, getJalaliMonthDays } from "@/lib/jalali";
 import { CalendarDays, ChevronRight, ChevronLeft, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { generateTimeSlots, type WorkingHours } from "@/lib/slots";
 import { getTehranDateKey } from "@/lib/time";
+import { useHorizontalDrag } from "@/lib/hooks/use-horizontal-drag";
 
 interface JalaliCalendarProps {
   selectedDate: Date | null;
@@ -46,11 +47,7 @@ export function JalaliCalendar({
 }: JalaliCalendarProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
-
-  // Touch drag state
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollLeft = useRef(0);
+  const { onTouchStart, onTouchMove, onTouchEnd } = useHorizontalDrag(scrollRef);
 
   const today = useMemo(() => {
     // Use Tehran time for "today" calculation
@@ -147,53 +144,6 @@ export function JalaliCalendar({
     }
   }, [selectedDate]);
 
-  // Native wheel handler for horizontal scroll
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        e.preventDefault();
-        el.scrollLeft += e.deltaY;
-      }
-    };
-
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    return () => el.removeEventListener("wheel", handleWheel);
-  }, []);
-
-  // Touch drag handlers
-  const touchStartY = useRef(0);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    isDragging.current = true;
-    startX.current = e.touches[0].pageX - (scrollRef.current?.offsetLeft || 0);
-    scrollLeft.current = scrollRef.current?.scrollLeft || 0;
-    touchStartY.current = e.touches[0].pageY;
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging.current) return;
-    const x = e.touches[0].pageX - (scrollRef.current?.offsetLeft || 0);
-    const y = e.touches[0].pageY;
-    const deltaX = Math.abs(x - startX.current);
-    const deltaY = Math.abs(y - touchStartY.current);
-
-    // Only prevent default for horizontal swipes (not vertical scrolling)
-    if (deltaX > deltaY) {
-      e.preventDefault();
-      const walk = (x - startX.current) * 1.5;
-      if (scrollRef.current) {
-        scrollRef.current.scrollLeft = scrollLeft.current - walk;
-      }
-    }
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    isDragging.current = false;
-  }, []);
-
   return (
     <>
       <div className="mx-auto max-w-lg relative">
@@ -211,9 +161,9 @@ export function JalaliCalendar({
         </div>
         <div
           ref={scrollRef}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
           className="flex gap-2 overflow-x-auto pb-1 px-4 scrollbar-hide"
           style={{
             WebkitOverflowScrolling: "touch",

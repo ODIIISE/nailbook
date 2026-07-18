@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useRef } from "react";
 import { Scissors, Sparkles, Heart, Star, Palette } from "lucide-react";
 import type { Highlight } from "@/lib/types";
+import { useHorizontalDrag } from "@/lib/hooks/use-horizontal-drag";
 
 interface HighlightsProps {
   highlights: Highlight[];
@@ -20,52 +21,7 @@ const PLACEHOLDER_ITEMS = [
 export function Highlights({ highlights, onSelect }: HighlightsProps) {
   const hasHighlights = highlights.length > 0;
   const scrollRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollLeft = useRef(0);
-
-  // Native wheel handler for horizontal scroll
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const handleWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        e.preventDefault();
-        el.scrollLeft += e.deltaY;
-      }
-    };
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    return () => el.removeEventListener("wheel", handleWheel);
-  }, []);
-
-  // Touch drag handlers
-  const touchStartY = useRef(0);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    isDragging.current = true;
-    startX.current = e.touches[0].pageX - (scrollRef.current?.offsetLeft || 0);
-    scrollLeft.current = scrollRef.current?.scrollLeft || 0;
-    touchStartY.current = e.touches[0].pageY;
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging.current) return;
-    const x = e.touches[0].pageX - (scrollRef.current?.offsetLeft || 0);
-    const y = e.touches[0].pageY;
-    const deltaX = Math.abs(x - startX.current);
-    const deltaY = Math.abs(y - touchStartY.current);
-    if (deltaX > deltaY) {
-      e.preventDefault();
-      const walk = (x - startX.current) * 1.5;
-      if (scrollRef.current) {
-        scrollRef.current.scrollLeft = scrollLeft.current - walk;
-      }
-    }
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    isDragging.current = false;
-  }, []);
+  const { onTouchStart, onTouchMove, onTouchEnd } = useHorizontalDrag(scrollRef);
 
   const items = hasHighlights
     ? highlights.map((highlight) => (
@@ -122,9 +78,9 @@ export function Highlights({ highlights, onSelect }: HighlightsProps) {
       <div className="mx-auto max-w-lg">
         <div
           ref={scrollRef}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
           className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
