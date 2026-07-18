@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Extended Palette Variants — Warm Cream · Charcoal · Midnight</title>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2" rel="stylesheet" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2" rel="stylesheet" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2" rel="stylesheet" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-ExtraBold.woff2" rel="stylesheet" crossorigin>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Vazirmatn',-apple-system,sans-serif;background:#09090b;color:#fff;padding:24px 16px;}
+h1{text-align:center;font-size:22px;font-weight:800;margin-bottom:4px;}
+.sub{text-align:center;color:#52525b;font-size:13px;margin-bottom:8px;}
+.note{text-align:center;color:#C4A882;font-size:12px;margin-bottom:32px;}
+.group-title{text-align:center;font-size:16px;font-weight:700;margin:40px 0 16px;padding:8px;border-bottom:2px solid #27272a;}
+
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;max-width:1800px;margin:0 auto;}
+@media(max-width:1400px){.grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:900px){.grid{grid-template-columns:1fr;max-width:380px;margin:0 auto;}}
+
+.col{border-radius:16px;overflow:hidden;background:#18181b;}
+.col-h{padding:12px 14px 10px;border-bottom:1px solid #27272a;}
+.col-h h3{font-size:14px;font-weight:700;}
+.col-h .meta{font-size:10px;color:#71717a;margin-top:3px;line-height:1.5;}
+.palette{display:flex;gap:4px;margin-top:6px;}
+.sw{width:100%;height:16px;border-radius:4px;}
+
+.phone{border-radius:20px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.06);}
+.scr{min-height:500px;display:flex;flex-direction:column;}
+
+.topbar{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-t{font-size:14px;font-weight:700;}
+.hero{padding:28px 18px 22px;text-align:center;}
+.salon{font-size:18px;font-weight:800;}
+.sub-t{font-size:10px;margin-top:3px;opacity:0.6;}
+.tagln{font-size:12px;line-height:1.6;margin-top:10px;opacity:0.7;}
+.cta{margin-top:14px;padding:10px 32px;font-size:12px;font-weight:600;border:none;border-radius:50px;cursor:pointer;font-family:inherit;}
+.section-label{font-size:11px;padding:14px 18px 8px;font-weight:600;opacity:0.5;}
+.svc{margin:3px 18px;padding:10px 12px;border-radius:12px;display:flex;align-items:center;gap:10px;}
+.svc-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.svc-n{font-size:12px;font-weight:600;}
+.svc-d{font-size:9px;opacity:0.5;}
+.svc-p{font-size:12px;font-weight:700;margin-right:auto;}
+.nav{display:flex;justify-content:space-around;padding:10px 0 14px;margin-top:auto;border-top:1px solid;}
+.ni{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:9px;opacity:0.4;}
+.ni.on{opacity:1;font-weight:600;}
+</style>
+</head>
+<body>
+
+<h1>Extended Palette Variants</h1>
+<p class="sub">3 base palettes × 5 variants each = 15 options</p>
+<p class="note">Same V2 Soft Rounded component style — different color accents</p>
+
+<div id="app"></div>
+
+<script>
+const palettes = {
+  "Warm Cream": [
+    { name: "Gold Classic", accent: "#C4A882", accentT: "#2D2926", desc: "Gold accent on cream — your current", cta: "#2D2926", ctaT: "#FAF8F5" },
+    { name: "Rose Gold", accent: "#D4A08A", accentT: "#FFF", desc: "Warm rose-gold on cream", cta: "#3D2828", ctaT: "#FFF" },
+    { name: "Bronze", accent: "#8A6A4A", accentT: "#FFF", desc: "Deep bronze on cream — refined", cta: "#2D2926", ctaT: "#FFF" },
+    { name: "Copper", accent: "#B87340", accentT: "#FFF", desc: "Copper warmth on cream — bold", cta: "#3D2E1E", ctaT: "#FFF" },
+    { name: "Champagne", accent: "#E8D4B0", accentT: "#2D2926", desc: "Light champagne — subtle luxury", cta: "#2D2926", ctaT: "#FAF8F5" }
+  ],
+  "Charcoal": [
+    { name: "Pure Gray", accent: "#555555", accentT: "#FFF", desc: "Monochrome gray — minimal", cta: "#1A1A1A", ctaT: "#FFF" },
+    { name: "Steel Blue", accent: "#5A7A9A", accentT: "#FFF", desc: "Cool steel blue — professional", cta: "#1A2A3A", ctaT: "#FFF" },
+    { name: "Warm Gray", accent: "#8A7A6A", accentT: "#FFF", desc: "Warm taupe — sophisticated", cta: "#2D2926", ctaT: "#FFF" },
+    { name: "Slate", accent: "#6A7A7A", accentT: "#FFF", desc: "Teal-gray slate — modern", cta: "#1A2A2A", ctaT: "#FFF" },
+    { name: "Ash", accent: "#9A8A7A", accentT: "#FFF", desc: "Warm ash — neutral elegance", cta: "#2D2620", ctaT: "#FFF" }
+  ],
+  "Midnight": [
+    { name: "Silver", accent: "#7A8AB4", accentT: "#FFF", desc: "Silver on dark — your current", cta: "#E8E4F0", ctaT: "#0F1218" },
+    { name: "Electric", accent: "#6366F1", accentT: "#FFF", desc: "Indigo electric — bold tech", cta: "#E8E4F0", ctaT: "#0F1218" },
+    { name: "Amber Glow", accent: "#F59E0B", accentT: "#1A1A1A", desc: "Amber on dark — warm premium", cta: "#F59E0B", ctaT: "#1A1A1A" },
+    { name: "Neon Rose", accent: "#F43F5E", accentT: "#FFF", desc: "Neon rose on dark — luxury edge", cta: "#F43F5E", ctaT: "#FFF" },
+    { name: "Mint", accent: "#34D399", accentT: "#1A1A1A", desc: "Mint on dark — fresh modern", cta: "#34D399", ctaT: "#1A1A1A" }
+  ]
+};
+
+const baseColors = {
+  "Warm Cream": { bg: "#FAF8F5", text: "#2D2926", muted: "#A89888", border: "#E8E0D6", card: "#FFFFFF", cardBorder: "#E8E0D6", iconBg: "#F2EDE6", nav: "#FAF8F5", navBorder: "#E8E0D6" },
+  "Charcoal": { bg: "#F5F5F5", text: "#1A1A1A", muted: "#777777", border: "#E0E0E0", card: "#FFFFFF", cardBorder: "#E0E0E0", iconBg: "#ECECEC", nav: "#F5F5F5", navBorder: "#E0E0E0" },
+  "Midnight": { bg: "#0F1218", text: "#E8E4F0", muted: "#6A6A7A", border: "#2A2A3A", card: "#1A1E28", cardBorder: "#2A2A3A", iconBg: "#252A35", nav: "#0F1218", navBorder: "#2A2A3A" }
+};
+
+const app = document.getElementById('app');
+
+Object.entries(palettes).forEach(([groupName, variants]) => {
+  const title = document.createElement('div');
+  title.className = 'group-title';
+  title.textContent = groupName;
+  app.appendChild(title);
+
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+
+  const base = baseColors[groupName];
+
+  variants.forEach((p) => {
+    const card = document.createElement('div');
+    card.className = 'col';
+    card.innerHTML = `
+      <div class="col-h">
+        <h3>${p.name}</h3>
+        <div class="meta">${p.desc}</div>
+        <div class="palette">
+          <div class="sw" style="background:${base.bg};border:1px solid ${base.border};"></div>
+          <div class="sw" style="background:${base.text};"></div>
+          <div class="sw" style="background:${p.accent};"></div>
+          <div class="sw" style="background:${base.muted};"></div>
+          <div class="sw" style="background:${p.cta};"></div>
+        </div>
+      </div>
+      <div class="col-b" style="padding:0;">
+        <div class="phone">
+          <div class="scr" style="background:${base.bg};color:${base.text};">
+            <div class="topbar" style="background:${base.bg};border-bottom:1px solid ${base.border};">
+              <span class="topbar-t" style="color:${base.text};">زمان‌بندی</span>
+              <span style="color:${base.muted};">☰</span>
+            </div>
+            <div class="hero">
+              <div class="salon" style="color:${base.text};">فورهند نیل استودیو</div>
+              <div class="sub-t" style="color:${base.muted};">沙龙美甲工作室</div>
+              <div class="tagln" style="color:${base.muted};">جایی که ظرافت با دقت همراه می‌شود</div>
+              <button class="cta" style="background:${p.cta};color:${p.ctaT};">رزرو کن</button>
+            </div>
+            <div class="section-label" style="color:${base.muted};">خدمات ما</div>
+            <div class="svc" style="background:${base.card};border:1px solid ${base.cardBorder};">
+              <div class="svc-ic" style="background:${base.iconBg};border:1px solid ${base.cardBorder};">💅</div>
+              <div><div class="svc-n" style="color:${base.text};">مانیکور کلاسیک</div><div class="svc-d" style="color:${base.muted};">۴۵ دقیقه</div></div>
+              <div class="svc-p" style="color:${p.accent};">۴۵۰,۰۰۰ ت</div>
+            </div>
+            <div class="svc" style="background:${base.card};border:1px solid ${base.cardBorder};">
+              <div class="svc-ic" style="background:${base.iconBg};border:1px solid ${base.cardBorder};">✨</div>
+              <div><div class="svc-n" style="color:${base.text};">طراحی ناخن</div><div class="svc-d" style="color:${base.muted};">۶۰ دقیقه</div></div>
+              <div class="svc-p" style="color:${p.accent};">۶۵۰,۰۰۰ ت</div>
+            </div>
+            <div class="nav" style="background:${base.nav};border-color:${base.navBorder};">
+              <div class="ni on" style="color:${p.accent};">📅<span>زمان‌بندی</span></div>
+              <div class="ni" style="color:${base.muted};">💼<span>خدمات</span></div>
+              <div class="ni" style="color:${base.muted};">🕐<span>ساعات</span></div>
+              <div class="ni" style="color:${base.muted};">☰<span>منو</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  app.appendChild(grid);
+});
+</script>
+</body>
+</html>
