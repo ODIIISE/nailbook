@@ -1,16 +1,12 @@
 import crypto from "crypto";
 import { sql } from "@vercel/postgres";
 
-const SECRET = process.env.CUSTOMER_SESSION_SECRET || process.env.OWNER_SESSION_SECRET;
+const SECRET = process.env.CUSTOMER_SESSION_SECRET
+  ?? (process.env.NODE_ENV === "development"
+    ? "nailbook-dev-customer-fallback"
+    : (() => { throw new Error("CUSTOMER_SESSION_SECRET is required in production"); })());
 
 function getSecretKey(): string {
-  if (!SECRET) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("CUSTOMER_SESSION_SECRET or OWNER_SESSION_SECRET must be set in production");
-    }
-    console.warn("No session secret configured — using dev fallback");
-    return "nailbook-dev-customer-fallback";
-  }
   return SECRET;
 }
 
