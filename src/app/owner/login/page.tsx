@@ -87,7 +87,7 @@ export default function OwnerLoginPage() {
                 <p className="text-[13px] text-destructive text-center">{error}</p>
               )}
               <Button
-                className="w-full"
+                className="w-full h-12"
                 onClick={handlePhoneSubmit}
                 disabled={phone.length < 10}
               >
