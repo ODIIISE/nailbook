@@ -1,6 +1,6 @@
 "use client";
 
-import { formatPrice, toPersianDigits } from "@/lib/jalali";
+import { toPersianDigits } from "@/lib/jalali";
 import { CheckCircle } from "lucide-react";
 
 interface TrustSignalsProps {
@@ -13,7 +13,7 @@ export function TrustSignals({ totalBookings }: TrustSignalsProps) {
       <div className="mx-auto max-w-lg flex items-center justify-center gap-2 py-2 px-4">
         <CheckCircle className="h-3.5 w-3.5 text-success" />
         <span className="text-[12px] text-muted-foreground">
-          <span className="font-semibold text-foreground">{formatPrice(totalBookings)}+</span> رزرو موفق
+          <span className="font-semibold text-foreground">{toPersianDigits(totalBookings.toLocaleString("en-US"))}+</span> رزرو موفق
         </span>
       </div>
     </div>
