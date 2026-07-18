@@ -374,10 +374,10 @@ export default function OwnerUsersPage() {
               </div>
             )}
             <div className="flex gap-3 pt-2">
-              <Button onClick={modal === "add" ? handleAdd : handleEdit} disabled={isSubmitting} className="flex-1">
+              <Button size="lg" onClick={modal === "add" ? handleAdd : handleEdit} disabled={isSubmitting} className="flex-1">
                 {isSubmitting ? "در حال ذخیره..." : modal === "add" ? "ایجاد کاربر" : "ذخیره"}
               </Button>
-              <Button variant="outline" onClick={() => setModal(null)} className="flex-1">انصراف</Button>
+              <Button size="lg" variant="outline" onClick={() => setModal(null)} className="flex-1">انصراف</Button>
             </div>
           </div>
         </DialogContent>
@@ -427,10 +427,10 @@ export default function OwnerUsersPage() {
               </div>
             )}
             <div className="flex gap-3 pt-2">
-              <Button onClick={handleResetPin} disabled={isSubmitting || formPin.length !== 4} className="flex-1">
+              <Button size="lg" onClick={handleResetPin} disabled={isSubmitting || formPin.length !== 4} className="flex-1">
                 {isSubmitting ? "در حال ذخیره..." : "ذخیره رمز"}
               </Button>
-              <Button variant="outline" onClick={() => setModal(null)} className="flex-1">انصراف</Button>
+              <Button size="lg" variant="outline" onClick={() => setModal(null)} className="flex-1">انصراف</Button>
             </div>
           </div>
         </DialogContent>

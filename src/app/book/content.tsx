@@ -588,7 +588,7 @@ export default function BookContent() {
                   </div>
                 )}
 
-                <Button onClick={handleConfirmBooking} disabled={isLoading} className="w-full h-12 bg-primary hover:bg-primary/90 text-white">
+                <Button size="xl" onClick={handleConfirmBooking} disabled={isLoading} className="w-full bg-primary hover:bg-primary/90 text-white">
                   {isLoading ? "در حال ثبت..." : "تایید و رزرو"}
                   {!isLoading && <ChevronLeft className="h-5 w-5 mr-2" />}
                 </Button>
@@ -616,7 +616,7 @@ export default function BookContent() {
       {step === "datetime" && selectedTime && (
         <div className="fixed bottom-[72px] left-0 right-0 z-30 px-4 pb-2 pointer-events-none">
           <div className="mx-auto max-w-lg pointer-events-auto">
-            <Button onClick={handleDateTimeContinue} className="w-full h-12 shadow-lg">
+            <Button size="xl" onClick={handleDateTimeContinue} className="w-full shadow-lg">
               ادامه
               <ChevronLeft className="h-5 w-5 mr-2" />
             </Button>
@@ -628,7 +628,7 @@ export default function BookContent() {
       {step === "addons" && (
         <div className="fixed bottom-[72px] left-0 right-0 z-30 px-4 pb-2 pointer-events-none">
           <div className="mx-auto max-w-lg pointer-events-auto">
-            <Button onClick={handleAddonsContinue} className="w-full h-12 shadow-lg">
+            <Button size="xl" onClick={handleAddonsContinue} className="w-full shadow-lg">
               {hasAddons ? "انتخاب زمان" : "ادامه"}
               <ChevronLeft className="h-5 w-5 mr-2" />
             </Button>

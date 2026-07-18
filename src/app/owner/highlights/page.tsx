@@ -293,10 +293,10 @@ export default function OwnerHighlightsPage() {
             </div>
 
             <div className="flex gap-3">
-              <Button onClick={handleCreate} className="flex-1" disabled={!newName.trim()}>
+              <Button size="lg" onClick={handleCreate} className="flex-1" disabled={!newName.trim()}>
                 ایجاد
               </Button>
-              <Button variant="outline" onClick={() => setShowCreateModal(false)} className="flex-1">
+              <Button size="lg" variant="outline" onClick={() => setShowCreateModal(false)} className="flex-1">
                 انصراف
               </Button>
             </div>

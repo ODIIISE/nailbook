@@ -88,10 +88,10 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
           />
         </div>
         <div className="flex gap-3">
-          <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl">
+          <Button type="submit" size="lg" className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl">
             مسدود کن
           </Button>
-          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+          <Button type="button" size="lg" variant="outline" onClick={onCancel} className="flex-1">
             انصراف
           </Button>
         </div>
