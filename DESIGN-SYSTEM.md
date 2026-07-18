@@ -1,6 +1,6 @@
 # Forehand Nail Studio — Design System
 
-> Mobile-first, RTL, glassmorphism design system for a luxury nail studio booking app.
+> V2 Soft Rounded — Mobile-first, RTL, minimal luxury design system.
 
 ---
 
@@ -8,7 +8,7 @@
 
 - **Mobile-first** — every component designed for 375px+, thumb-friendly
 - **RTL** — full Persian right-to-left layout
-- **Glassmorphism** — frosted glass cards over soft gradient blobs
+- **Soft Rounded** — 12px radius, pill buttons, subtle shadows
 - **Minimal luxury** — warm neutrals, black CTAs, rose accents, clean whitespace
 - **Accessible** — 44pt+ touch targets, focus-visible, reduced motion support
 
@@ -19,18 +19,15 @@
 | Layer | Technology |
 |-------|-----------|
 | Framework | Next.js 16 (App Router, React 19) |
-| Components | shadcn/ui (Radix UI + Base UI) |
+| Components | shadcn/ui (Base UI primitives) |
 | Styling | Tailwind CSS v4, CSS variables |
-| Font | Vazirmatn (Persian, CDN, weights 400/500/700/800) |
-| Icons | Lucide React |
+| Font | Vazirmatn (Persian, CDN, weights 400-900) |
+| Icons | Heroicons (outline default, solid active) + Lucide (supplementary) |
 | Notifications | Sonner (toast) |
-| PWA | manifest.json, standalone display |
 
 ---
 
 ## 3. Color Tokens
-
-### Core Palette
 
 | Token | Value | Usage |
 |-------|-------|-------|
@@ -39,79 +36,16 @@
 | `--primary` | `#1A1A1A` | Button fill, CTAs (pure black) |
 | `--primary-foreground` | `#FFFFFF` | Text on primary |
 | `--secondary` | `#F0ECE8` | Subtle backgrounds |
-| `--secondary-foreground` | `#2C2424` | Text on secondary |
 | `--muted` | `#EDE9E4` | Muted backgrounds |
 | `--muted-foreground` | `#7A7068` | Secondary text |
 | `--destructive` | `#DC3545` | Errors, delete actions |
 | `--success` | `#28A745` | Confirmations |
-
-### Surface Tokens
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--card` | `rgba(255,255,255,0.72)` | Glass card background |
-| `--card-foreground` | `#2C2424` | Card text |
-| `--popover` | `rgba(255,255,255,0.92)` | Modal/dropdown background |
-| `--border` | `rgba(44,36,36,0.08)` | Subtle borders |
-| `--input` | `rgba(44,36,36,0.06)` | Input borders |
-| `--ring` | `#1A1A1A` | Focus ring (black) |
-
-### Accent Colors
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--rose` | `#B87070` | Calendar highlights, accent elements |
+| `--rose` | `#B87070` | Calendar highlights, accent |
 | `--gold` | `#C49A5C` | Secondary accent |
-| `--navy` | `#2C2424` | Dark alternative |
 
 ---
 
-## 4. Typography
-
-### Font
-
-- **Family:** Vazirmatn (Persian)
-- **Fallback:** `-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif`
-- **Weights:** 400 (Regular), 500 (Medium), 700 (Bold), 800 (ExtraBold)
-- **Loading:** `font-display: swap` from jsDelivr CDN
-
-### Type Scale
-
-| Class | Size | Line Height | Weight | Letter Spacing | Use |
-|-------|------|-------------|--------|----------------|-----|
-| `text-display` | 34px | 1.08 | 800 | -0.025em | Hero heading |
-| `text-h1` | 24px | 1.2 | 700 | -0.015em | Page titles |
-| `text-h2` | 20px | 1.25 | 700 | -0.01em | Section headings |
-| `text-h3` | 17px | 1.3 | 600 | — | Card headings |
-| `text-body-lg` | 17px | 1.6 | 400 | — | Descriptions |
-| `text-body` | 15px | 1.55 | 400 | — | Body text |
-| `text-caption` | 13px | 1.4 | 500 | — | Labels, metadata |
-| `text-small` | 12px | 1.4 | 400 | — | Fine print |
-
----
-
-## 5. Spacing & Layout
-
-### Container
-
-- Max width: `max-w-lg` (512px) centered
-- Horizontal padding: `px-4` (16px)
-
-### Touch Targets
-
-- **Minimum:** 44×44pt (Apple HIG)
-- **Buttons:** `min-h-[48px] min-w-[48px]`
-- **Nav items:** `h-[56px]`
-- **Slot buttons:** `h-[46px]`
-
-### Safe Areas
-
-- Bottom nav: `paddingBottom: env(safe-area-inset-bottom, 0px)`
-- Viewport: `viewportFit: "cover"` (notch support)
-
----
-
-## 6. Border Radius
+## 4. Border Radius
 
 | Token | Value | Use |
 |-------|-------|-----|
@@ -123,197 +57,95 @@
 
 ---
 
-## 7. Shadows
+## 5. Shadows (V2 Soft)
 
 | Token | Value | Use |
 |-------|-------|-----|
-| `--shadow-card` | `0 2px 12px rgba(44,36,36,0.05)` | Resting cards |
-| `--shadow-elevated` | `0 8px 28px rgba(44,36,36,0.08)` | Hovered/elevated cards |
-| `--shadow-floating` | `0 16px 48px rgba(44,36,36,0.10)` | Modals, drawers |
+| `--shadow-card` | `0 1px 4px rgba(44,36,36,0.04)` | Resting cards |
+| `--shadow-elevated` | `0 4px 16px rgba(44,36,36,0.06)` | Elevated cards |
+| `--shadow-floating` | `0 8px 32px rgba(44,36,36,0.08)` | Modals, drawers |
 
 ---
 
-## 8. Glass System
-
-### `.glass`
+## 6. Glass System (V2 Soft)
 
 ```css
-background: rgba(255, 255, 255, 0.42);
-backdrop-filter: blur(28px) saturate(1.2);  /* 20px on mobile */
-border: 1px solid rgba(255, 255, 255, 0.55);
-box-shadow: 0 8px 32px rgba(44, 36, 36, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-```
-
-### `.glass-strong`
-
-```css
-background: rgba(255, 255, 255, 0.62);
-backdrop-filter: blur(36px) saturate(1.3);  /* 24px on mobile */
-border: 1px solid rgba(255, 255, 255, 0.6);
-```
-
-**Mobile optimization:** Blur reduced on screens < 640px for performance.
-
----
-
-## 9. Gradient Background
-
-Three blurred gradient blobs behind all content:
-
-| Blob | Color | Size | Position |
-|------|-------|------|----------|
-| 1 | `#D4A0A0` (light rose) | 340×340px | Top 15% |
-| 2 | `#C49A5C` (gold) | 280×280px | Middle 50% |
-| 3 | `#B87070` (rose) | 300×300px | Bottom 80% |
-
-All: `filter: blur(100px)`, `opacity: 0.12`, `z-index: -1`, `pointer-events: none`
-
----
-
-## 10. Components
-
-### Button
-
-**Variants:**
-
-| Variant | Style |
-|---------|-------|
-| `default` | Black bg (#1A1A1A), white text, dark shadow |
-| `outline` | Glass background, white border |
-| `secondary` | Glass background, subtle border |
-| `ghost` | Transparent, white hover |
-| `destructive` | Red background, white text |
-| `link` | Text-only, underline on hover |
-
-**Sizes:**
-
-| Size | Height | Padding | Radius |
-|------|--------|---------|--------|
-| `default` | 48px | 24px | 14px |
-| `sm` | 44px | 16px | 12px |
-| `lg` | 56px | 32px | 16px |
-| `icon` | 48×48px | — | 14px |
-| `icon-sm` | 40×40px | — | 12px |
-
-**Interaction:** `active:scale-[0.97]` press feedback, `focus-visible:ring-2`
-
-### Card
-
-- Glass background with blur
-- `rounded-[14px]` or `rounded-[18px]`
-- `shadow-card` at rest, `shadow-elevated` on hover
-
-### Input
-
-- `h-12` (48px) minimum height
-- Glass or solid background
-- `rounded-[14px]`
-- RTL-aware with `dir="ltr"` for numbers/times
-
-### Switch
-
-- Toggle for boolean settings
-- Rose accent when active
-
----
-
-## 11. Animations
-
-| Class | Duration | Effect |
-|-------|----------|--------|
-| `animate-fade` | 200ms | Opacity 0→1 |
-| `animate-scale` | 180ms | Scale 0.92→1 + fade (spring easing) |
-| `animate-slideUp` | 220ms | TranslateY 10px→0 + fade |
-| `animate-stagger` | 220ms each | Staggered slideUp (40ms delay per child) |
-
-**Easing:** `cubic-bezier(0.25, 0.1, 0.25, 1)` (ease-out), spring for scale: `cubic-bezier(0.34, 1.4, 0.64, 1)`
-
-**Press feedback:** `active:scale-[0.97]` on buttons, `active:scale-95` on slot buttons
-
-**Reduced motion:** All animations disabled via `@media (prefers-reduced-motion: reduce)`
-
----
-
-## 12. Loading States
-
-### Skeleton
-
-```css
-.skeleton {
-  background: linear-gradient(90deg, rgba(212,160,160,0.08) 25%, rgba(212,160,160,0.15) 50%, rgba(212,160,160,0.08) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.8s infinite;
-  border-radius: 14px;
+.glass {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid rgba(232, 224, 214, 0.6);
+  box-shadow: 0 1px 4px rgba(44, 36, 36, 0.04);
 }
 ```
 
 ---
 
-## 13. Navigation
+## 7. Components
 
-### Bottom Nav (Customer)
+### Button
 
-| Item | Icon | Path |
-|------|------|------|
-| خانه | Home | `/` |
-| نوبت‌ها | CalendarDays | `/bookings` |
-| پروفایل | User | `/profile` |
-| منو | Menu | (drawer) |
+- **Shape:** Pill (`rounded-full`)
+- **Variants:** default (black), outline, secondary, ghost, destructive, link
+- **Sizes:** default (h-8), sm (h-7), lg (h-9), icon, icon-sm, icon-lg
+- **Interaction:** `active:translate-y-px`, `focus-visible:ring-2`
 
-### Bottom Nav (Owner)
+### Card
 
-| Item | Icon | Path |
-|------|------|------|
-| زمان‌بندی | LayoutGrid | `/owner` |
-| خدمات | Briefcase | `/owner/services` |
-| ساعات | Clock | `/owner/schedule` |
-| منو | Menu | (drawer) |
+- Glass background with blur
+- `rounded-[14px]`
+- `shadow-card` at rest
+
+### Input
+
+- `h-12` (48px) minimum height
+- `rounded-[14px]`
+- RTL-aware with `dir="ltr"` for numbers/times
+
+---
+
+## 8. Navigation
+
+### Bottom Nav Icons (Heroicons)
+
+| Tab | Default (outline) | Active (solid) |
+|-----|-------------------|----------------|
+| خانه | `HomeIcon` outline | `HomeIcon` solid |
+| نوبت‌ها | `CalendarDaysIcon` outline | `CalendarDaysIcon` solid |
+| پروفایل | `UserIcon` outline | `UserIcon` solid |
 
 - Height: 56px
+- Gap between icon and label: `gap-1.5`
 - Background: `bg-background/80 backdrop-blur-xl`
-- Active: rose color, bold icon stroke
-- Safe area padding at bottom
+
+### Side Menu
+
+- Auth-aware: shows "ورود" when not logged in, "خروج" when logged in
+- "ورود مدیر" pinned to bottom of customer menu only
+- Owner menu: no "ورود مدیر" (middleware enforces auth)
 
 ---
 
-## 14. RTL Layout
+## 9. Animations
 
-- `<html dir="rtl" lang="fa">`
-- All text right-aligned by default
-- Numbers and times use `dir="ltr"` for correct rendering
-- Back arrow points right (← becomes →)
-- Horizontal scroll goes left-to-right
+| Class | Duration | Effect |
+|-------|----------|--------|
+| `animate-fade` | 200ms | Opacity 0→1 |
+| `animate-scale` | 180ms | Scale 0.92→1 + fade |
+| `animate-slideUp` | 220ms | TranslateY 10px→0 + fade |
 
----
-
-## 15. Accessibility
-
-- **Focus-visible:** 2px solid primary ring with 2px offset
-- **Touch targets:** Minimum 44pt (48px for buttons)
-- **Reduced motion:** All animations disabled
-- **Zoom:** `maximumScale: 5, userScalable: true`
-- **Tap highlight:** Disabled on iOS for clean taps
-- **Selection:** Primary color background
+**Reduced motion:** All animations disabled via `@media (prefers-reduced-motion: reduce)`
 
 ---
 
-## 16. File Structure
+## 10. Loading States
 
-```
-src/
-├── app/
-│   ├── globals.css          ← Design tokens + utilities
-│   ├── layout.tsx           ← Root layout, viewport, metadata
-│   └── providers.tsx        ← Context providers
-├── components/
-│   ├── ui/                  ← shadcn/ui primitives
-│   ├── booking/             ← Booking flow components
-│   ├── landing/             ← Home page components
-│   ├── layout/              ← Header, navbar, gradient
-│   └── owner/               ← Owner admin components
-└── lib/
-    ├── utils.ts             ← cn() helper
-    ├── jalali.ts            ← Persian calendar
-    ├── time.ts              ← Asia/Tehran timezone
-    └── slots.ts             ← Booking engine
-```
+All loading states use shadcn `<Skeleton>` component (rounded-[12px], shimmer animation).
+
+---
+
+## 11. Auth System
+
+- **Customer PINs:** Plain 4-digit text (owner can see them)
+- **Owner PINs:** PBKDF2 hashed (secure)
+- **Sessions:** HMAC-SHA256 signed cookies (httpOnly, secure, sameSite: lax)
+- **Middleware:** Protects `/owner/*` and `/api/owner/*` routes
