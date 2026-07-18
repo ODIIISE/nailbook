@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { MessageCircle, Phone } from "lucide-react";
 import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
+import { isValidIranianPhone } from "@/lib/digits";
 import { cn } from "@/lib/utils";
 
 interface ContactButtonsProps {
@@ -11,9 +12,10 @@ interface ContactButtonsProps {
 }
 
 export function ContactButtons({ phone }: ContactButtonsProps) {
+  const valid = isValidIranianPhone(phone);
   const telUrl = `tel:${phone}`;
-  const smsUrl = `sms:${phone}`;
-  const whatsappUrl = `https://wa.me/98${phone.slice(1)}`;
+  const smsUrl = valid ? `sms:${phone}` : null;
+  const whatsappUrl = valid ? `https://wa.me/98${phone.slice(1)}` : null;
 
   return (
     <div className="px-4 mb-5">
@@ -30,28 +32,32 @@ export function ContactButtons({ phone }: ContactButtonsProps) {
             <Phone className="h-3.5 w-3.5 ml-1.5" />
             تماس
           </a>
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              buttonVariants({ variant: "outline" }),
-              "flex-1 h-11 text-[13px] border-success/25 text-success hover:bg-success/5"
-            )}
-          >
-            <WhatsAppIcon className="h-3.5 w-3.5 ml-1.5" />
-            واتساپ
-          </a>
-          <a
-            href={smsUrl}
-            className={cn(
-              buttonVariants({ variant: "outline" }),
-              "flex-1 h-11 text-[13px] border-primary/25 text-primary hover:bg-primary/5"
-            )}
-          >
-            <MessageCircle className="h-3.5 w-3.5 ml-1.5" />
-            پیامک
-          </a>
+          {whatsappUrl && (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "flex-1 h-11 text-[13px] border-success/25 text-success hover:bg-success/5"
+              )}
+            >
+              <WhatsAppIcon className="h-3.5 w-3.5 ml-1.5" />
+              واتساپ
+            </a>
+          )}
+          {smsUrl && (
+            <a
+              href={smsUrl}
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "flex-1 h-11 text-[13px] border-primary/25 text-primary hover:bg-primary/5"
+              )}
+            >
+              <MessageCircle className="h-3.5 w-3.5 ml-1.5" />
+              پیامک
+            </a>
+          )}
         </div>
       </Card>
     </div>

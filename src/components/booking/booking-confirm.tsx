@@ -4,6 +4,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Calendar, Share2, MessageCircle } from "lucide-react";
 import { formatPrice, formatJalaliDateShort, formatJalaliTime, toPersianDigits, gregorianToJalali } from "@/lib/jalali";
+import { isValidIranianPhone } from "@/lib/digits";
 import { cn } from "@/lib/utils";
 
 interface BookingConfirmProps {
@@ -125,18 +126,20 @@ export function BookingConfirm({
           <Share2 className="h-4 w-4 ml-2" />
           اشتراک‌گذاری
         </Button>
-        <a
-          href={`https://wa.me/98${phone.slice(1)}?text=${encodeURIComponent(`رزرو نوبت ناخن\n${serviceName}\n${shortDate} ساعت ${formattedTime}`)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(
-            buttonVariants({ variant: "outline" }),
-            "w-full border-green-500/30 text-green-600 hover:bg-green-50"
-          )}
-        >
-          <MessageCircle className="h-4 w-4 ml-2" />
-          پیام در واتساپ
-        </a>
+        {isValidIranianPhone(phone) && (
+          <a
+            href={`https://wa.me/98${phone.slice(1)}?text=${encodeURIComponent(`رزرو نوبت ناخن\n${serviceName}\n${shortDate} ساعت ${formattedTime}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "w-full border-green-500/30 text-green-600 hover:bg-green-50"
+            )}
+          >
+            <MessageCircle className="h-4 w-4 ml-2" />
+            پیام در واتساپ
+          </a>
+        )}
       </div>
     </div>
   );
