@@ -32,7 +32,7 @@ const EVENT_CONFIG: Record<string, { icon: typeof User; colorClass: string }> = 
   service_updated: { icon: Edit3, colorClass: "bg-[#F3E5F5] text-[#7B1FA2]" },
   service_deleted: { icon: Trash2, colorClass: "bg-[#FFEBEE] text-[#C62828]" },
   addon_created: { icon: Plus, colorClass: "bg-[#F3E5F5] text-[#7B1FA2]" },
-  addon_updated: { icon: Edit3, colorClass: "bg-[#F3E5F5] text[#7B1FA2]" },
+  addon_updated: { icon: Edit3, colorClass: "bg-[#F3E5F5] text-[#7B1FA2]" },
   addon_deleted: { icon: Trash2, colorClass: "bg-[#FFEBEE] text-[#C62828]" },
   time_blocked: { icon: Ban, colorClass: "bg-[#FFF8E1] text-[#F57F17]" },
   time_unblocked: { icon: Clock, colorClass: "bg-[#FFF8E1] text-[#F57F17]" },
