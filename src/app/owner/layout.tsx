@@ -29,7 +29,7 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
   return (
     <SalonGuard>
       <div className="min-h-screen pb-20">
-        <AppHeader menuItems={menuItems} />
+        <AppHeader menuItems={menuItems} menuFooter={<></>} />
         <div className="mx-auto max-w-lg">
           {children}
         </div>
