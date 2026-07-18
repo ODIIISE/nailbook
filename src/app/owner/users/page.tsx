@@ -5,7 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Users, Search, Plus, Pencil, Trash2, X, UserCheck, AlertTriangle, Lock, Unlock, Key } from "lucide-react";
+import { Users, Search, Plus, Pencil, Trash2, UserCheck, AlertTriangle, Lock, Unlock, Key } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { toPersianDigits } from "@/lib/jalali";
 import { normalizeDigits } from "@/lib/digits";
 
@@ -322,123 +325,110 @@ export default function OwnerUsersPage() {
         </div>
       )}
 
-      {/* ─── Add / Edit Modal ─── */}
-      {(modal === "add" || modal === "edit") && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setModal(null)} />
-          <div className="relative w-full max-w-sm bg-card rounded-3xl p-6 animate-scale shadow-elevated max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-h3 text-foreground">{modal === "add" ? "کاربر جدید" : "ویرایش کاربر"}</h3>
-              <Button variant="ghost" size="icon-sm" onClick={() => setModal(null)}><X className="h-5 w-5" /></Button>
+      {/* ─── Add / Edit Dialog ─── */}
+      <Dialog open={modal === "add" || modal === "edit"} onOpenChange={(open) => { if (!open) setModal(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{modal === "add" ? "کاربر جدید" : "ویرایش کاربر"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-[13px] text-muted-foreground">نام</label>
+              <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="نام و نام خانوادگی" className="mt-1" />
             </div>
-            <div className="space-y-3">
-              <div>
-                <label className="text-[13px] text-muted-foreground">نام</label>
-                <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="نام و نام خانوادگی" className="mt-1" />
-              </div>
-              <div>
-                <label className="text-[13px] text-muted-foreground">شماره موبایل</label>
-                <Input value={formPhone} onChange={(e) => setFormPhone(e.target.value)} placeholder="09121234567" dir="ltr" className="mt-1 text-left" />
-              </div>
-              <div>
-                <label className="text-[13px] text-muted-foreground">نقش</label>
-                <select
-                  value={formRole}
-                  onChange={(e) => setFormRole(e.target.value)}
-                  className="mt-1 w-full h-10 rounded-xl border border-border bg-background px-3 text-[14px]"
-                >
-                  <option value="customer">مشتری</option>
-                  <option value="owner">مدیر</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-[13px] text-muted-foreground">{modal === "add" ? "رمز (۴ رقمی)" : "رمز جدید (اختیاری)"}</label>
-                <Input type="text" maxLength={4} value={formPin} onChange={(e) => setFormPin(normalizeDigits(e.target.value))} placeholder="۱۲۳۴" dir="ltr" className="mt-1 text-center tracking-[0.3em]" />
-              </div>
-              {modal === "edit" && formPin.length === 4 && (
-                <div>
-                  <label className="text-[13px] text-muted-foreground">تکرار رمز</label>
-                  <Input type="text" maxLength={4} value={formConfirmPin} onChange={(e) => setFormConfirmPin(normalizeDigits(e.target.value))} placeholder="۱۲۳۴" dir="ltr" className="mt-1 text-center tracking-[0.3em]" />
-                </div>
-              )}
-              {formError && (
-                <div className="flex items-center gap-2 text-[13px] text-destructive">
-                  <AlertTriangle className="h-4 w-4 shrink-0" /><span>{formError}</span>
-                </div>
-              )}
-              <div className="flex gap-3 pt-2">
-                <Button onClick={modal === "add" ? handleAdd : handleEdit} disabled={isSubmitting} className="flex-1">
-                  {isSubmitting ? "در حال ذخیره..." : modal === "add" ? "ایجاد کاربر" : "ذخیره"}
-                </Button>
-                <Button variant="outline" onClick={() => setModal(null)} className="flex-1">انصراف</Button>
-              </div>
+            <div>
+              <label className="text-[13px] text-muted-foreground">شماره موبایل</label>
+              <Input value={formPhone} onChange={(e) => setFormPhone(e.target.value)} placeholder="09121234567" dir="ltr" className="mt-1 text-left" />
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Delete Confirmation ─── */}
-      {modal === "delete" && selectedUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setModal(null)} />
-          <div className="relative w-full max-w-sm bg-card rounded-3xl p-6 animate-scale shadow-elevated">
-            <div className="text-center mb-4">
-              <div className="h-14 w-14 mx-auto rounded-full bg-destructive/10 flex items-center justify-center mb-3">
-                <Trash2 className="h-6 w-6 text-destructive" />
-              </div>
-              <h3 className="text-h3 text-foreground">حذف کاربر</h3>
-              <p className="text-[13px] text-muted-foreground mt-1">
-                آیا از حذف <strong>{selectedUser.name || formatPhone(selectedUser.phone)}</strong> مطمئنید؟
-              </p>
-              <p className="text-[12px] text-destructive mt-2">این عمل قابل بازگشت نیست</p>
+            <div>
+              <label className="text-[13px] text-muted-foreground">نقش</label>
+              <Select value={formRole} onValueChange={(val) => setFormRole(val as string)}>
+                <SelectTrigger className="mt-1 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="customer">مشتری</SelectItem>
+                  <SelectItem value="owner">مدیر</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            {formError && <p className="text-[13px] text-destructive text-center mb-3">{formError}</p>}
-            <div className="flex gap-3">
-              <Button variant="destructive" onClick={handleDelete} disabled={isSubmitting} className="flex-1">
-                {isSubmitting ? "در حال حذف..." : "حذف"}
-              </Button>
-              <Button variant="outline" onClick={() => setModal(null)} className="flex-1">انصراف</Button>
+            <div>
+              <label className="text-[13px] text-muted-foreground">{modal === "add" ? "رمز (۴ رقمی)" : "رمز جدید (اختیاری)"}</label>
+              <Input type="text" maxLength={4} value={formPin} onChange={(e) => setFormPin(normalizeDigits(e.target.value))} placeholder="۱۲۳۴" dir="ltr" className="mt-1 text-center tracking-[0.3em]" />
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Reset PIN Modal ─── */}
-      {modal === "reset-pin" && selectedUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setModal(null)} />
-          <div className="relative w-full max-w-sm bg-card rounded-3xl p-6 animate-scale shadow-elevated">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-h3 text-foreground">تغییر رمز</h3>
-              <Button variant="ghost" size="icon-sm" onClick={() => setModal(null)}><X className="h-5 w-5" /></Button>
-            </div>
-            <p className="text-center text-[13px] text-muted-foreground mb-4">
-              رمز جدید برای <strong>{selectedUser.name || formatPhone(selectedUser.phone)}</strong>
-            </p>
-            <div className="space-y-3">
-              <div>
-                <label className="text-[13px] text-muted-foreground">رمز جدید (۴ رقمی)</label>
-                <Input type="text" maxLength={4} value={formPin} onChange={(e) => setFormPin(normalizeDigits(e.target.value))} placeholder="۱۲۳۴" dir="ltr" className="mt-1 text-center tracking-[0.3em]" />
-              </div>
+            {modal === "edit" && formPin.length === 4 && (
               <div>
                 <label className="text-[13px] text-muted-foreground">تکرار رمز</label>
                 <Input type="text" maxLength={4} value={formConfirmPin} onChange={(e) => setFormConfirmPin(normalizeDigits(e.target.value))} placeholder="۱۲۳۴" dir="ltr" className="mt-1 text-center tracking-[0.3em]" />
               </div>
-              {formError && (
-                <div className="flex items-center gap-2 text-[13px] text-destructive">
-                  <AlertTriangle className="h-4 w-4 shrink-0" /><span>{formError}</span>
-                </div>
-              )}
-              <div className="flex gap-3 pt-2">
-                <Button onClick={handleResetPin} disabled={isSubmitting || formPin.length !== 4} className="flex-1">
-                  {isSubmitting ? "در حال ذخیره..." : "ذخیره رمز"}
-                </Button>
-                <Button variant="outline" onClick={() => setModal(null)} className="flex-1">انصراف</Button>
+            )}
+            {formError && (
+              <div className="flex items-center gap-2 text-[13px] text-destructive">
+                <AlertTriangle className="h-4 w-4 shrink-0" /><span>{formError}</span>
               </div>
+            )}
+            <div className="flex gap-3 pt-2">
+              <Button onClick={modal === "add" ? handleAdd : handleEdit} disabled={isSubmitting} className="flex-1">
+                {isSubmitting ? "در حال ذخیره..." : modal === "add" ? "ایجاد کاربر" : "ذخیره"}
+              </Button>
+              <Button variant="outline" onClick={() => setModal(null)} className="flex-1">انصراف</Button>
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Delete Confirmation ─── */}
+      <AlertDialog open={modal === "delete"} onOpenChange={(open) => { if (!open) setModal(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف کاربر</AlertDialogTitle>
+            <AlertDialogDescription>
+              آیا از حذف <strong>{selectedUser?.name || (selectedUser ? formatPhone(selectedUser.phone) : "")}</strong> مطمئنید؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <p className="text-[12px] text-destructive text-center -mt-2">این عمل قابل بازگشت نیست</p>
+          {formError && <p className="text-[13px] text-destructive text-center">{formError}</p>}
+          <AlertDialogFooter>
+            <AlertDialogCancel>انصراف</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={handleDelete} disabled={isSubmitting}>
+              {isSubmitting ? "در حال حذف..." : "حذف"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ─── Reset PIN Dialog ─── */}
+      <Dialog open={modal === "reset-pin"} onOpenChange={(open) => { if (!open) setModal(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>تغییر رمز</DialogTitle>
+          </DialogHeader>
+          <p className="text-center text-[13px] text-muted-foreground">
+            رمز جدید برای <strong>{selectedUser?.name || (selectedUser ? formatPhone(selectedUser.phone) : "")}</strong>
+          </p>
+          <div className="space-y-3">
+            <div>
+              <label className="text-[13px] text-muted-foreground">رمز جدید (۴ رقمی)</label>
+              <Input type="text" maxLength={4} value={formPin} onChange={(e) => setFormPin(normalizeDigits(e.target.value))} placeholder="۱۲۳۴" dir="ltr" className="mt-1 text-center tracking-[0.3em]" />
+            </div>
+            <div>
+              <label className="text-[13px] text-muted-foreground">تکرار رمز</label>
+              <Input type="text" maxLength={4} value={formConfirmPin} onChange={(e) => setFormConfirmPin(normalizeDigits(e.target.value))} placeholder="۱۲۳۴" dir="ltr" className="mt-1 text-center tracking-[0.3em]" />
+            </div>
+            {formError && (
+              <div className="flex items-center gap-2 text-[13px] text-destructive">
+                <AlertTriangle className="h-4 w-4 shrink-0" /><span>{formError}</span>
+              </div>
+            )}
+            <div className="flex gap-3 pt-2">
+              <Button onClick={handleResetPin} disabled={isSubmitting || formPin.length !== 4} className="flex-1">
+                {isSubmitting ? "در حال ذخیره..." : "ذخیره رمز"}
+              </Button>
+              <Button variant="outline" onClick={() => setModal(null)} className="flex-1">انصراف</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
