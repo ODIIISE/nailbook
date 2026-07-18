@@ -13,47 +13,76 @@ const AUTO_ADVANCE_MS = 10000;
 
 export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [progressPct, setProgressPct] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const elapsedRef = useRef(0);
+  const startTimeRef = useRef<number>(0);
+  const pausedAtRef = useRef(0);
   const images = highlight.images;
   const total = images.length;
 
   const goNext = useCallback(() => {
-    if (currentIndex < total - 1) {
-      setCurrentIndex((i) => i + 1);
-      setProgress(0);
-    } else {
+    setCurrentIndex((i) => {
+      if (i < total - 1) return i + 1;
       onClose();
-    }
-  }, [currentIndex, total, onClose]);
+      return i;
+    });
+    elapsedRef.current = 0;
+    setProgressPct(0);
+  }, [total, onClose]);
 
   const goPrev = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex((i) => i - 1);
-      setProgress(0);
-    }
-  }, [currentIndex]);
+    setCurrentIndex((i) => (i > 0 ? i - 1 : i));
+    elapsedRef.current = 0;
+    setProgressPct(0);
+  }, []);
 
   // Auto-advance timer
   useEffect(() => {
     if (total === 0) return;
 
-    const interval = 50;
-    let elapsed = 0;
+    if (isPaused) return;
 
-    timerRef.current = setInterval(() => {
-      elapsed += interval;
-      setProgress((elapsed / AUTO_ADVANCE_MS) * 100);
-      if (elapsed >= AUTO_ADVANCE_MS) {
-        clearInterval(timerRef.current!);
-        goNext();
-      }
-    }, interval);
+    const remaining = AUTO_ADVANCE_MS - elapsedRef.current;
+    startTimeRef.current = performance.now();
+
+    timerRef.current = setTimeout(() => {
+      goNext();
+    }, remaining);
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [currentIndex, total, goNext]);
+  }, [currentIndex, total, goNext, isPaused]);
+
+  // Progress bar via rAF for smooth CSS-like animation
+  useEffect(() => {
+    if (isPaused || total === 0) return;
+
+    let raf: number;
+    const tick = () => {
+      const now = performance.now();
+      const dt = now - startTimeRef.current;
+      elapsedRef.current = pausedAtRef.current + dt;
+      const pct = Math.min((elapsedRef.current / AUTO_ADVANCE_MS) * 100, 100);
+      setProgressPct(pct);
+      if (pct < 100) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [currentIndex, total, isPaused]);
+
+  // Pause handlers
+  const handlePause = useCallback(() => {
+    setIsPaused(true);
+    pausedAtRef.current = elapsedRef.current;
+    if (timerRef.current) clearTimeout(timerRef.current);
+  }, []);
+
+  const handleResume = useCallback(() => {
+    setIsPaused(false);
+  }, []);
 
   // Keyboard navigation
   useEffect(() => {
@@ -83,7 +112,7 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
                   i < currentIndex
                     ? "100%"
                     : i === currentIndex
-                      ? `${progress}%`
+                      ? `${progressPct}%`
                       : "0%",
               }}
             />
@@ -110,14 +139,24 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
         draggable={false}
       />
 
-      {/* Navigation tap zones — below close button */}
+      {/* Navigation tap zones + pause-on-touch */}
       <button
         onClick={goNext}
+        onMouseDown={handlePause}
+        onMouseUp={handleResume}
+        onMouseLeave={handleResume}
+        onTouchStart={handlePause}
+        onTouchEnd={handleResume}
         className="absolute left-0 top-16 bottom-0 w-1/3 z-10"
         aria-label="Next"
       />
       <button
         onClick={goPrev}
+        onMouseDown={handlePause}
+        onMouseUp={handleResume}
+        onMouseLeave={handleResume}
+        onTouchStart={handlePause}
+        onTouchEnd={handleResume}
         className="absolute right-0 top-16 bottom-0 w-2/3 z-10"
         aria-label="Previous"
       />
