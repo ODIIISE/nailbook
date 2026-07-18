@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { User, Ban, Clock, CreditCard, CheckCircle2, Loader, XCircle, Layers, DollarSign, Calendar, AlertTriangle } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
@@ -129,6 +129,15 @@ export function Timeline({
   const nowPosition = showNow ? ((currentMinute - startHour * 60) / 60) * HOUR_HEIGHT : 0;
 
   const hasContent = bookings.length > 0 || blockedTimes.length > 0;
+
+  useEffect(() => {
+    const nowEl = document.getElementById("timeline-now");
+    if (nowEl) {
+      setTimeout(() => {
+        nowEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 300);
+    }
+  }, []);
 
   return (
     <Card className="overflow-hidden">
@@ -388,6 +397,7 @@ export function Timeline({
             {/* Current time indicator — dot on left edge, centered on line */}
             {showNow && (
               <div
+                id="timeline-now"
                 className="absolute z-20 pointer-events-none"
                 style={{ top: nowPosition, left: 44, right: 0 }}
               >
