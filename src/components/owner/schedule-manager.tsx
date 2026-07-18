@@ -8,6 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Save, Copy, HelpCircle } from "lucide-react";
 import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import {
   toPersianDigits,
   gregorianToJalali,
   jalaliToGregorian,
@@ -61,13 +66,12 @@ const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
 
 function Help({ text }: { text: string }) {
   return (
-    <div className="group relative inline-flex">
-      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help hover:text-muted-foreground transition-colors" />
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-2.5 rounded-xl bg-foreground text-background text-[11px] leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-elevated">
+    <Tooltip>
+      <TooltipTrigger render={<HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help hover:text-muted-foreground transition-colors" />} />
+      <TooltipContent side="top" className="w-52 text-[11px] leading-relaxed p-2.5 rounded-xl shadow-elevated">
         {text}
-        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-foreground" />
-      </div>
-    </div>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
