@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { normalizeDigits } from "@/lib/digits";
 import { toPersianDigits } from "@/lib/jalali";
 import { getIranWeekDay } from "@/lib/slots";
@@ -125,18 +126,18 @@ export function ManualReserveModal({
 
         <div>
           <Label className="text-[13px]">خدمت</Label>
-          <select
-            value={serviceId}
-            onChange={(e) => handleServiceChange(e.target.value)}
-            className="mt-1 w-full h-12 rounded-2xl glass px-3 text-[15px] appearance-none cursor-pointer"
-            dir="rtl"
-          >
-            {services.filter((s) => s.is_active).map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name} - {toPersianDigits(s.duration_minutes)} دقیقه
-              </option>
-            ))}
-          </select>
+          <Select value={serviceId} onValueChange={(val) => handleServiceChange(val as string)}>
+            <SelectTrigger className="mt-1 w-full h-12 rounded-2xl glass px-3 text-[15px]" dir="rtl">
+              <SelectValue placeholder="خدمت را انتخاب کنید" />
+            </SelectTrigger>
+            <SelectContent>
+              {services.filter((s) => s.is_active).map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name} - {toPersianDigits(s.duration_minutes)} دقیقه
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
