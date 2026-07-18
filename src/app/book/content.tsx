@@ -472,7 +472,7 @@ export default function BookContent() {
                   />
                 </div>
                 {authError && <p className="text-[13px] text-destructive text-center">{authError}</p>}
-                <Button className="w-full" onClick={handleAuthPhoneSubmit} disabled={!isValidIranianPhone(normalizeDigits(authPhone))}>
+                <Button size="xl" className="w-full" onClick={handleAuthPhoneSubmit} disabled={!isValidIranianPhone(normalizeDigits(authPhone))}>
                   ادامه
                 </Button>
               </div>
@@ -520,7 +520,7 @@ export default function BookContent() {
                   />
                 </div>
                 {authError && <p className="text-[13px] text-destructive text-center">{authError}</p>}
-                <Button className="w-full" onClick={handleAuthNameSubmit} disabled={isLoading || !authName.trim()}>
+                <Button size="xl" className="w-full" onClick={handleAuthNameSubmit} disabled={isLoading || !authName.trim()}>
                   {isLoading ? "در حال ثبت‌نام..." : "ثبت‌نام"}
                 </Button>
                 <Button variant="ghost" className="w-full" onClick={() => setAuthStep("confirm-pin")}>بازگشت</Button>
