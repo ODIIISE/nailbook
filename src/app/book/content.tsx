@@ -466,9 +466,23 @@ export default function BookContent() {
         {/* ─── Step 3: Auth ─── */}
         {step === "auth" && (
           <Card className="glass p-6">
+            {/* Auth Step Indicator */}
+            <div className="flex items-center justify-center gap-2 mb-5">
+              {["phone", "pin", "confirm-pin", "name", "verify-pin"].includes(authStep) && (
+                <>
+                  <div className={`w-2 h-2 rounded-full transition-colors ${authStep === "phone" ? "bg-[var(--rose)]" : "bg-black/10"}`} />
+                  <div className={`w-2 h-2 rounded-full transition-colors ${["pin","confirm-pin","name"].includes(authStep) ? "bg-[var(--rose)]" : "bg-black/10"}`} />
+                  {authStep === "verify-pin" && <div className="w-2 h-2 rounded-full bg-[var(--rose)]" />}
+                </>
+              )}
+            </div>
+
             {authStep === "phone" && (
               <div className="space-y-4">
                 <div className="text-center mb-4">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--rose)]/10">
+                    <span className="text-xl">📱</span>
+                  </div>
                   <h2 className="text-h1 text-foreground">ورود</h2>
                   <p className="text-[13px] text-muted-foreground mt-1">
                     شماره موبایل خود را وارد کنید
@@ -485,7 +499,12 @@ export default function BookContent() {
                     className="mt-1 text-left"
                   />
                 </div>
-                {authError && <p className="text-[13px] text-destructive text-center">{authError}</p>}
+                {authError && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+                    <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+                    <p className="text-[13px] text-destructive">{authError}</p>
+                  </div>
+                )}
                 <Button size="xl" className="w-full" onClick={handleAuthPhoneSubmit} disabled={!isValidIranianPhone(normalizeDigits(authPhone))}>
                   ادامه
                 </Button>
@@ -495,30 +514,49 @@ export default function BookContent() {
             {authStep === "pin" && (
               <div className="space-y-4">
                 <div className="text-center mb-4">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/10">
+                    <span className="text-xl">🔑</span>
+                  </div>
                   <h2 className="text-h1 text-foreground">ساخت رمز</h2>
                   <p className="text-[13px] text-muted-foreground mt-1">یک کد ۴ رقمی بسازید</p>
                 </div>
                 <PinInput onComplete={handleAuthPinSubmit} disabled={isLoading} />
-                {authError && <p className="text-[13px] text-destructive text-center mt-2">{authError}</p>}
-                <Button variant="ghost" className="w-full" onClick={() => setAuthStep("phone")}>بازگشت</Button>
+                {authError && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+                    <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+                    <p className="text-[13px] text-destructive">{authError}</p>
+                  </div>
+                )}
+                <Button size="lg" variant="outline" className="w-full" onClick={() => setAuthStep("phone")}>بازگشت</Button>
               </div>
             )}
 
             {authStep === "confirm-pin" && (
               <div className="space-y-4">
                 <div className="text-center mb-4">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
+                    <span className="text-xl">✅</span>
+                  </div>
                   <h2 className="text-h1 text-foreground">تکرار رمز</h2>
                   <p className="text-[13px] text-muted-foreground mt-1">رمز خود را دوباره وارد کنید</p>
                 </div>
                 <PinInput onComplete={handleAuthConfirmPinSubmit} disabled={isLoading} />
-                {authError && <p className="text-[13px] text-destructive text-center mt-2">{authError}</p>}
-                <Button variant="ghost" className="w-full" onClick={() => setAuthStep("pin")}>بازگشت</Button>
+                {authError && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+                    <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+                    <p className="text-[13px] text-destructive">{authError}</p>
+                  </div>
+                )}
+                <Button size="lg" variant="outline" className="w-full" onClick={() => setAuthStep("pin")}>بازگشت</Button>
               </div>
             )}
 
             {authStep === "name" && (
               <div className="space-y-4">
                 <div className="text-center mb-4">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
+                    <span className="text-xl">👤</span>
+                  </div>
                   <h2 className="text-h1 text-foreground">نام شما</h2>
                   <p className="text-[13px] text-muted-foreground mt-1">نام و نام خانوادگی خود را وارد کنید</p>
                 </div>
@@ -533,24 +571,42 @@ export default function BookContent() {
                     autoFocus
                   />
                 </div>
-                {authError && <p className="text-[13px] text-destructive text-center">{authError}</p>}
+                {authError && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+                    <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+                    <p className="text-[13px] text-destructive">{authError}</p>
+                  </div>
+                )}
                 <Button size="xl" className="w-full" onClick={handleAuthNameSubmit} disabled={isLoading || !authName.trim()}>
-                  {isLoading ? "در حال ثبت‌نام..." : "ثبت‌نام"}
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      در حال ثبت‌نام...
+                    </span>
+                  ) : "ثبت‌نام"}
                 </Button>
-                <Button variant="ghost" className="w-full" onClick={() => setAuthStep("confirm-pin")}>بازگشت</Button>
+                <Button size="lg" variant="outline" className="w-full" onClick={() => setAuthStep("confirm-pin")}>بازگشت</Button>
               </div>
             )}
 
             {authStep === "verify-pin" && (
               <div className="space-y-4">
                 <div className="text-center mb-4">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-500/10">
+                    <span className="text-xl">🔐</span>
+                  </div>
                   <h2 className="text-h1 text-foreground">ورود</h2>
                   <p className="text-[13px] text-muted-foreground mt-1">کد ۴ رقمی خود را وارد کنید</p>
                   <p className="text-[13px] text-muted-foreground mt-1" dir="ltr">{authPhone}</p>
                 </div>
                 <PinInput onComplete={handleAuthVerifyPinSubmit} disabled={isLoading} />
-                {authError && <p className="text-[13px] text-destructive text-center mt-2">{authError}</p>}
-                <Button variant="ghost" className="w-full" onClick={() => setAuthStep("phone")}>بازگشت</Button>
+                {authError && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+                    <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+                    <p className="text-[13px] text-destructive">{authError}</p>
+                  </div>
+                )}
+                <Button size="lg" variant="outline" className="w-full" onClick={() => setAuthStep("phone")}>بازگشت</Button>
               </div>
             )}
           </Card>
