@@ -35,28 +35,42 @@ export async function PUT(request: NextRequest) {
     const currentIds = currentRows.map((r) => r.id);
     const deletedIds = currentIds.filter((id) => !incomingIds.includes(id));
 
-    if (deletedIds.length > 0) {
-      const { rows: services } = await sql`SELECT id, addon_ids FROM services`;
-      for (const svc of services) {
-        const currentAddonIds: string[] = svc.addon_ids || [];
-        const cleanedIds = currentAddonIds.filter((aid) => !deletedIds.includes(aid));
-        if (cleanedIds.length !== currentAddonIds.length) {
-          await sql`UPDATE services SET addon_ids = ${JSON.stringify(cleanedIds)} WHERE id = ${svc.id}`;
+    // Use transaction for safe delete+insert
+    let client;
+    try {
+      client = await sql.connect();
+      await client.query("BEGIN");
+
+      if (deletedIds.length > 0) {
+        const { rows: services } = await sql`SELECT id, addon_ids FROM services`;
+        for (const svc of services) {
+          const currentAddonIds: string[] = svc.addon_ids || [];
+          const cleanedIds = currentAddonIds.filter((aid) => !deletedIds.includes(aid));
+          if (cleanedIds.length !== currentAddonIds.length) {
+            await client.query("UPDATE services SET addon_ids = $1 WHERE id = $2", [JSON.stringify(cleanedIds), svc.id]);
+          }
+        }
+        for (const id of deletedIds) {
+          await client.query("DELETE FROM addons WHERE id = $1", [id]);
         }
       }
-      for (const id of deletedIds) {
-        await sql`DELETE FROM addons WHERE id = ${id}`;
-      }
-    }
 
-    for (const [i, a] of addons.entries()) {
-      await sql`
-        INSERT INTO addons (id, name, price, duration_minutes, is_active, sort_order)
-        VALUES (${a.id}, ${a.name}, ${a.price}, ${a.duration_minutes}, ${a.is_active !== false}, ${a.sort_order || i + 1})
-        ON CONFLICT (id) DO UPDATE SET
-          name = ${a.name}, price = ${a.price}, duration_minutes = ${a.duration_minutes},
-          is_active = ${a.is_active !== false}, sort_order = ${a.sort_order || i + 1}
-      `;
+      for (const [i, a] of addons.entries()) {
+        await client.query(
+          `INSERT INTO addons (id, name, price, duration_minutes, is_active, sort_order)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           ON CONFLICT (id) DO UPDATE SET
+             name = $2, price = $3, duration_minutes = $4, is_active = $5, sort_order = $6`,
+          [a.id, a.name, a.price, a.duration_minutes, a.is_active !== false, a.sort_order || i + 1]
+        );
+      }
+
+      await client.query("COMMIT");
+    } catch (e) {
+      if (client) try { await client.query("ROLLBACK"); } catch {}
+      throw e;
+    } finally {
+      if (client) client.release();
     }
 
     logActivity({

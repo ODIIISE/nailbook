@@ -35,28 +35,36 @@ export async function PUT(request: NextRequest) {
     const currentIds = currentRows.map((r) => r.id);
     const deletedIds = currentIds.filter((id) => !incomingIds.includes(id));
 
-    if (deletedIds.length > 0) {
-      for (const id of deletedIds) {
-        await sql`UPDATE bookings SET service_id = NULL WHERE service_id = ${id}`;
-        await sql`DELETE FROM services WHERE id = ${id}`;
-      }
-      logActivity({
-        eventType: "service_deleted",
-        entityType: "service",
-        description: `${deletedIds.length} خدمت حذف شد`,
-        metadata: { deletedIds },
-      });
-    }
+    // Use transaction for safe delete+insert
+    let client;
+    try {
+      client = await sql.connect();
+      await client.query("BEGIN");
 
-    for (const [i, s] of services.entries()) {
-      await sql`
-        INSERT INTO services (id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score)
-        VALUES (${s.id}, ${s.name}, ${s.description || ""}, ${s.duration_minutes}, ${s.price}, ${s.is_active !== false}, ${s.sort_order || i + 1}, ${JSON.stringify(s.addon_ids || [])}, ${s.priority_score || 5})
-        ON CONFLICT (id) DO UPDATE SET
-          name = ${s.name}, description = ${s.description || ""}, duration_minutes = ${s.duration_minutes},
-          price = ${s.price}, is_active = ${s.is_active !== false}, sort_order = ${s.sort_order || i + 1},
-          addon_ids = ${JSON.stringify(s.addon_ids || [])}, priority_score = ${s.priority_score || 5}
-      `;
+      if (deletedIds.length > 0) {
+        for (const id of deletedIds) {
+          await client.query("UPDATE bookings SET service_id = NULL WHERE service_id = $1", [id]);
+          await client.query("DELETE FROM services WHERE id = $1", [id]);
+        }
+      }
+
+      for (const [i, s] of services.entries()) {
+        await client.query(
+          `INSERT INTO services (id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+           ON CONFLICT (id) DO UPDATE SET
+             name = $2, description = $3, duration_minutes = $4, price = $5,
+             is_active = $6, sort_order = $7, addon_ids = $8, priority_score = $9`,
+          [s.id, s.name, s.description || "", s.duration_minutes, s.price, s.is_active !== false, s.sort_order || i + 1, JSON.stringify(s.addon_ids || []), s.priority_score || 5]
+        );
+      }
+
+      await client.query("COMMIT");
+    } catch (e) {
+      if (client) try { await client.query("ROLLBACK"); } catch {}
+      throw e;
+    } finally {
+      if (client) client.release();
     }
 
     logActivity({
