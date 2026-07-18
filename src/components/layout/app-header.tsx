@@ -100,7 +100,7 @@ export function AppHeader({
                 </Button>
               </div>
 
-              <div className="space-y-0.5 flex-1">
+              <div className="flex-1 flex flex-col">
                 {defaultMenuItems.map((item, i) => (
                   <div key={i}>
                     {item.icon === undefined && <Separator className="my-2 bg-black/5" />}
@@ -146,17 +146,15 @@ export function AppHeader({
                     </div>
                   </>
                 )}
+              </div>
 
-                <div className="mt-auto">
-                  <Separator className="my-2 bg-black/5" />
-
-                  <button
-                    onClick={() => { router.push("/owner/login"); closeMenu(); }}
-                    className="w-full flex items-center justify-center px-3 py-2 rounded-[12px] hover:bg-white/40 text-right transition-colors duration-150"
-                  >
-                    <span className="text-[13px] text-muted-foreground/60">ورود مدیر</span>
-                  </button>
-                </div>
+              <div className="pt-2 border-t border-black/5">
+                <button
+                  onClick={() => { router.push("/owner/login"); closeMenu(); }}
+                  className="w-full flex items-center justify-center px-3 py-2.5 rounded-[12px] hover:bg-white/40 text-right transition-colors duration-150"
+                >
+                  <span className="text-[13px] text-muted-foreground/60">ورود مدیر</span>
+                </button>
               </div>
             </div>
           </div>
