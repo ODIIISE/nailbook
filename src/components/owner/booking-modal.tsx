@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { X, User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, CreditCard, ChevronDown, Check, Trash2, AlertTriangle } from "lucide-react";
 import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
 import { calculateBookingPrice } from "@/lib/pricing";
+import { STATUS_CONFIG } from "@/lib/constants";
 import type { Booking, Service, Addon } from "@/lib/types";
 
 interface BookingModalProps {
@@ -17,12 +18,9 @@ interface BookingModalProps {
   onClose: () => void;
 }
 
-const STATUS_OPTIONS: { value: Booking["status"]; label: string; color: string }[] = [
-  { value: "reserved", label: "رزرو شده", color: "#1565C0" },
-  { value: "confirmed", label: "تایید شده", color: "#2E7D32" },
-  { value: "in_progress", label: "در حال انجام", color: "#E65100" },
-  { value: "completed", label: "تکمیل شده", color: "#7B1FA2" },
-];
+const STATUS_OPTIONS: { value: string; label: string; color: string }[] = Object.entries(STATUS_CONFIG).map(
+  ([value, { label, color }]) => ({ value, label, color })
+);
 
 export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, onStatusChange, onDelete, onClose }: BookingModalProps) {
   const [statusOpen, setStatusOpen] = useState(false);
@@ -206,7 +204,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
                 {STATUS_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
-                    onClick={() => { setCurrentStatus(opt.value); setStatusOpen(false); onStatusChange(opt.value); }}
+                    onClick={() => { setCurrentStatus(opt.value as Booking["status"]); setStatusOpen(false); onStatusChange(opt.value); }}
                     className={`w-full flex items-center gap-2 px-3 py-2.5 text-[12px] font-medium hover:bg-black/[0.03] ${currentStatus === opt.value ? "bg-black/[0.04] font-bold" : ""}`}
                   >
                     <div className="w-[7px] h-[7px] rounded-full" style={{ backgroundColor: opt.color }} />

@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { User, Ban, Clock, CreditCard, CheckCircle2, Loader, XCircle, Layers, DollarSign, Calendar, AlertTriangle } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
+import { STATUS_CONFIG } from "@/lib/constants";
 import type { Booking, Service, Addon } from "@/lib/types";
 
 interface BlockedTime {
@@ -34,14 +35,15 @@ const SERVICE_PALETTE = [
   { accent: "#C4B5FD", bg: "#F5F3FF" }, // purple
 ];
 
-// Status config
-const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; icon: typeof CheckCircle2; dotColor: string }> = {
-  reserved: { label: "رزرو شده", bg: "#E3F2FD", color: "#1565C0", icon: Clock, dotColor: "#1565C0" },
-  confirmed: { label: "تایید شده", bg: "#E8F5E9", color: "#2E7D32", icon: CheckCircle2, dotColor: "#2E7D32" },
-  in_progress: { label: "در حال انجام", bg: "#FFF3E0", color: "#E65100", icon: Loader, dotColor: "#E65100" },
-  completed: { label: "تکمیل شده", bg: "#F3E5F5", color: "#7B1FA2", icon: CheckCircle2, dotColor: "#7B1FA2" },
-  cancelled: { label: "لغو شده", bg: "#FFEBEE", color: "#C62828", icon: XCircle, dotColor: "#C62828" },
-  pending: { label: "در انتظار", bg: "#FFF3E0", color: "#E65100", icon: Clock, dotColor: "#E65100" },
+// Icon mapping for statuses
+const STATUS_ICONS: Record<string, typeof CheckCircle2> = {
+  reserved: Clock,
+  confirmed: CheckCircle2,
+  completed: CheckCircle2,
+  cancelled: XCircle,
+  no_show: AlertTriangle,
+  in_progress: Loader,
+  pending: Clock,
 };
 
 function hashString(str: string): number {
@@ -58,7 +60,8 @@ function getServiceStyle(serviceId: string) {
 }
 
 function getStatusConfig(status: string) {
-  return STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+  const base = STATUS_CONFIG[status] || STATUS_CONFIG.reserved;
+  return { ...base, icon: STATUS_ICONS[status] || Clock };
 }
 
 function timeToMinutes(time: string): number {
