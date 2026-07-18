@@ -24,6 +24,15 @@ export function ServiceCardGrid({ services }: ServiceCardGridProps) {
     .filter((s) => s.is_active)
     .sort((a, b) => a.sort_order - b.sort_order);
 
+  if (activeServices.length === 0) {
+    return (
+      <div className="px-4 py-12 text-center">
+        <Sparkles className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-40" />
+        <p className="text-caption text-muted-foreground">هنوز خدماتی اضافه نشده</p>
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 py-6">
       <div className="mx-auto max-w-lg">
