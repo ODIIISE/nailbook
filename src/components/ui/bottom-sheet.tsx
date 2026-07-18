@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "./button";
 
@@ -34,6 +34,23 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
     return () => document.removeEventListener("keydown", handleEscape);
   }, [open, onClose]);
 
+  const touchStartY = useRef(0);
+  const [dragOffset, setDragOffset] = useState(0);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    const delta = e.touches[0].clientY - touchStartY.current;
+    if (delta > 0) setDragOffset(delta);
+  };
+
+  const onTouchEnd = () => {
+    if (dragOffset > 100) onClose();
+    setDragOffset(0);
+  };
+
   if (!open) return null;
 
   return (
@@ -45,7 +62,16 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
       />
 
       {/* Sheet */}
-      <div className="relative w-full max-w-lg bg-card rounded-t-2xl p-4 animate-slideUp">
+      <div
+        className="relative w-full max-w-lg bg-card rounded-t-2xl p-4 animate-slideUp"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        style={{
+          transform: `translateY(${dragOffset}px)`,
+          transition: dragOffset === 0 ? "transform 200ms ease-out" : "none",
+        }}
+      >
         {/* Handle */}
         <div className="flex justify-center mb-4">
           <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
