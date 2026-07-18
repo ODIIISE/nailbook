@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minimal Luxe — 20 Component Variants with UX Scores</title>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2" rel="stylesheet" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2" rel="stylesheet" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2" rel="stylesheet" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-ExtraBold.woff2" rel="stylesheet" crossorigin>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Vazirmatn',-apple-system,sans-serif;background:#09090b;color:#fff;padding:24px 16px;}
+h1{text-align:center;font-size:22px;font-weight:800;margin-bottom:4px;}
+.sub{text-align:center;color:#52525b;font-size:13px;margin-bottom:24px;}
+
+/* Score legend */
+.legend{max-width:1400px;margin:0 auto 32px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#71717a;}
+.legend-dot{width:10px;height:10px;border-radius:3px;}
+
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;max-width:1800px;margin:0 auto;}
+@media(max-width:1400px){.grid{grid-template-columns:repeat(4,1fr);}}
+@media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:500px){.grid{grid-template-columns:1fr;max-width:380px;margin:0 auto;}}
+
+.card{background:#18181b;border-radius:14px;overflow:hidden;border:1px solid #27272a;position:relative;}
+.card-head{padding:10px 12px 8px;border-bottom:1px solid #27272a;}
+.card-head h3{font-size:12px;font-weight:700;}
+.card-head .tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px;}
+.tag{font-size:9px;padding:1px 6px;border-radius:3px;font-weight:500;}
+.card-body{padding:8px;}
+
+/* Score bar */
+.score{display:flex;gap:3px;margin-top:6px;}
+.score-dot{width:100%;height:4px;border-radius:2px;background:#27272a;}
+.score-dot.on{background:#C4A882;}
+.score-dot.hi{background:#28A745;}
+.score-dot.mid{background:#F59E0B;}
+
+/* Phone */
+.phone{border-radius:18px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.4);border:1px solid #27272a;}
+.scr{min-height:480px;display:flex;flex-direction:column;background:#FAF8F5;color:#2D2926;font-size:12px;}
+.topbar{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(232,224,214,0.5);}
+.topbar-t{font-size:14px;font-weight:700;}
+.hero{padding:24px 16px 20px;text-align:center;}
+.salon{font-size:17px;font-weight:800;color:#2D2926;}
+.sub-t{font-size:10px;color:#A89888;margin-top:2px;}
+.tagln{font-size:11px;color:#6B5D4F;line-height:1.6;margin-top:8px;}
+.cta{margin-top:12px;padding:9px 28px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
+.svc{margin:3px 14px;padding:8px 10px;display:flex;align-items:center;gap:8px;}
+.svc-ic{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.svc-n{font-size:11px;font-weight:600;}
+.svc-d{font-size:9px;color:#A89888;}
+.svc-p{font-size:11px;font-weight:700;color:#C4A882;margin-right:auto;}
+.acts{display:flex;gap:4px;padding:6px 14px;}
+.act{flex:1;height:32px;display:flex;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:500;cursor:pointer;font-family:inherit;}
+.nav-b{display:flex;justify-content:space-around;padding:8px 0 12px;margin-top:auto;}
+.ni{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:8px;color:#C4B8A8;}
+.ni.on{color:#2D2926;font-weight:600;}
+
+/* ═══ VARIANT CLASSES ═══ */
+/* V1: Sharp */
+.v1 .topbar{border-bottom:1px solid #E8E0D6;}
+.v1 .cta{background:#2D2926;color:#FAF8F5;border:none;}
+.v1 .svc{border:1px solid #E8E0D6;background:#fff;}
+.v1 .svc-ic{border:1px solid #E8E0D6;background:#FAF8F5;}
+.v1 .act{border:1px solid #E8E0D6;background:#fff;}
+.v1 .nav-b{border-top:1px solid #E8E0D6;}
+
+/* V2: Soft */
+.v2 .topbar{background:rgba(250,248,245,0.9);backdrop-filter:blur(12px);}
+.v2 .cta{background:#2D2926;color:#FAF8F5;border:none;border-radius:50px;}
+.v2 .svc{border:1px solid #E8E0D6;background:#fff;border-radius:12px;}
+.v2 .svc-ic{border-radius:10px;background:#FAF8F5;}
+.v2 .act{border:1px solid #E8E0D6;background:#fff;border-radius:10px;}
+.v2 .nav-b{background:rgba(250,248,245,0.9);backdrop-filter:blur(12px);}
+
+/* V3: Outlined */
+.v3 .topbar{border-bottom:2px solid #2D2926;}
+.v3 .cta{background:transparent;color:#2D2926;border:2px solid #2D2926;}
+.v3 .svc{border:2px solid #2D2926;background:transparent;}
+.v3 .svc-ic{border:2px solid #2D2926;background:transparent;}
+.v3 .act{border:2px solid #2D2926;background:transparent;}
+.v3 .nav-b{border-top:2px solid #2D2926;}
+
+/* V4: Elevated */
+.v4 .topbar{box-shadow:0 2px 8px rgba(45,41,38,0.06);}
+.v4 .cta{background:#2D2926;color:#FAF8F5;border:none;border-radius:10px;box-shadow:0 3px 12px rgba(45,41,38,0.15);}
+.v4 .svc{border:1px solid #E8E0D6;background:#fff;border-radius:12px;box-shadow:0 3px 12px rgba(45,41,38,0.06);}
+.v4 .svc-ic{border-radius:10px;background:#FAF8F5;box-shadow:inset 0 1px 2px rgba(45,41,38,0.04);}
+.v4 .act{border:1px solid #E8E0D6;background:#fff;border-radius:10px;box-shadow:0 2px 6px rgba(45,41,38,0.05);}
+.v4 .nav-b{box-shadow:0 -2px 8px rgba(45,41,38,0.05);}
+
+/* V5: Glass */
+.v5 .scr{background:rgba(250,248,245,0.7);backdrop-filter:blur(16px);}
+.v5 .topbar{background:rgba(255,255,255,0.5);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.4);}
+.v5 .cta{background:rgba(45,41,38,0.85);color:#FAF8F5;border:none;border-radius:12px;}
+.v5 .svc{background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.4);border-radius:12px;}
+.v5 .svc-ic{background:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.3);border-radius:10px;}
+.v5 .act{background:rgba(255,255,255,0.5);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.4);border-radius:12px;}
+.v5 .nav-b{background:rgba(255,255,255,0.5);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,0.4);}
+
+/* V6: Compact */
+.v6 .hero{padding:16px 14px 12px;}
+.v6 .salon{font-size:15px;}
+.v6 .tagln{font-size:10px;margin-top:4px;}
+.v6 .cta{margin-top:8px;padding:7px 20px;font-size:10px;border-radius:6px;background:#2D2926;color:#FAF8F5;border:none;}
+.v6 .svc{margin:2px 14px;padding:6px 8px;gap:6px;}
+.v6 .svc-ic{width:26px;height:26px;font-size:11px;}
+.v6 .svc-n{font-size:10px;}
+.v6 .acts{padding:4px 14px;}
+.v6 .act{height:28px;font-size:9px;border-radius:6px;border:1px solid #E8E0D6;background:#fff;}
+
+/* V7: Pill */
+.v7 .cta{background:#2D2926;color:#FAF8F5;border:none;border-radius:50px;}
+.v7 .svc{border:1px solid #E8E0D6;background:#fff;border-radius:50px;}
+.v7 .svc-ic{border-radius:50%;background:#FAF8F5;}
+.v7 .act{border:1px solid #E8E0D6;background:#fff;border-radius:50px;}
+.v7 .nav-b{border-top:1px solid #E8E0D6;}
+
+/* V8: Ghost */
+.v8 .cta{background:transparent;color:#2D2926;border:none;text-decoration:underline;text-underline-offset:3px;}
+.v8 .svc{background:transparent;border-bottom:1px solid #E8E0D6;}
+.v8 .svc-ic{background:transparent;border:1px solid #E8E0D6;border-radius:50%;}
+.v8 .act{background:transparent;border:1px solid #E8E0D6;border-radius:8px;}
+.v8 .nav-b{border-top:1px solid #E8E0D6;}
+
+/* V9: Filled */
+.v9 .hero{background:#2D2926;color:#FAF8F5;}
+.v9 .salon{color:#FAF8F5;}
+.v9 .sub-t{color:rgba(250,248,245,0.4);}
+.v9 .tagln{color:rgba(250,248,245,0.5);}
+.v9 .cta{background:#C4A882;color:#2D2926;border:none;border-radius:10px;}
+.v9 .svc{background:#F2EDE6;border-radius:10px;border:none;}
+.v9 .svc-ic{background:#FAF8F5;border-radius:8px;}
+.v9 .svc-d{color:#7A6B5A;}
+.v9 .act{background:#F2EDE6;border:none;border-radius:10px;}
+.v9 .nav-b{border-top:1px solid #E8E0D6;}
+
+/* V10: Gradient */
+.v10 .hero{background:linear-gradient(135deg,#FAF8F5,#F2EDE6);}
+.v10 .cta{background:linear-gradient(135deg,#2D2926,#4A4440);color:#FAF8F5;border:none;border-radius:10px;}
+.v10 .svc{background:linear-gradient(135deg,rgba(255,255,255,0.8),rgba(242,237,230,0.6));border:1px solid rgba(232,224,214,0.5);border-radius:10px;}
+.v10 .svc-ic{background:linear-gradient(135deg,#FAF8F5,#F2EDE6);border-radius:8px;}
+.v10 .act{background:linear-gradient(135deg,rgba(255,255,255,0.8),rgba(242,237,230,0.6));border:1px solid rgba(232,224,214,0.5);border-radius:10px;}
+.v10 .nav-b{background:linear-gradient(180deg,#FAF8F5,#F2EDE6);border-top:1px solid rgba(232,224,214,0.5);}
+
+/* V11: Thick Border */
+.v11 .cta{background:#2D2926;color:#FAF8F5;border:3px solid #2D2926;border-radius:8px;}
+.v11 .svc{border:3px solid #2D2926;background:#fff;border-radius:8px;}
+.v11 .svc-ic{border:2px solid #2D2926;border-radius:8px;}
+.v11 .act{border:3px solid #2D2926;background:#fff;border-radius:8px;}
+.v11 .nav-b{border-top:3px solid #2D2926;}
+
+/* V12: Gold Accent */
+.v12 .topbar{border-bottom:2px solid #C4A882;}
+.v12 .cta{background:#C4A882;color:#2D2926;border:none;border-radius:10px;}
+.v12 .svc{border:1px solid #C4A882;background:#fff;border-radius:10px;}
+.v12 .svc-ic{background:rgba(196,168,130,0.1);border:1px solid rgba(196,168,130,0.3);border-radius:8px;}
+.v12 .svc-p{color:#C4A882;}
+.v12 .act{border:1px solid #C4A882;background:#fff;border-radius:10px;color:#C4A882;}
+.v12 .nav-b{border-top:2px solid #C4A882;}
+
+/* V13: Mono */
+.v13 .scr{font-family:'Courier New',monospace;}
+.v13 .topbar{border-bottom:1px solid #E8E0D6;}
+.v13 .salon{text-transform:uppercase;letter-spacing:0.05em;}
+.v13 .cta{background:#2D2926;color:#FAF8F5;border:none;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:0.05em;}
+.v13 .svc{border:1px solid #E8E0D6;background:#fff;}
+.v13 .svc-ic{border:1px solid #E8E0D6;background:#FAF8F5;font-family:'Courier New',monospace;}
+.v13 .act{border:1px solid #E8E0D6;background:#fff;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:0.03em;}
+.v13 .nav-b{border-top:1px solid #E8E0D6;}
+
+/* V14: Minimal Shadow */
+.v14 .svc{border:1px solid #E8E0D6;background:#fff;box-shadow:0 1px 2px rgba(45,41,38,0.03);}
+.v14 .svc-ic{border:1px solid #E8E0D6;background:#FAF8F5;}
+.v14 .act{border:1px solid #E8E0D6;background:#fff;box-shadow:0 1px 2px rgba(45,41,38,0.03);}
+.v14 .cta{background:#2D2926;color:#FAF8F5;border:none;box-shadow:0 1px 3px rgba(45,41,38,0.1);}
+
+/* V15: Dark Card */
+.v15 .svc{background:#2D2926;color:#FAF8F5;border-radius:10px;border:none;}
+.v15 .svc-ic{background:rgba(255,255,255,0.08);border-radius:8px;}
+.v15 .svc-d{color:rgba(250,248,245,0.4);}
+.v15 .svc-p{color:#C4A882;}
+.v15 .cta{background:#2D2926;color:#FAF8F5;border:none;border-radius:10px;}
+.v15 .act{background:#2D2926;color:#FAF8F5;border:none;border-radius:10px;}
+
+/* V16: Stripe */
+.v15 .svc{border-left:3px solid #C4A882;}
+
+/* V17: Dot Grid */
+.v17 .scr{background:radial-gradient(circle,#E8E0D6 1px,transparent 1px);background-size:16px 16px;background-color:#FAF8F5;}
+.v17 .cta{background:#2D2926;color:#FAF8F5;border:none;border-radius:8px;}
+.v17 .svc{background:rgba(255,255,255,0.85);backdrop-filter:blur(8px);border:1px solid #E8E0D6;border-radius:10px;}
+.v17 .svc-ic{background:#FAF8F5;border-radius:8px;border:1px solid #E8E0D6;}
+.v17 .act{background:rgba(255,255,255,0.85);border:1px solid #E8E0D6;border-radius:8px;}
+
+/* V18: Ring */
+.v18 .svc-ic{border:2px solid #C4A882;border-radius:50%;}
+.v18 .cta{background:#2D2926;color:#FAF8F5;border:2px solid #C4A882;border-radius:50px;}
+.v18 .act{border:1px solid #E8E0D6;background:#fff;border-radius:50px;}
+
+/* V19: Badge Price */
+.v19 .svc-p{background:#C4A882;color:#2D2926;padding:2px 8px;border-radius:50px;font-size:10px;}
+.v19 .cta{background:#2D2926;color:#FAF8F5;border:none;border-radius:10px;}
+.v19 .act{border:1px solid #E8E0D6;background:#fff;border-radius:10px;}
+
+/* V20: Accent Line */
+.v20 .hero{border-bottom:3px solid #C4A882;}
+.v20 .cta{background:#2D2926;color:#FAF8F5;border:none;border-radius:8px;}
+.v20 .svc{border:1px solid #E8E0D6;background:#fff;border-radius:8px;border-right:3px solid #C4A882;}
+.v20 .svc-ic{background:#FAF8F5;border-radius:6px;}
+.v20 .act{border:1px solid #E8E0D6;background:#fff;border-radius:8px;}
+</style>
+</head>
+<body>
+
+<h1>Minimal Luxe — 20 Component Variants</h1>
+<p class="sub">Same palette · Same layout · Different corners, shadows, borders, spacing</p>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#28A745;"></div> UX Score 9-10 (Excellent)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#F59E0B;"></div> UX Score 7-8 (Good)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#DC3545;"></div> UX Score 5-6 (Fair)</div>
+</div>
+
+<div class="grid">
+
+<!-- V1 -->
+<div class="card"><div class="card-head"><h3>V1: Sharp</h3><div class="tags"><span class="tag" style="background:#FEE2E2;color:#991B1B;">0px radius</span><span class="tag" style="background:#F3F4F6;color:#374151;">1px border</span><span class="tag" style="background:#F3F4F6;color:#374151;">No shadow</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot mid"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v1"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><div class="tagln">جایی که ظرافت با دقت همراه می‌شود</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="acts"><button class="act">+ مسدود</button><button class="act">+ رزرو</button></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<!-- V2 -->
+<div class="card"><div class="card-head"><h3>V2: Soft Rounded</h3><div class="tags"><span class="tag" style="background:#D1FAE5;color:#065F46;">12px radius</span><span class="tag" style="background:#F3F4F6;color:#374151;">1px border</span><span class="tag" style="background:#F3F4F6;color:#374151;">Subtle</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div></div></div><div class="card-body"><div class="phone"><div class="scr v2"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><div class="tagln">جایی که ظرافت با دقت همراه می‌شود</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="acts"><button class="act">+ مسدود</button><button class="act">+ رزرو</button></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<!-- V3 -->
+<div class="card"><div class="card-head"><h3>V3: Outlined</h3><div class="tags"><span class="tag" style="background:#DBEAFE;color:#1E40AF;">2px border</span><span class="tag" style="background:#F3F4F6;color:#374151;">No shadow</span><span class="tag" style="background:#F3F4F6;color:#374151;">Bold</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot mid"></div><div class="score-dot"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v3"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><div class="tagln">جایی که ظرافت با دقت همراه می‌شود</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="acts"><button class="act">+ مسدود</button><button class="act">+ رزرو</button></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<!-- V4 -->
+<div class="card"><div class="card-head"><h3>V4: Elevated</h3><div class="tags"><span class="tag" style="background:#FEE2E2;color:#991B1B;">Deep shadow</span><span class="tag" style="background:#F3F4F6;color:#374151;">12px radius</span><span class="tag" style="background:#F3F4F6;color:#374151;">Layered</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div></div></div><div class="card-body"><div class="phone"><div class="scr v4"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><div class="tagln">جایی که ظرافت با دقت همراه می‌شود</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="acts"><button class="act">+ مسدود</button><button class="act">+ رزرو</button></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<!-- V5 -->
+<div class="card"><div class="card-head"><h3>V5: Glass</h3><div class="tags"><span class="tag" style="background:#E0E7FF;color:#3730A3;">Frosted</span><span class="tag" style="background:#F3F4F6;color:#374151;">12px radius</span><span class="tag" style="background:#F3F4F6;color:#374151;">Blur</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot mid"></div><div class="score-dot on"></div><div class="score-dot"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v5"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><div class="tagln">جایی که ظرافت با دقت همراه می‌شود</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="acts"><button class="act">+ مسدود</button><button class="act">+ رزرو</button></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<!-- V6 -->
+<div class="card"><div class="card-head"><h3>V6: Compact</h3><div class="tags"><span class="tag" style="background:#F3E8FF;color:#6B21A8;">Dense</span><span class="tag" style="background:#F3F4F6;color:#374151;">6px radius</span><span class="tag" style="background:#F3F4F6;color:#374151;">Tight</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot mid"></div><div class="score-dot on"></div><div class="score-dot mid"></div><div class="score-dot"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v6"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><div class="tagln">جایی که ظرافت با دقت همراه می‌شود</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="acts"><button class="act">+ مسدود</button><button class="act">+ رزرو</button></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<!-- V7 -->
+<div class="card"><div class="card-head"><h3>V7: Pill</h3><div class="tags"><span class="tag" style="background:#D1FAE5;color:#065F46;">50px radius</span><span class="tag" style="background:#F3F4F6;color:#374151;">All round</span><span class="tag" style="background:#F3F4F6;color:#374151;">Friendly</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v7"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><div class="tagln">جایی که ظرافت با دقت همراه می‌شود</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="acts"><button class="act">+ مسدود</button><button class="act">+ رزرو</button></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<!-- V8 -->
+<div class="card"><div class="card-head"><h3>V8: Ghost</h3><div class="tags"><span class="tag" style="background:#FEE2E2;color:#991B1B;">No fill</span><span class="tag" style="background:#F3F4F6;color:#374151;">Minimal</span><span class="tag" style="background:#F3F4F6;color:#374151;">Transparent</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot mid"></div><div class="score-dot on"></div><div class="score-dot"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v8"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><div class="tagln">جایی که ظرافت با دقت همراه می‌شود</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="acts"><button class="act">+ مسدود</button><button class="act">+ رزرو</button></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<!-- V9 -->
+<div class="card"><div class="card-head"><h3>V9: Filled Hero</h3><div class="tags"><span class="tag" style="background:#FEF3C7;color:#92400E;">Dark hero</span><span class="tag" style="background:#F3F4F6;color:#374151;">10px radius</span><span class="tag" style="background:#F3F4F6;color:#374151;">Contrast</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v9"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><div class="tagln">جایی که ظرافت با دقت همراه می‌شود</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="acts"><button class="act">+ مسدود</button><button class="act">+ رزرو</button></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<!-- V10 -->
+<div class="card"><div class="card-head"><h3>V10: Gradient</h3><div class="tags"><span class="tag" style="background:#E0E7FF;color:#3730A3;">Subtle grad</span><span class="tag" style="background:#F3F4F6;color:#374151;">10px radius</span><span class="tag" style="background:#F3F4F6;color:#374151;">Soft</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div></div></div><div class="card-body"><div class="phone"><div class="scr v10"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><div class="tagln">جایی که ظرافت با دقت همراه می‌شود</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="acts"><button class="act">+ مسدود</button><button class="act">+ رزرو</button></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<!-- V11-V20: More compact cards -->
+<div class="card"><div class="card-head"><h3>V11: Thick Border</h3><div class="tags"><span class="tag" style="background:#FEE2E2;color:#991B1B;">3px border</span><span class="tag" style="background:#F3F4F6;color:#374151;">8px radius</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot mid"></div><div class="score-dot mid"></div><div class="score-dot"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v11"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<div class="card"><div class="card-head"><h3>V12: Gold Accent</h3><div class="tags"><span class="tag" style="background:#FEF3C7;color:#92400E;">Gold borders</span><span class="tag" style="background:#F3F4F6;color:#374151;">10px radius</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v12"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<div class="card"><div class="card-head"><h3>V13: Mono</h3><div class="tags"><span class="tag" style="background:#F3F4F6;color:#374151;">Courier</span><span class="tag" style="background:#F3F4F6;color:#374151;">0px radius</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot mid"></div><div class="score-dot mid"></div><div class="score-dot mid"></div><div class="score-dot"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v13"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<div class="card"><div class="card-head"><h3>V14: Micro Shadow</h3><div class="tags"><span class="tag" style="background:#F3F4F6;color:#374151;">1px shadow</span><span class="tag" style="background:#F3F4F6;color:#374151;">10px radius</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v14"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<div class="card"><div class="card-head"><h3>V15: Dark Card</h3><div class="tags"><span class="tag" style="background:#FEE2E2;color:#991B1B;">Dark cards</span><span class="tag" style="background:#F3F4F6;color:#374151;">10px radius</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot mid"></div><div class="score-dot on"></div><div class="score-dot"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v15"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<div class="card"><div class="card-head"><h3>V16: Dot Pattern</h3><div class="tags"><span class="tag" style="background:#E0E7FF;color:#3730A3;">Texture</span><span class="tag" style="background:#F3F4F6;color:#374151;">10px radius</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot mid"></div><div class="score-dot on"></div><div class="score-dot"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v17"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<div class="card"><div class="card-head"><h3>V17: Ring Icons</h3><div class="tags"><span class="tag" style="background:#FEF3C7;color:#92400E;">Gold ring</span><span class="tag" style="background:#F3F4F6;color:#374151;">50px icons</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v18"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<div class="card"><div class="card-head"><h3>V18: Badge Price</h3><div class="tags"><span class="tag" style="background:#FEF3C7;color:#92400E;">Gold pill</span><span class="tag" style="background:#F3F4F6;color:#374151;">10px radius</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v19"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<div class="card"><div class="card-head"><h3>V19: Accent Line</h3><div class="tags"><span class="tag" style="background:#FEF3C7;color:#92400E;">Gold stripe</span><span class="tag" style="background:#F3F4F6;color:#374151;">8px radius</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div></div></div><div class="card-body"><div class="phone"><div class="scr v20"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><button class="cta">رزرو کن</button></div><div class="svc"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+<div class="card"><div class="card-head"><h3>V20: Stripe</h3><div class="tags"><span class="tag" style="background:#FEF3C7;color:#92400E;">Left stripe</span><span class="tag" style="background:#F3F4F6;color:#374151;">10px radius</span></div><div class="score"><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot on"></div><div class="score-dot"></div></div></div><div class="card-body"><div class="phone"><div class="scr v15"><div class="topbar"><span class="topbar-t">زمان‌بندی</span><span>☰</span></div><div class="hero"><div class="salon">فورهند نیل استودیو</div><div class="sub-t">沙龙美甲工作室</div><button class="cta">رزرو کن</button></div><div class="svc" style="border-left:3px solid #C4A882;"><div class="svc-ic">💅</div><div><div class="svc-n">مانیکور کلاسیک</div><div class="svc-d">۴۵ دقیقه</div></div><div class="svc-p">۴۵۰,۰۰۰</div></div><div class="svc" style="border-left:3px solid #C4A882;"><div class="svc-ic">✨</div><div><div class="svc-n">طراحی ناخن</div><div class="svc-d">۶۰ دقیقه</div></div><div class="svc-p">۶۵۰,۰۰۰</div></div><div class="nav-b"><div class="ni on">📅</div><div class="ni">💼</div><div class="ni">🕐</div><div class="ni">☰</div></div></div></div></div></div>
+
+</div>
+
+</body>
+</html>

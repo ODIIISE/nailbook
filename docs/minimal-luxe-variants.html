@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minimal Luxe — 5 Component Style Variants</title>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2" rel="stylesheet" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2" rel="stylesheet" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2" rel="stylesheet" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-ExtraBold.woff2" rel="stylesheet" crossorigin>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Vazirmatn',-apple-system,sans-serif;background:#09090b;color:#fff;padding:24px 16px;}
+h1{text-align:center;font-size:22px;font-weight:800;margin-bottom:4px;}
+.sub{text-align:center;color:#52525b;font-size:13px;margin-bottom:32px;}
+.note{text-align:center;color:#C4A882;font-size:12px;margin-bottom:40px;}
+
+.section{max-width:1800px;margin:0 auto 56px;}
+.section>h2{font-size:18px;font-weight:700;margin-bottom:4px;}
+.section>.sd{font-size:12px;color:#71717a;margin-bottom:12px;}
+.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
+@media(max-width:1400px){.grid5{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:900px){.grid5{grid-template-columns:1fr;max-width:380px;margin:0 auto;}}
+
+.col{border-radius:16px;overflow:hidden;background:#18181b;}
+.col-h{padding:12px 14px 10px;border-bottom:1px solid #27272a;}
+.col-h h3{font-size:14px;font-weight:700;}
+.col-h .pill{font-size:10px;padding:2px 7px;border-radius:4px;display:inline-block;margin-top:2px;font-weight:500;}
+.col-h .meta{font-size:10px;color:#71717a;margin-top:4px;line-height:1.5;}
+.col-b{padding:12px;}
+.phone{border-radius:24px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.5);border:1px solid #27272a;}
+.scr{min-height:600px;display:flex;flex-direction:column;}
+
+/* ═══ SHARED LUXE COLORS ═══ */
+:root{
+  --cream:#FAF8F5;--cream-dark:#F2EDE6;
+  --black:#2D2926;--black-light:#4A4440;
+  --gold:#C4A882;--gold-light:#D4BFA0;
+  --muted:#A89888;--border:#E8E0D6;
+}
+
+/* ═══ 1. SHARP & THIN — No radius, 1px borders, flat ═══ */
+.c1 .scr{background:var(--cream);color:var(--black);}
+.c1 .topbar{background:var(--cream);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.c1 .topbar-title{font-size:16px;font-weight:700;}
+.c1 .hero{padding:40px 24px 28px;text-align:center;border-bottom:1px solid var(--border);}
+.c1 .hero-line{width:40px;height:1px;background:var(--gold);margin:0 auto 16px;}
+.c1 .salon-name{font-size:20px;font-weight:800;color:var(--black);}
+.c1 .salon-sub{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:0.12em;text-transform:uppercase;}
+.c1 .divider{width:24px;height:1px;background:var(--border);margin:14px auto;}
+.c1 .tagline{font-size:13px;color:var(--black-light);line-height:1.7;}
+.c1 .hero-cta{margin-top:18px;background:var(--black);color:#fff;border:none;padding:12px 36px;font-size:12px;font-weight:600;letter-spacing:0.06em;cursor:pointer;font-family:inherit;}
+.c1 .search-wrap{padding:12px 20px;}
+.c1 .search{width:100%;height:40px;border:1px solid var(--border);background:#fff;padding:0 14px;font-size:13px;font-family:inherit;color:var(--black);outline:none;}
+.c1 .earnings{margin:0 20px 12px;padding:14px;border:1px solid var(--border);background:#fff;}
+.c1 .earn-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.c1 .earn-header span{font-size:12px;font-weight:700;}
+.c1 .earn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;}
+.c1 .earn-label{font-size:10px;color:var(--muted);}
+.c1 .earn-val{font-size:13px;font-weight:700;margin-top:2px;}
+.c1 .svc-card{margin:4px 20px;padding:12px 14px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;gap:12px;}
+.c1 .svc-icon{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;border:1px solid var(--border);background:var(--cream);}
+.c1 .svc-name{font-size:13px;font-weight:600;}
+.c1 .svc-dur{font-size:10px;color:var(--muted);}
+.c1 .svc-price{font-size:12px;font-weight:700;color:var(--gold);margin-right:auto;}
+.c1 .actions{display:flex;gap:8px;padding:12px 20px;}
+.c1 .action-btn{flex:1;height:40px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:500;color:var(--black);cursor:pointer;font-family:inherit;}
+.c1 .footer{text-align:center;padding:14px;font-size:10px;color:var(--gold-light);margin-top:auto;border-top:1px solid var(--border);}
+.c1 .nav{display:flex;justify-content:space-around;padding:10px 0 16px;border-top:1px solid var(--border);background:var(--cream);}
+.c1 .nav-i{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:9px;color:var(--muted);}
+.c1 .nav-i.on{color:var(--black);font-weight:600;}
+
+/* ═══ 2. SOFT ROUNDED — 16px radius, subtle shadows, pill shapes ═══ */
+.c2 .scr{background:var(--cream);color:var(--black);}
+.c2 .topbar{background:rgba(250,248,245,0.9);backdrop-filter:blur(16px);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(232,224,214,0.5);}
+.c2 .topbar-title{font-size:16px;font-weight:700;}
+.c2 .hero{padding:40px 24px 28px;text-align:center;}
+.c2 .hero-circle{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--gold-light),var(--gold));margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 16px rgba(196,168,130,0.2);}
+.c2 .salon-name{font-size:20px;font-weight:800;color:var(--black);}
+.c2 .salon-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.c2 .tagline{font-size:13px;color:var(--black-light);line-height:1.7;margin-top:12px;}
+.c2 .hero-cta{margin-top:18px;background:var(--black);color:#fff;border:none;padding:12px 36px;font-size:12px;font-weight:600;border-radius:50px;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(45,41,38,0.15);}
+.c2 .search-wrap{padding:12px 20px;}
+.c2 .search{width:100%;height:40px;border:1px solid var(--border);background:#fff;border-radius:12px;padding:0 14px;font-size:13px;font-family:inherit;color:var(--black);outline:none;}
+.c2 .earnings{margin:0 20px 12px;padding:14px;border:1px solid var(--border);background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(45,41,38,0.04);}
+.c2 .earn-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.c2 .earn-header span{font-size:12px;font-weight:700;}
+.c2 .earn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;}
+.c2 .earn-label{font-size:10px;color:var(--muted);}
+.c2 .earn-val{font-size:13px;font-weight:700;margin-top:2px;}
+.c2 .svc-card{margin:4px 20px;padding:12px 14px;border:1px solid var(--border);background:#fff;border-radius:14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(45,41,38,0.03);}
+.c2 .svc-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--cream);}
+.c2 .svc-name{font-size:13px;font-weight:600;}
+.c2 .svc-dur{font-size:10px;color:var(--muted);}
+.c2 .svc-price{font-size:12px;font-weight:700;color:var(--gold);margin-right:auto;}
+.c2 .actions{display:flex;gap:8px;padding:12px 20px;}
+.c2 .action-btn{flex:1;height:40px;border:1px solid var(--border);background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:500;color:var(--black);cursor:pointer;font-family:inherit;}
+.c2 .footer{text-align:center;padding:14px;font-size:10px;color:var(--gold-light);margin-top:auto;}
+.c2 .nav{display:flex;justify-content:space-around;padding:10px 0 16px;border-top:1px solid rgba(232,224,214,0.5);background:rgba(250,248,245,0.9);backdrop-filter:blur(16px);}
+.c2 .nav-i{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:9px;color:var(--muted);}
+.c2 .nav-i.on{color:var(--black);font-weight:600;}
+
+/* ═══ 3. OUTLINED — Strong 2px borders, no shadows, transparent ═══ */
+.c3 .scr{background:var(--cream);color:var(--black);}
+.c3 .topbar{background:var(--cream);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--black);}
+.c3 .topbar-title{font-size:16px;font-weight:700;}
+.c3 .hero{padding:40px 24px 28px;text-align:center;border-bottom:2px solid var(--black);}
+.c3 .hero-diamond{width:16px;height:16px;border:2px solid var(--gold);transform:rotate(45deg);margin:0 auto 14px;}
+.c3 .salon-name{font-size:20px;font-weight:800;color:var(--black);}
+.c3 .salon-sub{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:0.1em;}
+.c3 .tagline{font-size:13px;color:var(--black-light);line-height:1.7;margin-top:12px;}
+.c3 .hero-cta{margin-top:18px;background:transparent;color:var(--black);border:2px solid var(--black);padding:12px 36px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.c3 .search-wrap{padding:12px 20px;}
+.c3 .search{width:100%;height:40px;border:2px solid var(--black);background:transparent;padding:0 14px;font-size:13px;font-family:inherit;color:var(--black);outline:none;}
+.c3 .earnings{margin:0 20px 12px;padding:14px;border:2px solid var(--black);background:transparent;}
+.c3 .earn-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.c3 .earn-header span{font-size:12px;font-weight:700;}
+.c3 .earn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;}
+.c3 .earn-label{font-size:10px;color:var(--muted);}
+.c3 .earn-val{font-size:13px;font-weight:700;margin-top:2px;}
+.c3 .svc-card{margin:4px 20px;padding:12px 14px;border:2px solid var(--black);background:transparent;display:flex;align-items:center;gap:12px;}
+.c3 .svc-icon{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid var(--black);}
+.c3 .svc-name{font-size:13px;font-weight:600;}
+.c3 .svc-dur{font-size:10px;color:var(--muted);}
+.c3 .svc-price{font-size:12px;font-weight:700;color:var(--gold);margin-right:auto;}
+.c3 .actions{display:flex;gap:8px;padding:12px 20px;}
+.c3 .action-btn{flex:1;height:40px;border:2px solid var(--black);background:transparent;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:600;color:var(--black);cursor:pointer;font-family:inherit;}
+.c3 .footer{text-align:center;padding:14px;font-size:10px;color:var(--gold-light);margin-top:auto;border-top:2px solid var(--black);}
+.c3 .nav{display:flex;justify-content:space-around;padding:10px 0 16px;border-top:2px solid var(--black);background:var(--cream);}
+.c3 .nav-i{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:9px;color:var(--muted);}
+.c3 .nav-i.on{color:var(--black);font-weight:700;}
+
+/* ═══ 4. ELEVATED — Deep shadows, floating cards, layered depth ═══ */
+.c4 .scr{background:var(--cream-dark);color:var(--black);}
+.c4 .topbar{background:var(--cream);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(45,41,38,0.06);position:relative;z-index:2;}
+.c4 .topbar-title{font-size:16px;font-weight:700;}
+.c4 .hero{padding:40px 24px 28px;text-align:center;background:var(--cream);}
+.c4 .salon-name{font-size:20px;font-weight:800;color:var(--black);}
+.c4 .salon-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.c4 .tagline{font-size:13px;color:var(--black-light);line-height:1.7;margin-top:12px;}
+.c4 .hero-cta{margin-top:18px;background:var(--black);color:#fff;border:none;padding:12px 36px;font-size:12px;font-weight:600;border-radius:12px;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(45,41,38,0.2);}
+.c4 .search-wrap{padding:12px 20px;}
+.c4 .search{width:100%;height:40px;border:1px solid var(--border);background:#fff;border-radius:12px;padding:0 14px;font-size:13px;font-family:inherit;color:var(--black);outline:none;box-shadow:0 2px 8px rgba(45,41,38,0.06);}
+.c4 .earnings{margin:8px 20px 12px;padding:16px;border:1px solid var(--border);background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(45,41,38,0.08);}
+.c4 .earn-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.c4 .earn-header span{font-size:12px;font-weight:700;}
+.c4 .earn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;}
+.c4 .earn-label{font-size:10px;color:var(--muted);}
+.c4 .earn-val{font-size:13px;font-weight:700;margin-top:2px;}
+.c4 .svc-card{margin:8px 20px;padding:14px;border:1px solid var(--border);background:#fff;border-radius:14px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 16px rgba(45,41,38,0.06);}
+.c4 .svc-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--cream);box-shadow:inset 0 1px 3px rgba(45,41,38,0.04);}
+.c4 .svc-name{font-size:13px;font-weight:600;}
+.c4 .svc-dur{font-size:10px;color:var(--muted);}
+.c4 .svc-price{font-size:12px;font-weight:700;color:var(--gold);margin-right:auto;}
+.c4 .actions{display:flex;gap:8px;padding:12px 20px;}
+.c4 .action-btn{flex:1;height:40px;border:1px solid var(--border);background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:500;color:var(--black);cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(45,41,38,0.06);}
+.c4 .footer{text-align:center;padding:14px;font-size:10px;color:var(--gold-light);margin-top:auto;}
+.c4 .nav{display:flex;justify-content:space-around;padding:10px 0 16px;border-top:1px solid var(--border);background:var(--cream);box-shadow:0 -2px 12px rgba(45,41,38,0.06);}
+.c4 .nav-i{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:9px;color:var(--muted);}
+.c4 .nav-i.on{color:var(--black);font-weight:600;}
+
+/* ═══ 5. COMPACT — Tight spacing, 8px radius, dense layout ═══ */
+.c5 .scr{background:var(--cream);color:var(--black);}
+.c5 .topbar{background:var(--cream);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.c5 .topbar-title{font-size:15px;font-weight:700;}
+.c5 .hero{padding:28px 20px 20px;text-align:center;border-bottom:1px solid var(--border);}
+.c5 .salon-name{font-size:18px;font-weight:800;color:var(--black);}
+.c5 .salon-sub{font-size:10px;color:var(--muted);margin-top:2px;letter-spacing:0.08em;}
+.c5 .tagline{font-size:12px;color:var(--black-light);line-height:1.6;margin-top:8px;}
+.c5 .hero-cta{margin-top:12px;background:var(--black);color:#fff;border:none;padding:10px 28px;font-size:11px;font-weight:600;border-radius:8px;cursor:pointer;font-family:inherit;}
+.c5 .search-wrap{padding:8px 16px;}
+.c5 .search{width:100%;height:36px;border:1px solid var(--border);background:#fff;border-radius:8px;padding:0 12px;font-size:12px;font-family:inherit;color:var(--black);outline:none;}
+.c5 .earnings{margin:0 16px 8px;padding:10px;border:1px solid var(--border);background:#fff;border-radius:8px;}
+.c5 .earn-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.c5 .earn-header span{font-size:11px;font-weight:700;}
+.c5 .earn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;}
+.c5 .earn-label{font-size:9px;color:var(--muted);}
+.c5 .earn-val{font-size:12px;font-weight:700;margin-top:1px;}
+.c5 .svc-card{margin:3px 16px;padding:8px 10px;border:1px solid var(--border);background:#fff;border-radius:8px;display:flex;align-items:center;gap:8px;}
+.c5 .svc-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--cream);}
+.c5 .svc-name{font-size:12px;font-weight:600;}
+.c5 .svc-dur{font-size:9px;color:var(--muted);}
+.c5 .svc-price{font-size:11px;font-weight:700;color:var(--gold);margin-right:auto;}
+.c5 .actions{display:flex;gap:6px;padding:8px 16px;}
+.c5 .action-btn{flex:1;height:36px;border:1px solid var(--border);background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:500;color:var(--black);cursor:pointer;font-family:inherit;}
+.c5 .footer{text-align:center;padding:10px;font-size:9px;color:var(--gold-light);margin-top:auto;}
+.c5 .nav{display:flex;justify-content:space-around;padding:8px 0 14px;border-top:1px solid var(--border);background:var(--cream);}
+.c5 .nav-i{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:8px;color:var(--muted);}
+.c5 .nav-i.on{color:var(--black);font-weight:600;}
+</style>
+</head>
+<body>
+
+<h1>Minimal Luxe — 5 Component Styles</h1>
+<p class="sub">Same cream/gold/black palette — only corners, shadows, and spacing change</p>
+<p class="note">Compare: Sharp & Thin · Soft Rounded · Outlined · Elevated · Compact</p>
+
+<div class="section">
+  <div class="grid5">
+
+    <!-- ═══ 1. SHARP & THIN ═══ -->
+    <div class="col c1">
+      <div class="col-h">
+        <h3>Sharp & Thin</h3>
+        <span class="pill" style="background:#FEE2E2;color:#991B1B;">0px radius</span>
+        <div class="meta">No border-radius, 1px borders, flat, zero shadows — clinical precision</div>
+      </div>
+      <div class="col-b" style="padding:0;">
+        <div class="phone"><div class="scr">
+          <div class="topbar">
+            <span class="topbar-title">زمان‌بندی</span>
+            <span style="font-size:18px;">☰</span>
+          </div>
+          <div class="hero">
+            <div class="hero-line"></div>
+            <div class="salon-name">فورهند نیل استودیو</div>
+            <div class="salon-sub">沙龙美甲工作室</div>
+            <div class="divider"></div>
+            <div class="tagline">جایی که ظرافت با دقت همراه می‌شود</div>
+            <button class="hero-cta">رزرو کن</button>
+          </div>
+          <div class="search-wrap"><input class="search" value="جستجوی نام یا شماره..." readonly></div>
+          <div class="earnings">
+            <div class="earn-header"><span>حساب امروز</span><span style="color:var(--muted);">›</span></div>
+            <div class="earn-grid">
+              <div><div class="earn-label">پرداخت شده</div><div class="earn-val" style="color:#28A745;">۴۵۰,۰۰۰</div></div>
+              <div><div class="earn-label">پرداخت نشده</div><div class="earn-val" style="color:#DC3545;">۶۵۰,۰۰۰</div></div>
+              <div><div class="earn-label">کل</div><div class="earn-val">۱,۱۰۰,۰۰۰</div></div>
+            </div>
+          </div>
+          <div class="svc-card">
+            <div class="svc-icon">💅</div>
+            <div><div class="svc-name">مانیکور کلاسیک</div><div class="svc-dur">۴۵ دقیقه</div></div>
+            <div class="svc-price">۴۵۰,۰۰۰ ت</div>
+          </div>
+          <div class="svc-card">
+            <div class="svc-icon">✨</div>
+            <div><div class="svc-name">طراحی ناخن</div><div class="svc-dur">۶۰ دقیقه</div></div>
+            <div class="svc-price">۶۵۰,۰۰۰ ت</div>
+          </div>
+          <div class="actions">
+            <button class="action-btn">+ مسدود کردن زمان</button>
+            <button class="action-btn">+ رزرو دستی</button>
+          </div>
+          <div class="footer">ساخته شده با ❤️ برای فورهند</div>
+          <div class="nav">
+            <div class="nav-i on">📅<span>زمان‌بندی</span></div>
+            <div class="nav-i">💼<span>خدمات</span></div>
+            <div class="nav-i">🕐<span>ساعات</span></div>
+            <div class="nav-i">☰<span>منو</span></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- ═══ 2. SOFT ROUNDED ═══ -->
+    <div class="col c2">
+      <div class="col-h">
+        <h3>Soft Rounded</h3>
+        <span class="pill" style="background:#D1FAE5;color:#065F46;">14-16px radius</span>
+        <div class="meta">Generous radius, pill buttons, subtle shadows, rounded icons — friendly luxury</div>
+      </div>
+      <div class="col-b" style="padding:0;">
+        <div class="phone"><div class="scr">
+          <div class="topbar">
+            <span class="topbar-title">زمان‌بندی</span>
+            <span style="font-size:18px;">☰</span>
+          </div>
+          <div class="hero">
+            <div class="hero-circle">💅</div>
+            <div class="salon-name">فورهند نیل استودیو</div>
+            <div class="salon-sub">沙龙美甲工作室</div>
+            <div class="tagline">جایی که ظرافت با دقت همراه می‌شود</div>
+            <button class="hero-cta">رزرو کن</button>
+          </div>
+          <div class="search-wrap"><input class="search" value="جستجوی نام یا شماره..." readonly></div>
+          <div class="earnings">
+            <div class="earn-header"><span>حساب امروز</span><span style="color:var(--muted);">›</span></div>
+            <div class="earn-grid">
+              <div><div class="earn-label">پرداخت شده</div><div class="earn-val" style="color:#28A745;">۴۵۰,۰۰۰</div></div>
+              <div><div class="earn-label">پرداخت نشده</div><div class="earn-val" style="color:#DC3545;">۶۵۰,۰۰۰</div></div>
+              <div><div class="earn-label">کل</div><div class="earn-val">۱,۱۰۰,۰۰۰</div></div>
+            </div>
+          </div>
+          <div class="svc-card">
+            <div class="svc-icon">💅</div>
+            <div><div class="svc-name">مانیکور کلاسیک</div><div class="svc-dur">۴۵ دقیقه</div></div>
+            <div class="svc-price">۴۵۰,۰۰۰ ت</div>
+          </div>
+          <div class="svc-card">
+            <div class="svc-icon">✨</div>
+            <div><div class="svc-name">طراحی ناخن</div><div class="svc-dur">۶۰ دقیقه</div></div>
+            <div class="svc-price">۶۵۰,۰۰۰ ت</div>
+          </div>
+          <div class="actions">
+            <button class="action-btn">+ مسدود کردن زمان</button>
+            <button class="action-btn">+ رزرو دستی</button>
+          </div>
+          <div class="footer">ساخته شده با ❤️ برای فورهند</div>
+          <div class="nav">
+            <div class="nav-i on">📅<span>زمان‌بندی</span></div>
+            <div class="nav-i">💼<span>خدمات</span></div>
+            <div class="nav-i">🕐<span>ساعات</span></div>
+            <div class="nav-i">☰<span>منو</span></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- ═══ 3. OUTLINED ═══ -->
+    <div class="col c3">
+      <div class="col-h">
+        <h3>Outlined</h3>
+        <span class="pill" style="background:#DBEAFE;color:#1E40AF;">2px borders</span>
+        <div class="meta">Strong 2px borders, no shadows, transparent feel — architectural, intentional</div>
+      </div>
+      <div class="col-b" style="padding:0;">
+        <div class="phone"><div class="scr">
+          <div class="topbar">
+            <span class="topbar-title">زمان‌بندی</span>
+            <span style="font-size:18px;">☰</span>
+          </div>
+          <div class="hero">
+            <div class="hero-diamond"></div>
+            <div class="salon-name">فورهند نیل استودیو</div>
+            <div class="salon-sub">沙龙美甲工作室</div>
+            <div class="tagline">جایی که ظرافت با دقت همراه می‌شود</div>
+            <button class="hero-cta">رزرو کن</button>
+          </div>
+          <div class="search-wrap"><input class="search" value="جستجوی نام یا شماره..." readonly></div>
+          <div class="earnings">
+            <div class="earn-header"><span>حساب امروز</span><span style="color:var(--muted);">›</span></div>
+            <div class="earn-grid">
+              <div><div class="earn-label">پرداخت شده</div><div class="earn-val" style="color:#28A745;">۴۵۰,۰۰۰</div></div>
+              <div><div class="earn-label">پرداخت نشده</div><div class="earn-val" style="color:#DC3545;">۶۵۰,۰۰۰</div></div>
+              <div><div class="earn-label">کل</div><div class="earn-val">۱,۱۰۰,۰۰۰</div></div>
+            </div>
+          </div>
+          <div class="svc-card">
+            <div class="svc-icon">💅</div>
+            <div><div class="svc-name">مانیکور کلاسیک</div><div class="svc-dur">۴۵ دقیقه</div></div>
+            <div class="svc-price">۴۵۰,۰۰۰ ت</div>
+          </div>
+          <div class="svc-card">
+            <div class="svc-icon">✨</div>
+            <div><div class="svc-name">طراحی ناخن</div><div class="svc-dur">۶۰ دقیقه</div></div>
+            <div class="svc-price">۶۵۰,۰۰۰ ت</div>
+          </div>
+          <div class="actions">
+            <button class="action-btn">+ مسدود کردن زمان</button>
+            <button class="action-btn">+ رزرو دستی</button>
+          </div>
+          <div class="footer">ساخته شده با ❤️ برای فورهند</div>
+          <div class="nav">
+            <div class="nav-i on">📅<span>زمان‌بندی</span></div>
+            <div class="nav-i">💼<span>خدمات</span></div>
+            <div class="nav-i">🕐<span>ساعات</span></div>
+            <div class="nav-i">☰<span>منو</span></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- ═══ 4. ELEVATED ═══ -->
+    <div class="col c4">
+      <div class="col-h">
+        <h3>Elevated</h3>
+        <span class="pill" style="background:#FEE2E2;color:#991B1B;">Deep shadows</span>
+        <div class="meta">Floating cards, layered depth, soft shadows — premium, physical feel</div>
+      </div>
+      <div class="col-b" style="padding:0;">
+        <div class="phone"><div class="scr">
+          <div class="topbar">
+            <span class="topbar-title">زمان‌بندی</span>
+            <span style="font-size:18px;">☰</span>
+          </div>
+          <div class="hero">
+            <div class="salon-name">فورهند نیل استودیو</div>
+            <div class="salon-sub">沙龙美甲工作室</div>
+            <div class="tagline">جایی که ظرافت با دقت همراه می‌شود</div>
+            <button class="hero-cta">رزرو کن</button>
+          </div>
+          <div class="search-wrap"><input class="search" value="جستجوی نام یا شماره..." readonly></div>
+          <div class="earnings">
+            <div class="earn-header"><span>حساب امروز</span><span style="color:var(--muted);">›</span></div>
+            <div class="earn-grid">
+              <div><div class="earn-label">پرداخت شده</div><div class="earn-val" style="color:#28A745;">۴۵۰,۰۰۰</div></div>
+              <div><div class="earn-label">پرداخت نشده</div><div class="earn-val" style="color:#DC3545;">۶۵۰,۰۰۰</div></div>
+              <div><div class="earn-label">کل</div><div class="earn-val">۱,۱۰۰,۰۰۰</div></div>
+            </div>
+          </div>
+          <div class="svc-card">
+            <div class="svc-icon">💅</div>
+            <div><div class="svc-name">مانیکور کلاسیک</div><div class="svc-dur">۴۵ دقیقه</div></div>
+            <div class="svc-price">۴۵۰,۰۰۰ ت</div>
+          </div>
+          <div class="svc-card">
+            <div class="svc-icon">✨</div>
+            <div><div class="svc-name">طراحی ناخن</div><div class="svc-dur">۶۰ دقیقه</div></div>
+            <div class="svc-price">۶۵۰,۰۰۰ ت</div>
+          </div>
+          <div class="actions">
+            <button class="action-btn">+ مسدود کردن زمان</button>
+            <button class="action-btn">+ رزرو دستی</button>
+          </div>
+          <div class="footer">ساخته شده با ❤️ برای فورهند</div>
+          <div class="nav">
+            <div class="nav-i on">📅<span>زمان‌بندی</span></div>
+            <div class="nav-i">💼<span>خدمات</span></div>
+            <div class="nav-i">🕐<span>ساعات</span></div>
+            <div class="nav-i">☰<span>منو</span></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- ═══ 5. COMPACT ═══ -->
+    <div class="col c5">
+      <div class="col-h">
+        <h3>Compact</h3>
+        <span class="pill" style="background:#F3E8FF;color:#6B21A8;">Dense layout</span>
+        <div class="meta">Tight spacing, 8px radius, smaller type — information density, no wasted space</div>
+      </div>
+      <div class="col-b" style="padding:0;">
+        <div class="phone"><div class="scr">
+          <div class="topbar">
+            <span class="topbar-title">زمان‌بندی</span>
+            <span style="font-size:16px;">☰</span>
+          </div>
+          <div class="hero">
+            <div class="salon-name">فورهند نیل استودیو</div>
+            <div class="salon-sub">沙龙美甲工作室</div>
+            <div class="tagline">جایی که ظرافت با دقت همراه می‌شود</div>
+            <button class="hero-cta">رزرو کن</button>
+          </div>
+          <div class="search-wrap"><input class="search" value="جستجوی نام یا شماره..." readonly></div>
+          <div class="earnings">
+            <div class="earn-header"><span>حساب امروز</span><span style="color:var(--muted);">›</span></div>
+            <div class="earn-grid">
+              <div><div class="earn-label">پرداخت شده</div><div class="earn-val" style="color:#28A745;">۴۵۰,۰۰۰</div></div>
+              <div><div class="earn-label">پرداخت نشده</div><div class="earn-val" style="color:#DC3545;">۶۵۰,۰۰۰</div></div>
+              <div><div class="earn-label">کل</div><div class="earn-val">۱,۱۰۰,۰۰۰</div></div>
+            </div>
+          </div>
+          <div class="svc-card">
+            <div class="svc-icon">💅</div>
+            <div><div class="svc-name">مانیکور کلاسیک</div><div class="svc-dur">۴۵ دقیقه</div></div>
+            <div class="svc-price">۴۵۰,۰۰۰ ت</div>
+          </div>
+          <div class="svc-card">
+            <div class="svc-icon">✨</div>
+            <div><div class="svc-name">طراحی ناخن</div><div class="svc-dur">۶۰ دقیقه</div></div>
+            <div class="svc-price">۶۵۰,۰۰۰ ت</div>
+          </div>
+          <div class="actions">
+            <button class="action-btn">+ مسدود کردن زمان</button>
+            <button class="action-btn">+ رزرو دستی</button>
+          </div>
+          <div class="footer">ساخته شده با ❤️ برای فورهند</div>
+          <div class="nav">
+            <div class="nav-i on">📅<span>زمان‌بندی</span></div>
+            <div class="nav-i">💼<span>خدمات</span></div>
+            <div class="nav-i">🕐<span>ساعات</span></div>
+            <div class="nav-i">☰<span>منو</span></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
