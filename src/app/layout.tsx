@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Providers } from "./providers";
 import { GradientBackground } from "@/components/layout/gradient-background";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -45,6 +46,7 @@ export default function RootLayout({
           </ErrorBoundary>
           <Toaster />
         </Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
