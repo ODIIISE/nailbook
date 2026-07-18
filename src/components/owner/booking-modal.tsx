@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { X, User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, CreditCard, ChevronDown, Check, Trash2, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, CreditCard, ChevronDown, Check, Trash2, AlertTriangle } from "lucide-react";
 import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
 import { calculateBookingPrice } from "@/lib/pricing";
 import { STATUS_CONFIG } from "@/lib/constants";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Booking, Service, Addon } from "@/lib/types";
 
 interface BookingModalProps {
@@ -23,10 +26,8 @@ const STATUS_OPTIONS: { value: string; label: string; color: string }[] = Object
 );
 
 export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, onStatusChange, onDelete, onClose }: BookingModalProps) {
-  const [statusOpen, setStatusOpen] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(booking.status);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const jalali = gregorianToJalali(new Date(booking.date_gregorian));
   const shortDate = formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd);
@@ -44,21 +45,12 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
   const shortId = `BK-${booking.id.slice(-6).toUpperCase()}`;
   const createdAtTime = booking.created_at ? new Date(booking.created_at).toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit", hour12: false }) : "";
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setStatusOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-
-      <div className="relative w-full max-w-[340px] bg-white/95 backdrop-blur-2xl rounded-[20px] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.08)] animate-scale">
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent
+        showCloseButton={false}
+        className="max-w-[340px] bg-white/95 backdrop-blur-2xl rounded-[20px] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.08)] ring-0 border-0"
+      >
         {/* Header */}
         <div className="flex items-center justify-between mb-3.5">
           <div className="flex items-center gap-2">
@@ -66,7 +58,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
             <span className="text-[10px] font-semibold text-muted-foreground bg-black/[0.04] px-2 py-0.5 rounded-md" dir="ltr">{shortId}</span>
           </div>
           <button onClick={onClose} className="w-7 h-7 rounded-lg bg-black/[0.04] flex items-center justify-center">
-            <X className="h-3.5 w-3.5 text-muted-foreground" />
+            <svg className="h-3.5 w-3.5 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </button>
         </div>
 
@@ -187,77 +179,93 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
             </button>
           </div>
 
-          {/* Status Dropdown */}
-          <div className="flex-1 relative" ref={dropdownRef}>
-            <button
-              onClick={() => setStatusOpen(!statusOpen)}
-              className="w-full flex items-center justify-between px-2.5 py-[9px] rounded-[10px] border border-black/[0.08] bg-white text-[12px] font-semibold"
-            >
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: statusConfig.color }} />
-                <span>{statusConfig.label}</span>
-              </div>
-              <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${statusOpen ? "rotate-180" : ""}`} />
-            </button>
-            {statusOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-[10px] shadow-[0_8px_24px_rgba(0,0,0,0.12)] border border-black/[0.06] overflow-hidden z-20">
-                {STATUS_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => { setCurrentStatus(opt.value as Booking["status"]); setStatusOpen(false); onStatusChange(opt.value); }}
-                    className={`w-full flex items-center gap-2 px-3 py-2.5 text-[12px] font-medium hover:bg-black/[0.03] ${currentStatus === opt.value ? "bg-black/[0.04] font-bold" : ""}`}
-                  >
-                    <div className="w-[7px] h-[7px] rounded-full" style={{ backgroundColor: opt.color }} />
-                    <span>{opt.label}</span>
-                    {currentStatus === opt.value && <Check className="h-3.5 w-3.5 text-[#2E7D32] mr-auto" />}
-                  </button>
-                ))}
-              </div>
-            )}
+          {/* Status DropdownMenu */}
+          <div className="flex-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="w-full flex items-center justify-between px-2.5 py-[9px] rounded-[10px] border border-black/[0.08] bg-white text-[12px] font-semibold"
+              >
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: statusConfig.color }} />
+                  <span>{statusConfig.label}</span>
+                </div>
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              </DropdownMenuTrigger>
+              <DropdownContent statusOptions={STATUS_OPTIONS} currentStatus={currentStatus} onSelect={(value) => {
+                setCurrentStatus(value as Booking["status"]);
+                onStatusChange(value);
+              }} />
+            </DropdownMenu>
           </div>
         </div>
 
         {/* Buttons */}
-        {!confirmDelete ? (
-          <div className="flex gap-1.5">
-            <button
-              onClick={() => setConfirmDelete(true)}
-              className="flex-1 py-2.5 rounded-[10px] bg-[#C62828]/[0.08] text-[#C62828] text-[12px] font-semibold flex items-center justify-center gap-1.5 hover:bg-[#C62828]/[0.12] transition-colors"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
+        <div className="flex gap-1.5">
+          <button
+            onClick={() => setDeleteOpen(true)}
+            className="flex-1 py-2.5 rounded-[10px] bg-[#C62828]/[0.08] text-[#C62828] text-[12px] font-semibold flex items-center justify-center gap-1.5 hover:bg-[#C62828]/[0.12] transition-colors"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            حذف نوبت
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-[10px] bg-black/[0.04] text-[12px] font-semibold hover:bg-black/[0.06] transition-colors"
+          >
+            بستن
+          </button>
+        </div>
+      </DialogContent>
+
+      {/* Delete Confirmation AlertDialog */}
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent className="max-w-[300px] bg-white/95 backdrop-blur-2xl rounded-[20px] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.08)] ring-0 border-0">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-[#C62828]">
+              <AlertTriangle className="h-4 w-4" />
               حذف نوبت
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 py-2.5 rounded-[10px] bg-black/[0.04] text-[12px] font-semibold hover:bg-black/[0.06] transition-colors"
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[#C62828]/70 text-[11px]">
+              آیا مطمئن هستید؟ این عمل غیرقابل بازگشت است.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => { onDelete(booking.id); onClose(); }}
+              className="bg-[#C62828] text-white text-[11px] font-semibold hover:bg-[#B71C1C]"
             >
-              بستن
-            </button>
-          </div>
-        ) : (
-          <div className="p-3 rounded-[10px] bg-[#C62828]/[0.06] border border-[#C62828]/[0.12] animate-scale">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="h-4 w-4 text-[#C62828]" />
-              <span className="text-[12px] font-bold text-[#C62828]">حذف نوبت</span>
-            </div>
-            <p className="text-[11px] text-[#C62828]/70 mb-3">آیا مطمئن هستید؟ این عمل غیرقابل بازگشت است.</p>
-            <div className="flex gap-1.5">
-              <button
-                onClick={() => { onDelete(booking.id); onClose(); }}
-                className="flex-1 py-2 rounded-lg bg-[#C62828] text-white text-[11px] font-semibold hover:bg-[#B71C1C] transition-colors"
-              >
-                بله، حذف
-              </button>
-              <button
-                onClick={() => setConfirmDelete(false)}
-                className="flex-1 py-2 rounded-lg bg-black/[0.06] text-[11px] font-semibold hover:bg-black/[0.08] transition-colors"
-              >
-                انصراف
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+              بله، حذف
+            </AlertDialogAction>
+            <AlertDialogCancel
+              className="bg-black/[0.06] text-[11px] font-semibold hover:bg-black/[0.08] border-0"
+            >
+              انصراف
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Dialog>
+  );
+}
+
+function DropdownContent({ statusOptions, currentStatus, onSelect }: {
+  statusOptions: { value: string; label: string; color: string }[];
+  currentStatus: string;
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <DropdownMenuContent align="start" sideOffset={4} className="min-w-0 w-full">
+      {statusOptions.map((opt) => (
+        <DropdownMenuItem
+          key={opt.value}
+          onClick={() => onSelect(opt.value)}
+          className={`gap-2 text-[12px] font-medium ${currentStatus === opt.value ? "bg-black/[0.04] font-bold" : ""}`}
+        >
+          <div className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: opt.color }} />
+          <span>{opt.label}</span>
+          {currentStatus === opt.value && <Check className="h-3.5 w-3.5 text-[#2E7D32] mr-auto" />}
+        </DropdownMenuItem>
+      ))}
+    </DropdownMenuContent>
   );
 }
