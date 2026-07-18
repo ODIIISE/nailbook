@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, Puzzle, Check, AlertCircle } from "lucide-react";
+import { ChevronLeft, Puzzle, Check, AlertCircle, CalendarDays, Timer, ArrowLeft, Loader2 } from "lucide-react";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { TimeSlots } from "@/components/booking/time-slots";
 import { BookingConfirm } from "@/components/booking/booking-confirm";
@@ -111,6 +111,20 @@ export default function BookContent() {
     }, 0);
     return Number(selectedService.price) + addonsPrice;
   }, [selectedService, selectedAddons, addons]);
+
+  // Computed date/time display for confirm step
+  const selectedFullDate = useMemo(() => {
+    if (!selectedDate) return "";
+    const j = gregorianToJalali(selectedDate);
+    return formatJalaliDate(j.jy, j.jm, j.jd);
+  }, [selectedDate]);
+
+  const selectedEndTime = useMemo(() => {
+    if (!selectedTime) return "";
+    const [h, m] = selectedTime.split(":").map(Number);
+    const endMinutes = h * 60 + m + totalDuration;
+    return `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
+  }, [selectedTime, totalDuration]);
 
   const timeSlots = useMemo(() => {
     if (!selectedDate || !selectedService) return [];
@@ -552,35 +566,74 @@ export default function BookContent() {
               </div>
             ) : (
               <>
-                <Card className="glass p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between py-2 border-b border-border/30">
-                      <span className="text-sm text-muted-foreground">خدمت</span>
-                      <span className="text-sm font-bold">{selectedService.name}</span>
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-b border-border/30">
-                      <span className="text-sm text-muted-foreground">تاریخ و ساعت</span>
-                      <span className="text-sm font-bold">{selectedTime}</span>
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-b border-border/30">
-                      <span className="text-sm text-muted-foreground">مدت</span>
-                      <span className="text-sm font-bold">{toPersianDigits(totalDuration)} دقیقه</span>
-                    </div>
-                    {selectedAddons.length > 0 && (
-                      <div className="flex items-center justify-between py-2 border-b border-border/30">
-                        <span className="text-sm text-muted-foreground">آپشن‌ها</span>
-                        <span className="text-sm font-bold">{toPersianDigits(selectedAddons.length)} مورد</span>
+                {/* Review Header */}
+                <div className="text-center mb-2">
+                  <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--rose)]/10">
+                    <span className="text-2xl">💅</span>
+                  </div>
+                  <h2 className="text-h2 text-foreground">بررسی و تایید</h2>
+                  <p className="text-[13px] text-muted-foreground mt-1">لطفاً اطلاعات رزرو خود را بررسی کنید</p>
+                </div>
+
+                {/* Booking Summary Card */}
+                <div className="glass rounded-2xl overflow-hidden">
+                  {/* Service Header */}
+                  <div className="px-5 py-3.5 border-b border-black/[0.04]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-[var(--rose)]/10 flex items-center justify-center shrink-0">
+                        <span className="text-base">💅</span>
                       </div>
-                    )}
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-muted-foreground">هزینه کل</span>
-                      <span className="text-base font-bold text-primary">
-                        {formatPrice(Number(totalPrice))} تومان
-                      </span>
+                      <div className="flex-1">
+                        <div className="text-[14px] font-bold text-foreground">{selectedService.name}</div>
+                        <div className="text-[11px] text-muted-foreground">{salon.name}</div>
+                      </div>
                     </div>
                   </div>
-                </Card>
 
+                  {/* Details */}
+                  <div className="px-5 py-3.5 space-y-2.5">
+                    {/* Date & Time Combined */}
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-[var(--rose)]/10 flex items-center justify-center shrink-0">
+                        <CalendarDays className="h-3.5 w-3.5 text-[var(--rose)]" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-[13px] font-semibold text-foreground">{selectedFullDate}</div>
+                        <div className="text-[11px] text-muted-foreground">ساعت {toPersianDigits(selectedTime)} تا {toPersianDigits(selectedEndTime)}</div>
+                      </div>
+                    </div>
+
+                    {/* Duration */}
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+                        <Timer className="h-3.5 w-3.5 text-blue-500" />
+                      </div>
+                      <div className="text-[13px] font-semibold text-foreground">{toPersianDigits(totalDuration)} دقیقه</div>
+                    </div>
+
+                    {/* Addons */}
+                    {selectedAddons.length > 0 && (
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
+                          <Puzzle className="h-3.5 w-3.5 text-purple-500" />
+                        </div>
+                        <div className="text-[13px] font-semibold text-foreground">{toPersianDigits(selectedAddons.length)} آپشن اضافی</div>
+                      </div>
+                    )}
+
+                    {/* Price Divider */}
+                    <div className="border-t border-black/[0.04] pt-2.5 mt-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[13px] text-muted-foreground">هزینه کل</span>
+                        <span className="text-[16px] font-bold text-foreground">
+                          {formatPrice(Number(totalPrice))} تومان
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Spam Error */}
                 {spamError && (
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-slideUp">
                     <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
@@ -588,9 +641,19 @@ export default function BookContent() {
                   </div>
                 )}
 
+                {/* Confirm Button */}
                 <Button size="xl" onClick={handleConfirmBooking} disabled={isLoading} className="w-full bg-primary hover:bg-primary/90 text-white">
-                  {isLoading ? "در حال ثبت..." : "تایید و رزرو"}
-                  {!isLoading && <ChevronLeft className="h-5 w-5 mr-2" />}
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      در حال ثبت...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      تایید و رزرو
+                      <ArrowLeft className="h-4 w-4" />
+                    </span>
+                  )}
                 </Button>
               </>
             )}
