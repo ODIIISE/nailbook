@@ -124,7 +124,7 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
             {bookedSlots.map((slot) => (
               <SlotButton
                 key={slot.time}
-                slot={slot}
+                slot={{ ...slot, available: false }}
                 isSelected={false}
                 onSelect={() => {}}
               />
@@ -171,18 +171,30 @@ function SlotButton({
       disabled={!slot.available}
       onClick={onSelect}
       aria-label={`${formattedTime} ${slot.available ? "موجود" : slot.booked ? "رزرو شده" : slot.locked ? "مسدود" : "غیرقابل رزرو"}`}
-      className={`
-        h-[46px] rounded-full text-[13px] font-bold transition-all duration-200 select-none
-        focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:outline-none
-        ${isSelected
-          ? "bg-foreground text-background shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
+      className="h-[46px] rounded-full text-[13px] font-bold transition-all duration-200 select-none relative overflow-hidden focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:outline-none"
+      style={{
+        background: isSelected
+          ? "linear-gradient(135deg, #5bb3e4 0%, #2888d0 100%)"
           : slot.available
-            ? "glass hover:bg-white/60 text-foreground active:scale-95 cursor-pointer"
-            : "slot-booked text-muted-foreground/50 cursor-not-allowed"
-        }
-      `}
+            ? "var(--card)"
+            : "transparent",
+        color: isSelected ? "white" : slot.available ? "var(--foreground)" : "var(--muted-foreground)",
+        border: isSelected ? "none" : "1px solid var(--border)",
+        boxShadow: isSelected ? "0 4px 14px rgba(40,136,208,0.3)" : "none",
+        cursor: slot.available ? "pointer" : "not-allowed",
+        opacity: !slot.available && (slot.booked || slot.locked) ? 1 : slot.available ? 1 : 0.5,
+      }}
     >
-      {formattedTime}
+      {/* Smooth selection overlay */}
+      <div
+        className="absolute inset-0 rounded-full"
+        style={{
+          background: "linear-gradient(135deg, #5bb3e4 0%, #2888d0 100%)",
+          opacity: isSelected ? 1 : 0,
+          transition: "opacity 0.3s ease",
+        }}
+      />
+      <span className="relative z-10">{formattedTime}</span>
     </button>
   );
 }
