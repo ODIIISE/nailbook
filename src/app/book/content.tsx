@@ -634,7 +634,7 @@ export default function BookContent() {
 
         {/* ─── Step 4: Confirm (Pre-Receipt) ─── */}
         {step === "confirm" && selectedService && selectedDate && selectedTime && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {isLoading ? (
               <div className="space-y-3">
                 <Skeleton className="h-48 w-full rounded-2xl" />
@@ -642,82 +642,76 @@ export default function BookContent() {
               </div>
             ) : (
               <>
-                {/* Samsung ticket receipt — stub */}
-                <div className="relative z-[2] mb-[-1px]">
+                {/* Stub */}
+                <div className="relative z-[2] mb-[-2px]">
                   <div
-                    className="rounded-t-[10px] px-6 pt-4 pb-2.5 relative overflow-hidden"
-                    style={{
-                      background: "var(--card)",
-                      boxShadow: "0 0.5px 1px rgba(80,70,60,0.08), 0 2px 6px rgba(60,50,40,0.06), 0 4px 12px rgba(50,40,30,0.04)",
-                    }}
+                    className="rounded-t-[10px] px-5 pt-3 pb-2 relative overflow-hidden"
+                    style={{ background: "var(--card)", boxShadow: "0 1px 3px rgba(80,70,60,0.06), 0 2px 8px rgba(60,50,40,0.04)" }}
                   >
-                    <div className="text-center text-[8px] font-semibold tracking-[3px] text-muted-foreground opacity-40">
-                      {selectedService.name}
-                    </div>
-                    <div className="text-center text-[7px] font-medium tracking-[1px] text-muted-foreground opacity-30 mt-0.5">
+                    <div className="text-center text-[7px] font-medium tracking-[2px] text-muted-foreground opacity-30">
                       forehand.vercel.app
                     </div>
                   </div>
-                  <div className="h-[5px] relative overflow-hidden" style={{ background: "var(--card)" }}>
-                    <div className="absolute bottom-0 left-0 right-0 h-[5px]" style={{ backgroundImage: "repeating-conic-gradient(var(--card) 0% 25%, transparent 0% 50%)", backgroundSize: "8px 8px", backgroundPosition: "50% 0" }} />
+                  <div className="h-[4px] relative overflow-hidden" style={{ background: "var(--card)" }}>
+                    <div className="absolute bottom-0 left-0 right-0 h-[4px]" style={{ backgroundImage: "repeating-conic-gradient(var(--card) 0% 25%, transparent 0% 50%)", backgroundSize: "7px 7px", backgroundPosition: "50% 0" }} />
                   </div>
                 </div>
 
                 {/* Perforation */}
-                <div className="flex justify-center gap-[7px] py-1 relative z-[3]">
-                  {Array.from({ length: 26 }).map((_, i) => (
-                    <div key={i} className="w-[3px] h-[3px] rounded-full" style={{ background: "var(--background)", boxShadow: "inset 0 0.5px 1px rgba(0,0,0,0.08)" }} />
+                <div className="flex justify-center gap-[6px] py-[3px] relative z-[3]">
+                  {Array.from({ length: 30 }).map((_, i) => (
+                    <div key={i} className="w-[2.5px] h-[2.5px] rounded-full" style={{ background: "var(--background)", boxShadow: "inset 0 0.5px 1px rgba(0,0,0,0.1)" }} />
                   ))}
                 </div>
 
                 {/* Main card */}
                 <div className="relative z-[1]">
-                  <div className="h-[5px] relative overflow-hidden" style={{ background: "var(--card)", transform: "rotate(180deg)" }}>
-                    <div className="absolute bottom-0 left-0 right-0 h-[5px]" style={{ backgroundImage: "repeating-conic-gradient(var(--card) 0% 25%, transparent 0% 50%)", backgroundSize: "8px 8px", backgroundPosition: "50% 0" }} />
+                  <div className="h-[4px] relative overflow-hidden" style={{ background: "var(--card)", transform: "rotate(180deg)" }}>
+                    <div className="absolute bottom-0 left-0 right-0 h-[4px]" style={{ backgroundImage: "repeating-conic-gradient(var(--card) 0% 25%, transparent 0% 50%)", backgroundSize: "7px 7px", backgroundPosition: "50% 0" }} />
                   </div>
                   <div
-                    className="rounded-b-[10px] px-6 py-6 relative overflow-hidden"
-                    style={{ background: "var(--card)", boxShadow: "0 0.5px 1px rgba(80,70,60,0.06), 0 2px 6px rgba(60,50,40,0.05), 0 4px 12px rgba(50,40,30,0.04), 0 8px 24px rgba(50,40,30,0.03), 0 16px 48px rgba(50,40,30,0.02)" }}
+                    className="rounded-b-[10px] px-5 py-5 relative overflow-hidden"
+                    style={{ background: "var(--card)", boxShadow: "0 1px 3px rgba(80,70,60,0.05), 0 3px 10px rgba(60,50,40,0.04), 0 6px 20px rgba(50,40,30,0.035), 0 12px 40px rgba(50,40,30,0.025)" }}
                   >
                     {/* Paper texture */}
-                    <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.03] mix-blend-multiply" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.25'/%3E%3C/svg%3E\")", backgroundSize: "180px 180px" }} />
-
-                    {/* Top edge highlight */}
-                    <div className="absolute top-0 left-0 right-0 h-[1px] z-[2] pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)" }} />
+                    <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.025] mix-blend-multiply" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.25'/%3E%3C/svg%3E\")", backgroundSize: "180px 180px" }} />
+                    <div className="absolute top-0 left-0 right-0 h-[1px] z-[2] pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)" }} />
 
                     {/* FOREHAND watermark */}
-                    <div className="absolute left-2 top-0 bottom-0 z-0 pointer-events-none select-none flex items-center justify-center" style={{ writingMode: "vertical-rl", textOrientation: "mixed", fontSize: "42px", fontWeight: 900, letterSpacing: "6px", color: "var(--foreground)", opacity: 0.03 }}>
+                    <div className="absolute left-1 top-0 bottom-0 z-0 pointer-events-none select-none flex items-center justify-center" style={{ writingMode: "vertical-rl", textOrientation: "mixed", fontSize: "36px", fontWeight: 900, letterSpacing: "5px", color: "var(--foreground)", opacity: 0.02 }}>
                       FOREHAND
                     </div>
 
-                    {/* Booking info */}
-                    <div className="flex items-center gap-3 mb-4 relative z-[2]">
-                      <div className="w-10 h-10 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(40,136,208,0.08), rgba(91,179,228,0.04))" }}>
-                        <Sparkles className="h-5 w-5 text-[#2888d0]" />
+                    {/* Service info */}
+                    <div className="flex items-center gap-2.5 mb-3 relative z-[2]">
+                      <div className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(40,136,208,0.06), rgba(91,179,228,0.03))" }}>
+                        <Sparkles className="h-4 w-4 text-[#2888d0]" />
                       </div>
                       <div>
-                        <div className="text-[14px] font-bold text-foreground">{selectedService.name}</div>
-                        <div className="text-[11px] text-muted-foreground">{salon.name}</div>
+                        <div className="text-[13px] font-semibold text-foreground">{selectedService.name}</div>
+                        <div className="text-[10px] text-muted-foreground">{salon.name}</div>
                       </div>
                     </div>
 
+                    <div className="h-px bg-black/[0.04] mb-3 relative z-[2]" />
+
                     {/* Detail list */}
                     <div className="relative z-[2]">
-                      <div className="flex justify-between items-center py-2.5">
-                        <span className="text-[13px] text-muted-foreground">تاریخ</span>
-                        <span className="text-[13px] font-semibold text-foreground">{selectedFullDate}</span>
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-[12px] text-muted-foreground">تاریخ</span>
+                        <span className="text-[12px] font-semibold text-foreground">{selectedFullDate}</span>
                       </div>
-                      <div className="flex justify-between items-center py-2.5 border-t border-dashed border-black/[0.06]">
-                        <span className="text-[13px] text-muted-foreground">ساعت</span>
-                        <span className="text-[13px] font-semibold text-foreground">{toPersianDigits(selectedTime)} تا {toPersianDigits(selectedEndTime)}</span>
+                      <div className="flex justify-between items-center py-2 border-t border-dashed border-black/[0.05]">
+                        <span className="text-[12px] text-muted-foreground">ساعت</span>
+                        <span className="text-[12px] font-semibold text-foreground">{toPersianDigits(selectedTime)} تا {toPersianDigits(selectedEndTime)}</span>
                       </div>
-                      <div className="flex justify-between items-center py-2.5 border-t border-dashed border-black/[0.06]">
-                        <span className="text-[13px] text-muted-foreground">مدت</span>
-                        <span className="text-[13px] font-semibold text-foreground">{toPersianDigits(totalDuration)} دقیقه</span>
+                      <div className="flex justify-between items-center py-2 border-t border-dashed border-black/[0.05]">
+                        <span className="text-[12px] text-muted-foreground">مدت</span>
+                        <span className="text-[12px] font-semibold text-foreground">{toPersianDigits(totalDuration)} دقیقه</span>
                       </div>
-                      <div className="flex justify-between items-center py-2.5 border-t border-dashed border-black/[0.06]">
-                        <span className="text-[13px] text-muted-foreground">هزینه کل</span>
-                        <span className="text-[17px] font-extrabold text-[#2888d0]">{formatPrice(Number(totalPrice))} تومان</span>
+                      <div className="flex justify-between items-center pt-3 pb-1 border-t border-dashed border-black/[0.05]">
+                        <span className="text-[12px] font-medium text-muted-foreground">هزینه کل</span>
+                        <span className="text-[16px] font-extrabold text-[#2888d0]">{formatPrice(Number(totalPrice))} تومان</span>
                       </div>
                     </div>
                   </div>

@@ -28,13 +28,13 @@ function Barcode({ id }: { id: string }) {
     const bars = [2,1,3,1,2,1,1,3,1,2,1,3,1,1,2,1,3,1,2,1,1,3,1,2,1,3,1,2,1,1,3,1,2,1,3,1,1,2,1,3,1,2,1,1,3,1,2,1,3,1,2,1,1,3,1,2,1,3,1,1,2,1,3,1,2,1];
     bars.forEach((w) => {
       const bar = document.createElement("div");
-      bar.style.cssText = `width:${w}px;height:${22+Math.random()*6}px;background:var(--foreground);border-radius:0.5px;opacity:0.1;`;
+      bar.style.cssText = `width:${w}px;height:${18+Math.random()*4}px;background:var(--foreground);border-radius:0.5px;opacity:0.08;`;
       ref.current!.appendChild(bar);
     });
   }, [id]);
 
   return (
-    <div ref={ref} className="flex justify-center gap-[1.5px] h-[28px] items-end mb-1.5" />
+    <div ref={ref} className="flex justify-center gap-[1px] h-[22px] items-end" />
   );
 }
 
@@ -90,29 +90,25 @@ export function BookingConfirm({
   return (
     <div className="mx-auto max-w-lg animate-scale">
       {/* ═══ TOP STUB ═══ */}
-      <div className="relative z-[2] mb-[-1px]">
+      <div className="relative z-[2] mb-[-2px]">
         <div
-          className="rounded-t-[10px] px-6 pt-4 pb-2.5 relative overflow-hidden"
+          className="rounded-t-[10px] px-5 pt-3 pb-2 relative overflow-hidden"
           style={{
             background: "var(--card)",
-            boxShadow: "0 0.5px 1px rgba(80,70,60,0.08), 0 2px 6px rgba(60,50,40,0.06), 0 4px 12px rgba(50,40,30,0.04)",
+            boxShadow: "0 1px 3px rgba(80,70,60,0.06), 0 2px 8px rgba(60,50,40,0.04)",
           }}
         >
           <Barcode id={bookingId} />
-          <div className="text-center text-[8px] font-semibold tracking-[3px] text-muted-foreground opacity-40">
-            {shortId}
-          </div>
-          <div className="text-center text-[7px] font-medium tracking-[1px] text-muted-foreground opacity-30 mt-0.5">
+          <div className="text-center text-[7px] font-medium tracking-[2px] text-muted-foreground opacity-30 mt-1">
             forehand.vercel.app
           </div>
         </div>
-        {/* Torn edge */}
-        <div className="h-[5px] relative overflow-hidden" style={{ background: "var(--card)" }}>
+        <div className="h-[4px] relative overflow-hidden" style={{ background: "var(--card)" }}>
           <div
-            className="absolute bottom-0 left-0 right-0 h-[5px]"
+            className="absolute bottom-0 left-0 right-0 h-[4px]"
             style={{
               backgroundImage: "repeating-conic-gradient(var(--card) 0% 25%, transparent 0% 50%)",
-              backgroundSize: "8px 8px",
+              backgroundSize: "7px 7px",
               backgroundPosition: "50% 0",
             }}
           />
@@ -120,14 +116,14 @@ export function BookingConfirm({
       </div>
 
       {/* ═══ PERFORATION ═══ */}
-      <div className="flex justify-center gap-[7px] py-1 relative z-[3]">
-        {Array.from({ length: 26 }).map((_, i) => (
+      <div className="flex justify-center gap-[6px] py-[3px] relative z-[3]">
+        {Array.from({ length: 30 }).map((_, i) => (
           <div
             key={i}
-            className="w-[3px] h-[3px] rounded-full"
+            className="w-[2.5px] h-[2.5px] rounded-full"
             style={{
               background: "var(--background)",
-              boxShadow: "inset 0 0.5px 1px rgba(0,0,0,0.08)",
+              boxShadow: "inset 0 0.5px 1px rgba(0,0,0,0.1)",
             }}
           />
         ))}
@@ -135,104 +131,104 @@ export function BookingConfirm({
 
       {/* ═══ MAIN CARD ═══ */}
       <div className="relative z-[1]">
-        {/* Torn edge top */}
-        <div className="h-[5px] relative overflow-hidden" style={{ background: "var(--card)", transform: "rotate(180deg)" }}>
+        <div className="h-[4px] relative overflow-hidden" style={{ background: "var(--card)", transform: "rotate(180deg)" }}>
           <div
-            className="absolute bottom-0 left-0 right-0 h-[5px]"
+            className="absolute bottom-0 left-0 right-0 h-[4px]"
             style={{
               backgroundImage: "repeating-conic-gradient(var(--card) 0% 25%, transparent 0% 50%)",
-              backgroundSize: "8px 8px",
+              backgroundSize: "7px 7px",
               backgroundPosition: "50% 0",
             }}
           />
         </div>
 
         <div
-          className="rounded-b-[10px] px-6 py-6 relative overflow-hidden"
+          className="rounded-b-[10px] px-5 py-5 relative overflow-hidden"
           style={{
             background: "var(--card)",
-            boxShadow: "0 0.5px 1px rgba(80,70,60,0.06), 0 2px 6px rgba(60,50,40,0.05), 0 4px 12px rgba(50,40,30,0.04), 0 8px 24px rgba(50,40,30,0.03), 0 16px 48px rgba(50,40,30,0.02)",
+            boxShadow: "0 1px 3px rgba(80,70,60,0.05), 0 3px 10px rgba(60,50,40,0.04), 0 6px 20px rgba(50,40,30,0.035), 0 12px 40px rgba(50,40,30,0.025)",
           }}
         >
-          {/* Paper texture overlay */}
-          <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.03] mix-blend-multiply" style={{
+          {/* Paper texture */}
+          <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.025] mix-blend-multiply" style={{
             backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.25'/%3E%3C/svg%3E\")",
             backgroundSize: "180px 180px",
           }} />
 
           {/* Top edge highlight */}
           <div className="absolute top-0 left-0 right-0 h-[1px] z-[2] pointer-events-none" style={{
-            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)",
+            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)",
           }} />
 
-          {/* FOREHAND watermark */}
+          {/* FOREHAND watermark — subtle */}
           <div
-            className="absolute left-2 top-0 bottom-0 z-0 pointer-events-none select-none flex items-center justify-center"
+            className="absolute left-1 top-0 bottom-0 z-0 pointer-events-none select-none flex items-center justify-center"
             style={{
               writingMode: "vertical-rl",
               textOrientation: "mixed",
-              fontSize: "42px",
+              fontSize: "36px",
               fontWeight: 900,
-              letterSpacing: "6px",
+              letterSpacing: "5px",
               color: "var(--foreground)",
-              opacity: 0.03,
+              opacity: 0.02,
             }}
           >
             FOREHAND
           </div>
 
-          {/* Success header */}
-          <div className="flex items-center gap-3 mb-5 relative z-[2]">
-            <div className="w-11 h-11 rounded-full bg-success flex items-center justify-center shrink-0" style={{ boxShadow: "0 3px 12px rgba(34,197,94,0.25)" }}>
-              <Check className="h-5 w-5 text-white" strokeWidth={2.5} />
+          {/* Success indicator — compact */}
+          <div className="flex items-center gap-2.5 mb-4 relative z-[2]">
+            <div
+              className="w-8 h-8 rounded-full bg-success flex items-center justify-center shrink-0"
+              style={{ boxShadow: "0 2px 8px rgba(34,197,94,0.2)" }}
+            >
+              <Check className="h-4 w-4 text-white" strokeWidth={2.5} />
             </div>
             <div>
-              <div className="text-[17px] font-extrabold text-foreground">رزرو ثبت شد!</div>
-              <div className="text-[11px] text-muted-foreground mt-0.5">نوبت شما با موفقیت ثبت شد</div>
+              <div className="text-[14px] font-bold text-foreground">رزرو ثبت شد</div>
             </div>
           </div>
 
-          <div className="h-px bg-black/[0.04] mb-4 relative z-[2]" />
-
-          {/* Booking info */}
-          <div className="flex items-center gap-3 mb-4 relative z-[2]">
-            <div className="w-10 h-10 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(40,136,208,0.08), rgba(91,179,228,0.04))" }}>
-              <Sparkles className="h-5 w-5 text-[#2888d0]" />
+          {/* Service info — compact */}
+          <div className="flex items-center gap-2.5 mb-3 relative z-[2]">
+            <div
+              className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0"
+              style={{ background: "linear-gradient(135deg, rgba(40,136,208,0.06), rgba(91,179,228,0.03))" }}
+            >
+              <Sparkles className="h-4 w-4 text-[#2888d0]" />
             </div>
             <div>
-              <div className="text-[14px] font-bold text-foreground">{serviceName}</div>
-              <div className="text-[11px] text-muted-foreground">{salonName}</div>
+              <div className="text-[13px] font-semibold text-foreground">{serviceName}</div>
+              <div className="text-[10px] text-muted-foreground">{salonName}</div>
             </div>
           </div>
 
-          {/* Detail list — classic receipt */}
+          <div className="h-px bg-black/[0.04] mb-3 relative z-[2]" />
+
+          {/* Detail list — compact classic receipt */}
           <div className="relative z-[2]">
-            <div className="flex justify-between items-center py-2.5">
-              <span className="text-[13px] text-muted-foreground">خدمت</span>
-              <span className="text-[13px] font-semibold text-foreground">{serviceName}</span>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-[12px] text-muted-foreground">تاریخ</span>
+              <span className="text-[12px] font-semibold text-foreground">{fullDate}</span>
             </div>
-            <div className="flex justify-between items-center py-2.5 border-t border-dashed border-black/[0.06]">
-              <span className="text-[13px] text-muted-foreground">تاریخ</span>
-              <span className="text-[13px] font-semibold text-foreground">{fullDate}</span>
+            <div className="flex justify-between items-center py-2 border-t border-dashed border-black/[0.05]">
+              <span className="text-[12px] text-muted-foreground">ساعت</span>
+              <span className="text-[12px] font-semibold text-foreground">{formattedTime} تا {formattedEndTime}</span>
             </div>
-            <div className="flex justify-between items-center py-2.5 border-t border-dashed border-black/[0.06]">
-              <span className="text-[13px] text-muted-foreground">ساعت</span>
-              <span className="text-[13px] font-semibold text-foreground">{formattedTime} تا {formattedEndTime}</span>
+            <div className="flex justify-between items-center py-2 border-t border-dashed border-black/[0.05]">
+              <span className="text-[12px] text-muted-foreground">مدت</span>
+              <span className="text-[12px] font-semibold text-foreground">{toPersianDigits(duration)} دقیقه</span>
             </div>
-            <div className="flex justify-between items-center py-2.5 border-t border-dashed border-black/[0.06]">
-              <span className="text-[13px] text-muted-foreground">مدت</span>
-              <span className="text-[13px] font-semibold text-foreground">{toPersianDigits(duration)} دقیقه</span>
-            </div>
-            <div className="flex justify-between items-center py-2.5 border-t border-dashed border-black/[0.06]">
-              <span className="text-[13px] text-muted-foreground">هزینه کل</span>
-              <span className="text-[17px] font-extrabold text-[#2888d0]">{formatPrice(Number(price))} تومان</span>
+            <div className="flex justify-between items-center pt-3 pb-1 border-t border-dashed border-black/[0.05]">
+              <span className="text-[12px] font-medium text-muted-foreground">هزینه کل</span>
+              <span className="text-[16px] font-extrabold text-[#2888d0]">{formatPrice(Number(price))} تومان</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* ═══ ACTIONS ═══ */}
-      <div className="grid grid-cols-2 gap-2.5 mt-4">
+      <div className="grid grid-cols-2 gap-2 mt-3">
         <Button size="xl" variant="paper" className="w-full" onClick={handleAddToGoogleCalendar}>
           <CalendarDays className="h-4 w-4 ml-2" />
           تقویم گوگل
