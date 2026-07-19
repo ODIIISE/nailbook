@@ -12,7 +12,6 @@ import { ChevronLeft, Puzzle, Check, AlertCircle, CalendarDays, Timer, ArrowLeft
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { TimeSlots } from "@/components/booking/time-slots";
 import { BookingConfirm } from "@/components/booking/booking-confirm";
-import { ReceiptCard, ReceiptRow, ReceiptTotal } from "@/components/booking/receipt-card";
 import { PinInput } from "@/components/booking/pin-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SalonGuard } from "@/components/ui/salon-guard";
@@ -643,50 +642,45 @@ export default function BookContent() {
               </div>
             ) : (
               <>
-                {/* Receipt-style card — Samsung ticket design */}
-                <ReceiptCard
-                  barcode={selectedService.name}
-                  stubLabel={salon.name}
-                  sideText="A NEW SHAPE UNFOLDS"
-                >
-                  {/* Service Header */}
-                  <div className="flex items-center gap-3 pb-4">
-                    <div className="w-14 h-14 rounded-2xl bg-[#2888d0]/8 flex items-center justify-center shrink-0">
-                      <span className="text-3xl">💅</span>
+                {/* Confirm Card */}
+                <div className="glass rounded-2xl p-5 shadow-card">
+                  <div className="flex items-center gap-3 pb-4 border-b border-dashed border-black/[0.06]">
+                    <div className="w-12 h-12 rounded-2xl bg-[#2888d0]/8 flex items-center justify-center shrink-0">
+                      <span className="text-2xl">💅</span>
                     </div>
                     <div className="flex-1">
-                      <div className="text-[16px] font-bold text-foreground">{selectedService.name}</div>
+                      <div className="text-[15px] font-bold text-foreground">{selectedService.name}</div>
                       <div className="text-[12px] text-muted-foreground">{salon.name}</div>
                     </div>
                   </div>
 
-                  {/* Details */}
-                  <div className="space-y-0.5">
-                    <ReceiptRow
-                      icon={<CalendarDays className="h-4 w-4" />}
-                      value={selectedFullDate}
-                      subValue={`ساعت ${toPersianDigits(selectedTime)} تا ${toPersianDigits(selectedEndTime)}`}
-                    />
-                    <ReceiptRow
-                      icon={<Timer className="h-4 w-4" />}
-                      value={`${toPersianDigits(totalDuration)} دقیقه`}
-                    />
-                    {selectedAddons.length > 0 && (
-                      <ReceiptRow
-                        icon={<Puzzle className="h-4 w-4" />}
-                        value={`${toPersianDigits(selectedAddons.length)} آپشن اضافی`}
-                        iconBg="rgba(147,51,234,0.08)"
-                        iconColor="#9333ea"
-                      />
-                    )}
+                  <div className="py-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-[#2888d0]/8 flex items-center justify-center shrink-0">
+                        <CalendarDays className="h-4 w-4 text-[#2888d0]" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-[13px] font-semibold text-foreground">{selectedFullDate}</div>
+                        <div className="text-[11px] text-muted-foreground">ساعت {toPersianDigits(selectedTime)} تا {toPersianDigits(selectedEndTime)}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-[#2888d0]/8 flex items-center justify-center shrink-0">
+                        <Timer className="h-4 w-4 text-[#2888d0]" />
+                      </div>
+                      <div className="text-[13px] font-semibold text-foreground">{toPersianDigits(totalDuration)} دقیقه</div>
+                    </div>
                   </div>
 
-                  {/* Total */}
-                  <ReceiptTotal
-                    label="هزینه کل"
-                    amount={formatPrice(Number(totalPrice))}
-                  />
-                </ReceiptCard>
+                  <div className="border-t border-dashed border-black/[0.06] pt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[13px] text-muted-foreground">هزینه کل</span>
+                      <span className="text-[18px] font-extrabold text-foreground">
+                        {formatPrice(Number(totalPrice))} <span className="text-[13px] font-medium text-muted-foreground">تومان</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Spam Error */}
                 {spamError && (
