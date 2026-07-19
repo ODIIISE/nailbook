@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, buttonVariants } from "@/components/ui/button";
-import { CheckCircle2, CalendarDays, Clock, Timer, CreditCard, Hash, Share2, MessageCircle, ArrowRight } from "lucide-react";
+import { CheckCircle2, CalendarDays, Timer, CreditCard, Hash, Share2, MessageCircle } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { isValidIranianPhone } from "@/lib/digits";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,6 @@ export function BookingConfirm({
   const formattedTime = toPersianDigits(time);
   const shortId = bookingId.slice(-4).toUpperCase();
 
-  // Calculate end time
   const [h, m] = time.split(":").map(Number);
   const endMinutes = h * 60 + m + duration;
   const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
@@ -72,79 +71,88 @@ export function BookingConfirm({
 
   return (
     <div className="mx-auto max-w-lg animate-scale">
-      {/* Success Header */}
-      <div className="text-center mb-6">
-        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-success/10 relative">
-          <CheckCircle2 className="h-10 w-10 text-success" />
-          <div className="absolute inset-0 rounded-full border-2 border-success/20 animate-ping" style={{ animationDuration: '2s' }} />
+      {/* Success Badge */}
+      <div className="text-center mb-5">
+        <div className="mx-auto mb-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20">
+          <CheckCircle2 className="h-5 w-5 text-success" />
+          <span className="text-[14px] font-bold text-success">رزرو تایید شد</span>
         </div>
-        <h2 className="text-h1 text-foreground mb-1">رزرو تایید شد!</h2>
-        <p className="text-[14px] text-muted-foreground">
-          {customerName} عزیز، نوبت شما با موفقیت ثبت شد
+        <p className="text-[13px] text-muted-foreground">
+          {customerName} عزیز، نوبت شما ثبت شد
         </p>
       </div>
 
-      {/* Booking Details Card */}
-      <div className="glass rounded-2xl overflow-hidden mb-5">
+      {/* Receipt Card — matches step 4 pre-receipt style */}
+      <div className="glass rounded-2xl overflow-hidden mb-5 relative">
+        {/* Dashed top edge */}
+        <div className="h-0 border-t-2 border-dashed border-black/[0.06] mx-4" />
+
         {/* Service Header */}
-        <div className="px-5 py-4 border-b border-black/[0.04]">
+        <div className="px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[var(--rose)]/10 flex items-center justify-center">
-              <span className="text-lg">💅</span>
+            <div className="w-11 h-11 rounded-xl bg-[var(--rose)]/10 flex items-center justify-center shrink-0">
+              <span className="text-xl">💅</span>
             </div>
             <div className="flex-1">
               <div className="text-[15px] font-bold text-foreground">{serviceName}</div>
               <div className="text-[12px] text-muted-foreground">{salonName}</div>
             </div>
+            <div className="text-[11px] text-success font-semibold bg-success/10 px-2 py-1 rounded-md">
+              تایید شده
+            </div>
           </div>
         </div>
 
-        {/* Details Grid */}
+        {/* Separator */}
+        <div className="h-0 border-t border-dashed border-black/[0.06] mx-5" />
+
+        {/* Details */}
         <div className="px-5 py-4 space-y-3">
-          {/* Date & Time — Combined row */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-black/[0.02]">
+          {/* Date & Time */}
+          <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[var(--rose)]/10 flex items-center justify-center shrink-0">
               <CalendarDays className="h-4 w-4 text-[var(--rose)]" />
             </div>
             <div className="flex-1">
               <div className="text-[13px] font-semibold text-foreground">{fullDate}</div>
-              <div className="text-[12px] text-muted-foreground">ساعت {formattedTime} تا {formattedEndTime}</div>
+              <div className="text-[11px] text-muted-foreground">ساعت {formattedTime} تا {formattedEndTime}</div>
             </div>
           </div>
 
           {/* Duration */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-black/[0.02]">
+          <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
               <Timer className="h-4 w-4 text-blue-500" />
             </div>
-            <div className="flex-1">
-              <div className="text-[13px] font-semibold text-foreground">{toPersianDigits(duration)} دقیقه</div>
-              <div className="text-[12px] text-muted-foreground">مدت زمان خدمت</div>
-            </div>
+            <div className="text-[13px] font-semibold text-foreground">{toPersianDigits(duration)} دقیقه</div>
           </div>
 
           {/* Price */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-black/[0.02]">
+          <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
               <CreditCard className="h-4 w-4 text-green-500" />
             </div>
             <div className="flex-1">
-              <div className="text-[15px] font-bold text-foreground">{formatPrice(Number(price))} تومان</div>
-              <div className="text-[12px] text-muted-foreground">هزینه کل</div>
+              <div className="text-[18px] font-extrabold text-foreground">
+                {formatPrice(Number(price))} <span className="text-[13px] font-medium text-muted-foreground">تومان</span>
+              </div>
             </div>
           </div>
 
-          {/* Tracking Code */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-black/[0.02]">
+          {/* Tracking Code — same row format as other details */}
+          <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
               <Hash className="h-4 w-4 text-purple-500" />
             </div>
             <div className="flex-1">
               <div className="text-[13px] font-semibold text-foreground font-mono" dir="ltr">#{shortId}</div>
-              <div className="text-[12px] text-muted-foreground">کد رهگیری</div>
+              <div className="text-[11px] text-muted-foreground">کد رهگیری</div>
             </div>
           </div>
         </div>
+
+        {/* Dashed bottom edge */}
+        <div className="h-0 border-t-2 border-dashed border-black/[0.06] mx-4" />
       </div>
 
       {/* Action Buttons */}
