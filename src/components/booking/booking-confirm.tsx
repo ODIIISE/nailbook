@@ -71,13 +71,16 @@ export function BookingConfirm({
 
   return (
     <div className="mx-auto max-w-lg animate-scale">
-      {/* Success Badge */}
+      {/* Success Header */}
       <div className="text-center mb-5">
-        <div className="mx-auto mb-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20">
-          <CheckCircle2 className="h-5 w-5 text-success" />
+        <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-success/10 relative">
+          <CheckCircle2 className="h-10 w-10 text-success" />
+          <div className="absolute inset-0 rounded-full border-2 border-success/20 animate-ping" style={{ animationDuration: '2s' }} />
+        </div>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20">
           <span className="text-[14px] font-bold text-success">رزرو تایید شد</span>
         </div>
-        <p className="text-[13px] text-muted-foreground">
+        <p className="text-[13px] text-muted-foreground mt-2">
           {customerName} عزیز، نوبت شما ثبت شد
         </p>
       </div>
