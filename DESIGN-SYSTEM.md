@@ -1,16 +1,17 @@
 # Forehand Nail Studio — Design System
 
-> V2 Soft Rounded — Mobile-first, RTL, minimal luxury design system.
+> Paper Theme — Samsung-inspired, warm, tactile design system.
 
 ---
 
 ## 1. Philosophy
 
-- **Mobile-first** — every component designed for 375px+, thumb-friendly
+- **Paper texture** — subtle canvas-generated grain on all surfaces
+- **Warm shadows** — multi-layered with brown tints, not gray
+- **Blue gradient CTAs** — consistent `#5bb3e4` → `#2888d0`
+- **Mobile-first** — 375px+, thumb-friendly
 - **RTL** — full Persian right-to-left layout
-- **Soft Rounded** — 12px radius, pill buttons, subtle shadows
-- **Minimal luxury** — warm neutrals, black CTAs, rose accents, clean whitespace
-- **Accessible** — 44pt+ touch targets, focus-visible, reduced motion support
+- **Accessible** — 44pt+ touch targets, focus-visible
 
 ---
 
@@ -29,23 +30,68 @@
 
 ## 3. Color Tokens
 
+### Background & Surfaces
+
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--background` | `#F8F6F4` | Page background (warm white) |
-| `--foreground` | `#2C2424` | Primary text (dark brown) |
-| `--primary` | `#1A1A1A` | Button fill, CTAs (pure black) |
+| `--paper-bg` | `#e5e2dd` | Page background (warm gray) |
+| `--paper-surface` | `#f2f0ec` | Cards, buttons, surfaces |
+| `--paper-tile` | canvas-generated | Subtle fiber texture |
+
+### Primary (Blue Gradient)
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--primary` | `#2888d0` | Primary blue |
 | `--primary-foreground` | `#FFFFFF` | Text on primary |
-| `--secondary` | `#F0ECE8` | Subtle backgrounds |
-| `--muted` | `#EDE9E4` | Muted backgrounds |
-| `--muted-foreground` | `#7A7068` | Secondary text |
-| `--destructive` | `#DC3545` | Errors, delete actions |
+| `--accent` | `#5bb3e4` | Light blue accent |
+| `--ring` | `#2888d0` | Focus rings |
+
+### Text
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--foreground` | `#2a2a2a` | Primary text |
+| `--muted-foreground` | `#6a6a6a` | Secondary text |
+| `--card-foreground` | `#2a2a2a` | Card text |
+
+### Semantic
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--destructive` | `#DC3545` | Errors, delete |
 | `--success` | `#28A745` | Confirmations |
-| `--rose` | `#B87070` | Calendar highlights, accent |
-| `--gold` | `#C49A5C` | Secondary accent |
+| `--rose` | `#B87070` | Calendar highlights (legacy) |
+| `--gold` | `#C49A5C` | Secondary accent (legacy) |
 
 ---
 
-## 4. Border Radius
+## 4. CTA Button (Paper Variant)
+
+```tsx
+<Button variant="paper">Action</Button>
+```
+
+```css
+background: linear-gradient(135deg, #5bb3e4 0%, #2888d0 100%);
+color: white;
+border: none;
+box-shadow:
+  0 2px 4px rgba(40,136,208,0.12),
+  0 4px 12px rgba(40,136,208,0.18),
+  0 8px 24px rgba(40,136,208,0.12);
+
+/* Hover */
+transform: translateY(-0.5px);
+box-shadow:
+  0 3px 6px rgba(40,136,208,0.15),
+  0 6px 18px rgba(40,136,208,0.22),
+  0 12px 32px rgba(40,136,208,0.15);
+```
+
+---
+
+## 5. Border Radius
 
 | Token | Value | Use |
 |-------|-------|-----|
@@ -57,75 +103,121 @@
 
 ---
 
-## 5. Shadows (V2 Soft)
+## 6. Shadows (Paper Theme)
 
-| Token | Value | Use |
-|-------|-------|-----|
-| `--shadow-card` | `0 1px 4px rgba(44,36,36,0.04)` | Resting cards |
-| `--shadow-elevated` | `0 4px 16px rgba(44,36,36,0.06)` | Elevated cards |
-| `--shadow-floating` | `0 8px 32px rgba(44,36,36,0.08)` | Modals, drawers |
+Warm-tinted multi-layer system. Uses brown/amber tints instead of pure gray.
 
----
-
-## 6. Glass System (V2 Soft)
+### Card Shadow
 
 ```css
-.glass {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(20px) saturate(1.15);
-  border: 1px solid rgba(232, 224, 214, 0.6);
-  box-shadow: 0 1px 4px rgba(44, 36, 36, 0.04);
-}
+--shadow-card:
+  0 0.5px 1px rgba(80,70,60,0.06),
+  0 1px 3px rgba(60,50,40,0.05),
+  0 2px 6px rgba(50,40,30,0.04),
+  0 4px 12px rgba(50,40,30,0.03);
+```
+
+### Elevated Shadow
+
+```css
+--shadow-elevated:
+  0 1px 2px rgba(80,70,60,0.07),
+  0 3px 8px rgba(60,50,40,0.06),
+  0 6px 16px rgba(50,40,30,0.04),
+  0 12px 28px rgba(50,40,30,0.03);
+```
+
+### Floating Shadow
+
+```css
+--shadow-floating:
+  0 2px 4px rgba(80,70,60,0.07),
+  0 6px 16px rgba(60,50,40,0.06),
+  0 16px 32px rgba(50,40,30,0.04),
+  0 32px 64px rgba(50,40,30,0.03);
 ```
 
 ---
 
-## 7. Components
+## 7. Paper Texture
 
-### Button
+Canvas-generated 200x200px tile with subtle fiber grain.
 
-- **Shape:** Pill (`rounded-full`)
-- **Variants:** default (black), outline, secondary, ghost, destructive, link
-- **Sizes:** default (h-8), sm (h-7), lg (h-9), icon, icon-sm, icon-lg
-- **Interaction:** `active:translate-y-px`, `focus-visible:ring-2`
+- Base color: `#f2f0ec` (rgb 242, 240, 236)
+- Noise range: ±2 brightness
+- Applied via CSS custom property: `var(--paper-tile)`
+- Background-size: 200px 200px, repeat
+
+---
+
+## 8. Components
 
 ### Card
 
-- Glass background with blur
-- `rounded-[14px]`
-- `shadow-card` at rest
+```tsx
+<Card className="p-4">
+  {/* Content */}
+</Card>
+```
+
+- Paper surface background with texture
+- Multi-layer warm shadow
+- Top-edge highlight (light catch)
+
+### Button
+
+| Variant | Style |
+|---------|-------|
+| `default` | Primary blue fill |
+| `paper` | Blue gradient with shadow |
+| `outline` | Border only, white fill |
+| `ghost` | Transparent, hover effect |
+| `secondary` | Muted background |
+| `destructive` | Red tint |
 
 ### Input
 
-- `h-12` (48px) minimum height
-- `rounded-[14px]`
+- Height: 48px (`--field-xl`)
+- Border radius: 14px
 - RTL-aware with `dir="ltr"` for numbers/times
 
 ---
 
-## 8. Navigation
+## 9. Navigation
 
-### Bottom Nav Icons (Heroicons)
-
-| Tab | Default (outline) | Active (solid) |
-|-----|-------------------|----------------|
-| خانه | `HomeIcon` outline | `HomeIcon` solid |
-| نوبت‌ها | `CalendarDaysIcon` outline | `CalendarDaysIcon` solid |
-| پروفایل | `UserIcon` outline | `UserIcon` solid |
+### Bottom Nav
 
 - Height: 56px
-- Gap between icon and label: `gap-1.5`
-- Background: `bg-background/80 backdrop-blur-xl`
+- Paper surface background with texture
+- Top-edge highlight
+- Active: blue gradient indicator
 
 ### Side Menu
 
-- Auth-aware: shows "ورود" when not logged in, "خروج" when logged in
-- "ورود مدیر" pinned to bottom of customer menu only
-- Owner menu: no "ورود مدیر" (middleware enforces auth)
+- Paper surface background
+- Auth-aware: shows login/logout
+- Owner menu: no login option (middleware enforces)
 
 ---
 
-## 9. Animations
+## 10. Calendar
+
+### Date Strip
+
+- Selected: blue gradient + shadow
+- Today: blue outline border
+- Fully booked: muted, 60% opacity
+
+### Date Display
+
+```css
+background: rgba(40,136,208,0.05);
+border: 1px solid rgba(40,136,208,0.1);
+```
+
+---
+
+## 11. Animations
 
 | Class | Duration | Effect |
 |-------|----------|--------|
@@ -133,19 +225,17 @@
 | `animate-scale` | 180ms | Scale 0.92→1 + fade |
 | `animate-slideUp` | 220ms | TranslateY 10px→0 + fade |
 
-**Reduced motion:** All animations disabled via `@media (prefers-reduced-motion: reduce)`
-
 ---
 
-## 10. Loading States
+## 12. Loading States
 
 All loading states use shadcn `<Skeleton>` component (rounded-[12px], shimmer animation).
 
 ---
 
-## 11. Auth System
+## 13. Revert Guide
 
-- **Customer PINs:** Plain 4-digit text (owner can see them)
-- **Owner PINs:** PBKDF2 hashed (secure)
-- **Sessions:** HMAC-SHA256 signed cookies (httpOnly, secure, sameSite: lax)
-- **Middleware:** Protects `/owner/*` and `/api/owner/*` routes
+To switch back to original theme:
+
+1. Set `USE_PAPER_THEME = false` in `layout.tsx`
+2. All original variables are preserved in `:root`

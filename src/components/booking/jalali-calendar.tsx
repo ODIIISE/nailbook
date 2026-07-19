@@ -162,18 +162,20 @@ export function JalaliCalendar({
             <span className="text-[12px]">تقویم</span>
           </Button>
         </div>
-        <div
-          ref={scrollRef}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          className="flex gap-2 overflow-x-auto pb-3 pt-1 px-4 scrollbar-hide"
-          style={{
-            WebkitOverflowScrolling: "touch",
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
-        >
+        {/* Outer wrapper with padding to prevent shadow clipping */}
+        <div className="px-1">
+          <div
+            ref={scrollRef}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            className="flex gap-2 overflow-x-auto pb-3 pt-1 px-3 scrollbar-hide"
+            style={{
+              WebkitOverflowScrolling: "touch",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+          >
           {days.map((d, i) => (
             <button
               key={i}
@@ -214,6 +216,7 @@ export function JalaliCalendar({
               )}
             </button>
           ))}
+          </div>
         </div>
       </div>
 
