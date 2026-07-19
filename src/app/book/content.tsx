@@ -602,7 +602,7 @@ export default function BookContent() {
           </Card>
         )}
 
-        {/* ─── Step 4: Confirm ─── */}
+        {/* ─── Step 4: Confirm (Pre-Receipt) ─── */}
         {step === "confirm" && selectedService && selectedDate && selectedTime && (
           <div className="space-y-4">
             {isLoading ? (
@@ -612,36 +612,36 @@ export default function BookContent() {
               </div>
             ) : (
               <>
-                {/* Review Header */}
-                <div className="text-center mb-2">
-                  <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--rose)]/10">
-                    <span className="text-2xl">💅</span>
-                  </div>
-                  <h2 className="text-h2 text-foreground">بررسی و تایید</h2>
-                  <p className="text-[13px] text-muted-foreground mt-1">لطفاً اطلاعات رزرو خود را بررسی کنید</p>
-                </div>
+                {/* Receipt-style card */}
+                <div className="glass rounded-2xl overflow-hidden relative">
+                  {/* Dashed top edge — receipt feel */}
+                  <div className="h-0 border-t-2 border-dashed border-black/[0.06] mx-4" />
 
-                {/* Booking Summary Card */}
-                <div className="glass rounded-2xl overflow-hidden">
                   {/* Service Header */}
-                  <div className="px-5 py-3.5 border-b border-black/[0.04]">
+                  <div className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-[var(--rose)]/10 flex items-center justify-center shrink-0">
-                        <span className="text-base">💅</span>
+                      <div className="w-11 h-11 rounded-xl bg-[var(--rose)]/10 flex items-center justify-center shrink-0">
+                        <span className="text-xl">💅</span>
                       </div>
                       <div className="flex-1">
-                        <div className="text-[14px] font-bold text-foreground">{selectedService.name}</div>
-                        <div className="text-[11px] text-muted-foreground">{salon.name}</div>
+                        <div className="text-[15px] font-bold text-foreground">{selectedService.name}</div>
+                        <div className="text-[12px] text-muted-foreground">{salon.name}</div>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground/50 bg-black/[0.03] px-2 py-1 rounded-md">
+                        پیش‌فرض
                       </div>
                     </div>
                   </div>
 
+                  {/* Separator */}
+                  <div className="h-0 border-t border-dashed border-black/[0.06] mx-5" />
+
                   {/* Details */}
-                  <div className="px-5 py-3.5 space-y-2.5">
-                    {/* Date & Time Combined */}
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-[var(--rose)]/10 flex items-center justify-center shrink-0">
-                        <CalendarDays className="h-3.5 w-3.5 text-[var(--rose)]" />
+                  <div className="px-5 py-4 space-y-3">
+                    {/* Date & Time */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--rose)]/10 flex items-center justify-center shrink-0">
+                        <CalendarDays className="h-4 w-4 text-[var(--rose)]" />
                       </div>
                       <div className="flex-1">
                         <div className="text-[13px] font-semibold text-foreground">{selectedFullDate}</div>
@@ -650,33 +650,36 @@ export default function BookContent() {
                     </div>
 
                     {/* Duration */}
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-                        <Timer className="h-3.5 w-3.5 text-blue-500" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+                        <Timer className="h-4 w-4 text-blue-500" />
                       </div>
                       <div className="text-[13px] font-semibold text-foreground">{toPersianDigits(totalDuration)} دقیقه</div>
                     </div>
 
                     {/* Addons */}
                     {selectedAddons.length > 0 && (
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
-                          <Puzzle className="h-3.5 w-3.5 text-purple-500" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
+                          <Puzzle className="h-4 w-4 text-purple-500" />
                         </div>
                         <div className="text-[13px] font-semibold text-foreground">{toPersianDigits(selectedAddons.length)} آپشن اضافی</div>
                       </div>
                     )}
 
-                    {/* Price Divider */}
-                    <div className="border-t border-black/[0.04] pt-2.5 mt-1">
+                    {/* Price — prominent */}
+                    <div className="border-t border-dashed border-black/[0.06] pt-3 mt-1">
                       <div className="flex items-center justify-between">
                         <span className="text-[13px] text-muted-foreground">هزینه کل</span>
-                        <span className="text-[16px] font-bold text-foreground">
-                          {formatPrice(Number(totalPrice))} تومان
+                        <span className="text-[18px] font-extrabold text-foreground">
+                          {formatPrice(Number(totalPrice))} <span className="text-[13px] font-medium text-muted-foreground">تومان</span>
                         </span>
                       </div>
                     </div>
                   </div>
+
+                  {/* Dashed bottom edge — receipt feel */}
+                  <div className="h-0 border-t-2 border-dashed border-black/[0.06] mx-4" />
                 </div>
 
                 {/* Spam Error */}
