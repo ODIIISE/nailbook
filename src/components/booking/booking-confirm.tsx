@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, CalendarDays, Timer, CreditCard, Hash, Share2 } from "lucide-react";
+import { CheckCircle2, CalendarDays, Timer, Hash, Share2 } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { getTehranDateKey } from "@/lib/time";
 import { ReceiptCard, ReceiptRow, ReceiptTotal } from "./receipt-card";
@@ -74,7 +74,7 @@ export function BookingConfirm({
       <div className="text-center mb-5">
         <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-success/10 relative">
           <CheckCircle2 className="h-10 w-10 text-success" />
-          <div className="absolute inset-0 rounded-full border-2 border-success/20 animate-ping" style={{ animationDuration: '2s' }} />
+          <div className="absolute inset-0 rounded-full border-2 border-success/20 animate-ping" style={{ animationDuration: "2s" }} />
         </div>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20">
           <span className="text-[14px] font-bold text-success">رزرو ثبت شد</span>
@@ -84,12 +84,17 @@ export function BookingConfirm({
         </p>
       </div>
 
-      {/* Receipt Card */}
-      <ReceiptCard className="mb-5">
+      {/* Receipt Card — Samsung ticket style */}
+      <ReceiptCard
+        barcode={`#${shortId}`}
+        stubLabel={salonName}
+        sideText="BOOKING CONFIRMED"
+        className="mb-5"
+      >
         {/* Service Header */}
-        <div className="flex items-center gap-3 pb-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#2888d0]/8 flex items-center justify-center shrink-0">
-            <span className="text-2xl">💅</span>
+        <div className="flex items-center gap-3 pb-4">
+          <div className="w-14 h-14 rounded-2xl bg-[#2888d0]/8 flex items-center justify-center shrink-0">
+            <span className="text-3xl">💅</span>
           </div>
           <div className="flex-1">
             <div className="text-[16px] font-bold text-foreground">{serviceName}</div>
@@ -101,22 +106,20 @@ export function BookingConfirm({
         </div>
 
         {/* Details */}
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           <ReceiptRow
             icon={<CalendarDays className="h-4 w-4" />}
-            label="تاریخ"
             value={fullDate}
             subValue={`ساعت ${formattedTime} تا ${formattedEndTime}`}
           />
           <ReceiptRow
             icon={<Timer className="h-4 w-4" />}
-            label="مدت"
             value={`${toPersianDigits(duration)} دقیقه`}
           />
           <ReceiptRow
             icon={<Hash className="h-4 w-4" />}
-            label="کد رهگیری"
             value={`#${shortId}`}
+            subValue="کد رهگیری"
             iconBg="rgba(147,51,234,0.08)"
             iconColor="#9333ea"
           />

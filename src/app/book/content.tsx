@@ -643,40 +643,37 @@ export default function BookContent() {
               </div>
             ) : (
               <>
-                {/* Receipt-style card */}
-                <ReceiptCard>
+                {/* Receipt-style card — Samsung ticket design */}
+                <ReceiptCard
+                  barcode={selectedService.name}
+                  stubLabel={salon.name}
+                  sideText="A NEW SHAPE UNFOLDS"
+                >
                   {/* Service Header */}
-                  <div className="flex items-center gap-3 pb-3">
-                    <div className="w-12 h-12 rounded-2xl bg-[#2888d0]/8 flex items-center justify-center shrink-0">
-                      <span className="text-2xl">💅</span>
+                  <div className="flex items-center gap-3 pb-4">
+                    <div className="w-14 h-14 rounded-2xl bg-[#2888d0]/8 flex items-center justify-center shrink-0">
+                      <span className="text-3xl">💅</span>
                     </div>
                     <div className="flex-1">
                       <div className="text-[16px] font-bold text-foreground">{selectedService.name}</div>
                       <div className="text-[12px] text-muted-foreground">{salon.name}</div>
                     </div>
-                    <div className="text-[10px] text-muted-foreground/50 bg-black/[0.03] px-2 py-1 rounded-md">
-                      پیش‌فرض
-                    </div>
                   </div>
 
                   {/* Details */}
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <ReceiptRow
                       icon={<CalendarDays className="h-4 w-4" />}
-                      label="تاریخ"
                       value={selectedFullDate}
                       subValue={`ساعت ${toPersianDigits(selectedTime)} تا ${toPersianDigits(selectedEndTime)}`}
                     />
                     <ReceiptRow
                       icon={<Timer className="h-4 w-4" />}
-                      label="مدت"
                       value={`${toPersianDigits(totalDuration)} دقیقه`}
-                      iconBg="rgba(40,136,208,0.08)"
                     />
                     {selectedAddons.length > 0 && (
                       <ReceiptRow
                         icon={<Puzzle className="h-4 w-4" />}
-                        label="آپشن"
                         value={`${toPersianDigits(selectedAddons.length)} آپشن اضافی`}
                         iconBg="rgba(147,51,234,0.08)"
                         iconColor="#9333ea"
