@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppNavbar } from "@/components/layout/app-navbar";
@@ -17,6 +17,7 @@ import { formatPrice, gregorianToJalali, toPersianDigits, formatJalaliTime } fro
 import type { Booking } from "@/lib/types";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+  reserved: { label: "ثبت شده", variant: "secondary" },
   confirmed: { label: "تایید شده", variant: "default" },
   pending: { label: "در انتظار", variant: "secondary" },
   completed: { label: "انجام شده", variant: "secondary" },
@@ -28,8 +29,23 @@ const JALALI_MONTHS = ["", "فروردین", "اردیبهشت", "خرداد", "
 export default function BookingsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { bookings, services, addons, cancelBooking } = useSalon();
+  const { bookings, services, addons, cancelBooking, refreshBookings } = useSalon();
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+
+  // Refresh bookings: 10s polling + instant refresh on tab focus
+  useEffect(() => {
+    const id = setInterval(refreshBookings, 10000);
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") refreshBookings();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", refreshBookings);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", refreshBookings);
+    };
+  }, [refreshBookings]);
 
   // Filter bookings by user_id OR customer_phone (handles both registered and guest bookings)
   const myBookings = useMemo(() => {

@@ -61,7 +61,7 @@ export function BookingConfirm({
   };
 
   const handleShare = async () => {
-    const text = `رزرو ناخن تایید شد!\n${serviceName}\n${fullDate} - ساعت ${formattedTime}\n${salonName}`;
+    const text = `رزرو ناخن ثبت شد!\n${serviceName}\n${fullDate} - ساعت ${formattedTime}\n${salonName}`;
     if (navigator.share) {
       await navigator.share({ text });
     } else {
@@ -78,7 +78,7 @@ export function BookingConfirm({
           <div className="absolute inset-0 rounded-full border-2 border-success/20 animate-ping" style={{ animationDuration: '2s' }} />
         </div>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20">
-          <span className="text-[14px] font-bold text-success">رزرو تایید شد</span>
+          <span className="text-[14px] font-bold text-success">رزرو ثبت شد</span>
         </div>
         <p className="text-[13px] text-muted-foreground mt-2">
           {customerName} عزیز، نوبت شما ثبت شد
@@ -100,8 +100,8 @@ export function BookingConfirm({
               <div className="text-[15px] font-bold text-foreground">{serviceName}</div>
               <div className="text-[12px] text-muted-foreground">{salonName}</div>
             </div>
-            <div className="text-[11px] text-success font-semibold bg-success/10 px-2 py-1 rounded-md">
-              تایید شده
+            <div className="text-[11px] text-[var(--rose)] font-semibold bg-[var(--rose)]/10 px-2 py-1 rounded-md">
+              ثبت شده
             </div>
           </div>
         </div>
