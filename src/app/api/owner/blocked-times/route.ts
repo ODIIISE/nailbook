@@ -20,6 +20,23 @@ export async function PUT(request: NextRequest) {
 
     const { blockedTimes } = await request.json();
 
+    // Validate no overlapping blocks within the same day
+    if (blockedTimes && blockedTimes.length > 1) {
+      const sorted = [...blockedTimes].sort((a: any, b: any) => {
+        if (a.date_gregorian !== b.date_gregorian) return a.date_gregorian.localeCompare(b.date_gregorian);
+        return a.start_time.localeCompare(b.start_time);
+      });
+      for (let i = 0; i < sorted.length - 1; i++) {
+        const curr = sorted[i];
+        const next = sorted[i + 1];
+        if (curr.date_gregorian === next.date_gregorian && curr.end_time > next.start_time) {
+          return NextResponse.json({
+            error: `زمان‌های مسدود شده در ${curr.date_gregorian} همپوشانی دارند`,
+          }, { status: 400 });
+        }
+      }
+    }
+
     client = await sql.connect();
     await client.query("BEGIN");
     await client.query("DELETE FROM blocked_times");

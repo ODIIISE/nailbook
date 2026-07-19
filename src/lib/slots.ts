@@ -239,7 +239,8 @@ export function generateTimeSlots(
     expand_threshold?: number;
     allow_overflow?: boolean;
     overflow_minutes?: number;
-  } = {}
+  } = {},
+  specificDaysOff: string[] = []
 ): TimeSlot[] {
   const resolution = slotIntervalMinutes;
   const proximityMinutes = (config.proximity_window_hours ?? 2) * 60;
@@ -258,6 +259,9 @@ export function generateTimeSlots(
   const dayKey = getIranWeekDay(date);
   const dayHours = workingHours[dayKey];
   if (!dayHours) return []; // Closed day
+
+  // Check specific days off (holidays, custom closures)
+  if (specificDaysOff.includes(getTehranDateKey(date))) return [];
 
   // Calculate effective duration
   const effectiveDuration = computeEffectiveDuration(
@@ -403,7 +407,8 @@ export function getNearestAvailableSlot(
     expand_threshold?: number;
     allow_overflow?: boolean;
     overflow_minutes?: number;
-  } = {}
+  } = {},
+  specificDaysOff: string[] = []
 ): { date: Date; time: string } | null {
   const now = getTehranNow();
   const todayJalali = gregorianToJalali(new Date(now.dateKey));
@@ -433,7 +438,7 @@ export function getNearestAvailableSlot(
 
     const slots = generateTimeSlots(
       workingHours, checkDate, serviceDurationMinutes, addonsDurationMinutes,
-      slotIntervalMinutes, bufferMinutes, dayBookings, dayLocks, config
+      slotIntervalMinutes, bufferMinutes, dayBookings, dayLocks, config, specificDaysOff
     );
 
     const best = slots.find((s) => s.available);

@@ -5,6 +5,7 @@ import { CheckCircle2, CalendarDays, Timer, CreditCard, Hash, Share2 } from "luc
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { isValidIranianPhone } from "@/lib/digits";
 import { cn } from "@/lib/utils";
+import { getTehranDateKey } from "@/lib/time";
 
 interface BookingConfirmProps {
   serviceName: string;
@@ -43,9 +44,9 @@ export function BookingConfirm({
 
   const handleAddToGoogleCalendar = () => {
     const pad = (n: number) => String(n).padStart(2, "0");
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
+    // Use Tehran timezone for date parts to avoid browser timezone drift
+    const tehranKey = getTehranDateKey(date);
+    const [year, month, day] = tehranKey.split("-");
     const startStr = `${year}${month}${day}T${pad(h)}${pad(m)}00`;
     const endH = Math.floor(endMinutes / 60);
     const endM = endMinutes % 60;

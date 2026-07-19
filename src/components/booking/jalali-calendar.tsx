@@ -29,6 +29,7 @@ interface JalaliCalendarProps {
     slot_interval_minutes: number;
     slot_buffer_minutes: number;
   };
+  specificDaysOff?: string[];
 }
 
 const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
@@ -44,6 +45,7 @@ export function JalaliCalendar({
   bookings = [],
   blockedTimes = [],
   salonConfig,
+  specificDaysOff = [],
 }: JalaliCalendarProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
@@ -112,7 +114,8 @@ export function JalaliCalendar({
           salonConfig.slot_buffer_minutes,
           dayBookings,
           dayBlocked,
-          config
+          config,
+          specificDaysOff
         );
 
         const availableSlots = slots.filter((s) => s.available);
@@ -254,15 +257,15 @@ function CalendarModal({
 
   const cells = useMemo(() => {
     const result: Array<{ day: number | null; date: Date | null; isToday: boolean; isSelected: boolean; isPast: boolean }> = [];
+    const todayKey = getTehranDateKey(today);
     for (let i = 0; i < firstDayIran; i++) {
       result.push({ day: null, date: null, isToday: false, isSelected: false, isPast: false });
     }
     for (let d = 1; d <= daysInMonth; d++) {
       const gDate = jalaliToGregorian(viewYear, viewMonth, d);
-      const gKey = gDate.toISOString().slice(0, 10);
-      const todayKey = today.toISOString().slice(0, 10);
-      const isSelected = selectedDate !== null && gKey === selectedDate.toISOString().slice(0, 10);
-      const isPast = gDate.getTime() < today.getTime();
+      const gKey = getTehranDateKey(gDate);
+      const isSelected = selectedDate !== null && gKey === getTehranDateKey(selectedDate);
+      const isPast = gKey < todayKey;
       result.push({ day: d, date: gDate, isToday: gKey === todayKey, isSelected, isPast });
     }
     return result;

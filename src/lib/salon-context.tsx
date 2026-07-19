@@ -196,8 +196,12 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleUpdateBlockedTimes = useCallback(async (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => {
-    const prev = blockedTimes;
-    setBlockedTimes(blocks);
+    // Capture previous state from functional update to avoid stale closure
+    let prevBlocks: typeof blockedTimes = [];
+    setBlockedTimes((prev) => {
+      prevBlocks = prev;
+      return blocks;
+    });
     try {
       const res = await fetch("/api/owner/blocked-times", {
         method: "PUT",
@@ -206,13 +210,13 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       });
       if (!res.ok) {
         console.error("Failed to save blocked times");
-        setBlockedTimes(prev);
+        setBlockedTimes(prevBlocks);
       }
     } catch (e) {
       console.error("Failed to save blocked times:", e);
-      setBlockedTimes(prev);
+      setBlockedTimes(prevBlocks);
     }
-  }, [blockedTimes]);
+  }, []);
 
   const handleAddBooking = useCallback(async (booking: Booking): Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }> => {
     setBookings((prev) => [...prev, booking]);
@@ -232,13 +236,19 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleCancelBooking = useCallback(async (bookingId: string): Promise<boolean> => {
-    setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: "cancelled" } : b));
+    // Capture original status before optimistic update
+    let originalStatus: string | undefined;
+    setBookings((prev) => {
+      const booking = prev.find((b) => b.id === bookingId);
+      originalStatus = booking?.status;
+      return prev.map((b) => b.id === bookingId ? { ...b, status: "cancelled" } : b);
+    });
     try {
       await cancelBookingApi(bookingId);
       return true;
     } catch (e) {
       console.error("Failed to cancel booking:", e);
-      setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: "confirmed" } : b));
+      setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: (originalStatus as Booking["status"]) || "reserved" } : b));
       return false;
     }
   }, []);
@@ -370,20 +380,25 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleUpdateBookingStatus = useCallback(async (bookingId: string, status: string) => {
-    const prev = bookings.find((b) => b.id === bookingId)?.status;
-    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: status as Booking["status"] } : b)));
+    // Capture original status from ref to avoid stale closure
+    let originalStatus: string | undefined;
+    setBookings((prev) => {
+      const booking = prev.find((b) => b.id === bookingId);
+      originalStatus = booking?.status;
+      return prev.map((b) => (b.id === bookingId ? { ...b, status: status as Booking["status"] } : b));
+    });
     try {
       const res = await fetch("/api/owner/bookings/status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId, status }),
       });
-      if (!res.ok && prev) {
-        setBookings((prev2) => prev2.map((b) => (b.id === bookingId ? { ...b, status: prev } : b)));
+      if (!res.ok && originalStatus) {
+        setBookings((prev2) => prev2.map((b) => (b.id === bookingId ? { ...b, status: originalStatus as Booking["status"] } : b)));
       }
     } catch {
-      if (prev) {
-        setBookings((prev2) => prev2.map((b) => (b.id === bookingId ? { ...b, status: prev } : b)));
+      if (originalStatus) {
+        setBookings((prev2) => prev2.map((b) => (b.id === bookingId ? { ...b, status: originalStatus as Booking["status"] } : b)));
       }
     }
   }, [bookings]);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { logActivity } from "@/lib/db/activity-log";
+import { checkAntiSpam } from "@/lib/anti-spam";
 
 export async function POST(request: NextRequest) {
   let client;
@@ -17,18 +18,74 @@ export async function POST(request: NextRequest) {
     const normStart = start_time.length > 5 ? start_time.slice(0, 5) : start_time;
     const normEnd = end_time.length > 5 ? end_time.slice(0, 5) : end_time;
 
-    // Step 3: Connect and begin transaction
+    // Step 3: Validate end_time doesn't exceed 23:59
+    if (normEnd >= "24:00") {
+      return NextResponse.json({ error: "ساعت پایان نامعتبر است" }, { status: 400 });
+    }
+
+    // Step 4: Validate end_time > start_time
+    if (normEnd <= normStart) {
+      return NextResponse.json({ error: "ساعت پایان باید بعد از ساعت شروع باشد" }, { status: 400 });
+    }
+
+    // Step 5: Anti-spam check
+    const spamCheck = await checkAntiSpam(phone);
+    if (!spamCheck.allowed) {
+      return NextResponse.json({ error: spamCheck.error }, { status: 429 });
+    }
+
+    // Step 6: Connect and begin transaction
     client = await sql.connect();
     await client.query("BEGIN");
 
-    // Step 4: Check for conflicts using proper TIME comparison
+    // Step 7: Validate end_time matches service duration + addons + buffer
+    const { rows: serviceRows } = await client.query(
+      `SELECT duration_minutes FROM services WHERE id = $1`,
+      [service_id]
+    );
+    if (serviceRows.length === 0) {
+      await client.query("ROLLBACK");
+      return NextResponse.json({ error: "سرویس یافت نشد" }, { status: 400 });
+    }
+    const serviceDuration = Number(serviceRows[0].duration_minutes);
+
+    // Fetch addons durations
+    let addonsDuration = 0;
+    if (selected_addons && selected_addons.length > 0) {
+      const { rows: addonRows } = await client.query(
+        `SELECT duration_minutes FROM addons WHERE id = ANY($1)`,
+        [selected_addons]
+      );
+      addonsDuration = addonRows.reduce((sum: number, r: any) => sum + Number(r.duration_minutes || 0), 0);
+    }
+
+    // Fetch salon buffer and interval
+    const { rows: salonRows } = await client.query(`SELECT slot_buffer_minutes, slot_interval_minutes FROM salon_info LIMIT 1`);
+    const buffer = Number(salonRows[0]?.slot_buffer_minutes || 0);
+    const resolution = Number(salonRows[0]?.slot_interval_minutes || 15);
+
+    const rawDuration = serviceDuration + addonsDuration;
+    const expectedMinutes = buffer > 0
+      ? Math.ceil((rawDuration + buffer) / resolution) * resolution
+      : Math.ceil(rawDuration / resolution) * resolution;
+
+    const [sH, sM] = normStart.split(":").map(Number);
+    const expectedEndMinutes = sH * 60 + sM + expectedMinutes;
+    const expectedEnd = `${String(Math.floor(expectedEndMinutes / 60)).padStart(2, "0")}:${String(expectedEndMinutes % 60).padStart(2, "0")}`;
+
+    if (normEnd !== expectedEnd) {
+      await client.query("ROLLBACK");
+      return NextResponse.json({ error: "مدت زمان سرویس با زمان انتخابی مطابقت ندارد" }, { status: 400 });
+    }
+
+    // Step 7: Atomically check + insert to prevent TOCTOU race condition
+    // This eliminates the window where two concurrent requests can both pass the conflict check
     const conflictCheck = await client.query(
       `SELECT id FROM bookings
        WHERE date_gregorian = $1::date
        AND status IN ('reserved', 'confirmed')
        AND start_time < ($2 || ':00')::time
-       AND end_time > ($3 || ':00')::time
-       FOR UPDATE`,
+       AND end_time > ($3 || ':00')::time`,
       [date_gregorian, normEnd, normStart]
     );
 
@@ -37,7 +94,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "این زمان قبلاً رزرو شده", conflict: true }, { status: 409 });
     }
 
-    // Step 5: Check blocked times
+    // Step 9: Check blocked times
     const blockedCheck = await client.query(
       `SELECT id FROM blocked_times
        WHERE date_gregorian = $1::date
@@ -51,15 +108,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "این زمان مسدود شده", conflict: true }, { status: 409 });
     }
 
-    // Step 6: Insert booking (include Jalali date column)
+    // Step 10: Insert booking — status is ALWAYS "reserved", never accept from client
     const jalaliDate = body.date || date_gregorian;
-    const bookingStatus = body.status || "reserved";
     const result = await client.query(
       `INSERT INTO bookings (
         user_id, customer_phone, customer_name, service_id,
         selected_addons, date, date_gregorian, start_time, end_time,
         status, phone_verified, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, ($8 || ':00')::time, ($9 || ':00')::time, $10, true, NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, ($8 || ':00')::time, ($9 || ':00')::time, 'reserved', true, NOW())
       RETURNING id, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time`,
       [
         user_id || null,
@@ -71,11 +127,10 @@ export async function POST(request: NextRequest) {
         date_gregorian,
         normStart,
         normEnd,
-        bookingStatus,
       ]
     );
 
-    // Step 7: Commit
+    // Step 11: Commit
     await client.query("COMMIT");
 
     // Log the booking creation
@@ -102,9 +157,9 @@ export async function POST(request: NextRequest) {
     // Log the actual error
     console.error("[BOOK] Error:", error?.message, error?.code, error?.detail);
 
-    // Handle unique constraint violation
+    // Handle unique constraint violation (defense in depth)
     if (error?.code === "23505") {
-      return NextResponse.json({ error: "این زمان همین الان رزرو شد" }, { status: 409 });
+      return NextResponse.json({ error: "این زمان همین الان رزرو شد", conflict: true }, { status: 409 });
     }
 
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });

@@ -18,7 +18,7 @@ import { SalonGuard } from "@/components/ui/salon-guard";
 import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
-import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
+import { formatPrice, toPersianDigits, gregorianToJalali, jalaliToGregorian, formatJalaliDate, DAYS_IN_MONTH, isJalaliLeapYear } from "@/lib/jalali";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
 import { getTehranDateKey } from "@/lib/time";
 import type { Booking } from "@/lib/types";
@@ -28,7 +28,7 @@ type BookingStep = "addons" | "datetime" | "auth" | "confirm" | "receipt";
 export default function BookContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { salon, workingHours, services, addons, bookings, blockedTimes, addBooking, refreshSalonData } = useSalon();
+  const { salon, workingHours, services, addons, bookings, blockedTimes, addBooking, refreshSalonData, refreshBookings, specificDaysOff } = useSalon();
   const { user, checkPhone, login, signup } = useAuth();
 
   // Refresh salon data on mount to get latest working hours
@@ -36,12 +36,22 @@ export default function BookContent() {
     refreshSalonData();
   }, [refreshSalonData]);
 
+  // Background refresh: keep bookings fresh every 60s while on this page
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshBookings();
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, [refreshBookings]);
+
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return today;
+    // Use Tehran timezone to avoid timezone drift
+    const now = new Date();
+    const tehranKey = getTehranDateKey(now);
+    const [y, m, d] = tehranKey.split("-").map(Number);
+    return new Date(y, m - 1, d);
   });
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string>("");
@@ -161,9 +171,10 @@ export default function BookContent() {
         expand_threshold: salon.expand_threshold,
         allow_overflow: salon.allow_overflow,
         overflow_minutes: salon.overflow_minutes,
-      }
+      },
+      specificDaysOff
     );
-  }, [selectedDate, selectedService, selectedAddons, workingHours, salon, bookings, blockedTimes, addons]);
+  }, [selectedDate, selectedService, selectedAddons, workingHours, salon, bookings, blockedTimes, addons, specificDaysOff]);
 
   // ─── Navigation ───
 
@@ -211,9 +222,18 @@ export default function BookContent() {
 
   const handleGoToNextDay = useCallback(() => {
     setSelectedDate((prev) => {
-      const next = new Date(prev);
-      next.setDate(next.getDate() + 1);
-      return next;
+      // Use Jalali arithmetic to avoid Gregorian DST edge cases
+      const j = gregorianToJalali(prev);
+      let jd = j.jd + 1;
+      let jm = j.jm;
+      let jy = j.jy;
+      const monthLen = (isJalaliLeapYear(jy) && jm === 12) ? 30 : DAYS_IN_MONTH[jm - 1];
+      if (jd > monthLen) {
+        jd = 1;
+        jm++;
+        if (jm > 12) { jm = 1; jy++; }
+      }
+      return jalaliToGregorian(jy, jm, jd);
     });
     setSelectedTime(null);
   }, []);
@@ -333,9 +353,18 @@ export default function BookContent() {
       if (result.id) setBookingId(`BK-${result.id.slice(-6).toUpperCase()}`);
       setStep("receipt");
     } else {
-      setSpamError(result.error || "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید");
+      // On conflict: re-fetch fresh bookings and send user back to slot picker
+      const isConflict = result.error?.includes("قبلاً رزرو شده") || result.error?.includes("همین الان رزرو شد") || result.error?.includes("مسدود شده");
+      if (isConflict) {
+        await refreshBookings();
+        setSelectedTime(null);
+        setStep("datetime");
+        setSpamError("این زمان در لحظه قبل رزرو شد — لطفاً زمان دیگری انتخاب کنید");
+      } else {
+        setSpamError(result.error || "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید");
+      }
     }
-  }, [selectedDate, selectedService, selectedTime, user, authPhone, addBooking, selectedAddons, totalDuration]);
+  }, [selectedDate, selectedService, selectedTime, user, authPhone, addBooking, selectedAddons, totalDuration, refreshBookings]);
 
   // ─── Step titles ───
 
@@ -431,12 +460,13 @@ export default function BookContent() {
                 overflow_minutes: salon.overflow_minutes,
               }}
               workingHours={workingHours}
-              bookings={bookings.filter((b) => b.status === "confirmed")}
+              bookings={bookings.filter((b) => b.status === "reserved" || b.status === "confirmed")}
               blockedTimes={blockedTimes}
               salonConfig={{
                 slot_interval_minutes: salon.slot_interval_minutes,
                 slot_buffer_minutes: salon.slot_buffer_minutes,
               }}
+              specificDaysOff={specificDaysOff}
             />
 
             {/* Selected Date Display */}
