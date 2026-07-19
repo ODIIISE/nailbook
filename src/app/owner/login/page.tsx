@@ -60,7 +60,7 @@ export default function OwnerLoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm glass rounded-3xl p-6 animate-scale">
         <div className="text-center mb-6">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/50">
             <Sparkles className="h-6 w-6 text-foreground" />
           </div>
           <h1 className="text-h1 text-foreground">ورود مدیر</h1>

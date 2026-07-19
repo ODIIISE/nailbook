@@ -26,7 +26,7 @@ export function ContactButtons({ phone }: ContactButtonsProps) {
             href={telUrl}
             className={cn(
               buttonVariants({ variant: "outline" }),
-              "flex-1 h-11 text-[13px] border-success/25 text-success hover:bg-success/5 bg-white"
+              "flex-1 h-11 text-[13px] border-success/25 text-success hover:bg-success/5"
             )}
           >
             <Phone className="h-3.5 w-3.5 ml-1.5" />
@@ -39,7 +39,7 @@ export function ContactButtons({ phone }: ContactButtonsProps) {
               rel="noopener noreferrer"
               className={cn(
                 buttonVariants({ variant: "outline" }),
-                "flex-1 h-11 text-[13px] border-success/25 text-success hover:bg-success/5 bg-white"
+                "flex-1 h-11 text-[13px] border-success/25 text-success hover:bg-success/5"
               )}
             >
               <WhatsAppIcon className="h-3.5 w-3.5 ml-1.5" />
@@ -51,7 +51,7 @@ export function ContactButtons({ phone }: ContactButtonsProps) {
               href={smsUrl}
               className={cn(
                 buttonVariants({ variant: "outline" }),
-                "flex-1 h-11 text-[13px] border-primary/25 text-primary hover:bg-primary/5 bg-white"
+                "flex-1 h-11 text-[13px] border-primary/25 text-primary hover:bg-primary/5"
               )}
             >
               <MessageCircle className="h-3.5 w-3.5 ml-1.5" />

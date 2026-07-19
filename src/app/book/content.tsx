@@ -406,7 +406,7 @@ export default function BookContent() {
                         className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${
                           isSelected
                             ? "bg-primary/10 border border-primary/30"
-                            : "bg-white border border-border/50"
+                            : "bg-white/50 border border-border/50"
                         }`}
                       >
                         <div className="flex items-center gap-3">
