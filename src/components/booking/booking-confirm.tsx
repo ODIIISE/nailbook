@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, buttonVariants } from "@/components/ui/button";
-import { CheckCircle2, CalendarDays, Timer, CreditCard, Hash, Share2, MessageCircle } from "lucide-react";
+import { CheckCircle2, CalendarDays, Timer, CreditCard, Hash, Share2 } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { isValidIranianPhone } from "@/lib/digits";
 import { cn } from "@/lib/utils";
@@ -41,7 +41,7 @@ export function BookingConfirm({
   const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
   const formattedEndTime = toPersianDigits(endTime);
 
-  const handleAddToCalendar = () => {
+  const handleAddToGoogleCalendar = () => {
     const pad = (n: number) => String(n).padStart(2, "0");
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -50,44 +50,14 @@ export function BookingConfirm({
     const endH = Math.floor(endMinutes / 60);
     const endM = endMinutes % 60;
     const endStr = `${year}${month}${day}T${pad(endH)}${pad(endM)}00`;
-    const now = new Date();
-    const stamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}T${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-
-    // Build .ics with 30-minute alarm
-    const ics = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "PRODID:-//NailBook//Booking//FA",
-      "BEGIN:VEVENT",
-      `DTSTART:${startStr}`,
-      `DTEND:${endStr}`,
-      `DTSTAMP:${stamp}`,
-      `SUMMARY:${serviceName} - ${salonName}`,
-      `DESCRIPTION:رزرو شماره: ${shortId}\\nهزینه: ${formatPrice(Number(price))} تومان\\nنام: ${customerName}`,
-      `LOCATION:${salonAddress}`,
-      "BEGIN:VALARM",
-      "TRIGGER:-PT30M",
-      "ACTION:DISPLAY",
-      `DESCRIPTION:یادآوری: ${serviceName} - ${salonName} (۳۰ دقیقه دیگر)`,
-      "END:VALARM",
-      "BEGIN:VALARM",
-      "TRIGGER:-PT5M",
-      "ACTION:DISPLAY",
-      `DESCRIPTION:شروع ${serviceName} - ${salonName} (۵ دقیقه دیگر)`,
-      "END:VALARM",
-      "END:VEVENT",
-      "END:VCALENDAR",
-    ].join("\r\n");
-
-    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `nailbook-${shortId}.ics`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const params = new URLSearchParams({
+      action: "TEMPLATE",
+      text: `${serviceName} - ${salonName}`,
+      dates: `${startStr}/${endStr}`,
+      details: `رزرو شماره: ${shortId}\nهزینه: ${formatPrice(Number(price))} تومان\nنام: ${customerName}`,
+      location: salonAddress,
+    });
+    window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, "_blank");
   };
 
   const handleShare = async () => {
@@ -186,31 +156,15 @@ export function BookingConfirm({
       </div>
 
       {/* Action Buttons */}
-      <div className="space-y-2.5">
-        <Button size="xl" className="w-full" onClick={handleAddToCalendar}>
+      <div className="grid grid-cols-2 gap-2.5">
+        <Button size="xl" className="w-full" onClick={handleAddToGoogleCalendar}>
           <CalendarDays className="h-4 w-4 ml-2" />
-          افزودن به تقویم + یادآوری
+          تقویم گوگل
         </Button>
-        <div className="grid grid-cols-2 gap-2.5">
-          <Button size="lg" variant="outline" className="w-full" onClick={handleShare}>
-            <Share2 className="h-4 w-4 ml-1.5" />
-            اشتراک‌گذاری
-          </Button>
-          {isValidIranianPhone(phone) && (
-            <a
-              href={`https://wa.me/98${phone.slice(1)}?text=${encodeURIComponent(`رزرو نوبت ناخن\n${serviceName}\n${fullDate} ساعت ${formattedTime}`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                buttonVariants({ variant: "outline", size: "lg" }),
-                "w-full border-green-500/30 text-green-600 hover:bg-green-50"
-              )}
-            >
-              <MessageCircle className="h-4 w-4 ml-1.5" />
-              واتساپ
-            </a>
-          )}
-        </div>
+        <Button size="xl" variant="outline" className="w-full" onClick={handleShare}>
+          <Share2 className="h-4 w-4 ml-2" />
+          اشتراک‌گذاری
+        </Button>
       </div>
     </div>
   );
