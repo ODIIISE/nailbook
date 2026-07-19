@@ -47,11 +47,11 @@ export default function BookContent() {
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
-    // Use Tehran timezone to avoid timezone drift
+    // Use Tehran timezone to avoid timezone drift — UTC noon like jalaliToGregorian
     const now = new Date();
     const tehranKey = getTehranDateKey(now);
     const [y, m, d] = tehranKey.split("-").map(Number);
-    return new Date(y, m - 1, d);
+    return new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
   });
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string>("");

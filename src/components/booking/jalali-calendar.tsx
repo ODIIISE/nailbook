@@ -52,7 +52,7 @@ export function JalaliCalendar({
   const { onTouchStart, onTouchMove, onTouchEnd } = useHorizontalDrag(scrollRef);
 
   const today = useMemo(() => {
-    // Use Tehran time for "today" calculation
+    // Use Tehran time for "today" calculation — UTC noon to avoid timezone drift
     const now = new Date();
     const parts = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Asia/Tehran",
@@ -61,7 +61,7 @@ export function JalaliCalendar({
       day: "2-digit",
     }).formatToParts(now);
     const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "0";
-    return new Date(Number(get("year")), Number(get("month")) - 1, Number(get("day")));
+    return new Date(Date.UTC(Number(get("year")), Number(get("month")) - 1, Number(get("day")), 12, 0, 0));
   }, []);
 
   const days = useMemo(() => {
@@ -81,15 +81,15 @@ export function JalaliCalendar({
 
     for (let i = start; i <= end; i++) {
       const date = new Date(today);
-      date.setDate(today.getDate() + i);
+      date.setUTCDate(today.getUTCDate() + i);
 
       const jalali = gregorianToJalali(date);
 
       const isSelected =
         selectedDate !== null &&
-        date.getFullYear() === selectedDate.getFullYear() &&
-        date.getMonth() === selectedDate.getMonth() &&
-        date.getDate() === selectedDate.getDate();
+        date.getUTCFullYear() === selectedDate.getUTCFullYear() &&
+        date.getUTCMonth() === selectedDate.getUTCMonth() &&
+        date.getUTCDate() === selectedDate.getUTCDate();
 
       const jsDay = date.getDay();
       const iranIndex = JS_TO_IRAN_DAY[jsDay];
