@@ -414,13 +414,6 @@ export default function BookContent() {
         {/* ─── Step 2: Date & Time ─── */}
         {step === "datetime" && (
           <div className="space-y-4">
-            {/* Step Indicator */}
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <div className="w-2 h-2 rounded-full bg-[var(--rose)]" />
-              <div className="w-2 h-2 rounded-full bg-[var(--rose)]" />
-              <div className="w-2 h-2 rounded-full bg-black/10" />
-            </div>
-
             <JalaliCalendar
               selectedDate={selectedDate}
               onSelectDate={handleSelectDate}
@@ -474,17 +467,6 @@ export default function BookContent() {
         {/* ─── Step 3: Auth ─── */}
         {step === "auth" && (
           <Card className="glass p-6">
-            {/* Auth Step Indicator */}
-            <div className="flex items-center justify-center gap-2 mb-5">
-              {["phone", "pin", "confirm-pin", "name", "verify-pin"].includes(authStep) && (
-                <>
-                  <div className={`w-2 h-2 rounded-full transition-colors ${authStep === "phone" ? "bg-[var(--rose)]" : "bg-black/10"}`} />
-                  <div className={`w-2 h-2 rounded-full transition-colors ${["pin","confirm-pin","name"].includes(authStep) ? "bg-[var(--rose)]" : "bg-black/10"}`} />
-                  {authStep === "verify-pin" && <div className="w-2 h-2 rounded-full bg-[var(--rose)]" />}
-                </>
-              )}
-            </div>
-
             {authStep === "phone" && (
               <div className="space-y-4">
                 <div className="text-center mb-4">
