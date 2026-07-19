@@ -770,7 +770,7 @@ export default function BookContent() {
       {step === "addons" && (
         <div className="fixed bottom-[72px] left-0 right-0 z-30 px-4 pb-2 pointer-events-none">
           <div className="mx-auto max-w-lg pointer-events-auto">
-            <Button size="xl" onClick={handleAddonsContinue} className="w-full shadow-lg">
+            <Button size="xl" variant="paper" onClick={handleAddonsContinue} className="w-full shadow-lg">
               {hasAddons ? "انتخاب زمان" : "ادامه"}
               <ChevronLeft className="h-5 w-5 mr-2" />
             </Button>
