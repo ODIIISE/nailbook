@@ -41,7 +41,7 @@ export function BookingConfirm({
   const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
   const formattedEndTime = toPersianDigits(endTime);
 
-  const handleAddToGoogleCalendar = () => {
+  const handleAddToCalendar = () => {
     const pad = (n: number) => String(n).padStart(2, "0");
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -50,14 +50,44 @@ export function BookingConfirm({
     const endH = Math.floor(endMinutes / 60);
     const endM = endMinutes % 60;
     const endStr = `${year}${month}${day}T${pad(endH)}${pad(endM)}00`;
-    const params = new URLSearchParams({
-      action: "TEMPLATE",
-      text: `${serviceName} - ${salonName}`,
-      dates: `${startStr}/${endStr}`,
-      details: `رزرو شماره: ${shortId}\nهزینه: ${formatPrice(Number(price))} تومان\nنام: ${customerName}`,
-      location: salonAddress,
-    });
-    window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, "_blank");
+    const now = new Date();
+    const stamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}T${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
+    // Build .ics with 30-minute alarm
+    const ics = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//NailBook//Booking//FA",
+      "BEGIN:VEVENT",
+      `DTSTART:${startStr}`,
+      `DTEND:${endStr}`,
+      `DTSTAMP:${stamp}`,
+      `SUMMARY:${serviceName} - ${salonName}`,
+      `DESCRIPTION:رزرو شماره: ${shortId}\\nهزینه: ${formatPrice(Number(price))} تومان\\nنام: ${customerName}`,
+      `LOCATION:${salonAddress}`,
+      "BEGIN:VALARM",
+      "TRIGGER:-PT30M",
+      "ACTION:DISPLAY",
+      `DESCRIPTION:یادآوری: ${serviceName} - ${salonName} (۳۰ دقیقه دیگر)`,
+      "END:VALARM",
+      "BEGIN:VALARM",
+      "TRIGGER:-PT5M",
+      "ACTION:DISPLAY",
+      `DESCRIPTION:شروع ${serviceName} - ${salonName} (۵ دقیقه دیگر)`,
+      "END:VALARM",
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ].join("\r\n");
+
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `nailbook-${shortId}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleShare = async () => {
@@ -139,14 +169,15 @@ export function BookingConfirm({
             </div>
           </div>
 
-          {/* Tracking Code — same row format as other details */}
+          {/* Tracking Code */}
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
               <Hash className="h-4 w-4 text-purple-500" />
             </div>
             <div className="flex-1">
-              <div className="text-[13px] font-semibold text-foreground font-mono" dir="ltr">#{shortId}</div>
               <div className="text-[11px] text-muted-foreground">کد رهگیری</div>
+            </div>
+            <div className="text-[13px] font-semibold text-foreground font-mono">#{shortId}</div>
             </div>
           </div>
         </div>
@@ -157,9 +188,9 @@ export function BookingConfirm({
 
       {/* Action Buttons */}
       <div className="space-y-2.5">
-        <Button size="xl" className="w-full" onClick={handleAddToGoogleCalendar}>
+        <Button size="xl" className="w-full" onClick={handleAddToCalendar}>
           <CalendarDays className="h-4 w-4 ml-2" />
-          افزودن به تقویم گوگل
+          افزودن به تقویم + یادآوری
         </Button>
         <div className="grid grid-cols-2 gap-2.5">
           <Button size="lg" variant="outline" className="w-full" onClick={handleShare}>
