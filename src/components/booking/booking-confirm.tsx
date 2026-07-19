@@ -1,11 +1,10 @@
 "use client";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { CheckCircle2, CalendarDays, Timer, CreditCard, Hash, Share2 } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
-import { isValidIranianPhone } from "@/lib/digits";
-import { cn } from "@/lib/utils";
 import { getTehranDateKey } from "@/lib/time";
+import { ReceiptCard, ReceiptRow, ReceiptTotal } from "./receipt-card";
 
 interface BookingConfirmProps {
   serviceName: string;
@@ -44,7 +43,6 @@ export function BookingConfirm({
 
   const handleAddToGoogleCalendar = () => {
     const pad = (n: number) => String(n).padStart(2, "0");
-    // Use Tehran timezone for date parts to avoid browser timezone drift
     const tehranKey = getTehranDateKey(date);
     const [year, month, day] = tehranKey.split("-");
     const startStr = `${year}${month}${day}T${pad(h)}${pad(m)}00`;
@@ -86,86 +84,58 @@ export function BookingConfirm({
         </p>
       </div>
 
-      {/* Receipt Card — matches step 4 pre-receipt style */}
-      <div className="glass rounded-2xl overflow-hidden mb-5 relative">
-        {/* Dashed top edge */}
-        <div className="h-0 border-t-2 border-dashed border-black/[0.06] mx-4" />
-
+      {/* Receipt Card */}
+      <ReceiptCard className="mb-5">
         {/* Service Header */}
-        <div className="px-5 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-[var(--rose)]/10 flex items-center justify-center shrink-0">
-              <span className="text-xl">💅</span>
-            </div>
-            <div className="flex-1">
-              <div className="text-[15px] font-bold text-foreground">{serviceName}</div>
-              <div className="text-[12px] text-muted-foreground">{salonName}</div>
-            </div>
-            <div className="text-[11px] text-[var(--rose)] font-semibold bg-[var(--rose)]/10 px-2 py-1 rounded-md">
-              ثبت شده
-            </div>
+        <div className="flex items-center gap-3 pb-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#2888d0]/8 flex items-center justify-center shrink-0">
+            <span className="text-2xl">💅</span>
+          </div>
+          <div className="flex-1">
+            <div className="text-[16px] font-bold text-foreground">{serviceName}</div>
+            <div className="text-[12px] text-muted-foreground">{salonName}</div>
+          </div>
+          <div className="text-[10px] text-success font-semibold bg-success/10 px-2 py-1 rounded-md">
+            ثبت شده
           </div>
         </div>
-
-        {/* Separator */}
-        <div className="h-0 border-t border-dashed border-black/[0.06] mx-5" />
 
         {/* Details */}
-        <div className="px-5 py-4 space-y-3">
-          {/* Date & Time */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[var(--rose)]/10 flex items-center justify-center shrink-0">
-              <CalendarDays className="h-4 w-4 text-[var(--rose)]" />
-            </div>
-            <div className="flex-1">
-              <div className="text-[13px] font-semibold text-foreground">{fullDate}</div>
-              <div className="text-[11px] text-muted-foreground">ساعت {formattedTime} تا {formattedEndTime}</div>
-            </div>
-          </div>
-
-          {/* Duration */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-              <Timer className="h-4 w-4 text-blue-500" />
-            </div>
-            <div className="text-[13px] font-semibold text-foreground">{toPersianDigits(duration)} دقیقه</div>
-          </div>
-
-          {/* Price */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
-              <CreditCard className="h-4 w-4 text-green-500" />
-            </div>
-            <div className="flex-1">
-              <div className="text-[18px] font-extrabold text-foreground">
-                {formatPrice(Number(price))} <span className="text-[13px] font-medium text-muted-foreground">تومان</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Tracking Code */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
-              <Hash className="h-4 w-4 text-purple-500" />
-            </div>
-            <div className="flex-1">
-              <div className="text-[11px] text-muted-foreground">کد رهگیری</div>
-            </div>
-            <div className="text-[13px] font-semibold text-foreground font-mono">#{shortId}</div>
-          </div>
+        <div className="space-y-1">
+          <ReceiptRow
+            icon={<CalendarDays className="h-4 w-4" />}
+            label="تاریخ"
+            value={fullDate}
+            subValue={`ساعت ${formattedTime} تا ${formattedEndTime}`}
+          />
+          <ReceiptRow
+            icon={<Timer className="h-4 w-4" />}
+            label="مدت"
+            value={`${toPersianDigits(duration)} دقیقه`}
+          />
+          <ReceiptRow
+            icon={<Hash className="h-4 w-4" />}
+            label="کد رهگیری"
+            value={`#${shortId}`}
+            iconBg="rgba(147,51,234,0.08)"
+            iconColor="#9333ea"
+          />
         </div>
 
-        {/* Dashed bottom edge */}
-        <div className="h-0 border-t-2 border-dashed border-black/[0.06] mx-4" />
-      </div>
+        {/* Total */}
+        <ReceiptTotal
+          label="هزینه کل"
+          amount={formatPrice(Number(price))}
+        />
+      </ReceiptCard>
 
       {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-2.5">
-        <Button size="xl" className="w-full" onClick={handleAddToGoogleCalendar}>
+        <Button size="xl" variant="paper" className="w-full" onClick={handleAddToGoogleCalendar}>
           <CalendarDays className="h-4 w-4 ml-2" />
           تقویم گوگل
         </Button>
-        <Button size="xl" variant="outline" className="w-full" onClick={handleShare}>
+        <Button size="xl" variant="outline" className="w-full bg-white" onClick={handleShare}>
           <Share2 className="h-4 w-4 ml-2" />
           اشتراک‌گذاری
         </Button>
