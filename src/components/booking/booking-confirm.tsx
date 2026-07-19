@@ -178,7 +178,6 @@ export function BookingConfirm({
               <div className="text-[11px] text-muted-foreground">کد رهگیری</div>
             </div>
             <div className="text-[13px] font-semibold text-foreground font-mono">#{shortId}</div>
-            </div>
           </div>
         </div>
 
