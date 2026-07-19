@@ -321,7 +321,7 @@ export function ScheduleManager({
             روزهای فعال و ساعت‌ها را تنظیم کنید
           </p>
         </div>
-        <Button size="sm" onClick={handleSave} disabled={!hasChanges} className="bg-primary text-white">
+        <Button size="sm" onClick={handleSave} disabled={!hasChanges} variant="paper">
           <Save className="h-4 w-4 ml-1" />
           ذخیره
         </Button>

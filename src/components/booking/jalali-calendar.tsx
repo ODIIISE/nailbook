@@ -167,7 +167,7 @@ export function JalaliCalendar({
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
-          className="flex gap-2 overflow-x-auto pb-1 px-4 scrollbar-hide"
+          className="flex gap-2 overflow-x-auto pb-3 pt-1 px-4 scrollbar-hide"
           style={{
             WebkitOverflowScrolling: "touch",
             scrollbarWidth: "none",
@@ -183,7 +183,7 @@ export function JalaliCalendar({
                 flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer active:scale-95
                 focus-visible:ring-3 focus-visible:ring-primary/50 focus-visible:outline-none
                 ${d.isSelected
-                  ? "bg-primary text-white shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
+                  ? "bg-gradient-to-br from-[#5bb3e4] to-[#2888d0] text-white shadow-[0_4px_14px_rgba(40,136,208,0.3)]"
                   : d.isFullyBooked
                     ? "bg-muted border border-border text-foreground opacity-60"
                     : "bg-card border border-border hover:border-primary/30 text-foreground"

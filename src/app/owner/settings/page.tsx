@@ -173,7 +173,7 @@ export default function OwnerSettingsPage() {
         </div>
       </Card>
 
-      <Button onClick={handleSave} disabled={saving} className="w-full h-12">
+      <Button onClick={handleSave} disabled={saving} variant="paper" className="w-full h-12">
         <Save className="h-5 w-5 ml-2" />
         {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
       </Button>

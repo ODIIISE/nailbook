@@ -472,8 +472,8 @@ export default function BookContent() {
             {/* Selected Date Display */}
             {selectedDate && (
               <div className="mx-auto max-w-lg">
-                <div className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-[var(--rose)]/5 border border-[var(--rose)]/10">
-                  <CalendarDays className="h-4 w-4 text-[var(--rose)]" />
+                <div className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-[#2888d0]/5 border border-[#2888d0]/10">
+                  <CalendarDays className="h-4 w-4 text-[#2888d0]" />
                   <span className="text-[15px] font-bold text-foreground">
                     {(() => {
                       const j = gregorianToJalali(selectedDate);
@@ -525,7 +525,7 @@ export default function BookContent() {
                     <p className="text-[13px] text-destructive">{authError}</p>
                   </div>
                 )}
-                <Button size="xl" className="w-full" onClick={handleAuthPhoneSubmit} disabled={!isValidIranianPhone(normalizeDigits(authPhone))}>
+                <Button size="xl" variant="paper" className="w-full" onClick={handleAuthPhoneSubmit} disabled={!isValidIranianPhone(normalizeDigits(authPhone))}>
                   ادامه
                 </Button>
               </div>
@@ -597,7 +597,7 @@ export default function BookContent() {
                     <p className="text-[13px] text-destructive">{authError}</p>
                   </div>
                 )}
-                <Button size="xl" className="w-full" onClick={handleAuthNameSubmit} disabled={isLoading || !authName.trim()}>
+                <Button size="xl" variant="paper" className="w-full" onClick={handleAuthNameSubmit} disabled={isLoading || !authName.trim()}>
                   {isLoading ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -721,7 +721,7 @@ export default function BookContent() {
                 )}
 
                 {/* Confirm Button */}
-                <Button size="xl" onClick={handleConfirmBooking} disabled={isLoading} className="w-full bg-primary hover:bg-primary/90 text-white">
+                <Button size="xl" onClick={handleConfirmBooking} disabled={isLoading} variant="paper" className="w-full">
                   {isLoading ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -758,7 +758,7 @@ export default function BookContent() {
       {step === "datetime" && selectedTime && (
         <div className="fixed bottom-[72px] left-0 right-0 z-30 px-4 pb-2 pointer-events-none">
           <div className="mx-auto max-w-lg pointer-events-auto">
-            <Button size="xl" onClick={handleDateTimeContinue} className="w-full shadow-lg">
+            <Button size="xl" variant="paper" onClick={handleDateTimeContinue} className="w-full shadow-lg">
               ادامه
               <ChevronLeft className="h-5 w-5 mr-2" />
             </Button>
