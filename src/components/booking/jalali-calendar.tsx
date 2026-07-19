@@ -181,36 +181,51 @@ export function JalaliCalendar({
               key={i}
               data-selected={d.isSelected}
               onClick={() => onSelectDate(d.date)}
-              className={`
-                flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer active:scale-95
-                focus-visible:ring-3 focus-visible:ring-primary/50 focus-visible:outline-none
-                ${d.isSelected
-                  ? "bg-gradient-to-br from-[#5bb3e4] to-[#2888d0] text-white shadow-[0_4px_14px_rgba(40,136,208,0.3)]"
+              className="flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl cursor-pointer active:scale-95 relative overflow-hidden focus-visible:ring-3 focus-visible:ring-primary/50 focus-visible:outline-none"
+              style={{
+                transition: "transform 0.2s ease, box-shadow 0.3s ease",
+                background: d.isSelected
+                  ? "linear-gradient(135deg, #5bb3e4 0%, #2888d0 100%)"
                   : d.isFullyBooked
-                    ? "bg-muted border border-border text-foreground opacity-60"
-                    : "bg-card border border-border hover:border-primary/30 text-foreground"
-                }
-                ${d.isToday && !d.isSelected ? "border-2 border-primary/40" : ""}
-              `}
+                    ? "var(--muted)"
+                    : "var(--card)",
+                color: d.isSelected ? "white" : "var(--foreground)",
+                border: d.isToday && !d.isSelected
+                  ? "2px solid rgba(40,136,208,0.4)"
+                  : "1px solid var(--border)",
+                opacity: d.isFullyBooked && !d.isSelected ? 0.6 : 1,
+                boxShadow: d.isSelected
+                  ? "0 4px 14px rgba(40,136,208,0.3)"
+                  : "none",
+              }}
             >
-              <span className={`text-[11px] font-medium leading-none ${d.isSelected ? "text-white/70" : "text-muted-foreground"}`}>
+              {/* Selection overlay for smooth transition */}
+              <div
+                className="absolute inset-0 rounded-2xl"
+                style={{
+                  background: "linear-gradient(135deg, #5bb3e4 0%, #2888d0 100%)",
+                  opacity: d.isSelected ? 1 : 0,
+                  transition: "opacity 0.3s ease",
+                }}
+              />
+              <span className="relative z-10 text-[11px] font-medium leading-none" style={{ color: d.isSelected ? "rgba(255,255,255,0.7)" : "var(--muted-foreground)" }}>
                 {d.weekday}
               </span>
-              <span className="text-xl font-bold leading-tight mt-1">
+              <span className="relative z-10 text-xl font-bold leading-tight mt-1" style={{ color: d.isSelected ? "white" : "var(--foreground)" }}>
                 {toPersianDigits(d.jalaliDay)}
               </span>
               {d.isToday && (
-                <span className={`text-[10px] font-semibold mt-0.5 leading-none ${d.isSelected ? "text-white" : "text-primary"}`}>
+                <span className="relative z-10 text-[10px] font-semibold mt-0.5 leading-none" style={{ color: d.isSelected ? "white" : "var(--primary)" }}>
                   امروز
                 </span>
               )}
               {d.isTomorrow && (
-                <span className={`text-[10px] font-semibold mt-0.5 leading-none ${d.isSelected ? "text-white/80" : "text-muted-foreground"}`}>
+                <span className="relative z-10 text-[10px] font-semibold mt-0.5 leading-none" style={{ color: d.isSelected ? "rgba(255,255,255,0.8)" : "var(--muted-foreground)" }}>
                   فردا
                 </span>
               )}
               {d.isFullyBooked && !d.isSelected && (
-                <span className="text-[9px] font-medium mt-0.5 leading-none text-destructive">
+                <span className="relative z-10 text-[9px] font-medium mt-0.5 leading-none text-destructive">
                   تکمیل
                 </span>
               )}
