@@ -3,7 +3,11 @@ import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Providers } from "./providers";
 import { GradientBackground } from "@/components/layout/gradient-background";
+import { PaperTexture } from "@/components/layout/paper-texture";
 import "./globals.css";
+
+// Toggle this to switch between themes
+const USE_PAPER_THEME = true;
 
 export const metadata: Metadata = {
   title: "Forehand Nail Studio | رزرو آنلاین",
@@ -37,7 +41,8 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className={`min-h-full flex flex-col ${USE_PAPER_THEME ? "paper-theme" : ""}`}>
+        {USE_PAPER_THEME && <PaperTexture />}
         <GradientBackground />
         <Providers>
           <ErrorBoundary>

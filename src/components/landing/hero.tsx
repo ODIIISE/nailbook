@@ -51,6 +51,7 @@ export function Hero({ salon, onBookNow }: HeroProps) {
 
         {onBookNow && (
           <Button
+            variant="paper"
             className="w-full h-14 text-[16px] mt-5"
             onClick={onBookNow}
           >

@@ -87,7 +87,7 @@ export function AppHeader({
 
   return (
     <>
-      <div className="sticky top-0 z-30 bg-background border-b border-border h-[52px]">
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border h-[52px]">
         <div className="mx-auto max-w-lg px-4 h-full flex items-center justify-between">
           <div className="flex items-center gap-2">
             {showBack && !isHome ? (

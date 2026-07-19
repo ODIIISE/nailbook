@@ -56,7 +56,7 @@ export function AppNavbar({ items }: AppNavbarProps) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-20 bg-background/80 backdrop-blur-xl border-t border-border"
+      className="fixed bottom-0 left-0 right-0 z-20 bg-background/90 backdrop-blur-xl border-t border-border"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <div className="mx-auto max-w-lg flex items-stretch">
