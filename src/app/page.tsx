@@ -65,7 +65,7 @@ export default function HomePage() {
 
       <footer className="px-4 py-6 text-center pb-20">
         <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-          ساخته شده با <Heart className="h-3 w-3 text-rose fill-rose" /> برای Forehand Nail Studio
+          Made with <Heart className="h-3 w-3 text-[#e74c3c] fill-[#e74c3c]" /> for Forehand Nail Studio
         </p>
       </footer>
 
