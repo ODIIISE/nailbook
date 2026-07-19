@@ -114,8 +114,8 @@
   --shadow-floating: 0 8px 32px rgba(44, 36, 36, 0.08), 0 2px 8px rgba(44, 36, 36, 0.04);
 
   /* ── Paper theme (Samsung style) ── */
-  --paper-bg: #dddad5;
-  --paper-surface: #efede9;
+  --paper-bg: #e5e2dd;
+  --paper-surface: #f2f0ec;
   --paper-tile: none;
 }
 
@@ -367,8 +367,18 @@
 
 /* Paper theme outline buttons - white/no fill */
 .paper-theme button[class*="border-border"],
-.paper-theme a[class*="border-border"] {
-  background-color: white;
+.paper-theme a[class*="border-border"],
+.paper-theme a[class*="buttonVariants"] {
+  background-color: white !important;
+  border-color: rgba(44, 36, 36, 0.1) !important;
+}
+
+/* Paper theme contact buttons specifically */
+.paper-theme .contact-btn,
+.paper-theme a[href^="tel:"],
+.paper-theme a[href^="sms:"],
+.paper-theme a[href*="wa.me"] {
+  background-color: white !important;
 }
 
 /* Blue gradient CTA button */

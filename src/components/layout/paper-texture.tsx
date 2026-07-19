@@ -19,8 +19,8 @@ export function PaperTexture() {
     const img = ctx.createImageData(size, size);
     const d = img.data;
 
-    // Base: #ebe8e4 = rgb(235, 232, 228)
-    const bR = 235, bG = 232, bB = 228;
+    // Base: #f2f0ec = rgb(242, 240, 236)
+    const bR = 242, bG = 240, bB = 236;
 
     for (let i = 0; i < d.length; i += 4) {
       // Subtle noise — max ±2 brightness
