@@ -92,14 +92,14 @@ export function BookingConfirm({
       {/* ═══ TOP STUB ═══ */}
       <div className="relative z-[2] mb-[-2px]">
         <div
-          className="rounded-t-[10px] px-5 pt-3 pb-2 relative overflow-hidden"
+          className="rounded-t-[10px] px-5 py-2 relative overflow-hidden"
           style={{
             background: "var(--card)",
             boxShadow: "0 1px 3px rgba(80,70,60,0.06), 0 2px 8px rgba(60,50,40,0.04)",
           }}
         >
           <Barcode id={bookingId} />
-          <div className="text-center text-[7px] font-medium tracking-[2px] text-muted-foreground opacity-30 mt-1">
+          <div className="text-center text-[7px] font-medium tracking-[2px] text-muted-foreground opacity-30 mt-0.5">
             forehand.vercel.app
           </div>
         </div>
@@ -143,7 +143,7 @@ export function BookingConfirm({
         </div>
 
         <div
-          className="rounded-b-[10px] px-5 py-5 relative overflow-hidden"
+          className="rounded-b-[10px] px-5 py-4 relative overflow-hidden"
           style={{
             background: "var(--card)",
             boxShadow: "0 1px 3px rgba(80,70,60,0.05), 0 3px 10px rgba(60,50,40,0.04), 0 6px 20px rgba(50,40,30,0.035), 0 12px 40px rgba(50,40,30,0.025)",
@@ -190,7 +190,7 @@ export function BookingConfirm({
           </div>
 
           {/* Service info — compact */}
-          <div className="flex items-center gap-2.5 mb-3 relative z-[2]">
+          <div className="flex items-center gap-2.5 mb-2 relative z-[2]">
             <div
               className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0"
               style={{ background: "linear-gradient(135deg, rgba(40,136,208,0.06), rgba(91,179,228,0.03))" }}
@@ -203,23 +203,23 @@ export function BookingConfirm({
             </div>
           </div>
 
-          <div className="h-px bg-black/[0.04] mb-3 relative z-[2]" />
+          <div className="h-px bg-black/[0.04] mb-2 relative z-[2]" />
 
           {/* Detail list — compact classic receipt */}
           <div className="relative z-[2]">
-            <div className="flex justify-between items-center py-2">
+            <div className="flex justify-between items-center py-[7px]">
               <span className="text-[12px] text-muted-foreground">تاریخ</span>
               <span className="text-[12px] font-semibold text-foreground">{fullDate}</span>
             </div>
-            <div className="flex justify-between items-center py-2 border-t border-dashed border-black/[0.05]">
+            <div className="flex justify-between items-center py-[7px] border-t border-dashed border-black/[0.05]">
               <span className="text-[12px] text-muted-foreground">ساعت</span>
               <span className="text-[12px] font-semibold text-foreground">{formattedTime} تا {formattedEndTime}</span>
             </div>
-            <div className="flex justify-between items-center py-2 border-t border-dashed border-black/[0.05]">
+            <div className="flex justify-between items-center py-[7px] border-t border-dashed border-black/[0.05]">
               <span className="text-[12px] text-muted-foreground">مدت</span>
               <span className="text-[12px] font-semibold text-foreground">{toPersianDigits(duration)} دقیقه</span>
             </div>
-            <div className="flex justify-between items-center pt-3 pb-1 border-t border-dashed border-black/[0.05]">
+            <div className="flex justify-between items-center pt-2.5 pb-0.5 border-t border-dashed border-black/[0.05]">
               <span className="text-[12px] font-medium text-muted-foreground">هزینه کل</span>
               <span className="text-[16px] font-extrabold text-[#2888d0]">{formatPrice(Number(price))} تومان</span>
             </div>
