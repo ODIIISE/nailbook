@@ -16,15 +16,15 @@ export async function POST(request: NextRequest) {
     let { phone, service_id, date_gregorian, start_time, end_time, customer_name, selected_addons, user_id } = body;
 
     // Step 0: Verify customer session if cookie exists (optional — unauthenticated booking is allowed)
-    const sessionCookie = request.cookies.get("customer_session")?.value;
+    const sessionCookie = request.cookies.get("session")?.value;
     if (sessionCookie) {
       const sessionUserId = verifyCustomerSession(sessionCookie);
       // If a session exists but is invalid, reject (don't silently ignore a bad session)
-      if (!sessionCookie.includes(":") || !sessionUserId) {
+      if (!sessionUserId) {
         return NextResponse.json({ error: "جلسه نامعتبر است" }, { status: 401 });
       }
-      // Trust the session user_id over client-provided one
-      if (!user_id) user_id = sessionUserId;
+      // Always override with session-verified identity — don't trust client-provided user_id
+      user_id = sessionUserId;
     }
 
     // Step 1: Normalize phone server-side (prevents anti-spam bypass via character encoding)
@@ -152,8 +152,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (blockedCheck.rows.length > 0) {
-      // Delete the booking we just inserted since the slot is blocked
-      await client.query(`DELETE FROM bookings WHERE id = $1`, [result.rows[0].id]);
+      // ROLLBACK undoes the preceding INSERT within the same transaction
       await client.query("ROLLBACK");
       return NextResponse.json({ error: "این زمان مسدود شده", conflict: true }, { status: 409 });
     }

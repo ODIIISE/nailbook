@@ -29,22 +29,22 @@ export async function POST(request: NextRequest) {
       if (ALLOWED_FIELDS.has(key)) safeUpdates[key] = updates[key];
     }
 
-    // Validate numeric fields
-    if (safeUpdates.slot_buffer_minutes !== undefined) {
-      const v = Number(safeUpdates.slot_buffer_minutes);
-      if (isNaN(v) || v < 0 || v > 120) return NextResponse.json({ error: "مقدار نامعتبر" }, { status: 400 });
-    }
-    if (safeUpdates.slot_interval_minutes !== undefined) {
-      const v = Number(safeUpdates.slot_interval_minutes);
-      if (isNaN(v) || v < 5 || v > 60) return NextResponse.json({ error: "مقدار نامعتبر" }, { status: 400 });
-    }
-    if (safeUpdates.expand_threshold !== undefined) {
-      const v = Number(safeUpdates.expand_threshold);
-      if (isNaN(v) || v < 0 || v > 100) return NextResponse.json({ error: "مقدار نامعتبر" }, { status: 400 });
-    }
-    if (safeUpdates.proximity_window_hours !== undefined) {
-      const v = Number(safeUpdates.proximity_window_hours);
-      if (isNaN(v) || v < 0 || v > 48) return NextResponse.json({ error: "مقدار نامعتبر" }, { status: 400 });
+    // Validate numeric fields and coerce to proper numbers
+    const numericValidations: Array<{ key: string; min: number; max: number }> = [
+      { key: "slot_buffer_minutes", min: 0, max: 120 },
+      { key: "slot_interval_minutes", min: 5, max: 60 },
+      { key: "expand_threshold", min: 0, max: 100 },
+      { key: "proximity_window_hours", min: 0, max: 48 },
+      { key: "early_extra_hours", min: 0, max: 8 },
+      { key: "late_extra_hours", min: 0, max: 8 },
+      { key: "overflow_minutes", min: 0, max: 120 },
+    ];
+    for (const { key, min, max } of numericValidations) {
+      if (safeUpdates[key] !== undefined) {
+        const v = Number(safeUpdates[key]);
+        if (isNaN(v) || v < min || v > max) return NextResponse.json({ error: "مقدار نامعتبر" }, { status: 400 });
+        safeUpdates[key] = v; // coerce to proper number
+      }
     }
 
     const { rows: existing } = await sql`SELECT id FROM salon_info LIMIT 1`;

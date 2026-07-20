@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       sql`SELECT * FROM addons ORDER BY sort_order`,
       sql`SELECT id, service_id, selected_addons, customer_name, customer_phone, date, date_gregorian, start_time, end_time, status, paid, phone_verified, created_at FROM bookings ORDER BY created_at DESC`,
       sql`SELECT * FROM blocked_times ORDER BY date_gregorian`,
-      sql`SELECT id, phone, name, role, failed_attempts, locked_until, created_at FROM users ORDER BY created_at`,
+      sql`SELECT id, phone, name, role, created_at FROM users ORDER BY created_at`,
       sql`SELECT * FROM highlights ORDER BY sort_order`,
     ]);
 

@@ -255,6 +255,7 @@ export default function BookContent() {
   // ─── Auth handlers ───
 
   const handleAuthPhoneSubmit = useCallback(async () => {
+    if (isAuthLoading) return;
     const normalized = normalizeDigits(authPhone);
     if (!isValidIranianPhone(normalized)) {
       setAuthError("شماره موبایل معتبر نیست (مثال: ۰۹۱۲۱۲۳۴۵۶۷)");
@@ -301,6 +302,7 @@ export default function BookContent() {
   }, [authPin, authPhone, authName, signup]);
 
   const handleAuthVerifyPinSubmit = useCallback(async (pin: string) => {
+    if (isAuthLoading) return;
     setIsAuthLoading(true);
     setAuthError("");
     const result = await login(normalizeDigits(authPhone), pin);
@@ -526,7 +528,7 @@ export default function BookContent() {
                     <p className="text-[13px] text-destructive">{authError}</p>
                   </div>
                 )}
-                <Button size="xl" variant="paper" className="w-full" onClick={handleAuthPhoneSubmit} disabled={!isValidIranianPhone(normalizeDigits(authPhone))}>
+                <Button size="xl" variant="paper" className="w-full" onClick={handleAuthPhoneSubmit} disabled={!isValidIranianPhone(normalizeDigits(authPhone)) || isAuthLoading}>
                   ادامه
                 </Button>
               </div>

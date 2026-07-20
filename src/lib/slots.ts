@@ -280,6 +280,12 @@ export function generateTimeSlots(
   const rawShiftStart = parseTime(dayHours.open);
   const rawShiftEnd = parseTime(dayHours.close);
 
+  // Guard against malformed working hours data
+  if (isNaN(rawShiftStart) || isNaN(rawShiftEnd) || rawShiftEnd <= rawShiftStart) {
+    console.error(`[SLOTS] Invalid working hours for ${dayKey}: open=${dayHours.open}, close=${dayHours.close}`);
+    return [];
+  }
+
   // Convert bookings and blocks to minutes
   const bookings: TimeBlock[] = existingBookings.map((b) => ({
     start: parseTime(b.start_time),
