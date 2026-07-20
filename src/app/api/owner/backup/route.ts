@@ -35,7 +35,6 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    // Return as downloadable JSON
     return NextResponse.json(backup, {
       headers: {
         "Content-Type": "application/json",
@@ -48,57 +47,88 @@ export async function GET(request: NextRequest) {
   }
 }
 
+function validateBooking(b: any): boolean {
+  if (!b || typeof b !== "object") return false;
+  if (!b.id || typeof b.id !== "string") return false;
+  if (!b.customer_phone || typeof b.customer_phone !== "string") return false;
+  if (!b.date_gregorian || !/^\d{4}-\d{2}-\d{2}$/.test(b.date_gregorian)) return false;
+  if (!b.start_time || !/^\d{2}:\d{2}/.test(b.start_time)) return false;
+  if (!b.end_time || !/^\d{2}:\d{2}/.test(b.end_time)) return false;
+  const validStatuses = ["pending", "reserved", "confirmed", "completed", "cancelled", "in_progress", "no_show"];
+  if (b.status && !validStatuses.includes(b.status)) return false;
+  return true;
+}
+
+function validateService(s: any): boolean {
+  if (!s || typeof s !== "object") return false;
+  if (!s.id || typeof s.id !== "string") return false;
+  if (!s.name || typeof s.name !== "string" || !s.name.trim()) return false;
+  if (typeof s.duration_minutes === "number" && (s.duration_minutes <= 0 || !Number.isFinite(s.duration_minutes))) return false;
+  return true;
+}
+
 // POST: Restore from JSON backup (partial or full)
 export async function POST(request: NextRequest) {
   try {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const { data, mode = "merge" } = await request.json();
+    const { data, mode = "merge", confirmDelete = false } = await request.json();
     if (!data || typeof data !== "object") return NextResponse.json({ error: "داده‌ای ارسال نشد" }, { status: 400 });
 
-    // Validate backup structure
-    const validSections = ["services", "addons", "salon_info", "bookings", "blocked_times", "users", "highlights"];
-    const results: string[] = [];
+    // Require explicit confirmation for destructive operations
+    if (mode === "full" && !confirmDelete) {
+      return NextResponse.json({
+        error: "بازیابی کامل نیاز به تایید دارد",
+        requiresConfirmation: true,
+        bookingCount: Array.isArray(data.bookings) ? data.bookings.length : 0,
+      }, { status: 409 });
+    }
 
-    // Restore services
+    const results: string[] = [];
+    const errors: string[] = [];
+
+    // Restore services (with validation)
     if (data.services && Array.isArray(data.services)) {
       for (const s of data.services) {
-        // Validate required fields
-        if (!s.id || !s.name || typeof s.name !== "string" || !s.name.trim()) {
-          console.error(`Skipping invalid service: missing id or name`, s);
+        if (!validateService(s)) {
+          errors.push(`service:invalid:${s?.id || "unknown"}`);
           continue;
         }
         try {
           await sql`
             INSERT INTO services (id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score)
-            VALUES (${s.id}, ${s.name}, ${s.description || ""}, ${s.duration_minutes || 45}, ${s.price || 0}, ${s.is_active ?? true}, ${s.sort_order || 0}, ${JSON.stringify(s.addon_ids || [])}, ${s.priority_score || 5})
+            VALUES (${s.id}, ${s.name}, ${s.description || ""}, ${Math.max(5, Number(s.duration_minutes) || 45)}, ${Math.max(0, Number(s.price) || 0)}, ${s.is_active ?? true}, ${Number(s.sort_order) || 0}, ${JSON.stringify(s.addon_ids || [])}, ${Math.min(10, Math.max(1, Number(s.priority_score) || 5))})
             ON CONFLICT (id) DO UPDATE SET
-              name = ${s.name}, description = ${s.description || ""}, duration_minutes = ${s.duration_minutes || 45},
-              price = ${s.price || 0}, is_active = ${s.is_active ?? true}, sort_order = ${s.sort_order || 0},
-              addon_ids = ${JSON.stringify(s.addon_ids || [])}, priority_score = ${s.priority_score || 5}
+              name = ${s.name}, description = ${s.description || ""}, duration_minutes = ${Math.max(5, Number(s.duration_minutes) || 45)},
+              price = ${Math.max(0, Number(s.price) || 0)}, is_active = ${s.is_active ?? true}, sort_order = ${Number(s.sort_order) || 0},
+              addon_ids = ${JSON.stringify(s.addon_ids || [])}, priority_score = ${Math.min(10, Math.max(1, Number(s.priority_score) || 5))}
           `;
           results.push(`service:${s.id}`);
         } catch (e) {
-          console.error(`Failed to restore service ${s.id}:`, e);
+          errors.push(`service:${s.id}`);
         }
       }
     }
 
-    // Restore addons
+    // Restore addons (with validation)
     if (data.addons && Array.isArray(data.addons)) {
       for (const a of data.addons) {
+        if (!a?.id || !a?.name) {
+          errors.push(`addon:invalid:${a?.id || "unknown"}`);
+          continue;
+        }
         try {
           await sql`
             INSERT INTO addons (id, name, price, duration_minutes, is_active, sort_order)
-            VALUES (${a.id}, ${a.name}, ${a.price || 0}, ${a.duration_minutes || 5}, ${a.is_active ?? true}, ${a.sort_order || 0})
+            VALUES (${a.id}, ${a.name}, ${Math.max(0, Number(a.price) || 0)}, ${Math.max(0, Number(a.duration_minutes) || 5)}, ${a.is_active ?? true}, ${Number(a.sort_order) || 0})
             ON CONFLICT (id) DO UPDATE SET
-              name = ${a.name}, price = ${a.price || 0}, duration_minutes = ${a.duration_minutes || 5},
-              is_active = ${a.is_active ?? true}, sort_order = ${a.sort_order || 0}
+              name = ${a.name}, price = ${Math.max(0, Number(a.price) || 0)}, duration_minutes = ${Math.max(0, Number(a.duration_minutes) || 5)},
+              is_active = ${a.is_active ?? true}, sort_order = ${Number(a.sort_order) || 0}
           `;
           results.push(`addon:${a.id}`);
         } catch (e) {
-          console.error(`Failed to restore addon ${a.id}:`, e);
+          errors.push(`addon:${a.id}`);
         }
       }
     }
@@ -109,44 +139,48 @@ export async function POST(request: NextRequest) {
       try {
         await sql`
           UPDATE salon_info SET
-            name = ${s.name}, description = ${s.description || ""}, slogan = ${s.slogan || ""},
+            name = ${s.name || ""}, description = ${s.description || ""}, slogan = ${s.slogan || ""},
             phone = ${s.phone || ""}, address = ${s.address || ""}, working_hours = ${JSON.stringify(s.working_hours || {})},
-            working_hours_text = ${s.working_hours_text || ""}, slot_buffer_minutes = ${s.slot_buffer_minutes || 15},
-            slot_interval_minutes = ${s.slot_interval_minutes || 15}, specific_days_off = ${JSON.stringify(s.specific_days_off || [])},
-            proximity_window_hours = ${s.proximity_window_hours || 2}, allow_overflow = ${s.allow_overflow ?? false},
-            overflow_minutes = ${s.overflow_minutes ?? 0}
+            working_hours_text = ${s.working_hours_text || ""}, slot_buffer_minutes = ${Math.max(0, Number(s.slot_buffer_minutes) || 15)},
+            slot_interval_minutes = ${Math.max(5, Number(s.slot_interval_minutes) || 15)}, specific_days_off = ${JSON.stringify(s.specific_days_off || [])},
+            proximity_window_hours = ${Math.max(0, Number(s.proximity_window_hours) || 2)}, allow_overflow = ${s.allow_overflow ?? false},
+            overflow_minutes = ${Math.max(0, Number(s.overflow_minutes) || 0)}
           WHERE id = (SELECT id FROM salon_info LIMIT 1)
         `;
         results.push("salon_info");
       } catch (e) {
-        console.error("Failed to restore salon info:", e);
+        errors.push("salon_info");
       }
     }
 
-    // Restore bookings (only in full restore mode)
+    // Restore bookings (only in full restore mode with confirmation)
     if (mode === "full" && data.bookings && Array.isArray(data.bookings)) {
-      // Use transaction for safe restore
+      const validBookings = data.bookings.filter(validateBooking);
+      if (validBookings.length < data.bookings.length) {
+        errors.push(`bookings:skipped:${data.bookings.length - validBookings.length} invalid`);
+      }
+
       let client;
       try {
         client = await sql.connect();
         await client.query("BEGIN");
         await client.query("DELETE FROM bookings");
-        for (const b of data.bookings) {
+        for (const b of validBookings) {
           try {
             await client.query(
               `INSERT INTO bookings (id, service_id, selected_addons, customer_name, customer_phone, date, date_gregorian, start_time, end_time, status, paid, phone_verified, created_at)
                VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8, $9, $10, $11, $12, $13)`,
-              [b.id, b.service_id, JSON.stringify(b.selected_addons || []), b.customer_name, b.customer_phone, b.date, b.date_gregorian, b.start_time, b.end_time, b.status || "confirmed", b.paid ?? false, b.phone_verified ?? true, b.created_at || new Date().toISOString()]
+              [b.id, b.service_id || null, JSON.stringify(b.selected_addons || []), b.customer_name || "", b.customer_phone, b.date || null, b.date_gregorian, b.start_time, b.end_time, b.status || "confirmed", b.paid ?? false, b.phone_verified ?? true, b.created_at || new Date().toISOString()]
             );
             results.push(`booking:${b.id}`);
           } catch (e) {
-            console.error(`Failed to restore booking ${b.id}:`, e);
+            errors.push(`booking:${b.id}`);
           }
         }
         await client.query("COMMIT");
       } catch (e) {
         if (client) try { await client.query("ROLLBACK"); } catch {}
-        console.error("Backup restore bookings failed:", e);
+        errors.push("bookings:transaction_failed");
       } finally {
         if (client) client.release();
       }
@@ -155,11 +189,11 @@ export async function POST(request: NextRequest) {
     logActivity({
       eventType: "salon_updated",
       entityType: "backup",
-      description: `بکاپ بازیابی شد (${results.length} آیتم)`,
-      metadata: { restored: results.length, mode, items: results.slice(0, 20) },
+      description: `بکاپ بازیابی شد (${results.length} آیتم, ${errors.length} خطا)`,
+      metadata: { restored: results.length, errors: errors.length, mode, items: results.slice(0, 20) },
     });
 
-    return NextResponse.json({ success: true, restored: results.length, items: results });
+    return NextResponse.json({ success: true, restored: results.length, errors });
   } catch (error) {
     console.error("Backup restore error:", error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });

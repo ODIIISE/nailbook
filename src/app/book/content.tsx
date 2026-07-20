@@ -268,7 +268,7 @@ export default function BookContent() {
     const result = await checkPhone(normalized);
     setIsAuthLoading(false);
 
-    if (result.exists && result.hasPin) {
+    if (result.exists) {
       setAuthStep("verify-pin");
     } else {
       setAuthStep("pin");

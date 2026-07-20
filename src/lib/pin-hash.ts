@@ -23,7 +23,7 @@ export function hashPin(pin: string): string {
 
 // ── Verify (handles both plain and hashed) ──
 
-/** Verify a PIN against a stored value. Works for both plain 4-digit and hashed formats. */
+/** Verify a PIN against a stored value. Works for both plain 4-digit and salted PBKDF2 formats. */
 export function verifyPin(plaintext: string, storedValue: string): boolean {
   if (!storedValue || !plaintext) return false;
 
@@ -41,11 +41,6 @@ export function verifyPin(plaintext: string, storedValue: string): boolean {
     return crypto.timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(hash, "hex"));
   }
 
-  // Legacy unsalted SHA-256 (64 hex chars)
-  if (storedValue.length === 64) {
-    const computed = crypto.createHash(ALGO).update(input).digest("hex");
-    return crypto.timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(storedValue, "hex"));
-  }
-
+  // Unknown format — reject
   return false;
 }

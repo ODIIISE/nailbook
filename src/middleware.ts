@@ -10,8 +10,6 @@ async function verifySessionSignature(cookieValue: string): Promise<boolean> {
   // Accept both 3-part (legacy) and 4-part (versioned) tokens
   if (parts.length !== 3 && parts.length !== 4) return false;
 
-  const userId = parts[0];
-  const timestamp = parts[1];
   const signature = parts[parts.length - 1]; // Last part is always signature
 
   // Build payload: for 3-part it's "userId:timestamp", for 4-part it's "userId:timestamp:version"
@@ -33,20 +31,55 @@ async function verifySessionSignature(cookieValue: string): Promise<boolean> {
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
 
-    // Constant-time comparison
-    if (signature.length !== expectedSig.length) return false;
-    let result = 0;
-    for (let i = 0; i < signature.length; i++) {
-      result |= signature.charCodeAt(i) ^ expectedSig.charCodeAt(i);
-    }
-    return result === 0;
+    // Constant-time comparison using Uint8Arrays
+    const sigBytes = new Uint8Array(signature.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+    const expectedBytes = new Uint8Array(expectedSig.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+    if (sigBytes.length !== expectedBytes.length) return false;
+    return crypto.subtle.verify("HMAC", key, new TextEncoder().encode(payload), sigBytes);
   } catch {
     return false;
   }
 }
 
+// CSRF protection for state-changing requests
+function checkCsrf(request: NextRequest): boolean {
+  // Skip CSRF for GET, HEAD, OPTIONS
+  if (["GET", "HEAD", "OPTIONS"].includes(request.method)) return true;
+
+  // Check Origin header
+  const origin = request.headers.get("origin");
+  const host = request.headers.get("host");
+
+  if (origin) {
+    try {
+      const originUrl = new URL(origin);
+      if (originUrl.host !== host) return false;
+    } catch {
+      return false;
+    }
+  }
+
+  // Check Referer as fallback
+  const referer = request.headers.get("referer");
+  if (referer && !origin) {
+    try {
+      const refererUrl = new URL(referer);
+      if (refererUrl.host !== host) return false;
+    } catch {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // CSRF protection for all state-changing API routes
+  if (pathname.startsWith("/api/") && !checkCsrf(request)) {
+    return NextResponse.json({ error: "درخواست نامعتبر" }, { status: 403 });
+  }
 
   // Protect /owner/* pages (not /owner/login)
   if (pathname.startsWith("/owner") && pathname !== "/owner/login") {
@@ -54,7 +87,6 @@ export async function middleware(request: NextRequest) {
     if (!session) {
       return NextResponse.redirect(new URL("/owner/login", request.url));
     }
-    // Verify HMAC signature
     const valid = await verifySessionSignature(session);
     if (!valid) {
       return NextResponse.redirect(new URL("/owner/login", request.url));
@@ -72,12 +104,23 @@ export async function middleware(request: NextRequest) {
     if (!session && pathname !== "/api/owner-logout") {
       return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
     }
-    // Verify HMAC signature for API routes too
     if (session && pathname !== "/api/owner-logout") {
       const valid = await verifySessionSignature(session);
       if (!valid) {
         return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
       }
+    }
+  }
+
+  // Protect customer auth mutation routes (not check-phone or auth/me)
+  if (
+    pathname.startsWith("/api/auth/") &&
+    pathname !== "/api/auth/check-phone" &&
+    pathname !== "/api/auth/me" &&
+    request.method !== "GET"
+  ) {
+    if (!checkCsrf(request)) {
+      return NextResponse.json({ error: "درخواست نامعتبر" }, { status: 403 });
     }
   }
 
@@ -91,5 +134,6 @@ export const config = {
     "/api/update-salon",
     "/api/upload/:path*",
     "/api/owner-logout",
+    "/api/:path*",
   ],
 };

@@ -96,6 +96,9 @@ function ServicesTab({
     const newService: Service = {
       id: crypto.randomUUID(),
       ...form,
+      duration_minutes: Math.max(5, form.duration_minutes || 45),
+      price: Math.max(0, form.price || 0),
+      priority_score: Math.min(10, Math.max(1, form.priority_score || 5)),
       is_active: true,
       sort_order: pending.length + 1,
       addon_ids: [],
@@ -322,6 +325,8 @@ function AddonsTab({
     const newAddon: Addon = {
       id: crypto.randomUUID(),
       ...form,
+      duration_minutes: Math.max(0, form.duration_minutes || 5),
+      price: Math.max(0, form.price || 0),
       is_active: true,
       sort_order: pending.length + 1,
     };
@@ -333,7 +338,12 @@ function AddonsTab({
 
   const handleSaveEdit = () => {
     if (!editingId || !form.name.trim()) return;
-    setPending(pending.map((a) => (a.id === editingId ? { ...a, ...form } : a)));
+    setPending(pending.map((a) => (a.id === editingId ? {
+      ...a,
+      ...form,
+      duration_minutes: Math.max(0, form.duration_minutes || 5),
+      price: Math.max(0, form.price || 0),
+    } : a)));
     setEditingId(null);
     resetForm();
     markChanged();
@@ -512,8 +522,9 @@ function ServiceForm({
           <Label className="text-xs">مدت (دقیقه)</Label>
           <Input
             type="number"
+            min={5}
             value={form.duration_minutes}
-            onChange={(e) => setForm({ ...form, duration_minutes: Number(e.target.value) })}
+            onChange={(e) => setForm({ ...form, duration_minutes: Math.max(5, Number(e.target.value) || 5) })}
             className="mt-1"
           />
         </div>
@@ -521,8 +532,9 @@ function ServiceForm({
           <Label className="text-xs">قیمت (تومان)</Label>
           <Input
             type="number"
+            min={0}
             value={form.price}
-            onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+            onChange={(e) => setForm({ ...form, price: Math.max(0, Number(e.target.value) || 0) })}
             className="mt-1"
           />
         </div>
@@ -583,8 +595,9 @@ function AddonForm({
           <Label className="text-xs">مدت اضافه (دقیقه)</Label>
           <Input
             type="number"
+            min={0}
             value={form.duration_minutes}
-            onChange={(e) => setForm({ ...form, duration_minutes: Number(e.target.value) })}
+            onChange={(e) => setForm({ ...form, duration_minutes: Math.max(0, Number(e.target.value) || 0) })}
             className="mt-1"
           />
         </div>
@@ -592,8 +605,9 @@ function AddonForm({
           <Label className="text-xs">قیمت اضافه (تومان)</Label>
           <Input
             type="number"
+            min={0}
             value={form.price}
-            onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+            onChange={(e) => setForm({ ...form, price: Math.max(0, Number(e.target.value) || 0) })}
             className="mt-1"
           />
         </div>

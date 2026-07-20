@@ -56,9 +56,8 @@ export async function checkAntiSpam(phone: string): Promise<AntiSpamResult> {
 
     return { allowed: true };
   } catch (error) {
-    // Fail-open: if anti-spam check fails, allow the booking
-    // The unique index on the bookings table is the last line of defense
-    console.error("[ANTI-SPAM] Check failed, allowing booking:", error);
-    return { allowed: true };
+    // Fail-closed: reject if anti-spam check fails (prevents abuse during DB outages)
+    console.error("[ANTI-SPAM] Check failed, rejecting booking:", error);
+    return { allowed: false, error: "خطا در بررسی امنیتی. لطفاً دوباره تلاش کنید." };
   }
 }

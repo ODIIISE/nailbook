@@ -4,8 +4,18 @@ import { sql } from "@vercel/postgres";
 function getSecretKey(): string {
   const secret = process.env.CUSTOMER_SESSION_SECRET;
   if (secret) return secret;
-  if (process.env.NODE_ENV === "development") return "nailbook-dev-customer-fallback";
+  if (process.env.NODE_ENV === "development") {
+    // Dev-only: random per-process key so sessions can't cross processes
+    if (!globalThis.__nailbook_customer_dev_key) {
+      globalThis.__nailbook_customer_dev_key = require("crypto").randomBytes(32).toString("hex");
+    }
+    return globalThis.__nailbook_customer_dev_key!;
+  }
   throw new Error("CUSTOMER_SESSION_SECRET is not set — refusing to run with insecure fallback");
+}
+
+declare global {
+  var __nailbook_customer_dev_key: string | undefined;
 }
 
 export function signCustomerSession(userId: string, version: number = 0): string {

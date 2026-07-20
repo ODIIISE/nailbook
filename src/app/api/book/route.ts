@@ -15,15 +15,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     let { phone, service_id, date_gregorian, start_time, end_time, customer_name, selected_addons, user_id } = body;
 
-    // Step 0: Verify customer session if cookie exists (optional — unauthenticated booking is allowed)
+    // Step 0: Verify customer session — always prefer server-verified identity
     const sessionCookie = request.cookies.get("session")?.value;
     if (sessionCookie) {
       const sessionUserId = verifyCustomerSession(sessionCookie);
       if (sessionUserId) {
-        // Valid session — use verified identity
         user_id = sessionUserId;
       }
-      // Invalid/expired session — proceed as unauthenticated (don't reject)
+    }
+    // Never trust user-supplied user_id — always null for unauthenticated bookings
+    if (!sessionCookie || !user_id) {
+      user_id = null;
     }
 
     // Step 1: Normalize phone server-side (prevents anti-spam bypass via character encoding)
@@ -234,8 +236,8 @@ export async function POST(request: NextRequest) {
       try { await client.query("ROLLBACK"); } catch (rbError) { console.error("ROLLBACK failed:", rbError); }
     }
 
-    // Log the actual error
-    console.error("[BOOK] Error:", error?.message, error?.code, error?.detail);
+    // Log error without sensitive details
+    console.error("[BOOK] Error:", error?.code || "unknown");
 
     // Handle unique constraint violation (defense in depth — ON CONFLICT should catch this first)
     if (error?.code === "23505") {

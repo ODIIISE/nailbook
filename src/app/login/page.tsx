@@ -42,11 +42,11 @@ export default function LoginPage() {
     const result = await checkPhone(normalized);
     setIsLoading(false);
 
-    if (result.exists && result.hasPin) {
-      // User exists with PIN → ask for PIN
+    if (result.exists) {
+      // User exists → ask for PIN (verify-pin handles users without PINs)
       setStep("verify-pin");
     } else {
-      // User doesn't exist, or exists without PIN → create PIN
+      // User doesn't exist → create PIN
       setStep("create-pin");
     }
   }, [phone, checkPhone]);

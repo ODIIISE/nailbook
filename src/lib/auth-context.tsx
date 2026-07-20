@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 
 interface User {
   id: string;
@@ -12,7 +12,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  checkPhone: (phone: string) => Promise<{ exists: boolean; hasPin?: boolean; role?: string }>;
+  checkPhone: (phone: string) => Promise<{ exists: boolean }>;
   login: (phone: string, pin: string) => Promise<{ success: boolean; error?: string }>;
   signup: (phone: string, pin: string, name: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
@@ -22,7 +22,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 const STORAGE_KEY = "nailbook_user";
 
-/** Synchronously read user from localStorage (avoids flash) */
+/** Synchronously read user from localStorage (avoids flash, validated server-side below) */
 function getInitialUser(): User | null {
   if (typeof window === "undefined") return null;
   try {
@@ -36,7 +36,38 @@ function getInitialUser(): User | null {
 export function AuthProvider({ children }: { children: ReactNode }) {
   // Initialize synchronously from localStorage — no flash
   const [user, setUser] = useState<User | null>(getInitialUser);
-  const [isLoading] = useState(false); // Already hydrated synchronously
+  const [isLoading, setIsLoading] = useState(true);
+  const validatedRef = useRef(false);
+
+  // Server-side session validation on mount
+  useEffect(() => {
+    if (validatedRef.current) return;
+    validatedRef.current = true;
+
+    async function validateSession() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && data.user) {
+            setUser(data.user);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data.user));
+          } else {
+            setUser(null);
+            localStorage.removeItem(STORAGE_KEY);
+          }
+        } else {
+          setUser(null);
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      } catch {
+        // Network error — keep localStorage value as optimistic cache
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    validateSession();
+  }, []);
 
   // Sync auth state across tabs via storage event
   useEffect(() => {
@@ -60,7 +91,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone }),
       });
-      return await res.json();
+      const data = await res.json();
+      // Only return exists — never leak hasPin or role
+      return { exists: !!data.exists };
     } catch {
       return { exists: false };
     }

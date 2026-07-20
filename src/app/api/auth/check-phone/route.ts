@@ -12,14 +12,14 @@ export async function POST(request: NextRequest) {
 
     const normalized = normalizeDigits(String(phone).trim());
 
-    const { rows } = await sql`SELECT id, pin IS NOT NULL AS has_pin FROM users WHERE phone = ${normalized} LIMIT 1`;
+    const { rows } = await sql`SELECT id FROM users WHERE phone = ${normalized} LIMIT 1`;
 
+    // Return consistent response — never leak hasPin or role
     return NextResponse.json({
       exists: rows.length > 0,
-      hasPin: rows.length > 0 ? rows[0].has_pin : false,
     });
   } catch (error) {
     console.error("check-phone error:", error);
-    return NextResponse.json({ exists: false, hasPin: false });
+    return NextResponse.json({ exists: false });
   }
 }

@@ -8,10 +8,17 @@ function getSecretKey(): string {
     if (process.env.NODE_ENV === "production") {
       throw new Error("OWNER_SESSION_SECRET must be set in production");
     }
-    console.warn("OWNER_SESSION_SECRET not set — using dev fallback");
-    return "nailbook-dev-insecure-fallback";
+    // Dev-only: use a random per-process key so sessions can't cross processes
+    if (!globalThis.__nailbook_owner_dev_key) {
+      globalThis.__nailbook_owner_dev_key = require("crypto").randomBytes(32).toString("hex");
+    }
+    return globalThis.__nailbook_owner_dev_key!;
   }
   return SECRET;
+}
+
+declare global {
+  var __nailbook_owner_dev_key: string | undefined;
 }
 
 export function signOwnerSession(userId: string, version: number = 0): string {
