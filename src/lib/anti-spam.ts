@@ -2,7 +2,7 @@ import { sql } from "@vercel/postgres";
 import { getTehranDateKey } from "./time";
 
 const MAX_BOOKINGS_PER_DAY = 3;
-const COOLDOWN_MINUTES = 120;
+const COOLDOWN_MINUTES = 5;
 
 export interface AntiSpamResult {
   allowed: boolean;
