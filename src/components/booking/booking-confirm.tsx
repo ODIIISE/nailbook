@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, CalendarDays, Sparkles, Share2 } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
@@ -60,6 +60,12 @@ export function BookingConfirm({
   const endMinutes = h * 60 + m + duration;
   const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
   const formattedEndTime = toPersianDigits(endTime);
+
+  // Derive domain from current URL instead of hardcoding
+  const displayDomain = useMemo(() => {
+    if (typeof window !== "undefined") return window.location.hostname;
+    return "forehand.vercel.app";
+  }, []);
 
   const handleAddToGoogleCalendar = () => {
     const pad = (n: number) => String(n).padStart(2, "0");
@@ -159,7 +165,7 @@ export function BookingConfirm({
               #{shortId}
             </div>
             <div className="text-center text-[7px] font-medium tracking-[2px] text-muted-foreground opacity-30 mt-0.5">
-              forehand.vercel.app
+              {displayDomain}
             </div>
           </div>
         </div>

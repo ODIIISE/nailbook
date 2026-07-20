@@ -8,17 +8,19 @@
 
 const TEHRAN_TZ = "Asia/Tehran";
 
+// Cache the formatter — it's immutable and expensive to construct
+const TEHRAN_FORMATTER = new Intl.DateTimeFormat("en-CA", {
+  timeZone: TEHRAN_TZ,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
 function tehranParts(date: Date) {
-  const fmt = new Intl.DateTimeFormat("en-CA", {
-    timeZone: TEHRAN_TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-  const parts = fmt.formatToParts(date);
+  const parts = TEHRAN_FORMATTER.formatToParts(date);
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "0";
   return {
     year: Number(get("year")),

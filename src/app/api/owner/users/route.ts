@@ -78,6 +78,10 @@ export async function PUT(request: NextRequest) {
       await sql`UPDATE users SET name = ${body.name} WHERE id = ${userId}`;
     }
     if (body.role !== undefined) {
+      const validRoles = ["customer", "owner"];
+      if (!validRoles.includes(body.role)) {
+        return NextResponse.json({ error: "نقش نامعتبر است" }, { status: 400 });
+      }
       await sql`UPDATE users SET role = ${body.role} WHERE id = ${userId}`;
     }
     if (body.pin !== undefined && String(body.pin).length === 4) {

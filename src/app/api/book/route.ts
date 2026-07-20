@@ -75,13 +75,18 @@ export async function POST(request: NextRequest) {
     }
     const serviceDuration = Number(serviceRows[0].duration_minutes);
 
-    // Fetch addons durations
+    // Fetch and validate addons
     let addonsDuration = 0;
     if (selected_addons && selected_addons.length > 0) {
       const { rows: addonRows } = await client.query(
-        `SELECT duration_minutes FROM addons WHERE id = ANY($1)`,
+        `SELECT id, duration_minutes FROM addons WHERE id = ANY($1) AND is_active = true`,
         [selected_addons]
       );
+      // If some addon IDs were not found or inactive, reject
+      if (addonRows.length !== selected_addons.length) {
+        await client.query("ROLLBACK");
+        return NextResponse.json({ error: "آپشن نامعتبر" }, { status: 400 });
+      }
       addonsDuration = addonRows.reduce((sum: number, r: any) => sum + Number(r.duration_minutes || 0), 0);
     }
 

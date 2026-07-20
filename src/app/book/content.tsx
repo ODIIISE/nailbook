@@ -58,12 +58,7 @@ export default function BookContent() {
   const [bookingId, setBookingId] = useState<string>("");
   const [spamError, setSpamError] = useState("");
 
-  // Auto-dismiss error after 5 seconds
-  useEffect(() => {
-    if (!spamError) return;
-    const timer = setTimeout(() => setSpamError(""), 5000);
-    return () => clearTimeout(timer);
-  }, [spamError]);
+  // No auto-dismiss for spam errors — critical messages persist until user acts
 
   // Auth state
   const [authPhone, setAuthPhone] = useState("");
@@ -71,7 +66,8 @@ export default function BookContent() {
   const [authName, setAuthName] = useState("");
   const [authStep, setAuthStep] = useState<"phone" | "pin" | "confirm-pin" | "name" | "verify-pin">("phone");
   const [authError, setAuthError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [isBookingLoading, setIsBookingLoading] = useState(false);
 
   // Determine initial step based on service addons
   const selectedService = services.find((s) => s.id === selectedServiceId);
@@ -88,7 +84,7 @@ export default function BookContent() {
 
   useEffect(() => {
     const serviceId = searchParams.get("service");
-    if (serviceId) {
+    if (serviceId && services.length > 0) {
       setSelectedServiceId(serviceId);
       const service = services.find((s) => s.id === serviceId);
       if (service) {
@@ -96,7 +92,9 @@ export default function BookContent() {
         setStep(serviceAddons.length > 0 ? "addons" : "datetime");
       }
     }
-  }, [searchParams, services, addons]);
+    // Only run on mount + when services load (not on every services/addons update)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Compute total duration with addons
   const totalDuration = useMemo(() => {
@@ -262,12 +260,12 @@ export default function BookContent() {
       setAuthError("شماره موبایل معتبر نیست (مثال: ۰۹۱۲۱۲۳۴۵۶۷)");
       return;
     }
-    setIsLoading(true);
+    setIsAuthLoading(true);
     setAuthError("");
     setAuthPhone(normalized);
 
     const result = await checkPhone(normalized);
-    setIsLoading(false);
+    setIsAuthLoading(false);
 
     if (result.exists && result.hasPin) {
       setAuthStep("verify-pin");
@@ -294,19 +292,19 @@ export default function BookContent() {
       setAuthError("نام الزامی است");
       return;
     }
-    setIsLoading(true);
+    setIsAuthLoading(true);
     setAuthError("");
     const result = await signup(normalizeDigits(authPhone), authPin, authName.trim());
-    setIsLoading(false);
+    setIsAuthLoading(false);
     if (result.success) setStep("confirm");
     else setAuthError(result.error || "خطا در ثبت‌نام");
   }, [authPin, authPhone, authName, signup]);
 
   const handleAuthVerifyPinSubmit = useCallback(async (pin: string) => {
-    setIsLoading(true);
+    setIsAuthLoading(true);
     setAuthError("");
     const result = await login(normalizeDigits(authPhone), pin);
-    setIsLoading(false);
+    setIsAuthLoading(false);
     if (result.success) setStep("confirm");
     else setAuthError(result.error || "کد نادرست است");
   }, [authPhone, login]);
@@ -319,7 +317,7 @@ export default function BookContent() {
     if (!selectedDate || !selectedService || !selectedTime) return;
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
-    setIsLoading(true);
+    setIsBookingLoading(true);
     setSpamError("");
 
     const customerPhone = user?.phone || authPhone;
@@ -349,7 +347,7 @@ export default function BookContent() {
     };
 
     const result = await addBooking(newBooking);
-    setIsLoading(false);
+    setIsBookingLoading(false);
     isSubmittingRef.current = false;
     if (result.success) {
       // Use server-generated booking ID for display
@@ -543,7 +541,7 @@ export default function BookContent() {
                   <h2 className="text-h1 text-foreground">ساخت رمز</h2>
                   <p className="text-[13px] text-muted-foreground mt-1">یک کد ۴ رقمی بسازید</p>
                 </div>
-                <PinInput onComplete={handleAuthPinSubmit} disabled={isLoading} />
+                <PinInput onComplete={handleAuthPinSubmit} disabled={isAuthLoading} />
                 {authError && (
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
                     <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
@@ -563,7 +561,7 @@ export default function BookContent() {
                   <h2 className="text-h1 text-foreground">تکرار رمز</h2>
                   <p className="text-[13px] text-muted-foreground mt-1">رمز خود را دوباره وارد کنید</p>
                 </div>
-                <PinInput onComplete={handleAuthConfirmPinSubmit} disabled={isLoading} />
+                <PinInput onComplete={handleAuthConfirmPinSubmit} disabled={isAuthLoading} />
                 {authError && (
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
                     <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
@@ -600,8 +598,8 @@ export default function BookContent() {
                     <p className="text-[13px] text-destructive">{authError}</p>
                   </div>
                 )}
-                <Button size="xl" variant="paper" className="w-full" onClick={handleAuthNameSubmit} disabled={isLoading || !authName.trim()}>
-                  {isLoading ? (
+                <Button size="xl" variant="paper" className="w-full" onClick={handleAuthNameSubmit} disabled={isAuthLoading || !authName.trim()}>
+                  {isAuthLoading ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       در حال ثبت‌نام...
@@ -622,7 +620,7 @@ export default function BookContent() {
                   <p className="text-[13px] text-muted-foreground mt-1">کد ۴ رقمی خود را وارد کنید</p>
                   <p className="text-[13px] text-muted-foreground mt-1" dir="ltr">{authPhone}</p>
                 </div>
-                <PinInput onComplete={handleAuthVerifyPinSubmit} disabled={isLoading} />
+                <PinInput onComplete={handleAuthVerifyPinSubmit} disabled={isAuthLoading} />
                 {authError && (
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
                     <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
@@ -638,7 +636,7 @@ export default function BookContent() {
         {/* ─── Step 4: Confirm (Pre-Receipt) ─── */}
         {step === "confirm" && selectedService && selectedDate && selectedTime && (
           <div className="space-y-3">
-            {isLoading ? (
+            {isBookingLoading ? (
               <div className="space-y-3">
                 <Skeleton className="h-48 w-full rounded-2xl" />
                 <Skeleton className="h-12 w-full rounded-xl" />
@@ -692,8 +690,8 @@ export default function BookContent() {
                 )}
 
                 {/* Confirm Button */}
-                <Button size="xl" onClick={handleConfirmBooking} disabled={isLoading} variant="paper" className="w-full">
-                  {isLoading ? (
+                <Button size="xl" onClick={handleConfirmBooking} disabled={isBookingLoading} variant="paper" className="w-full">
+                  {isBookingLoading ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       در حال ثبت...

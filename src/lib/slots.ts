@@ -45,7 +45,12 @@ interface EngineConfig {
 // ─── Utilities ───
 
 function parseTime(time: string): number {
-  const [h, m] = time.split(":").map(Number);
+  if (!time || typeof time !== "string") return NaN;
+  const parts = time.split(":");
+  if (parts.length !== 2) return NaN;
+  const h = Number(parts[0]);
+  const m = Number(parts[1]);
+  if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return NaN;
   return h * 60 + m;
 }
 

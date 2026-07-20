@@ -55,8 +55,10 @@ export async function POST(request: NextRequest) {
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const { data, mode = "merge" } = await request.json();
-    if (!data) return NextResponse.json({ error: "داده‌ای ارسال نشد" }, { status: 400 });
+    if (!data || typeof data !== "object") return NextResponse.json({ error: "داده‌ای ارسال نشد" }, { status: 400 });
 
+    // Validate backup structure
+    const validSections = ["services", "addons", "salon_info", "bookings", "blocked_times", "users", "highlights"];
     const results: string[] = [];
 
     // Restore services
