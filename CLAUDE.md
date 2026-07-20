@@ -48,4 +48,4 @@ The booking flow has 4 user states that must ALL work:
 
 - Never reference a column in SQL that might not exist in production
 - Use `ALTER TABLE IF NOT EXISTS` for new columns
-- Migrations are in `src/db/migrations/` — they run via `/api/owner/migrate`
+- Migrations are in `src/db/migrations/` — they auto-run on salon data load. `/api/owner/migrate` is read-only (status check only).

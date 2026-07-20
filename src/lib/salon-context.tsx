@@ -3,6 +3,9 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react";
 import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "@/lib/types";
 import type { WorkingHours } from "@/lib/slots";
+
+// Dev-only logging — stripped in production builds
+const devLog = process.env.NODE_ENV === "development" ? console.error : (..._args: any[]) => {};
 import { toast } from "sonner";
 import {
   fetchSalonInfo,
@@ -120,7 +123,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         }
       } catch (e) {
         if (!controller.signal.aborted) {
-          console.error("Failed to load salon data:", e);
+          devLog("Failed to load salon data:", e);
           toast.error("خطا در بارگذاری اطلاعات", {
             description: "لطفاً صفحه را رفرش کنید",
             duration: 5000,
@@ -139,7 +142,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     try {
       await saveWorkingHours(hours, specificDaysOffRef.current);
     } catch (e) {
-      console.error("Failed to save working hours:", e);
+      devLog("Failed to save working hours:", e);
       setWorkingHours(prev);
     }
   }, []);
@@ -150,7 +153,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     try {
       await saveWorkingHours(workingHoursRef.current, daysOff);
     } catch (e) {
-      console.error("Failed to save days off:", e);
+      devLog("Failed to save days off:", e);
       setSpecificDaysOff(prev);
     }
   }, []);
@@ -163,7 +166,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     try {
       await saveWorkingHours(hours, daysOff);
     } catch (e) {
-      console.error("Failed to save schedule:", e);
+      devLog("Failed to save schedule:", e);
       setWorkingHours(prevHours);
       setSpecificDaysOff(prevDaysOff);
     }
@@ -176,7 +179,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       await saveServices(newServices);
       return null;
     } catch (e) {
-      console.error("Failed to save services:", e);
+      devLog("Failed to save services:", e);
       setServices(prev);
       return e instanceof Error ? e.message : "خطای ناشناخته";
     }
@@ -189,7 +192,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       await saveAddons(newAddons);
       return null;
     } catch (e) {
-      console.error("Failed to save addons:", e);
+      devLog("Failed to save addons:", e);
       setAddons(prev);
       return e instanceof Error ? e.message : "خطای ناشناخته";
     }
@@ -209,11 +212,11 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ blockedTimes: blocks }),
       });
       if (!res.ok) {
-        console.error("Failed to save blocked times");
+        devLog("Failed to save blocked times");
         setBlockedTimes(prevBlocks);
       }
     } catch (e) {
-      console.error("Failed to save blocked times:", e);
+      devLog("Failed to save blocked times:", e);
       setBlockedTimes(prevBlocks);
     }
   }, []);
@@ -228,7 +231,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       ));
       return { success: true, id: result.id, start_time: result.start_time, end_time: result.end_time };
     } catch (e) {
-      console.error("Failed to save booking:", e);
+      devLog("Failed to save booking:", e);
       setBookings((prev) => prev.filter((b) => b.id !== booking.id));
       const message = e instanceof Error ? e.message : "خطای ناشناخته";
       return { success: false, error: message };
@@ -247,7 +250,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       await cancelBookingApi(bookingId);
       return true;
     } catch (e) {
-      console.error("Failed to cancel booking:", e);
+      devLog("Failed to cancel booking:", e);
       setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: (originalStatus as Booking["status"]) || "reserved" } : b));
       return false;
     }
@@ -270,7 +273,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         setSpecificDaysOff(hoursData.specific_days_off || []);
       }
     } catch (e) {
-      console.error("Failed to refresh salon data:", e);
+      devLog("Failed to refresh salon data:", e);
     }
   }, []);
 
@@ -284,11 +287,11 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify(updates),
       });
       if (!res.ok) {
-        console.error("Failed to update salon");
+        devLog("Failed to update salon");
         setSalon(prev);
       }
     } catch (e) {
-      console.error("Failed to update salon:", e);
+      devLog("Failed to update salon:", e);
       setSalon(prev);
     }
   }, []);
@@ -299,7 +302,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     try {
       await upsertHighlight(highlight);
     } catch (e) {
-      console.error("Failed to add highlight:", e);
+      devLog("Failed to add highlight:", e);
       setHighlights(prev);
     }
   }, []);
@@ -310,7 +313,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     try {
       await upsertHighlight(highlight);
     } catch (e) {
-      console.error("Failed to update highlight:", e);
+      devLog("Failed to update highlight:", e);
       setHighlights(prev);
     }
   }, []);
@@ -321,7 +324,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     try {
       await deleteHighlight(id);
     } catch (e) {
-      console.error("Failed to remove highlight:", e);
+      devLog("Failed to remove highlight:", e);
       setHighlights(prev);
     }
   }, []);
@@ -338,7 +341,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     try {
       await upsertHighlightImage(image);
     } catch (e) {
-      console.error("Failed to add highlight image:", e);
+      devLog("Failed to add highlight image:", e);
       setHighlights(prev);
     }
   }, []);
@@ -354,7 +357,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     try {
       await deleteHighlightImage(id);
     } catch (e) {
-      console.error("Failed to remove highlight image:", e);
+      devLog("Failed to remove highlight image:", e);
       setHighlights(prev);
     }
   }, []);
