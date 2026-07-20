@@ -5,10 +5,7 @@ function getSecretKey(): string {
   const secret = process.env.CUSTOMER_SESSION_SECRET;
   if (secret) return secret;
   if (process.env.NODE_ENV === "development") return "nailbook-dev-customer-fallback";
-  // Graceful fallback in production — sessions won't persist across cold starts
-  // but won't crash the app. Set CUSTOMER_SESSION_SECRET in Vercel for proper auth.
-  console.warn("CUSTOMER_SESSION_SECRET not set — using temporary fallback");
-  return "nailbook-temp-fallback-set-env-var";
+  throw new Error("CUSTOMER_SESSION_SECRET is not set — refusing to run with insecure fallback");
 }
 
 export function signCustomerSession(userId: string, version: number = 0): string {

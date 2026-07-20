@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
   pin TEXT NOT NULL,
   name TEXT DEFAULT '',
   role TEXT DEFAULT 'customer',
+  session_version INT DEFAULT 0,
   failed_attempts INT DEFAULT 0,
   locked_until TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -70,7 +71,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   date_gregorian DATE NOT NULL,
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
-  status TEXT DEFAULT 'confirmed' CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled')),
+  status TEXT DEFAULT 'reserved' CHECK (status IN ('pending', 'reserved', 'confirmed', 'in_progress', 'completed', 'cancelled', 'no_show')),
   paid BOOLEAN DEFAULT false,
   phone_verified BOOLEAN DEFAULT true,
   ip_address TEXT,
@@ -111,6 +112,7 @@ CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(date_gregorian);
 CREATE INDEX IF NOT EXISTS idx_bookings_user ON bookings(user_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_phone ON bookings(customer_phone);
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_bookings_no_overlap ON bookings (date_gregorian, start_time, end_time) WHERE status IN ('reserved', 'confirmed');
 CREATE INDEX IF NOT EXISTS idx_blocked_times_date ON blocked_times(date_gregorian);
 CREATE INDEX IF NOT EXISTS idx_highlight_images_highlight ON highlight_images(highlight_id);
 
