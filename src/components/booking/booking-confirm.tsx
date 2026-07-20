@@ -147,10 +147,13 @@ export function BookingConfirm({
             </div>
           </div>
 
-          {/* Barcode */}
+          {/* Barcode + tracking code */}
           <div className="mt-3 relative z-[2]">
             <Barcode id={bookingId} />
-            <div className="text-center text-[7px] font-medium tracking-[2px] text-muted-foreground opacity-30 mt-1">
+            <div className="text-center text-[10px] font-medium tracking-[1px] text-foreground/20 mt-1.5" dir="ltr">
+              #{shortId}
+            </div>
+            <div className="text-center text-[7px] font-medium tracking-[2px] text-muted-foreground opacity-30 mt-0.5">
               forehand.vercel.app
             </div>
           </div>
