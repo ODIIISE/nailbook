@@ -8,6 +8,8 @@ interface TrustSignalsProps {
 }
 
 export function TrustSignals({ totalBookings }: TrustSignalsProps) {
+  if (totalBookings <= 0) return null;
+
   return (
     <div className="px-4 mb-3">
       <div className="mx-auto max-w-lg flex items-center justify-center gap-2 py-2 px-4">

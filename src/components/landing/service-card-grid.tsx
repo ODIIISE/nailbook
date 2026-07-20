@@ -43,6 +43,9 @@ export function ServiceCardGrid({ services }: ServiceCardGridProps) {
               key={service.id}
               className="p-4 cursor-pointer hover:shadow-elevated transition-shadow overflow-hidden"
               onClick={() => router.push(`/book?service=${service.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(`/book?service=${service.id}`); } }}
             >
               <div className="flex items-center gap-4">
                 {/* Placeholder Image */}

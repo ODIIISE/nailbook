@@ -56,7 +56,7 @@ export function Hero({ salon, onBookNow }: HeroProps) {
             onClick={onBookNow}
           >
             رزرو کن
-            <ChevronLeft className="h-5 w-5 mr-1" />
+            <ChevronLeft className="h-5 w-5 ms-1" />
           </Button>
         )}
       </div>

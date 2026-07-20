@@ -29,7 +29,7 @@ export function ContactButtons({ phone }: ContactButtonsProps) {
               "flex-1 h-11 text-[13px] border-success/25 text-success hover:bg-success/5"
             )}
           >
-            <Phone className="h-3.5 w-3.5 ml-1.5" />
+            <Phone className="h-3.5 w-3.5 ms-1.5" />
             تماس
           </a>
           {whatsappUrl && (
@@ -42,7 +42,7 @@ export function ContactButtons({ phone }: ContactButtonsProps) {
                 "flex-1 h-11 text-[13px] border-success/25 text-success hover:bg-success/5"
               )}
             >
-              <WhatsAppIcon className="h-3.5 w-3.5 ml-1.5" />
+              <WhatsAppIcon className="h-3.5 w-3.5 ms-1.5" />
               واتساپ
             </a>
           )}
@@ -54,7 +54,7 @@ export function ContactButtons({ phone }: ContactButtonsProps) {
                 "flex-1 h-11 text-[13px] border-primary/25 text-primary hover:bg-primary/5"
               )}
             >
-              <MessageCircle className="h-3.5 w-3.5 ml-1.5" />
+              <MessageCircle className="h-3.5 w-3.5 ms-1.5" />
               پیامک
             </a>
           )}

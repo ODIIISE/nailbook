@@ -120,7 +120,12 @@ export function AppHeader({
             className="absolute inset-0 bg-black/15 backdrop-blur-sm"
             onClick={closeMenu}
           />
-          <div className="absolute top-0 right-0 h-full w-[280px] glass-strong rounded-l-[24px] shadow-floating animate-slideUp flex flex-col">
+          <div
+            className="absolute top-0 right-0 h-full w-[280px] glass-strong rounded-l-[24px] shadow-floating animate-slideUp flex flex-col"
+            role="dialog"
+            aria-modal="true"
+            aria-label="منوی جانبی"
+          >
             <div className="p-5 flex-1 flex flex-col">
               <div className="flex items-center justify-between mb-5">
                 <span className="text-[15px] font-bold text-foreground">{salon.name}</span>

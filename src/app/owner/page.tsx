@@ -196,12 +196,12 @@ export default function OwnerDashboard() {
 
         {/* Search bookings */}
         <div className="relative">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={bookingSearch}
             onChange={(e) => setBookingSearch(e.target.value)}
             placeholder="جستجوی نام یا شماره مشتری..."
-            className="pr-10"
+            className="ps-10"
           />
         </div>
 

@@ -3,8 +3,11 @@ import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const owner = await verifyOwner(request);
+    if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+
     const { rows } = await sql`SELECT date_gregorian, start_time, end_time FROM blocked_times ORDER BY date_gregorian`;
     return NextResponse.json({ blockedTimes: rows });
   } catch {

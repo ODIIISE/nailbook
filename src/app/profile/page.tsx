@@ -139,7 +139,7 @@ export default function ProfilePage() {
             className="w-full h-12 text-destructive border-destructive/30 hover:bg-destructive/5"
             onClick={handleLogout}
           >
-            <LogOut className="h-4 w-4 ml-2" />
+            <LogOut className="h-4 w-4 ms-2" />
             خروج از حساب
           </Button>
         </div>

@@ -18,7 +18,6 @@ interface User {
   phone: string;
   name: string;
   role: string;
-  pin: string;
   failed_attempts: number;
   locked_until: string | null;
   created_at: string;
@@ -299,16 +298,6 @@ export default function OwnerUsersPage() {
                   <p className="text-[13px] text-muted-foreground" dir="ltr">{formatPhone(user.phone)}</p>
                   <div className="flex items-center gap-2">
                     <p className="text-[11px] text-muted-foreground/60">عضویت: {formatDate(user.created_at)}</p>
-                    {user.pin ? (
-                      <span className="text-[11px] text-foreground font-mono font-bold" dir="ltr">
-                        رمز: {user.pin.length === 4 ? user.pin : "****"}
-                      </span>
-                    ) : (
-                      <span className="text-[11px] text-muted-foreground/40 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-gray-300 inline-block" />
-                        بدون رمز
-                      </span>
-                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5 flex-shrink-0">

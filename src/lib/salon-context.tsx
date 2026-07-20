@@ -401,7 +401,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         setBookings((prev2) => prev2.map((b) => (b.id === bookingId ? { ...b, status: originalStatus as Booking["status"] } : b)));
       }
     }
-  }, [bookings]);
+  }, []);
 
   const value = useMemo<SalonContextType>(() => {
     if (!loaded || !salon) {

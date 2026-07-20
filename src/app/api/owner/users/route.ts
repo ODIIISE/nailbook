@@ -64,6 +64,14 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "نقش خود را نمی‌توانید تغییر دهید" }, { status: 400 });
     }
 
+    // Prevent changing other owners' roles (no owner-to-owner demotion)
+    if (body.role !== undefined && userId !== owner.id) {
+      const { rows: targetRows } = await sql`SELECT role FROM users WHERE id = ${userId}`;
+      if (targetRows[0]?.role === "owner" && body.role !== "owner") {
+        return NextResponse.json({ error: "تغییر نقش مدیر دیگر مجاز نیست" }, { status: 403 });
+      }
+    }
+
     // Check if user exists
     const { rows: existing } = await sql`SELECT id FROM users WHERE id = ${userId}`;
     if (existing.length === 0) {
