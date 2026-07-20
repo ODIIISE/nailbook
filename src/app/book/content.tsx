@@ -12,6 +12,7 @@ import { ChevronLeft, Puzzle, Check, AlertCircle, CalendarDays, Timer, ArrowLeft
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { TimeSlots } from "@/components/booking/time-slots";
 import { BookingConfirm } from "@/components/booking/booking-confirm";
+import { TornPaperCard } from "@/components/booking/torn-paper-card";
 import { PinInput } from "@/components/booking/pin-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SalonGuard } from "@/components/ui/salon-guard";
@@ -642,48 +643,13 @@ export default function BookContent() {
               </div>
             ) : (
               <>
-                {/* Stub */}
-                <div className="relative z-[2] mb-[-2px]">
-                  <div
-                    className="rounded-t-[10px] px-5 py-2 relative overflow-hidden"
-                    style={{ background: "var(--card)", boxShadow: "0 1px 3px rgba(80,70,60,0.06), 0 2px 8px rgba(60,50,40,0.04)" }}
-                  >
-                    <div className="text-center text-[7px] font-medium tracking-[2px] text-muted-foreground opacity-30">
-                      forehand.vercel.app
-                    </div>
-                  </div>
-                  <div className="h-[4px] relative overflow-hidden" style={{ background: "var(--card)" }}>
-                    <div className="absolute bottom-0 left-0 right-0 h-[4px]" style={{ backgroundImage: "repeating-conic-gradient(var(--card) 0% 25%, transparent 0% 50%)", backgroundSize: "7px 7px", backgroundPosition: "50% 0" }} />
-                  </div>
-                </div>
-
-                {/* Perforation */}
-                <div className="flex justify-center gap-[6px] py-[3px] relative z-[3]">
-                  {Array.from({ length: 30 }).map((_, i) => (
-                    <div key={i} className="w-[2.5px] h-[2.5px] rounded-full" style={{ background: "var(--background)", boxShadow: "inset 0 0.5px 1px rgba(0,0,0,0.1)" }} />
-                  ))}
-                </div>
-
-                {/* Main card */}
-                <div className="relative z-[1]">
-                  <div className="h-[4px] relative overflow-hidden" style={{ background: "var(--card)", transform: "rotate(180deg)" }}>
-                    <div className="absolute bottom-0 left-0 right-0 h-[4px]" style={{ backgroundImage: "repeating-conic-gradient(var(--card) 0% 25%, transparent 0% 50%)", backgroundSize: "7px 7px", backgroundPosition: "50% 0" }} />
-                  </div>
-                  <div
-                    className="rounded-b-[10px] px-5 py-4 relative overflow-hidden"
-                    style={{ background: "var(--card)", boxShadow: "0 1px 3px rgba(80,70,60,0.05), 0 3px 10px rgba(60,50,40,0.04), 0 6px 20px rgba(50,40,30,0.035), 0 12px 40px rgba(50,40,30,0.025)" }}
-                  >
+                <TornPaperCard>
+                  <div className="px-5 py-4">
                     {/* Paper texture */}
                     <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.025] mix-blend-multiply" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.25'/%3E%3C/svg%3E\")", backgroundSize: "180px 180px" }} />
-                    <div className="absolute top-0 left-0 right-0 h-[1px] z-[2] pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)" }} />
-
-                    {/* FOREHAND watermark */}
-                    <div className="absolute left-1 top-0 bottom-0 z-0 pointer-events-none select-none flex items-center justify-center" style={{ writingMode: "vertical-rl", textOrientation: "mixed", fontSize: "36px", fontWeight: 900, letterSpacing: "5px", color: "var(--foreground)", opacity: 0.02 }}>
-                      FOREHAND
-                    </div>
 
                     {/* Service info */}
-                    <div className="flex items-center gap-2.5 mb-2 relative z-[2]">
+                    <div className="flex items-center gap-2.5 mb-3 relative z-[2]">
                       <div className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(40,136,208,0.06), rgba(91,179,228,0.03))" }}>
                         <Sparkles className="h-4 w-4 text-[#2888d0]" />
                       </div>
@@ -692,8 +658,6 @@ export default function BookContent() {
                         <div className="text-[10px] text-muted-foreground">{salon.name}</div>
                       </div>
                     </div>
-
-                    <div className="h-px bg-black/[0.04] mb-2 relative z-[2]" />
 
                     {/* Detail list */}
                     <div className="relative z-[2]">
@@ -715,7 +679,7 @@ export default function BookContent() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </TornPaperCard>
 
                 {/* Spam Error */}
                 {spamError && (

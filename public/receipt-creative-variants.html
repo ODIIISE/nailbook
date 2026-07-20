@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creative Receipt Variants — Forehand Nail Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #e5e2dd;
+      --paper: #f2f0ec;
+      --blue-1: #a8d8f0;
+      --blue-2: #5bb3e4;
+      --blue-4: #2888d0;
+      --teal: #4cc0b0;
+      --ink: #2a2a2a;
+      --ink-mid: #6a6a6a;
+      --ink-faint: #9a9a9a;
+      --success: #28a745;
+    }
+
+    html { font-family: 'Vazirmatn', -apple-system, sans-serif; direction: rtl; -webkit-font-smoothing: antialiased; }
+
+    body {
+      min-height: 100dvh;
+      background: var(--bg);
+      padding: 40px 20px 80px;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse 70% 60% at center, transparent 0%, rgba(0,0,0,0.06) 100%);
+    }
+
+    .page-title { text-align: center; font-size: 24px; font-weight: 800; color: var(--ink); margin-bottom: 8px; }
+    .page-sub { text-align: center; font-size: 13px; color: var(--ink-mid); margin-bottom: 40px; }
+
+    .variants {
+      display: flex;
+      flex-direction: column;
+      gap: 64px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    .variant-label {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 16px;
+    }
+
+    /* Paper texture mixin */
+    .paper-tex { position: relative; overflow: hidden; }
+    .paper-tex::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+      background-size: 180px 180px;
+      opacity: 0.06;
+      mix-blend-mode: multiply;
+      z-index: 0;
+    }
+
+    .paper-tex::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      z-index: 1;
+    }
+
+    /* ═══════════════════════════════
+       VARIANT 6: Glassmorphism
+       Frosted glass card with blur
+    ═══════════════════════════════ */
+    .v6 {
+      background: rgba(242, 240, 236, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.5);
+      border-radius: 20px;
+      padding: 28px 24px;
+      position: relative;
+      box-shadow:
+        0 4px 16px rgba(80,70,60,0.06),
+        0 8px 32px rgba(60,50,40,0.04),
+        inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+
+    .v6-glow {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      filter: blur(40px);
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .v6-glow-1 { top: -20px; right: -20px; background: var(--blue-2); }
+    .v6-glow-2 { bottom: -10px; left: -10px; background: var(--teal); }
+
+    .v6-header {
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v6-icon-wrap {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(40,136,208,0.12), rgba(76,192,176,0.08));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    .v6-icon-wrap svg { width: 24px; height: 24px; color: var(--blue-4); }
+    .v6-title { font-size: 16px; font-weight: 700; color: var(--ink); }
+    .v6-sub { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+
+    .v6-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,0,0,0.06), transparent);
+      margin: 16px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v6-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v6-row-label { font-size: 12px; color: var(--ink-mid); }
+    .v6-row-value { font-size: 13px; font-weight: 600; color: var(--ink); }
+
+    .v6-total {
+      background: linear-gradient(135deg, rgba(40,136,208,0.08), rgba(91,179,228,0.04));
+      border: 1px solid rgba(40,136,208,0.1);
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v6-total-label { font-size: 13px; color: var(--ink-mid); }
+    .v6-total-amount { font-size: 20px; font-weight: 800; color: var(--blue-4); }
+    .v6-total-currency { font-size: 12px; color: var(--ink-faint); }
+
+    /* ═══════════════════════════════
+       VARIANT 7: Stamp / Seal
+       Circular stamp with rotated text
+    ═══════════════════════════════ */
+    .v7-wrap {
+      position: relative;
+      filter: drop-shadow(0 6px 20px rgba(80,70,60,0.1));
+    }
+
+    .v7 {
+      background: var(--paper);
+      border-radius: 18px;
+      padding: 28px 24px;
+      position: relative;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .v7-stamp {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 72px;
+      height: 72px;
+      border: 3px solid var(--blue-4);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(-12deg);
+      opacity: 0.2;
+      z-index: 3;
+    }
+
+    .v7-stamp-ring {
+      position: absolute;
+      width: 62px;
+      height: 62px;
+      border: 1.5px solid var(--blue-4);
+      border-radius: 50%;
+    }
+
+    .v7-stamp-text {
+      font-size: 7px;
+      font-weight: 800;
+      color: var(--blue-4);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .v7-stamp-check {
+      width: 20px;
+      height: 20px;
+      color: var(--blue-4);
+      margin-top: 2px;
+    }
+
+    .v7-header {
+      text-align: center;
+      padding-bottom: 16px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v7-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      background: rgba(40,167,69,0.08);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .v7-id { font-size: 10px; color: var(--ink-faint); margin-top: 8px; letter-spacing: 2px; }
+
+    .v7-sep {
+      position: relative;
+      height: 1px;
+      background: repeating-linear-gradient(90deg, rgba(0,0,0,0.08) 0, rgba(0,0,0,0.08) 4px, transparent 4px, transparent 8px);
+      margin: 16px 0;
+      z-index: 2;
+    }
+
+    .v7-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v7-row-label { font-size: 12px; color: var(--ink-mid); }
+    .v7-row-value { font-size: 13px; font-weight: 600; color: var(--ink); }
+
+    .v7-total {
+      margin-top: 8px;
+      padding-top: 12px;
+      border-top: 2px dashed rgba(0,0,0,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v7-footer {
+      text-align: center;
+      margin-top: 12px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v7-footer-barcode {
+      display: flex;
+      justify-content: center;
+      gap: 1px;
+      height: 20px;
+      align-items: flex-end;
+      margin-bottom: 6px;
+    }
+
+    .v7-footer-barcode .bar { background: var(--ink); opacity: 0.08; border-radius: 0.5px; }
+    .v7-footer-text { font-size: 8px; color: var(--ink-faint); letter-spacing: 3px; }
+
+    /* ═══════════════════════════════
+       VARIANT 8: Gradient Border
+       Animated border with gradient
+    ═══════════════════════════════ */
+    .v8-wrap {
+      position: relative;
+      border-radius: 18px;
+      padding: 2px;
+      background: linear-gradient(135deg, var(--blue-2), var(--teal), var(--blue-4), var(--blue-2));
+      background-size: 300% 300%;
+      animation: v8-gradient 6s ease infinite;
+      box-shadow: 0 4px 20px rgba(40,136,208,0.12);
+    }
+
+    @keyframes v8-gradient {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .v8-inner {
+      background: var(--paper);
+      border-radius: 16px;
+      padding: 28px 24px;
+      position: relative;
+    }
+
+    .v8-header {
+      text-align: center;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v8-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue-2), var(--blue-4));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      box-shadow: 0 4px 12px rgba(40,136,208,0.25);
+    }
+
+    .v8-icon svg { width: 22px; height: 22px; color: white; }
+    .v8-title { font-size: 15px; font-weight: 700; color: var(--ink); }
+
+    .v8-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(40,136,208,0.15), transparent);
+      margin: 16px 0;
+    }
+
+    .v8-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v8-row-label { font-size: 12px; color: var(--ink-mid); }
+    .v8-row-value { font-size: 13px; font-weight: 600; color: var(--ink); }
+
+    .v8-total {
+      margin-top: 12px;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(40,136,208,0.06), rgba(76,192,176,0.04));
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v8-footer {
+      text-align: center;
+      margin-top: 14px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v8-footer-text { font-size: 8px; color: var(--ink-faint); letter-spacing: 3px; }
+
+    /* ═══════════════════════════════
+       VARIANT 9: Paper Torn / Ripped
+       Realistic torn paper edges
+    ═══════════════════════════════ */
+    .v9-wrap {
+      position: relative;
+      filter: drop-shadow(0 4px 12px rgba(80,70,60,0.08)) drop-shadow(0 8px 24px rgba(60,50,40,0.06));
+    }
+
+    .v9 {
+      background: var(--paper);
+      border-radius: 4px;
+      padding: 28px 24px;
+      position: relative;
+      transform: rotate(-0.3deg);
+    }
+
+    /* Torn top edge */
+    .v9-torn-top {
+      position: absolute;
+      top: -3px;
+      left: 0;
+      right: 0;
+      height: 8px;
+      z-index: 5;
+    }
+
+    /* Torn bottom edge */
+    .v9-torn-bottom {
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      right: 0;
+      height: 8px;
+      z-index: 5;
+    }
+
+    .v9-header {
+      text-align: center;
+      padding-bottom: 16px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v9-studio {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+      opacity: 0.5;
+    }
+
+    .v9-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--ink);
+      margin-top: 4px;
+    }
+
+    .v9-perf {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      padding: 12px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v9-perf-dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.06);
+    }
+
+    .v9-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v9-row-label { font-size: 12px; color: var(--ink-mid); }
+    .v9-row-value { font-size: 13px; font-weight: 600; color: var(--ink); }
+
+    .v9-total {
+      margin-top: 8px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v9-footer {
+      text-align: center;
+      margin-top: 10px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v9-footer-barcode {
+      display: flex;
+      justify-content: center;
+      gap: 1px;
+      height: 18px;
+      align-items: flex-end;
+      margin-bottom: 4px;
+    }
+
+    .v9-footer-barcode .bar { background: var(--ink); opacity: 0.07; border-radius: 0.5px; }
+    .v9-footer-text { font-size: 7px; color: var(--ink-faint); letter-spacing: 2px; }
+
+    /* ═══════════════════════════════
+       VARIANT 10: Neon / Dark Cyber
+       Dark bg with neon accents
+    ═══════════════════════════════ */
+    .v10 {
+      background: linear-gradient(145deg, #0f0f1a, #1a1a2e, #16162a);
+      border-radius: 18px;
+      padding: 28px 24px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(91,179,228,0.15);
+      box-shadow:
+        0 0 0 1px rgba(91,179,228,0.05),
+        0 0 40px rgba(40,136,208,0.08),
+        0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .v10::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--blue-2), transparent);
+      opacity: 0.6;
+    }
+
+    .v10-neon-line {
+      position: absolute;
+      bottom: 30%;
+      left: -10%;
+      width: 120%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(76,192,176,0.3), transparent);
+      transform: rotate(-2deg);
+      pointer-events: none;
+    }
+
+    .v10-header {
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v10-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      background: rgba(40,167,69,0.12);
+      border: 1px solid rgba(40,167,69,0.2);
+      font-size: 12px;
+      font-weight: 600;
+      color: #4ade80;
+    }
+
+    .v10-id {
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
+      margin-top: 8px;
+      letter-spacing: 3px;
+      font-family: monospace;
+    }
+
+    .v10-sep {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91,179,228,0.15), transparent);
+      margin: 16px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v10-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v10-row + .v10-row { border-top: 1px solid rgba(255,255,255,0.04); }
+    .v10-label { font-size: 12px; color: rgba(255,255,255,0.35); }
+    .v10-value { font-size: 13px; font-weight: 600; }
+
+    .v10-total {
+      border-top: 1px solid rgba(91,179,228,0.12);
+      padding-top: 14px;
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v10-total-amount {
+      font-size: 22px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--blue-2), var(--teal));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .v10-footer {
+      text-align: center;
+      margin-top: 12px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v10-footer-text { font-size: 8px; color: rgba(255,255,255,0.15); letter-spacing: 3px; font-family: monospace; }
+
+    /* ═══════════════════════════════
+       VARIANT 11: Floating / Stacked
+       Cards layered on each other
+    ═══════════════════════════════ */
+    .v11-wrap {
+      position: relative;
+      padding: 12px 0 0 0;
+    }
+
+    .v11-back {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%) rotate(-2deg);
+      width: 88%;
+      max-width: 340px;
+      height: 100%;
+      background: rgba(40,136,208,0.06);
+      border-radius: 16px;
+      border: 1px solid rgba(40,136,208,0.08);
+      z-index: 0;
+    }
+
+    .v11-back2 {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%) rotate(1deg);
+      width: 90%;
+      max-width: 350px;
+      height: 100%;
+      background: rgba(91,179,228,0.04);
+      border-radius: 16px;
+      border: 1px solid rgba(91,179,228,0.06);
+      z-index: 1;
+    }
+
+    .v11 {
+      background: var(--paper);
+      border-radius: 16px;
+      padding: 28px 24px;
+      position: relative;
+      z-index: 2;
+      box-shadow:
+        0 1px 2px rgba(80,70,60,0.06),
+        0 4px 12px rgba(60,50,40,0.05),
+        0 8px 24px rgba(50,40,30,0.04),
+        0 16px 48px rgba(50,40,30,0.03);
+    }
+
+    .v11-header {
+      text-align: center;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v11-check {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(40,167,69,0.1), rgba(40,167,69,0.05));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+    }
+
+    .v11-check svg { width: 20px; height: 20px; color: var(--success); }
+
+    .v11-title { font-size: 15px; font-weight: 700; color: var(--ink); }
+    .v11-sub { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+
+    .v11-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 16px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v11-cell {
+      background: rgba(0,0,0,0.02);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .v11-cell-label { font-size: 10px; color: var(--ink-faint); margin-bottom: 4px; }
+    .v11-cell-value { font-size: 14px; font-weight: 700; color: var(--ink); }
+
+    .v11-total {
+      border-top: 2px dashed rgba(0,0,0,0.06);
+      padding-top: 12px;
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v11-footer {
+      text-align: center;
+      margin-top: 10px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v11-footer-text { font-size: 8px; color: var(--ink-faint); letter-spacing: 2px; }
+
+    /* ═══════════════════════════════
+       VARIANT 12: Minimal / Clean
+       Ultra-clean, lots of whitespace
+    ═══════════════════════════════ */
+    .v12 {
+      background: white;
+      border-radius: 12px;
+      padding: 32px 28px;
+      position: relative;
+      border: 1px solid rgba(0,0,0,0.04);
+      box-shadow:
+        0 1px 3px rgba(0,0,0,0.04),
+        0 4px 12px rgba(0,0,0,0.03);
+    }
+
+    .v12-header {
+      text-align: left;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .v12-studio { font-size: 18px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
+    .v12-tagline { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+
+    .v12-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .v12-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .v12-body { position: relative; z-index: 2; }
+
+    .v12-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .v12-row:last-child { border-bottom: none; }
+    .v12-label { font-size: 12px; color: var(--ink-mid); }
+    .v12-value { font-size: 13px; font-weight: 600; color: var(--ink); }
+
+    .v12-total {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 2px solid var(--ink);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .v12-total-label { font-size: 14px; font-weight: 600; color: var(--ink); }
+    .v12-total-amount { font-size: 24px; font-weight: 800; color: var(--ink); }
+
+    .v12-footer {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .v12-footer-left { font-size: 9px; color: var(--ink-faint); letter-spacing: 1px; }
+    .v12-footer-right { font-size: 9px; color: var(--ink-faint); font-family: monospace; }
+
+    /* ═══════════════════════════════
+       VARIANT 13: Claymorphism
+       Soft, 3D clay-like card
+    ═══════════════════════════════ */
+    .v13 {
+      background: linear-gradient(145deg, #f5f3ef, #ebe9e4);
+      border-radius: 24px;
+      padding: 28px 24px;
+      position: relative;
+      box-shadow:
+        8px 8px 20px rgba(180,170,155,0.25),
+        -4px -4px 12px rgba(255,255,255,0.7),
+        inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+
+    .v13-header {
+      text-align: center;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v13-icon-wrap {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #f0eeea, #e4e2dd);
+      box-shadow:
+        4px 4px 10px rgba(180,170,155,0.2),
+        -2px -2px 6px rgba(255,255,255,0.5),
+        inset 0 1px 0 rgba(255,255,255,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+    }
+
+    .v13-icon-wrap svg { width: 24px; height: 24px; color: var(--blue-4); }
+    .v13-title { font-size: 16px; font-weight: 700; color: var(--ink); }
+    .v13-sub { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+
+    .v13-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent);
+      margin: 16px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v13-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v13-row-label { font-size: 12px; color: var(--ink-mid); }
+    .v13-row-value { font-size: 13px; font-weight: 600; color: var(--ink); }
+
+    .v13-total {
+      background: linear-gradient(145deg, #f0eeea, #e8e6e1);
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow:
+        inset 2px 2px 5px rgba(180,170,155,0.15),
+        inset -2px -2px 5px rgba(255,255,255,0.4);
+      position: relative;
+      z-index: 2;
+    }
+
+    .v13-footer {
+      text-align: center;
+      margin-top: 14px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v13-footer-barcode {
+      display: flex;
+      justify-content: center;
+      gap: 1px;
+      height: 18px;
+      align-items: flex-end;
+      margin-bottom: 6px;
+    }
+
+    .v13-footer-barcode .bar { background: var(--ink); opacity: 0.06; border-radius: 0.5px; }
+    .v13-footer-text { font-size: 8px; color: var(--ink-faint); letter-spacing: 3px; }
+
+    /* ═══════════════════════════════
+       VARIANT 14: Ribbon / Award
+       Top ribbon header with fold
+    ═══════════════════════════════ */
+    .v14-wrap {
+      position: relative;
+      filter: drop-shadow(0 4px 12px rgba(80,70,60,0.1)) drop-shadow(0 12px 32px rgba(60,50,40,0.06));
+    }
+
+    .v14 {
+      background: var(--paper);
+      border-radius: 0 0 16px 16px;
+      padding: 28px 24px;
+      position: relative;
+      padding-top: 12px;
+    }
+
+    .v14-ribbon {
+      position: relative;
+      background: linear-gradient(135deg, var(--blue-2), var(--blue-4));
+      padding: 18px 24px 14px;
+      text-align: center;
+      margin: 0 -24px;
+      margin-top: -28px;
+      margin-bottom: 8px;
+      box-shadow: 0 4px 12px rgba(40,136,208,0.2);
+    }
+
+    /* Ribbon fold left */
+    .v14-ribbon::before {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 6px 0 0 8px;
+      border-color: #1d6a9e transparent transparent transparent;
+    }
+
+    /* Ribbon fold right */
+    .v14-ribbon::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 6px 8px 0 0;
+      border-color: #1d6a9e transparent transparent transparent;
+    }
+
+    .v14-ribbon-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .v14-ribbon-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,0.7);
+      margin-top: 2px;
+    }
+
+    .v14-sep {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      padding: 12px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v14-sep-dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.06);
+    }
+
+    .v14-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v14-row + .v14-row { border-top: 1px solid rgba(0,0,0,0.03); }
+
+    .v14-label { font-size: 12px; color: var(--ink-mid); }
+    .v14-value { font-size: 13px; font-weight: 600; color: var(--ink); }
+
+    .v14-total {
+      margin-top: 10px;
+      padding-top: 12px;
+      border-top: 2px dashed rgba(0,0,0,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v14-footer {
+      text-align: center;
+      margin-top: 12px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v14-footer-text { font-size: 8px; color: var(--ink-faint); letter-spacing: 3px; }
+
+    /* ═══════════════════════════════
+       VARIANT 15: Neumorphism
+       Soft UI with inner shadows
+    ═══════════════════════════════ */
+    .v15 {
+      background: #e0ddd8;
+      border-radius: 20px;
+      padding: 28px 24px;
+      position: relative;
+      box-shadow:
+        6px 6px 14px rgba(170,165,155,0.35),
+        -6px -6px 14px rgba(255,255,255,0.6);
+    }
+
+    .v15-header {
+      text-align: center;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v15-icon-outer {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: #e0ddd8;
+      box-shadow:
+        inset 3px 3px 6px rgba(170,165,155,0.35),
+        inset -3px -3px 6px rgba(255,255,255,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+    }
+
+    .v15-icon-outer svg { width: 24px; height: 24px; color: var(--blue-4); }
+    .v15-title { font-size: 15px; font-weight: 700; color: var(--ink); }
+
+    .v15-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,0,0,0.06), transparent);
+      margin: 16px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v15-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v15-row-label { font-size: 12px; color: var(--ink-mid); }
+    .v15-row-value { font-size: 13px; font-weight: 600; color: var(--ink); }
+
+    .v15-total {
+      background: #e0ddd8;
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow:
+        inset 2px 2px 5px rgba(170,165,155,0.25),
+        inset -2px -2px 5px rgba(255,255,255,0.4);
+      position: relative;
+      z-index: 2;
+    }
+
+    .v15-footer {
+      text-align: center;
+      margin-top: 14px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v15-footer-text { font-size: 8px; color: var(--ink-faint); letter-spacing: 3px; }
+
+    /* ═══════════════════════════════
+       VARIANT 16: Gradient Mesh
+       Subtle mesh gradient bg
+    ═══════════════════════════════ */
+    .v16 {
+      background:
+        radial-gradient(ellipse at 10% 20%, rgba(91,179,228,0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(76,192,176,0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(40,136,208,0.06) 0%, transparent 60%),
+        var(--paper);
+      border-radius: 18px;
+      padding: 28px 24px;
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.6);
+      box-shadow:
+        0 2px 4px rgba(80,70,60,0.06),
+        0 8px 24px rgba(60,50,40,0.05);
+    }
+
+    .v16-header {
+      text-align: center;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v16-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue-2), var(--teal));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      box-shadow: 0 4px 16px rgba(40,136,208,0.2);
+    }
+
+    .v16-icon svg { width: 22px; height: 22px; color: white; }
+
+    .v16-title { font-size: 15px; font-weight: 700; color: var(--ink); }
+    .v16-sub { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+
+    .v16-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(40,136,208,0.12), transparent);
+      margin: 16px 0;
+    }
+
+    .v16-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v16-row-label { font-size: 12px; color: var(--ink-mid); }
+    .v16-row-value { font-size: 13px; font-weight: 600; color: var(--ink); }
+
+    .v16-total {
+      background: linear-gradient(135deg, rgba(40,136,208,0.08), rgba(76,192,176,0.05));
+      border: 1px solid rgba(40,136,208,0.08);
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v16-footer {
+      text-align: center;
+      margin-top: 14px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .v16-footer-barcode {
+      display: flex;
+      justify-content: center;
+      gap: 1px;
+      height: 20px;
+      align-items: flex-end;
+      margin-bottom: 6px;
+    }
+
+    .v16-footer-barcode .bar { background: var(--ink); opacity: 0.06; border-radius: 0.5px; }
+    .v16-footer-text { font-size: 8px; color: var(--ink-faint); letter-spacing: 3px; }
+
+  </style>
+</head>
+<body>
+
+  <h1 class="page-title">creative receipt variants</h1>
+  <p class="page-sub">trending styles: glassmorphism, neumorphism, claymorphism, neon, gradient mesh</p>
+
+  <div class="variants">
+
+    <!-- ═══ VARIANT 6: Glassmorphism ═══ -->
+    <div>
+      <div class="variant-label">variant 6 — glassmorphism</div>
+      <div class="v6">
+        <div class="v6-glow v6-glow-1"></div>
+        <div class="v6-glow v6-glow-2"></div>
+
+        <div class="v6-header">
+          <div class="v6-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="v6-title">رزرو ثبت شد</div>
+          <div class="v6-sub">فورهند نیل استودیو — #A3F7</div>
+        </div>
+
+        <div class="v6-divider"></div>
+
+        <div class="v6-row">
+          <span class="v6-row-label">خدمت</span>
+          <span class="v6-row-value">ژل پولیش ناخن</span>
+        </div>
+        <div class="v6-row">
+          <span class="v6-row-label">تاریخ</span>
+          <span class="v6-row-value">۲۹ تیر ۱۴۰۵</span>
+        </div>
+        <div class="v6-row">
+          <span class="v6-row-label">ساعت</span>
+          <span class="v6-row-value">۱۰:۳۰ - ۱۱:۳۰</span>
+        </div>
+        <div class="v6-row">
+          <span class="v6-row-label">مدت</span>
+          <span class="v6-row-value">۶۰ دقیقه</span>
+        </div>
+
+        <div class="v6-total">
+          <span class="v6-total-label">هزینه کل</span>
+          <span>
+            <span class="v6-total-amount">۴۵۰,۰۰۰</span>
+            <span class="v6-total-currency">تومان</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VARIANT 7: Stamp / Seal ═══ -->
+    <div>
+      <div class="variant-label">variant 7 — stamp & seal</div>
+      <div class="v7-wrap">
+        <div class="v7">
+          <div class="v7-stamp">
+            <div class="v7-stamp-ring"></div>
+            <div class="v7-stamp-text">CONFIRMED</div>
+            <svg class="v7-stamp-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+
+          <div class="v7-header">
+            <div class="v7-status">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg>
+              رزرو ثبت شد
+            </div>
+            <div class="v7-id">#A3F7</div>
+          </div>
+
+          <div class="v7-sep"></div>
+
+          <div class="v7-row">
+            <span class="v7-row-label">خدمت</span>
+            <span class="v7-row-value">ژل پولیش ناخن</span>
+          </div>
+          <div class="v7-row">
+            <span class="v7-row-label">تاریخ</span>
+            <span class="v7-row-value">۲۹ تیر ۱۴۰۵</span>
+          </div>
+          <div class="v7-row">
+            <span class="v7-row-label">ساعت</span>
+            <span class="v7-row-value">۱۰:۳۰ - ۱۱:۳۰</span>
+          </div>
+          <div class="v7-row">
+            <span class="v7-row-label">مدت</span>
+            <span class="v7-row-value">۶۰ دقیقه</span>
+          </div>
+
+          <div class="v7-total">
+            <span style="font-size:13px;color:var(--ink-mid)">هزینه کل</span>
+            <span style="font-size:20px;font-weight:800;color:var(--blue-4)">۴۵۰,۰۰۰ <span style="font-size:12px;color:var(--ink-faint)">تومان</span></span>
+          </div>
+
+          <div class="v7-footer">
+            <div class="v7-footer-barcode" id="barcode7"></div>
+            <div class="v7-footer-text">FOREHAND NAIL STUDIO</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VARIANT 8: Gradient Border ═══ -->
+    <div>
+      <div class="variant-label">variant 8 — gradient border</div>
+      <div class="v8-wrap">
+        <div class="v8-inner paper-tex">
+          <div class="v8-header">
+            <div class="v8-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+            </div>
+            <div class="v8-title">فورهند نیل استودیو</div>
+          </div>
+
+          <div class="v8-divider"></div>
+
+          <div class="v8-row">
+            <span class="v8-row-label">خدمت</span>
+            <span class="v8-row-value">ژل پولیش ناخن</span>
+          </div>
+          <div class="v8-row">
+            <span class="v8-row-label">تاریخ</span>
+            <span class="v8-row-value">۲۹ تیر ۱۴۰۵</span>
+          </div>
+          <div class="v8-row">
+            <span class="v8-row-label">ساعت</span>
+            <span class="v8-row-value">۱۰:۳۰ - ۱۱:۳۰</span>
+          </div>
+          <div class="v8-row">
+            <span class="v8-row-label">مدت</span>
+            <span class="v8-row-value">۶۰ دقیقه</span>
+          </div>
+
+          <div class="v8-total">
+            <span style="font-size:13px;color:var(--ink-mid)">هزینه کل</span>
+            <span style="font-size:20px;font-weight:800;color:var(--blue-4)">۴۵۰,۰۰۰ <span style="font-size:12px;color:var(--ink-faint)">تومان</span></span>
+          </div>
+
+          <div class="v8-footer">
+            <div class="v8-footer-text">FOREHAND NAIL STUDIO — #A3F7</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VARIANT 9: Paper Torn ═══ -->
+    <div>
+      <div class="variant-label">variant 9 — torn paper</div>
+      <div class="v9-wrap">
+        <div class="v9">
+          <svg class="v9-torn-top" viewBox="0 0 400 8" preserveAspectRatio="none">
+            <path d="M0,8 L0,3 Q5,0 10,4 Q15,7 20,2 Q25,0 30,5 Q35,8 40,3 Q45,0 50,4 Q55,7 60,2 Q65,0 70,5 Q75,8 80,3 Q85,0 90,4 Q95,7 100,2 Q105,0 110,5 Q115,8 120,3 Q125,0 130,4 Q135,7 140,2 Q145,0 150,5 Q155,8 160,3 Q165,0 170,4 Q175,7 180,2 Q185,0 190,5 Q195,8 200,3 Q205,0 210,4 Q215,7 220,2 Q225,0 230,5 Q235,8 240,3 Q245,0 250,4 Q255,7 260,2 Q265,0 270,5 Q275,8 280,3 Q285,0 290,4 Q295,7 300,2 Q305,0 310,5 Q315,8 320,3 Q325,0 330,4 Q335,7 340,2 Q345,0 350,5 Q355,8 360,3 Q365,0 370,4 Q375,7 380,2 Q385,0 390,5 Q395,8 400,3 L400,8 Z" fill="var(--paper)"/>
+          </svg>
+
+          <div class="v9-header">
+            <div class="v9-studio">FOREHAND NAIL STUDIO</div>
+            <div class="v9-title">رزرو #A3F7</div>
+          </div>
+
+          <div class="v9-perf" id="perf9"></div>
+
+          <div class="v9-row">
+            <span class="v9-row-label">خدمت</span>
+            <span class="v9-row-value">ژل پولیش ناخن</span>
+          </div>
+          <div class="v9-row">
+            <span class="v9-row-label">تاریخ</span>
+            <span class="v9-row-value">۲۹ تیر ۱۴۰۵</span>
+          </div>
+          <div class="v9-row">
+            <span class="v9-row-label">ساعت</span>
+            <span class="v9-row-value">۱۰:۳۰ - ۱۱:۳۰</span>
+          </div>
+          <div class="v9-row">
+            <span class="v9-row-label">مدت</span>
+            <span class="v9-row-value">۶۰ دقیقه</span>
+          </div>
+
+          <div class="v9-total">
+            <span style="font-size:13px;color:var(--ink-mid)">هزینه کل</span>
+            <span style="font-size:20px;font-weight:800;color:var(--blue-4)">۴۵۰,۰۰۰ <span style="font-size:12px;color:var(--ink-faint)">تومان</span></span>
+          </div>
+
+          <div class="v9-footer">
+            <div class="v9-footer-barcode" id="barcode9"></div>
+            <div class="v9-footer-text">FOREHAND NAIL STUDIO</div>
+          </div>
+
+          <svg class="v9-torn-bottom" viewBox="0 0 400 8" preserveAspectRatio="none">
+            <path d="M0,0 L0,5 Q5,8 10,4 Q15,1 20,6 Q25,8 30,3 Q35,0 40,5 Q45,8 50,4 Q55,1 60,6 Q65,8 70,3 Q75,0 80,5 Q85,8 90,4 Q95,1 100,6 Q105,8 110,3 Q115,0 120,5 Q125,8 130,4 Q135,1 140,6 Q145,8 150,3 Q155,0 160,5 Q165,8 170,4 Q175,1 180,6 Q185,8 190,3 Q195,0 200,5 Q205,8 210,4 Q215,1 220,6 Q225,8 230,3 Q235,0 240,5 Q245,8 250,4 Q255,1 260,6 Q265,8 270,3 Q275,0 280,5 Q285,8 290,4 Q295,1 300,6 Q305,8 310,3 Q315,0 320,5 Q325,8 330,4 Q335,1 340,6 Q345,8 350,3 Q355,0 360,5 Q365,8 370,4 Q375,1 380,6 Q385,8 390,3 Q395,0 400,5 L400,0 Z" fill="var(--paper)"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VARIANT 10: Neon / Cyber Dark ═══ -->
+    <div>
+      <div class="variant-label">variant 10 — neon cyber</div>
+      <div class="v10">
+        <div class="v10-neon-line"></div>
+
+        <div class="v10-header">
+          <div class="v10-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg>
+            رزرو ثبت شد
+          </div>
+          <div class="v10-id">#A3F7</div>
+        </div>
+
+        <div class="v10-sep"></div>
+
+        <div class="v10-row">
+          <span class="v10-label">خدمت</span>
+          <span class="v10-value">ژل پولیش ناخن</span>
+        </div>
+        <div class="v10-row">
+          <span class="v10-label">تاریخ</span>
+          <span class="v10-value">۲۹ تیر ۱۴۰۵</span>
+        </div>
+        <div class="v10-row">
+          <span class="v10-label">ساعت</span>
+          <span class="v10-value">۱۰:۳۰ - ۱۱:۳۰</span>
+        </div>
+        <div class="v10-row">
+          <span class="v10-label">مدت</span>
+          <span class="v10-value">۶۰ دقیقه</span>
+        </div>
+
+        <div class="v10-total">
+          <span class="v10-label">هزینه کل</span>
+          <span class="v10-total-amount">۴۵۰,۰۰۰ تومان</span>
+        </div>
+
+        <div class="v10-footer">
+          <div class="v10-footer-text">FOREHAND NAIL STUDIO</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VARIANT 11: Floating Stacked ═══ -->
+    <div>
+      <div class="variant-label">variant 11 — floating stacked</div>
+      <div class="v11-wrap">
+        <div class="v11-back"></div>
+        <div class="v11-back2"></div>
+        <div class="v11">
+          <div class="v11-header">
+            <div class="v11-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="v11-title">رزرو ثبت شد</div>
+            <div class="v11-sub">فورهند نیل استودیو — #A3F7</div>
+          </div>
+
+          <div class="v11-grid">
+            <div class="v11-cell">
+              <div class="v11-cell-label">تاریخ</div>
+              <div class="v11-cell-value">۲۹ تیر</div>
+            </div>
+            <div class="v11-cell">
+              <div class="v11-cell-label">ساعت</div>
+              <div class="v11-cell-value">۱۰:۳۰</div>
+            </div>
+            <div class="v11-cell">
+              <div class="v11-cell-label">مدت</div>
+              <div class="v11-cell-value">۶۰ دقیقه</div>
+            </div>
+            <div class="v11-cell">
+              <div class="v11-cell-label">هزینه</div>
+              <div class="v11-cell-value" style="color:var(--blue-4)">۴۵۰K</div>
+            </div>
+          </div>
+
+          <div class="v11-total">
+            <span style="font-size:13px;color:var(--ink-mid)">هزینه کل</span>
+            <span style="font-size:20px;font-weight:800;color:var(--ink)">۴۵۰,۰۰۰ <span style="font-size:12px;color:var(--ink-faint)">تومان</span></span>
+          </div>
+
+          <div class="v11-footer">
+            <div class="v11-footer-text">FOREHAND NAIL STUDIO</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VARIANT 12: Minimal Clean ═══ -->
+    <div>
+      <div class="variant-label">variant 12 — minimal clean</div>
+      <div class="v12">
+        <div class="v12-header">
+          <div class="v12-studio">فورهند نیل استودیو</div>
+          <div class="v12-tagline">Nail Art & Design Studio</div>
+          <div class="v12-status">
+            <div class="v12-status-dot"></div>
+            رزرو تایید شده
+          </div>
+        </div>
+
+        <div class="v12-body">
+          <div class="v12-row">
+            <span class="v12-label">خدمت</span>
+            <span class="v12-value">ژل پولیش ناخن</span>
+          </div>
+          <div class="v12-row">
+            <span class="v12-label">تاریخ</span>
+            <span class="v12-value">۲۹ تیر ۱۴۰۵</span>
+          </div>
+          <div class="v12-row">
+            <span class="v12-label">ساعت</span>
+            <span class="v12-value">۱۰:۳۰ - ۱۱:۳۰</span>
+          </div>
+          <div class="v12-row">
+            <span class="v12-label">مدت</span>
+            <span class="v12-value">۶۰ دقیقه</span>
+          </div>
+
+          <div class="v12-total">
+            <span class="v12-total-label">هزینه کل</span>
+            <span class="v12-total-amount">۴۵۰,۰۰۰ <span style="font-size:14px;color:var(--ink-mid);font-weight:500">تومان</span></span>
+          </div>
+        </div>
+
+        <div class="v12-footer">
+          <span class="v12-footer-left">FOREHAND NAIL STUDIO</span>
+          <span class="v12-footer-right">#A3F7</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VARIANT 13: Claymorphism ═══ -->
+    <div>
+      <div class="variant-label">variant 13 — claymorphism</div>
+      <div class="v13">
+        <div class="v13-header">
+          <div class="v13-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+          </div>
+          <div class="v13-title">فورهند نیل استودیو</div>
+          <div class="v13-sub">رزرو #A3F7</div>
+        </div>
+
+        <div class="v13-divider"></div>
+
+        <div class="v13-row">
+          <span class="v13-row-label">خدمت</span>
+          <span class="v13-row-value">ژل پولیش ناخن</span>
+        </div>
+        <div class="v13-row">
+          <span class="v13-row-label">تاریخ</span>
+          <span class="v13-row-value">۲۹ تیر ۱۴۰۵</span>
+        </div>
+        <div class="v13-row">
+          <span class="v13-row-label">ساعت</span>
+          <span class="v13-row-value">۱۰:۳۰ - ۱۱:۳۰</span>
+        </div>
+        <div class="v13-row">
+          <span class="v13-row-label">مدت</span>
+          <span class="v13-row-value">۶۰ دقیقه</span>
+        </div>
+
+        <div class="v13-total">
+          <span style="font-size:13px;color:var(--ink-mid)">هزینه کل</span>
+          <span style="font-size:20px;font-weight:800;color:var(--blue-4)">۴۵۰,۰۰۰ <span style="font-size:12px;color:var(--ink-faint)">تومان</span></span>
+        </div>
+
+        <div class="v13-footer">
+          <div class="v13-footer-barcode" id="barcode13"></div>
+          <div class="v13-footer-text">FOREHAND NAIL STUDIO</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VARIANT 14: Ribbon / Award ═══ -->
+    <div>
+      <div class="variant-label">variant 14 — ribbon header</div>
+      <div class="v14-wrap">
+        <div class="v14">
+          <div class="v14-ribbon">
+            <div class="v14-ribbon-title">رزرو ثبت شد</div>
+            <div class="v14-ribbon-sub">#A3F7</div>
+          </div>
+
+          <div class="v14-sep" id="perf14"></div>
+
+          <div class="v14-row">
+            <span class="v14-label">خدمت</span>
+            <span class="v14-value">ژل پولیش ناخن</span>
+          </div>
+          <div class="v14-row">
+            <span class="v14-label">تاریخ</span>
+            <span class="v14-value">۲۹ تیر ۱۴۰۵</span>
+          </div>
+          <div class="v14-row">
+            <span class="v14-label">ساعت</span>
+            <span class="v14-value">۱۰:۳۰ - ۱۱:۳۰</span>
+          </div>
+          <div class="v14-row">
+            <span class="v14-label">مدت</span>
+            <span class="v14-value">۶۰ دقیقه</span>
+          </div>
+
+          <div class="v14-total">
+            <span style="font-size:13px;color:var(--ink-mid)">هزینه کل</span>
+            <span style="font-size:20px;font-weight:800;color:var(--blue-4)">۴۵۰,۰۰۰ <span style="font-size:12px;color:var(--ink-faint)">تومان</span></span>
+          </div>
+
+          <div class="v14-footer">
+            <div class="v14-footer-text">FOREHAND NAIL STUDIO</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VARIANT 15: Neumorphism ═══ -->
+    <div>
+      <div class="variant-label">variant 15 — neumorphism</div>
+      <div class="v15">
+        <div class="v15-header">
+          <div class="v15-icon-outer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="v15-title">رزرو ثبت شد</div>
+        </div>
+
+        <div class="v15-divider"></div>
+
+        <div class="v15-row">
+          <span class="v15-row-label">خدمت</span>
+          <span class="v15-row-value">ژل پولیش ناخن</span>
+        </div>
+        <div class="v15-row">
+          <span class="v15-row-label">تاریخ</span>
+          <span class="v15-row-value">۲۹ تیر ۱۴۰۵</span>
+        </div>
+        <div class="v15-row">
+          <span class="v15-row-label">ساعت</span>
+          <span class="v15-row-value">۱۰:۳۰ - ۱۱:۳۰</span>
+        </div>
+        <div class="v15-row">
+          <span class="v15-row-label">مدت</span>
+          <span class="v15-row-value">۶۰ دقیقه</span>
+        </div>
+
+        <div class="v15-total">
+          <span style="font-size:13px;color:var(--ink-mid)">هزینه کل</span>
+          <span style="font-size:20px;font-weight:800;color:var(--blue-4)">۴۵۰,۰۰۰ <span style="font-size:12px;color:var(--ink-faint)">تومان</span></span>
+        </div>
+
+        <div class="v15-footer">
+          <div class="v15-footer-text">FOREHAND NAIL STUDIO — #A3F7</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VARIANT 16: Gradient Mesh ═══ -->
+    <div>
+      <div class="variant-label">variant 16 — gradient mesh</div>
+      <div class="v16">
+        <div class="v16-header">
+          <div class="v16-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="v16-title">رزرو ثبت شد</div>
+          <div class="v16-sub">فورهند نیل استودیو — #A3F7</div>
+        </div>
+
+        <div class="v16-divider"></div>
+
+        <div class="v16-row">
+          <span class="v16-row-label">خدمت</span>
+          <span class="v16-row-value">ژل پولیش ناخن</span>
+        </div>
+        <div class="v16-row">
+          <span class="v16-row-label">تاریخ</span>
+          <span class="v16-row-value">۲۹ تیر ۱۴۰۵</span>
+        </div>
+        <div class="v16-row">
+          <span class="v16-row-label">ساعت</span>
+          <span class="v16-row-value">۱۰:۳۰ - ۱۱:۳۰</span>
+        </div>
+        <div class="v16-row">
+          <span class="v16-row-label">مدت</span>
+          <span class="v16-row-value">۶۰ دقیقه</span>
+        </div>
+
+        <div class="v16-total">
+          <span style="font-size:13px;color:var(--ink-mid)">هزینه کل</span>
+          <span style="font-size:20px;font-weight:800;color:var(--blue-4)">۴۵۰,۰۰۰ <span style="font-size:12px;color:var(--ink-faint)">تومان</span></span>
+        </div>
+
+        <div class="v16-footer">
+          <div class="v16-footer-barcode" id="barcode16"></div>
+          <div class="v16-footer-text">FOREHAND NAIL STUDIO</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Generate barcodes
+    function genBarcode(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      [2,1,3,1,2,1,1,3,1,2,1,3,1,1,2,1,3,1,2,1,1,3,1,2,1,3,1,2,1,1,3,1,2,1,3,1,1,2,1,3,1,2,1,1,3,1,2,1,3,1,2,1,1,3,1,2,1,3,1,1,2,1].forEach(w => {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.width = w + 'px';
+        bar.style.height = (18 + Math.random() * 8) + 'px';
+        el.appendChild(bar);
+      });
+    }
+
+    // Generate perforation dots
+    function genPerf(id, count) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      for (let i = 0; i < count; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'perf-dot';
+        el.appendChild(dot);
+      }
+    }
+
+    genBarcode('barcode7');
+    genBarcode('barcode9');
+    genBarcode('barcode13');
+    genBarcode('barcode16');
+    genPerf('perf9', 30);
+    genPerf('perf14', 20);
+  </script>
+
+</body>
+</html>
