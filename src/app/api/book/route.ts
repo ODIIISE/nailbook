@@ -109,6 +109,55 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "مدت زمان سرویس با زمان انتخابی مطابقت ندارد" }, { status: 400 });
     }
 
+    // Step 8b: Validate booking is within working hours and not on a day off
+    const { rows: salonFullRows } = await client.query(
+      `SELECT working_hours, specific_days_off FROM salon_info LIMIT 1`
+    );
+    if (salonFullRows[0]) {
+      // Check specific days off
+      const daysOff = salonFullRows[0].specific_days_off;
+      if (Array.isArray(daysOff) && daysOff.includes(date_gregorian)) {
+        await client.query("ROLLBACK");
+        return NextResponse.json({ error: "این روز تعطیل است", conflict: true }, { status: 409 });
+      }
+
+      // Check working hours for the booking's day of week
+      const workingHours = salonFullRows[0].working_hours;
+      if (workingHours && typeof workingHours === "object") {
+        // Determine day of week from date_gregorian (YYYY-MM-DD)
+        const [y, m, d] = date_gregorian.split("-").map(Number);
+        const jsDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+        const jsDay = jsDate.getDay();
+        const dayMap = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+        const iranDay = dayMap[jsDay === 6 ? 0 : jsDay + 1]; // JS 0=Sun → Iran "sun", etc.
+        const dayHours = workingHours[iranDay];
+
+        if (!dayHours) {
+          await client.query("ROLLBACK");
+          return NextResponse.json({ error: "سالن در این روز تعطیل است", conflict: true }, { status: 409 });
+        }
+
+        // Validate start_time >= open and end_time <= close (with overflow allowance)
+        const openMinutes = parseInt(dayHours.open.split(":")[0]) * 60 + parseInt(dayHours.open.split(":")[1]);
+        const closeMinutes = parseInt(dayHours.close.split(":")[0]) * 60 + parseInt(dayHours.close.split(":")[1]);
+        const startMinutes = sH * 60 + sM;
+        const endMinutes = expectedEndMinutes;
+
+        // Allow overflow up to overflow_minutes past closing
+        const { rows: overflowRows } = await client.query(
+          `SELECT allow_overflow, overflow_minutes FROM salon_info LIMIT 1`
+        );
+        const allowOverflow = overflowRows[0]?.allow_overflow ?? false;
+        const overflowMinutes = overflowRows[0]?.overflow_minutes ?? 0;
+        const hardEndLimit = closeMinutes + (allowOverflow ? overflowMinutes : 0);
+
+        if (startMinutes < openMinutes || endMinutes > hardEndLimit) {
+          await client.query("ROLLBACK");
+          return NextResponse.json({ error: "ساعت رزرو خارج از ساعات کاری است", conflict: true }, { status: 409 });
+        }
+      }
+    }
+
     // Step 9: Atomic INSERT with ON CONFLICT — eliminates TOCTOU race condition
     // The unique index idx_bookings_no_overlap covers (date_gregorian, start_time, end_time)
     // for both 'reserved' and 'confirmed' statuses, so concurrent requests will conflict at DB level

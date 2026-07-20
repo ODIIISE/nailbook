@@ -28,6 +28,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
     }
 
+    // Reject common weak PINs
+    const weakPins = ["0000", "1111", "2222", "3333", "4444", "5555", "6666", "7777", "8888", "9999", "1234", "4321", "1212", "1010"];
+    if (weakPins.includes(cleanPin)) {
+      return NextResponse.json({ error: "رمز انتخابی بسیار ساده است" }, { status: 400 });
+    }
+
     const storedPin = storePin(cleanPin);
 
     const { rows: existing } = await sql`SELECT id, pin FROM users WHERE phone = ${normalized}`;
