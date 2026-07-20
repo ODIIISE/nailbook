@@ -248,7 +248,7 @@ export default function OwnerDashboard() {
             className="flex-1"
             onClick={() => setShowBlockTime(true)}
           >
-            <Plus className="h-4 w-4 ml-1" />
+            <Plus className="h-4 w-4 ms-1" />
             مسدود کردن زمان
           </Button>
           <Button
@@ -256,7 +256,7 @@ export default function OwnerDashboard() {
             className="flex-1"
             onClick={() => setShowManualReserve(true)}
           >
-            <Plus className="h-4 w-4 ml-1" />
+            <Plus className="h-4 w-4 ms-1" />
             رزرو دستی
           </Button>
         </div>
