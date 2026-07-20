@@ -54,60 +54,74 @@ export async function POST(request: NextRequest) {
 
     const salonId = existing[0].id;
 
-    // Update each field individually using tagged template literals
-    if (safeUpdates.name !== undefined) {
-      await sql`UPDATE salon_info SET name = ${safeUpdates.name} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.description !== undefined) {
-      await sql`UPDATE salon_info SET description = ${safeUpdates.description} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.slogan !== undefined) {
-      await sql`UPDATE salon_info SET slogan = ${safeUpdates.slogan} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.phone !== undefined) {
-      await sql`UPDATE salon_info SET phone = ${safeUpdates.phone} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.address !== undefined) {
-      await sql`UPDATE salon_info SET address = ${safeUpdates.address} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.hero_image_url !== undefined) {
-      await sql`UPDATE salon_info SET hero_image_url = ${safeUpdates.hero_image_url} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.logo_url !== undefined) {
-      await sql`UPDATE salon_info SET logo_url = ${safeUpdates.logo_url} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.working_hours_text !== undefined) {
-      await sql`UPDATE salon_info SET working_hours_text = ${safeUpdates.working_hours_text} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.working_hours !== undefined) {
-      await sql`UPDATE salon_info SET working_hours = ${JSON.stringify(safeUpdates.working_hours)}::jsonb WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.specific_days_off !== undefined) {
-      await sql`UPDATE salon_info SET specific_days_off = ${JSON.stringify(safeUpdates.specific_days_off)}::jsonb WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.slot_buffer_minutes !== undefined) {
-      await sql`UPDATE salon_info SET slot_buffer_minutes = ${safeUpdates.slot_buffer_minutes} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.slot_interval_minutes !== undefined) {
-      await sql`UPDATE salon_info SET slot_interval_minutes = ${safeUpdates.slot_interval_minutes} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.early_extra_hours !== undefined) {
-      await sql`UPDATE salon_info SET early_extra_hours = ${safeUpdates.early_extra_hours} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.late_extra_hours !== undefined) {
-      await sql`UPDATE salon_info SET late_extra_hours = ${safeUpdates.late_extra_hours} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.expand_threshold !== undefined) {
-      await sql`UPDATE salon_info SET expand_threshold = ${safeUpdates.expand_threshold} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.proximity_window_hours !== undefined) {
-      await sql`UPDATE salon_info SET proximity_window_hours = ${safeUpdates.proximity_window_hours} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.allow_overflow !== undefined) {
-      await sql`UPDATE salon_info SET allow_overflow = ${safeUpdates.allow_overflow} WHERE id = ${salonId}`;
-    }
-    if (safeUpdates.overflow_minutes !== undefined) {
-      await sql`UPDATE salon_info SET overflow_minutes = ${safeUpdates.overflow_minutes} WHERE id = ${salonId}`;
+    // Wrap all updates in a transaction for atomicity
+    let client;
+    try {
+      client = await sql.connect();
+      await client.query("BEGIN");
+
+      // Update each field individually using tagged template literals
+      if (safeUpdates.name !== undefined) {
+        await client.query("UPDATE salon_info SET name = $1 WHERE id = $2", [safeUpdates.name, salonId]);
+      }
+      if (safeUpdates.description !== undefined) {
+        await client.query("UPDATE salon_info SET description = $1 WHERE id = $2", [safeUpdates.description, salonId]);
+      }
+      if (safeUpdates.slogan !== undefined) {
+        await client.query("UPDATE salon_info SET slogan = $1 WHERE id = $2", [safeUpdates.slogan, salonId]);
+      }
+      if (safeUpdates.phone !== undefined) {
+        await client.query("UPDATE salon_info SET phone = $1 WHERE id = $2", [safeUpdates.phone, salonId]);
+      }
+      if (safeUpdates.address !== undefined) {
+        await client.query("UPDATE salon_info SET address = $1 WHERE id = $2", [safeUpdates.address, salonId]);
+      }
+      if (safeUpdates.hero_image_url !== undefined) {
+        await client.query("UPDATE salon_info SET hero_image_url = $1 WHERE id = $2", [safeUpdates.hero_image_url, salonId]);
+      }
+      if (safeUpdates.logo_url !== undefined) {
+        await client.query("UPDATE salon_info SET logo_url = $1 WHERE id = $2", [safeUpdates.logo_url, salonId]);
+      }
+      if (safeUpdates.working_hours_text !== undefined) {
+        await client.query("UPDATE salon_info SET working_hours_text = $1 WHERE id = $2", [safeUpdates.working_hours_text, salonId]);
+      }
+      if (safeUpdates.working_hours !== undefined) {
+        await client.query("UPDATE salon_info SET working_hours = $1 WHERE id = $2", [JSON.stringify(safeUpdates.working_hours), salonId]);
+      }
+      if (safeUpdates.specific_days_off !== undefined) {
+        await client.query("UPDATE salon_info SET specific_days_off = $1 WHERE id = $2", [JSON.stringify(safeUpdates.specific_days_off), salonId]);
+      }
+      if (safeUpdates.slot_buffer_minutes !== undefined) {
+        await client.query("UPDATE salon_info SET slot_buffer_minutes = $1 WHERE id = $2", [safeUpdates.slot_buffer_minutes, salonId]);
+      }
+      if (safeUpdates.slot_interval_minutes !== undefined) {
+        await client.query("UPDATE salon_info SET slot_interval_minutes = $1 WHERE id = $2", [safeUpdates.slot_interval_minutes, salonId]);
+      }
+      if (safeUpdates.early_extra_hours !== undefined) {
+        await client.query("UPDATE salon_info SET early_extra_hours = $1 WHERE id = $2", [safeUpdates.early_extra_hours, salonId]);
+      }
+      if (safeUpdates.late_extra_hours !== undefined) {
+        await client.query("UPDATE salon_info SET late_extra_hours = $1 WHERE id = $2", [safeUpdates.late_extra_hours, salonId]);
+      }
+      if (safeUpdates.expand_threshold !== undefined) {
+        await client.query("UPDATE salon_info SET expand_threshold = $1 WHERE id = $2", [safeUpdates.expand_threshold, salonId]);
+      }
+      if (safeUpdates.proximity_window_hours !== undefined) {
+        await client.query("UPDATE salon_info SET proximity_window_hours = $1 WHERE id = $2", [safeUpdates.proximity_window_hours, salonId]);
+      }
+      if (safeUpdates.allow_overflow !== undefined) {
+        await client.query("UPDATE salon_info SET allow_overflow = $1 WHERE id = $2", [safeUpdates.allow_overflow, salonId]);
+      }
+      if (safeUpdates.overflow_minutes !== undefined) {
+        await client.query("UPDATE salon_info SET overflow_minutes = $1 WHERE id = $2", [safeUpdates.overflow_minutes, salonId]);
+      }
+
+      await client.query("COMMIT");
+    } catch (e) {
+      if (client) try { await client.query("ROLLBACK"); } catch {}
+      throw e;
+    } finally {
+      if (client) client.release();
     }
 
     // Determine what was updated for logging

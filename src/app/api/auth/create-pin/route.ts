@@ -52,10 +52,18 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = crypto.randomUUID();
-    await sql`
-      INSERT INTO users (id, phone, pin, name, role)
-      VALUES (${userId}, ${normalized}, ${storedPin}, ${trimmedName}, 'customer')
-    `;
+    try {
+      await sql`
+        INSERT INTO users (id, phone, pin, name, role)
+        VALUES (${userId}, ${normalized}, ${storedPin}, ${trimmedName}, 'customer')
+      `;
+    } catch (e: any) {
+      // Handle race condition: another signup completed between our SELECT and INSERT
+      if (e?.code === "23505") {
+        return NextResponse.json({ error: "این شماره قبلاً ثبت شده" }, { status: 409 });
+      }
+      throw e;
+    }
 
     // Log new user registration
     logActivity({

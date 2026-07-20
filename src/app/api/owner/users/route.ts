@@ -27,6 +27,13 @@ export async function POST(request: NextRequest) {
     if (!phone) return NextResponse.json({ error: "شماره الزامی است" }, { status: 400 });
     if (!name || !name.trim()) return NextResponse.json({ error: "نام الزامی است" }, { status: 400 });
 
+    // Validate PIN is exactly 4 digits if provided
+    if (pin !== undefined && pin !== null && pin !== "") {
+      if (String(pin).length !== 4 || !/^\d{4}$/.test(String(pin))) {
+        return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
+      }
+    }
+
     const validRole = role === "owner" ? "owner" : "customer";
     const userId = crypto.randomUUID();
     const hashedPin = pin ? storePin(String(pin)) : null;
@@ -92,7 +99,10 @@ export async function PUT(request: NextRequest) {
       }
       await sql`UPDATE users SET role = ${body.role} WHERE id = ${userId}`;
     }
-    if (body.pin !== undefined && String(body.pin).length === 4) {
+    if (body.pin !== undefined && body.pin !== null && body.pin !== "") {
+      if (String(body.pin).length !== 4 || !/^\d{4}$/.test(String(body.pin))) {
+        return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
+      }
       await sql`UPDATE users SET pin = ${storePin(String(body.pin))}, failed_attempts = 0, locked_until = NULL WHERE id = ${userId}`;
     }
 

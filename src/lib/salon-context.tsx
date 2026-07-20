@@ -404,27 +404,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Store all callbacks in a ref to avoid triggering useMemo re-renders
-  const callbacksRef = useRef({
-    handleUpdateWorkingHours,
-    handleUpdateSpecificDaysOff,
-    handleSaveSchedule,
-    handleUpdateServices,
-    handleUpdateAddons,
-    handleUpdateSalon,
-    handleUpdateBlockedTimes,
-    handleAddBooking,
-    handleCancelBooking,
-    refreshBookings,
-    refreshSalonData,
-    handleAddHighlight,
-    handleUpdateHighlight,
-    handleRemoveHighlight,
-    handleAddHighlightImage,
-    handleRemoveHighlightImage,
-    handleUploadHighlightImage,
-    handleToggleBookingPaid,
-    handleUpdateBookingStatus,
-  });
+  const callbacksRef = useRef<any>(null);
   callbacksRef.current = {
     handleUpdateWorkingHours,
     handleUpdateSpecificDaysOff,
