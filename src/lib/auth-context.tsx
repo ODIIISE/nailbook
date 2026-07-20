@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 
 interface User {
   id: string;
@@ -22,19 +22,22 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 const STORAGE_KEY = "nailbook_user";
 
+/** Synchronously read user from localStorage (avoids flash) */
+function getInitialUser(): User | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Initialize synchronously from localStorage — no flash
+  const [user, setUser] = useState<User | null>(getInitialUser);
+  const [isLoading] = useState(false); // Already hydrated synchronously
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setUser(JSON.parse(stored));
-    } catch { /* ignore */ }
-    setIsLoading(false);
-  }, []);
-
-  // Step 1: Check if phone exists and has PIN
   const checkPhone = useCallback(async (phone: string) => {
     try {
       const res = await fetch("/api/auth/check-phone", {
@@ -48,7 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Step 2a: Login with existing PIN
   const login = useCallback(async (phone: string, pin: string) => {
     try {
       const res = await fetch("/api/auth/verify-pin", {
@@ -69,7 +71,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Step 2b: Signup with new PIN
   const signup = useCallback(async (phone: string, pin: string, name: string) => {
     try {
       const res = await fetch("/api/auth/create-pin", {
@@ -95,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(STORAGE_KEY);
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-    } catch { /* ignore — cookie may already be expired */ }
+    } catch { /* ignore */ }
   }, []);
 
   return (

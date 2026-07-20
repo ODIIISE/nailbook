@@ -403,7 +403,52 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Store all callbacks in a ref to avoid triggering useMemo re-renders
+  const callbacksRef = useRef({
+    handleUpdateWorkingHours,
+    handleUpdateSpecificDaysOff,
+    handleSaveSchedule,
+    handleUpdateServices,
+    handleUpdateAddons,
+    handleUpdateSalon,
+    handleUpdateBlockedTimes,
+    handleAddBooking,
+    handleCancelBooking,
+    refreshBookings,
+    refreshSalonData,
+    handleAddHighlight,
+    handleUpdateHighlight,
+    handleRemoveHighlight,
+    handleAddHighlightImage,
+    handleRemoveHighlightImage,
+    handleUploadHighlightImage,
+    handleToggleBookingPaid,
+    handleUpdateBookingStatus,
+  });
+  callbacksRef.current = {
+    handleUpdateWorkingHours,
+    handleUpdateSpecificDaysOff,
+    handleSaveSchedule,
+    handleUpdateServices,
+    handleUpdateAddons,
+    handleUpdateSalon,
+    handleUpdateBlockedTimes,
+    handleAddBooking,
+    handleCancelBooking,
+    refreshBookings,
+    refreshSalonData,
+    handleAddHighlight,
+    handleUpdateHighlight,
+    handleRemoveHighlight,
+    handleAddHighlightImage,
+    handleRemoveHighlightImage,
+    handleUploadHighlightImage,
+    handleToggleBookingPaid,
+    handleUpdateBookingStatus,
+  };
+
   const value = useMemo<SalonContextType>(() => {
+    const cb = callbacksRef.current;
     if (!loaded || !salon) {
       return {
         salon: { id: "", name: "", description: "", slogan: "", phone: "", address: "", hero_image_url: null, logo_url: null, working_hours_text: "", working_hours: DEFAULT_WORKING_HOURS, slot_buffer_minutes: 15, slot_interval_minutes: 15, early_extra_hours: 0, late_extra_hours: 0, expand_threshold: 80, proximity_window_hours: 2, allow_overflow: false, overflow_minutes: 0 },
@@ -446,31 +491,28 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       highlights,
       blockedTimes,
       loaded: true,
-        updateWorkingHours: handleUpdateWorkingHours,
-        updateSpecificDaysOff: handleUpdateSpecificDaysOff,
-        saveSchedule: handleSaveSchedule,
-      updateServices: handleUpdateServices,
-      updateAddons: handleUpdateAddons,
-      updateSalon: handleUpdateSalon,
-        updateBlockedTimes: handleUpdateBlockedTimes,
-      addBooking: handleAddBooking,
-      cancelBooking: handleCancelBooking,
-      refreshBookings,
-      refreshSalonData,
-      addHighlight: handleAddHighlight,
-      updateHighlight: handleUpdateHighlight,
-      removeHighlight: handleRemoveHighlight,
-      addHighlightImage: handleAddHighlightImage,
-      removeHighlightImage: handleRemoveHighlightImage,
-      uploadHighlightImage: handleUploadHighlightImage,
-      toggleBookingPaid: handleToggleBookingPaid,
-      updateBookingStatus: handleUpdateBookingStatus,
+      updateWorkingHours: cb.handleUpdateWorkingHours,
+      updateSpecificDaysOff: cb.handleUpdateSpecificDaysOff,
+      saveSchedule: cb.handleSaveSchedule,
+      updateServices: cb.handleUpdateServices,
+      updateAddons: cb.handleUpdateAddons,
+      updateSalon: cb.handleUpdateSalon,
+      updateBlockedTimes: cb.handleUpdateBlockedTimes,
+      addBooking: cb.handleAddBooking,
+      cancelBooking: cb.handleCancelBooking,
+      refreshBookings: cb.refreshBookings,
+      refreshSalonData: cb.refreshSalonData,
+      addHighlight: cb.handleAddHighlight,
+      updateHighlight: cb.handleUpdateHighlight,
+      removeHighlight: cb.handleRemoveHighlight,
+      addHighlightImage: cb.handleAddHighlightImage,
+      removeHighlightImage: cb.handleRemoveHighlightImage,
+      uploadHighlightImage: cb.handleUploadHighlightImage,
+      toggleBookingPaid: cb.handleToggleBookingPaid,
+      updateBookingStatus: cb.handleUpdateBookingStatus,
     };
   }, [
     loaded, salon, workingHours, specificDaysOff, services, addons, bookings, highlights, blockedTimes,
-    handleUpdateWorkingHours, handleUpdateSpecificDaysOff, handleSaveSchedule, handleUpdateServices, handleUpdateAddons,
-    handleUpdateSalon, handleUpdateBlockedTimes, handleAddBooking, handleCancelBooking, refreshBookings, refreshSalonData, handleAddHighlight, handleUpdateHighlight,
-    handleRemoveHighlight, handleAddHighlightImage, handleRemoveHighlightImage, handleUploadHighlightImage, handleToggleBookingPaid, handleUpdateBookingStatus,
   ]);
 
   return (

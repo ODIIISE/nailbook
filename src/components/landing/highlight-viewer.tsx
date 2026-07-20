@@ -19,6 +19,8 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
   const elapsedRef = useRef(0);
   const startTimeRef = useRef<number>(0);
   const pausedAtRef = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const images = highlight.images;
   const total = images.length;
 
@@ -36,6 +38,49 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
     setCurrentIndex((i) => (i > 0 ? i - 1 : i));
     elapsedRef.current = 0;
     setProgressPct(0);
+  }, []);
+
+  // Focus trap + restore previous focus on close
+  useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement;
+    containerRef.current?.focus();
+
+    return () => {
+      previousFocusRef.current?.focus();
+    };
+  }, []);
+
+  // Trap focus inside the viewer
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleFocusTrap = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+
+      const focusable = container.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    container.addEventListener("keydown", handleFocusTrap);
+    return () => container.removeEventListener("keydown", handleFocusTrap);
   }, []);
 
   // Auto-advance timer
@@ -56,7 +101,7 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
     };
   }, [currentIndex, total, goNext, isPaused]);
 
-  // Progress bar via rAF for smooth CSS-like animation
+  // Progress bar via rAF
   useEffect(() => {
     if (isPaused || total === 0) return;
 
@@ -87,9 +132,10 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
   // Keyboard navigation
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft" || e.key === "ArrowUp") goPrev();
-      if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ") goNext();
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") { onClose(); return; }
+      // RTL: ArrowLeft = next (forward), ArrowRight = prev (backward)
+      if (e.key === "ArrowLeft" || e.key === "ArrowDown" || e.key === " ") goNext();
+      if (e.key === "ArrowRight" || e.key === "ArrowUp") goPrev();
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
@@ -100,7 +146,14 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
   const image = images[currentIndex];
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
+    <div
+      ref={containerRef}
+      className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`هایلایت ${highlight.name}`}
+      tabIndex={-1}
+    >
       {/* Progress bars */}
       <div className="absolute top-0 left-0 right-0 z-20 flex gap-1 p-3 pt-4">
         {images.map((_, i) => (
@@ -120,13 +173,14 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
         ))}
       </div>
 
-      {/* Close button — above everything */}
+      {/* Close button */}
       <button
         onClick={(e) => {
           e.stopPropagation();
           onClose();
         }}
-        className="absolute top-8 right-4 z-30 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+        className="absolute top-8 start-4 z-30 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+        aria-label="بستن"
       >
         <X className="h-5 w-5" />
       </button>
@@ -147,8 +201,8 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
         onMouseLeave={handleResume}
         onTouchStart={handlePause}
         onTouchEnd={handleResume}
-        className="absolute left-0 top-16 bottom-0 w-1/3 z-10"
-        aria-label="Next"
+        className="absolute start-0 top-16 bottom-0 w-1/3 z-10"
+        aria-label="بعدی"
       />
       <button
         onClick={goPrev}
@@ -157,15 +211,16 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
         onMouseLeave={handleResume}
         onTouchStart={handlePause}
         onTouchEnd={handleResume}
-        className="absolute right-0 top-16 bottom-0 w-2/3 z-10"
-        aria-label="Previous"
+        className="absolute end-0 top-16 bottom-0 w-2/3 z-10"
+        aria-label="قبلی"
       />
 
-      {/* Arrow buttons (desktop) */}
+      {/* Arrow buttons (desktop) — RTL: prev on right, next on left */}
       {currentIndex > 0 && (
         <button
           onClick={goPrev}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hidden md:block"
+          className="absolute end-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hidden md:block"
+          aria-label="قبلی"
         >
           <ChevronRight className="h-6 w-6" />
         </button>
@@ -173,7 +228,8 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
       {currentIndex < total - 1 && (
         <button
           onClick={goNext}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hidden md:block"
+          className="absolute start-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hidden md:block"
+          aria-label="بعدی"
         >
           <ChevronLeft className="h-6 w-6" />
         </button>
