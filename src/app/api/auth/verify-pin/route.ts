@@ -4,6 +4,10 @@ import { verifyPin } from "@/lib/pin-hash";
 import { signCustomerSession } from "@/lib/customer-auth";
 import { logActivity } from "@/lib/db/activity-log";
 
+function normalizeDigits(str: string): string {
+  return str.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { phone, pin } = await request.json();
@@ -12,9 +16,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
 
+    const normalized = normalizeDigits(String(phone).trim());
+
     const { rows: users } = await sql`
       SELECT id, phone, name, role, pin, failed_attempts, locked_until
-      FROM users WHERE phone = ${phone}
+      FROM users WHERE phone = ${normalized}
     `;
     const user = users[0];
 

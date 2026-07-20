@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" role="status" aria-label="در حال بارگذاری">
       {/* Header skeleton */}
       <div className="h-14 px-4 flex items-center justify-between">
         <Skeleton className="h-6 w-6 rounded-lg" />

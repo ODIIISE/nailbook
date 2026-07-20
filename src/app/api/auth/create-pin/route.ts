@@ -5,6 +5,10 @@ import { storePin } from "@/lib/pin-hash";
 import { signCustomerSession } from "@/lib/customer-auth";
 import { logActivity } from "@/lib/db/activity-log";
 
+function normalizeDigits(str: string): string {
+  return str.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { phone, pin, name } = await request.json();
@@ -13,6 +17,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
 
+    const normalized = normalizeDigits(String(phone).trim());
     const trimmedName = String(name).trim();
     if (!trimmedName) {
       return NextResponse.json({ error: "نام الزامی است" }, { status: 400 });
@@ -25,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     const storedPin = storePin(cleanPin);
 
-    const { rows: existing } = await sql`SELECT id, pin FROM users WHERE phone = ${phone}`;
+    const { rows: existing } = await sql`SELECT id, pin FROM users WHERE phone = ${normalized}`;
     if (existing.length > 0) {
       if (existing[0].pin) {
         return NextResponse.json({ error: "این شماره قبلاً ثبت شده" }, { status: 409 });
@@ -34,7 +39,7 @@ export async function POST(request: NextRequest) {
 
       const response = NextResponse.json({
         success: true,
-        user: { id: existing[0].id, phone, name: trimmedName, role: "customer" },
+        user: { id: existing[0].id, phone: normalized, name: trimmedName, role: "customer" },
       });
       response.cookies.set("session", signCustomerSession(existing[0].id), {
         httpOnly: true,
@@ -49,7 +54,7 @@ export async function POST(request: NextRequest) {
     const userId = crypto.randomUUID();
     await sql`
       INSERT INTO users (id, phone, pin, name, role)
-      VALUES (${userId}, ${phone}, ${storedPin}, ${trimmedName}, 'customer')
+      VALUES (${userId}, ${normalized}, ${storedPin}, ${trimmedName}, 'customer')
     `;
 
     // Log new user registration
@@ -58,12 +63,12 @@ export async function POST(request: NextRequest) {
       entityType: "user",
       entityId: userId,
       description: `کاربر جدید ${trimmedName} ثبت‌نام کرد`,
-      metadata: { phone, name: trimmedName },
+      metadata: { phone: normalized, name: trimmedName },
     });
 
     const response = NextResponse.json({
       success: true,
-      user: { id: userId, phone, name: trimmedName, role: "customer" },
+      user: { id: userId, phone: normalized, name: trimmedName, role: "customer" },
     });
     response.cookies.set("session", signCustomerSession(userId), {
       httpOnly: true,

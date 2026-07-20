@@ -108,7 +108,7 @@ export function AppHeader({
               </div>
             )}
           </div>
-          <Button variant="ghost" size="icon-sm" onClick={openMenu}>
+          <Button variant="ghost" size="icon-sm" onClick={openMenu} aria-label="منو" aria-expanded={menuOpen}>
             <Menu className="h-4 w-4" />
           </Button>
         </div>

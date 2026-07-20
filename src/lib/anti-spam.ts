@@ -43,6 +43,9 @@ export async function checkAntiSpam(phone: string): Promise<AntiSpamResult> {
     if (recentRows[0]) {
       const lastBookingTime = new Date(recentRows[0].created_at);
       const minutesSince = Math.floor((Date.now() - lastBookingTime.getTime()) / 60_000);
+
+      if (minutesSince >= COOLDOWN_MINUTES) return { allowed: true };
+
       const minutesLeft = COOLDOWN_MINUTES - minutesSince;
 
       return {

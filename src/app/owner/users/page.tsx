@@ -249,19 +249,19 @@ export default function OwnerUsersPage() {
           <h2 className="text-lg font-bold text-foreground">کاربران</h2>
         </div>
         <Button size="sm" onClick={openAdd}>
-          <Plus className="h-4 w-4 ml-1" />
+          <Plus className="h-4 w-4 ms-1" />
           افزودن
         </Button>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="جستجو بر اساس نام یا شماره..."
-          className="pr-10"
+          className="ps-10"
         />
       </div>
 

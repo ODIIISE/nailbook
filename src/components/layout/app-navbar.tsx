@@ -67,6 +67,7 @@ export function AppNavbar({ items }: AppNavbarProps) {
             <button
               key={path}
               onClick={() => router.push(path)}
+              aria-current={active ? "page" : undefined}
               className={`flex-1 flex flex-col items-center justify-center gap-1.5 h-[56px] transition-colors duration-200 ${
                 active ? "text-primary" : "text-muted-foreground"
               }`}
