@@ -64,6 +64,11 @@ export async function POST(request: NextRequest) {
     // Restore services
     if (data.services && Array.isArray(data.services)) {
       for (const s of data.services) {
+        // Validate required fields
+        if (!s.id || !s.name || typeof s.name !== "string" || !s.name.trim()) {
+          console.error(`Skipping invalid service: missing id or name`, s);
+          continue;
+        }
         try {
           await sql`
             INSERT INTO services (id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score)

@@ -25,8 +25,8 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ error: "قیمت نامعتبر است" }, { status: 400 });
       }
       const duration = Number(s.duration_minutes);
-      if (isNaN(duration) || duration < 0) {
-        return NextResponse.json({ error: "مدت زمان نامعتبر است" }, { status: 400 });
+      if (isNaN(duration) || duration < 5) {
+        return NextResponse.json({ error: "مدت زمان باید حداقل ۵ دقیقه باشد" }, { status: 400 });
       }
     }
 

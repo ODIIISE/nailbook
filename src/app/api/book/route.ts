@@ -19,12 +19,11 @@ export async function POST(request: NextRequest) {
     const sessionCookie = request.cookies.get("session")?.value;
     if (sessionCookie) {
       const sessionUserId = verifyCustomerSession(sessionCookie);
-      // If a session exists but is invalid, reject (don't silently ignore a bad session)
-      if (!sessionUserId) {
-        return NextResponse.json({ error: "جلسه نامعتبر است" }, { status: 401 });
+      if (sessionUserId) {
+        // Valid session — use verified identity
+        user_id = sessionUserId;
       }
-      // Always override with session-verified identity — don't trust client-provided user_id
-      user_id = sessionUserId;
+      // Invalid/expired session — proceed as unauthenticated (don't reject)
     }
 
     // Step 1: Normalize phone server-side (prevents anti-spam bypass via character encoding)
@@ -38,6 +37,11 @@ export async function POST(request: NextRequest) {
     // Validate phone format
     if (!/^09\d{9}$/.test(phone)) {
       return NextResponse.json({ error: "شماره موبایل نامعتبر است" }, { status: 400 });
+    }
+
+    // Validate customer name length
+    if (customer_name && customer_name.length > 100) {
+      customer_name = customer_name.slice(0, 100);
     }
 
     // Step 3: Normalize times to HH:MM

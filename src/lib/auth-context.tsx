@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 
 interface User {
   id: string;
@@ -37,6 +37,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Initialize synchronously from localStorage — no flash
   const [user, setUser] = useState<User | null>(getInitialUser);
   const [isLoading] = useState(false); // Already hydrated synchronously
+
+  // Sync auth state across tabs via storage event
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY) {
+        try {
+          setUser(e.newValue ? JSON.parse(e.newValue) : null);
+        } catch {
+          setUser(null);
+        }
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   const checkPhone = useCallback(async (phone: string) => {
     try {

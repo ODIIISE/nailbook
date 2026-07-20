@@ -13,7 +13,8 @@ export function normalizeDigits(input: string): string {
     .split("")
     .map((ch) => FA_TO_EN[ch] || ch)
     .join("")
-    .replace(/[^0-9]/g, "");
+    .replace(/[^0-9]/g, "")
+    .replace(/^(0098|98|0)/, "0"); // Strip country code prefix, ensure starts with 0
 }
 
 export function isValidIranianPhone(phone: string): boolean {
