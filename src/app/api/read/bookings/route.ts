@@ -14,7 +14,9 @@ export async function GET(request: NextRequest) {
              date, date_gregorian::text as date_gregorian, start_time, end_time, status, paid,
              phone_verified, created_at
       FROM bookings
+      WHERE date_gregorian >= (CURRENT_DATE - INTERVAL '30 days')
       ORDER BY created_at DESC
+      LIMIT 200
     `;
     const normalized = rows.map((r) => ({
       ...r,

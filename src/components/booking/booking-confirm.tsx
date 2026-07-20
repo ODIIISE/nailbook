@@ -75,16 +75,21 @@ export function BookingConfirm({
       dates: `${startStr}/${endStr}`,
       details: `رزرو شماره: ${shortId}\nهزینه: ${formatPrice(Number(price))} تومان\nنام: ${customerName}`,
       location: salonAddress,
+      ctz: "Asia/Tehran",
     });
     window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, "_blank");
   };
 
   const handleShare = async () => {
     const text = `رزرو ناخن ثبت شد!\n${serviceName}\n${fullDate} - ساعت ${formattedTime}\n${salonName}`;
-    if (navigator.share) {
-      await navigator.share({ text });
-    } else {
-      await navigator.clipboard.writeText(text);
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+      } else {
+        await navigator.clipboard.writeText(text);
+      }
+    } catch {
+      // User cancelled share or clipboard permission denied — silently ignore
     }
   };
 

@@ -134,7 +134,9 @@ export default function BookContent() {
     if (!selectedTime) return "";
     const [h, m] = selectedTime.split(":").map(Number);
     const endMinutes = h * 60 + m + totalDuration;
-    return `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
+    // Cap at 23:59 to prevent invalid time display
+    const capped = Math.min(endMinutes, 23 * 60 + 59);
+    return `${String(Math.floor(capped / 60)).padStart(2, "0")}:${String(capped % 60).padStart(2, "0")}`;
   }, [selectedTime, totalDuration]);
 
   const timeSlots = useMemo(() => {
@@ -365,7 +367,7 @@ export default function BookContent() {
         setSpamError(result.error || "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید");
       }
     }
-  }, [selectedDate, selectedService, selectedTime, user, authPhone, addBooking, selectedAddons, totalDuration, refreshBookings]);
+  }, [selectedDate, selectedService, selectedTime, user, authPhone, authName, addBooking, selectedAddons, totalDuration, refreshBookings]);
 
   // ─── Step titles ───
 

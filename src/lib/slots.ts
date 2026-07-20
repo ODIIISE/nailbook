@@ -302,13 +302,13 @@ export function generateTimeSlots(
   const hardEndLimit = rawShiftEnd + (cfg.allowOverflow ? (cfg.overflowMinutes ?? 0) : 0);
 
   // Generate all candidate slots on the resolution grid
-  // Slots can start up to (rawShiftEnd - resolution) — last slot starts just before shift end
+  // Use expanded end (shiftEnd) for late_extra_hours, not rawShiftEnd
   const now = getTehranNow();
   const isToday = getTehranDateKey(date) === now.dateKey;
   const nowMinutes = now.minutes;
 
   const candidates: TimeBlock[] = [];
-  for (let m = shiftStart; m < rawShiftEnd; m += cfg.resolution) {
+  for (let m = shiftStart; m < shiftEnd; m += cfg.resolution) {
     const slot: TimeBlock = { start: m, end: m + effectiveDuration };
 
     // Service can extend past shift end, but NOT past the hard limit (extra hours)
@@ -366,9 +366,9 @@ export function generateTimeSlots(
     otherSlots = filtered;
   }
 
-  // Build result — show ALL slots for display
+  // Build result — show ALL slots for display (use expanded shiftEnd)
   const result: TimeSlot[] = [];
-  for (let m = shiftStart; m < rawShiftEnd; m += cfg.resolution) {
+  for (let m = shiftStart; m < shiftEnd; m += cfg.resolution) {
     const slot: TimeBlock = { start: m, end: m + effectiveDuration };
     if (slot.end > hardEndLimit) continue;
 

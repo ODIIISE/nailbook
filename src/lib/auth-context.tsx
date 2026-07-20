@@ -90,9 +90,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch { /* ignore — cookie may already be expired */ }
   }, []);
 
   return (

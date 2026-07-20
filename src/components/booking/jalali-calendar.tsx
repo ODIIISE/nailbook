@@ -101,9 +101,15 @@ export function JalaliCalendar({
       if (workingHours && salonConfig && serviceDuration > 0) {
         const dateStr = getTehranDateKey(date);
         const dayBookings = bookings
-          .filter((b) => b.date_gregorian === dateStr && (b.status === "reserved" || b.status === "confirmed"))
+          .filter((b) => {
+            const bookingDate = b.date_gregorian.split("T")[0];
+            return bookingDate === dateStr && (b.status === "reserved" || b.status === "confirmed");
+          })
           .map((b) => ({ start_time: b.start_time, end_time: b.end_time }));
-        const dayBlocked = blockedTimes.filter((b) => b.date_gregorian === dateStr);
+        const dayBlocked = blockedTimes.filter((b) => {
+          const blockDate = b.date_gregorian.split("T")[0];
+          return blockDate === dateStr;
+        });
 
         const slots = generateTimeSlots(
           workingHours,

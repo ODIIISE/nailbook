@@ -12,21 +12,38 @@ export async function POST(request: NextRequest) {
 
     const updates = await request.json();
 
+    // Allowlist: only accept known fields
+    const ALLOWED_FIELDS = new Set([
+      "name", "description", "slogan", "phone", "address",
+      "hero_image_url", "logo_url", "working_hours_text",
+      "working_hours", "specific_days_off",
+      "slot_buffer_minutes", "slot_interval_minutes",
+      "early_extra_hours", "late_extra_hours",
+      "expand_threshold", "proximity_window_hours",
+      "allow_overflow", "overflow_minutes",
+    ]);
+
+    // Strip unknown fields
+    const safeUpdates: Record<string, any> = {};
+    for (const key of Object.keys(updates)) {
+      if (ALLOWED_FIELDS.has(key)) safeUpdates[key] = updates[key];
+    }
+
     // Validate numeric fields
-    if (updates.slot_buffer_minutes !== undefined) {
-      const v = Number(updates.slot_buffer_minutes);
+    if (safeUpdates.slot_buffer_minutes !== undefined) {
+      const v = Number(safeUpdates.slot_buffer_minutes);
       if (isNaN(v) || v < 0 || v > 120) return NextResponse.json({ error: "مقدار نامعتبر" }, { status: 400 });
     }
-    if (updates.slot_interval_minutes !== undefined) {
-      const v = Number(updates.slot_interval_minutes);
+    if (safeUpdates.slot_interval_minutes !== undefined) {
+      const v = Number(safeUpdates.slot_interval_minutes);
       if (isNaN(v) || v < 5 || v > 60) return NextResponse.json({ error: "مقدار نامعتبر" }, { status: 400 });
     }
-    if (updates.expand_threshold !== undefined) {
-      const v = Number(updates.expand_threshold);
+    if (safeUpdates.expand_threshold !== undefined) {
+      const v = Number(safeUpdates.expand_threshold);
       if (isNaN(v) || v < 0 || v > 100) return NextResponse.json({ error: "مقدار نامعتبر" }, { status: 400 });
     }
-    if (updates.proximity_window_hours !== undefined) {
-      const v = Number(updates.proximity_window_hours);
+    if (safeUpdates.proximity_window_hours !== undefined) {
+      const v = Number(safeUpdates.proximity_window_hours);
       if (isNaN(v) || v < 0 || v > 48) return NextResponse.json({ error: "مقدار نامعتبر" }, { status: 400 });
     }
 
@@ -38,63 +55,63 @@ export async function POST(request: NextRequest) {
     const salonId = existing[0].id;
 
     // Update each field individually using tagged template literals
-    if (updates.name !== undefined) {
-      await sql`UPDATE salon_info SET name = ${updates.name} WHERE id = ${salonId}`;
+    if (safeUpdates.name !== undefined) {
+      await sql`UPDATE salon_info SET name = ${safeUpdates.name} WHERE id = ${salonId}`;
     }
-    if (updates.description !== undefined) {
-      await sql`UPDATE salon_info SET description = ${updates.description} WHERE id = ${salonId}`;
+    if (safeUpdates.description !== undefined) {
+      await sql`UPDATE salon_info SET description = ${safeUpdates.description} WHERE id = ${salonId}`;
     }
-    if (updates.slogan !== undefined) {
-      await sql`UPDATE salon_info SET slogan = ${updates.slogan} WHERE id = ${salonId}`;
+    if (safeUpdates.slogan !== undefined) {
+      await sql`UPDATE salon_info SET slogan = ${safeUpdates.slogan} WHERE id = ${salonId}`;
     }
-    if (updates.phone !== undefined) {
-      await sql`UPDATE salon_info SET phone = ${updates.phone} WHERE id = ${salonId}`;
+    if (safeUpdates.phone !== undefined) {
+      await sql`UPDATE salon_info SET phone = ${safeUpdates.phone} WHERE id = ${salonId}`;
     }
-    if (updates.address !== undefined) {
-      await sql`UPDATE salon_info SET address = ${updates.address} WHERE id = ${salonId}`;
+    if (safeUpdates.address !== undefined) {
+      await sql`UPDATE salon_info SET address = ${safeUpdates.address} WHERE id = ${salonId}`;
     }
-    if (updates.hero_image_url !== undefined) {
-      await sql`UPDATE salon_info SET hero_image_url = ${updates.hero_image_url} WHERE id = ${salonId}`;
+    if (safeUpdates.hero_image_url !== undefined) {
+      await sql`UPDATE salon_info SET hero_image_url = ${safeUpdates.hero_image_url} WHERE id = ${salonId}`;
     }
-    if (updates.logo_url !== undefined) {
-      await sql`UPDATE salon_info SET logo_url = ${updates.logo_url} WHERE id = ${salonId}`;
+    if (safeUpdates.logo_url !== undefined) {
+      await sql`UPDATE salon_info SET logo_url = ${safeUpdates.logo_url} WHERE id = ${salonId}`;
     }
-    if (updates.working_hours_text !== undefined) {
-      await sql`UPDATE salon_info SET working_hours_text = ${updates.working_hours_text} WHERE id = ${salonId}`;
+    if (safeUpdates.working_hours_text !== undefined) {
+      await sql`UPDATE salon_info SET working_hours_text = ${safeUpdates.working_hours_text} WHERE id = ${salonId}`;
     }
-    if (updates.working_hours !== undefined) {
-      await sql`UPDATE salon_info SET working_hours = ${JSON.stringify(updates.working_hours)}::jsonb WHERE id = ${salonId}`;
+    if (safeUpdates.working_hours !== undefined) {
+      await sql`UPDATE salon_info SET working_hours = ${JSON.stringify(safeUpdates.working_hours)}::jsonb WHERE id = ${salonId}`;
     }
-    if (updates.specific_days_off !== undefined) {
-      await sql`UPDATE salon_info SET specific_days_off = ${JSON.stringify(updates.specific_days_off)}::jsonb WHERE id = ${salonId}`;
+    if (safeUpdates.specific_days_off !== undefined) {
+      await sql`UPDATE salon_info SET specific_days_off = ${JSON.stringify(safeUpdates.specific_days_off)}::jsonb WHERE id = ${salonId}`;
     }
-    if (updates.slot_buffer_minutes !== undefined) {
-      await sql`UPDATE salon_info SET slot_buffer_minutes = ${updates.slot_buffer_minutes} WHERE id = ${salonId}`;
+    if (safeUpdates.slot_buffer_minutes !== undefined) {
+      await sql`UPDATE salon_info SET slot_buffer_minutes = ${safeUpdates.slot_buffer_minutes} WHERE id = ${salonId}`;
     }
-    if (updates.slot_interval_minutes !== undefined) {
-      await sql`UPDATE salon_info SET slot_interval_minutes = ${updates.slot_interval_minutes} WHERE id = ${salonId}`;
+    if (safeUpdates.slot_interval_minutes !== undefined) {
+      await sql`UPDATE salon_info SET slot_interval_minutes = ${safeUpdates.slot_interval_minutes} WHERE id = ${salonId}`;
     }
-    if (updates.early_extra_hours !== undefined) {
-      await sql`UPDATE salon_info SET early_extra_hours = ${updates.early_extra_hours} WHERE id = ${salonId}`;
+    if (safeUpdates.early_extra_hours !== undefined) {
+      await sql`UPDATE salon_info SET early_extra_hours = ${safeUpdates.early_extra_hours} WHERE id = ${salonId}`;
     }
-    if (updates.late_extra_hours !== undefined) {
-      await sql`UPDATE salon_info SET late_extra_hours = ${updates.late_extra_hours} WHERE id = ${salonId}`;
+    if (safeUpdates.late_extra_hours !== undefined) {
+      await sql`UPDATE salon_info SET late_extra_hours = ${safeUpdates.late_extra_hours} WHERE id = ${salonId}`;
     }
-    if (updates.expand_threshold !== undefined) {
-      await sql`UPDATE salon_info SET expand_threshold = ${updates.expand_threshold} WHERE id = ${salonId}`;
+    if (safeUpdates.expand_threshold !== undefined) {
+      await sql`UPDATE salon_info SET expand_threshold = ${safeUpdates.expand_threshold} WHERE id = ${salonId}`;
     }
-    if (updates.proximity_window_hours !== undefined) {
-      await sql`UPDATE salon_info SET proximity_window_hours = ${updates.proximity_window_hours} WHERE id = ${salonId}`;
+    if (safeUpdates.proximity_window_hours !== undefined) {
+      await sql`UPDATE salon_info SET proximity_window_hours = ${safeUpdates.proximity_window_hours} WHERE id = ${salonId}`;
     }
-    if (updates.allow_overflow !== undefined) {
-      await sql`UPDATE salon_info SET allow_overflow = ${updates.allow_overflow} WHERE id = ${salonId}`;
+    if (safeUpdates.allow_overflow !== undefined) {
+      await sql`UPDATE salon_info SET allow_overflow = ${safeUpdates.allow_overflow} WHERE id = ${salonId}`;
     }
-    if (updates.overflow_minutes !== undefined) {
-      await sql`UPDATE salon_info SET overflow_minutes = ${updates.overflow_minutes} WHERE id = ${salonId}`;
+    if (safeUpdates.overflow_minutes !== undefined) {
+      await sql`UPDATE salon_info SET overflow_minutes = ${safeUpdates.overflow_minutes} WHERE id = ${salonId}`;
     }
 
     // Determine what was updated for logging
-    const updatedFields = Object.keys(updates).filter((k) => updates[k] !== undefined);
+    const updatedFields = Object.keys(safeUpdates).filter((k) => safeUpdates[k] !== undefined);
     if (updatedFields.length > 0) {
       logActivity({
         eventType: "salon_updated",
