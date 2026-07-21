@@ -57,7 +57,7 @@ export default function OwnerLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-[100dvh] flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm glass rounded-3xl p-6 animate-scale">
         <div className="text-center mb-6">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/50">

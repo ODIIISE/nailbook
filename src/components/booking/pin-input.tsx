@@ -64,7 +64,7 @@ export function PinInput({ length = 4, onComplete, disabled }: PinInputProps) {
           onPaste={handlePaste}
           disabled={disabled}
           className={cn(
-            "h-[var(--field-xl)] w-[var(--field-xl)] rounded-xl glass text-center text-lg font-bold transition-all duration-200",
+            "h-16 w-16 sm:h-[var(--field-xl)] sm:w-[var(--field-xl)] rounded-xl glass text-center text-2xl font-bold transition-all duration-200",
             "focus:ring-2 focus:ring-primary/30 focus:outline-none",
             digit ? "border-primary/30" : "border-border",
             disabled && "opacity-50 cursor-not-allowed"

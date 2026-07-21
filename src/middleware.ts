@@ -94,8 +94,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect /api/owner/* and /api/update-salon, /api/upload-* endpoints
+  // Exclude /api/owner-login (needs to be accessible without session)
   if (
-    pathname.startsWith("/api/owner") ||
+    (pathname.startsWith("/api/owner") && pathname !== "/api/owner-login") ||
     pathname === "/api/update-salon" ||
     pathname.startsWith("/api/upload") ||
     pathname === "/api/owner-logout"
