@@ -49,3 +49,23 @@ The booking flow has 4 user states that must ALL work:
 - Never reference a column in SQL that might not exist in production
 - Use `ALTER TABLE IF NOT EXISTS` for new columns
 - Migrations are in `src/db/migrations/` — they auto-run on salon data load. `/api/owner/migrate` is read-only (status check only).
+
+## Security Checklist
+
+Before shipping any change:
+1. No secrets in client code — only in `.env.local` or server-side API routes
+2. All API routes validate input — never trust client data
+3. Cookies use `httpOnly`, `secure` (production), `sameSite: "lax"`
+4. SQL uses parameterized queries — never string concatenation
+5. User input is normalized (Persian/Arabic digits, country codes) before DB queries
+6. Rate limiting on auth endpoints (PIN attempts, booking cooldowns)
+7. CSRF protection on all state-changing routes (middleware handles this)
+
+## Quality Gates
+
+After every change, verify:
+- `npm run test` — all tests pass
+- `npm run build` — build succeeds, no TypeScript errors
+- No console.error in production code paths (use devLog pattern)
+- No unused imports or variables
+- RTL layout preserved — use logical CSS (ps/pe, ms/me) not physical (pl/pr, ml/mr)
