@@ -5,16 +5,38 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Download, CheckCircle, AlertCircle } from "lucide-react";
+import { Download, CheckCircle, Globe, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminImportPage() {
-  const [name, setName] = useState("استدیو تخصصی ناخن فورهند");
-  const [slug, setSlug] = useState("forehand-nail");
+  const [url, setUrl] = useState("");
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [detected, setDetected] = useState(false);
   const [importing, setImporting] = useState(false);
   const [done, setDone] = useState(false);
   const [results, setResults] = useState<string[]>([]);
   const [salonId, setSalonId] = useState("");
+
+  // Detect salon info from Vercel URL
+  const handleDetect = () => {
+    const cleanUrl = url.replace(/^https?:\/\//, "").replace(/\.vercel\.app\/?$/, "").trim();
+    if (!cleanUrl) {
+      toast.error("آدرس URL را وارد کنید");
+      return;
+    }
+
+    // Extract slug from URL (e.g., "forehand-nail" from "forehand-nail.vercel.app")
+    const slugFromUrl = cleanUrl.split(".")[0];
+    const nameFromSlug = slugFromUrl
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+
+    setSlug(slugFromUrl);
+    setName(nameFromSlug);
+    setDetected(true);
+    toast.success("اطلاعات سالن شناسایی شد");
+  };
 
   const handleImport = async () => {
     if (!name.trim()) {
@@ -53,36 +75,75 @@ export default function AdminImportPage() {
 
       <Card className="p-6 space-y-4">
         <p className="text-sm text-muted-foreground">
-          اطلاعات سالن فعلی (Forehand Nail) را وارد سیستم multi-tenant وارد می‌کند.
-          تمام دادههای موجود (کاربران، خدمات، رزروها) حفظ می‌شوند.
+          آدرس URL سالن خود را وارد کنید تا اطلاعات آن شناسایی و وارد سیستم شود.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label>نام سالن</Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={done}
-            />
+        {/* Step 1: Enter URL */}
+        {!detected && !done && (
+          <div className="space-y-4">
+            <div>
+              <Label>آدرس URL سالن</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="forehand-nail.vercel.app"
+                  dir="ltr"
+                  className="flex-1"
+                  onKeyDown={(e) => e.key === "Enter" && handleDetect()}
+                />
+                <Button onClick={handleDetect} className="gap-2">
+                  <Globe className="h-4 w-4" />
+                  شناسایی
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                مثال: forehand-nail.vercel.app
+              </p>
+            </div>
           </div>
-          <div>
-            <Label>Slug (آدرس URL)</Label>
-            <Input
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              disabled={done}
-              dir="ltr"
-            />
-          </div>
-        </div>
+        )}
 
-        {!done ? (
-          <Button onClick={handleImport} disabled={importing} className="gap-2">
-            <Download className="h-4 w-4" />
-            {importing ? "در حال ایمپورت..." : "ایمپورت کن"}
-          </Button>
-        ) : (
+        {/* Step 2: Review & Import */}
+        {detected && !done && (
+          <div className="space-y-4">
+            <div className="p-3 rounded-lg bg-success/10 text-sm text-success">
+              اطلاعات سالن شناسایی شد. بررسی کنید و ایمپورت کنید.
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>نام سالن</Label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label>Slug (آدرس URL)</Label>
+                <Input
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  dir="ltr"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleImport} disabled={importing} className="gap-2">
+                <Download className="h-4 w-4" />
+                {importing ? "در حال ایمپورت..." : "ایمپورت کن"}
+              </Button>
+              <Button variant="ghost" onClick={() => setDetected(false)}>
+                <ArrowLeft className="h-4 w-4 ml-1" />
+                بازگشت
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Done */}
+        {done && (
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-success">
               <CheckCircle className="h-5 w-5" />
@@ -105,7 +166,7 @@ export default function AdminImportPage() {
             <div className="p-3 rounded-lg bg-primary/10 text-sm">
               <p className="font-bold mb-1">مرحله بعدی:</p>
               <p className="text-muted-foreground">
-                این Salon ID را در پروژه Vercel مربوط به Forehand Nail تنظیم کنید:
+                این Salon ID را در پروژه Vercel مربوط به {slug}.vercel.app تنظیم کنید:
               </p>
               <code className="text-xs bg-background px-2 py-1 rounded mt-1 inline-block" dir="ltr">
                 SALON_ID={salonId}
