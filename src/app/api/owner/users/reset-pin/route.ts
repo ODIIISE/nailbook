@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
-import { storePin } from "@/lib/pin-hash";
+import { storePin, hashPin } from "@/lib/pin-hash";
 import { logActivity } from "@/lib/db/activity-log";
 
 export async function POST(request: NextRequest) {
@@ -19,11 +19,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
     }
 
-    // Get user info for logging
-    const { rows: user } = await sql`SELECT name, phone FROM users WHERE id = ${userId}`;
+    // Get user info for logging and role-based PIN storage
+    const { rows: user } = await sql`SELECT name, phone, role FROM users WHERE id = ${userId}`;
+
+    // Hash PIN for owners, store plain for customers
+    const storedPin = user[0]?.role === "owner" ? hashPin(String(pin)) : storePin(String(pin));
 
     const { rows } = await sql`
-      UPDATE users SET pin = ${storePin(String(pin))}, failed_attempts = 0, locked_until = NULL
+      UPDATE users SET pin = ${storedPin}, failed_attempts = 0, locked_until = NULL
       WHERE id = ${userId} RETURNING id
     `;
 

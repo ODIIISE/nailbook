@@ -106,7 +106,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           fetchBookings(),
           fetchWorkingHours(),
           fetchHighlights(),
-          fetch("/api/owner/blocked-times", { signal }).then((r) => r.json()).catch(() => ({ blockedTimes: [] })),
+          fetch("/api/read/blocked-times", { signal }).then((r) => r.json()).catch(() => ({ blockedTimes: [] })),
         ]);
         if (signal.aborted) return;
         if (salonData) setSalon(salonData);

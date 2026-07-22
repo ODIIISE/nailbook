@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-
-function normalizeDigits(str: string): string {
-  return str.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
-}
+import { normalizeDigits } from "@/lib/digits";
 
 export async function POST(request: NextRequest) {
   try {

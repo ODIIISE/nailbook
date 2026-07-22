@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { storePin } from "@/lib/pin-hash";
 import { signOwnerSession } from "@/lib/owner-auth";
+import { normalizeDigits } from "@/lib/digits";
 
 /**
  * Bootstrap the first owner account.
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "شماره و رمز الزامی است" }, { status: 400 });
     }
 
-    const normalizedPhone = String(phone).trim();
+    const normalizedPhone = normalizeDigits(String(phone).trim());
     const cleanPin = String(pin).trim();
     if (cleanPin.length !== 4 || !/^\d{4}$/.test(cleanPin)) {
       return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true, userId });
     response.cookies.set("owner_session", signOwnerSession(userId), {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7,
       path: "/",

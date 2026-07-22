@@ -3,11 +3,7 @@ import { sql } from "@vercel/postgres";
 import { logActivity } from "@/lib/db/activity-log";
 import { checkAntiSpam } from "@/lib/anti-spam";
 import { verifyCustomerSession } from "@/lib/customer-auth";
-
-/** Normalize Persian/Arabic digits to ASCII */
-function normalizeDigits(str: string): string {
-  return str.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
-}
+import { normalizeDigits } from "@/lib/digits";
 
 export async function POST(request: NextRequest) {
   let client;

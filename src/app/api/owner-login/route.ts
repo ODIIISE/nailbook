@@ -3,6 +3,7 @@ import { sql } from "@vercel/postgres";
 import { verifyPin } from "@/lib/pin-hash";
 import { signOwnerSession } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
+import { normalizeDigits } from "@/lib/digits";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,9 +13,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
 
+    const normalized = normalizeDigits(String(phone).trim());
+
     const { rows: checkUser } = await sql`
       SELECT id, locked_until, failed_attempts FROM users
-      WHERE phone = ${phone} AND role = 'owner'
+      WHERE phone = ${normalized} AND role = 'owner'
     `;
 
     if (checkUser[0]?.locked_until && new Date(checkUser[0].locked_until) > new Date()) {
@@ -23,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     const { rows: users } = await sql`
       SELECT id, phone, name, role, pin, failed_attempts FROM users
-      WHERE phone = ${phone} AND role = 'owner'
+      WHERE phone = ${normalized} AND role = 'owner'
     `;
     const user = users[0];
 
@@ -49,7 +52,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true });
     response.cookies.set("owner_session", signOwnerSession(user.id), {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7,
       path: "/",

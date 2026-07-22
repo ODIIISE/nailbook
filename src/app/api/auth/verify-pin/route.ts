@@ -3,10 +3,7 @@ import { sql } from "@vercel/postgres";
 import { verifyPin } from "@/lib/pin-hash";
 import { signCustomerSession } from "@/lib/customer-auth";
 import { logActivity } from "@/lib/db/activity-log";
-
-function normalizeDigits(str: string): string {
-  return str.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
-}
+import { normalizeDigits } from "@/lib/digits";
 
 // Simple IP-based rate limiting (in-memory, per-process)
 const ipAttempts = new Map<string, { count: number; resetAt: number }>();
@@ -84,7 +81,7 @@ export async function POST(request: NextRequest) {
     });
     response.cookies.set("session", signCustomerSession(user.id), {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 30,
       path: "/",

@@ -16,6 +16,16 @@ describe("normalizeDigits", () => {
     expect(normalizeDigits("۰۹۱۲abcd۳۴۵۶")).toBe("09123456");
   });
 
+  it("should convert Arabic digits to English", () => {
+    expect(normalizeDigits("٠٩١٢")).toBe("0912");
+    expect(normalizeDigits("١٢٣٤٥٦٧٨٩٠")).toBe("1234567890");
+  });
+
+  it("should strip country code prefix", () => {
+    expect(normalizeDigits("00989121234567")).toBe("09121234567");
+    expect(normalizeDigits("989121234567")).toBe("09121234567");
+  });
+
   it("should handle empty string", () => {
     expect(normalizeDigits("")).toBe("");
   });
