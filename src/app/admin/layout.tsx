@@ -11,11 +11,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Bootstrap page doesn't need auth
-  const isBootstrap = pathname === "/admin/bootstrap";
+  // Bootstrap and migrate pages don't need auth
+  const isSpecialPage = pathname === "/admin/bootstrap" || pathname === "/admin/migrate";
 
   useEffect(() => {
-    if (isBootstrap) {
+    if (isSpecialPage) {
       setIsAuthenticated(true);
       setIsLoading(false);
       return;
@@ -36,7 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       .finally(() => {
         setIsLoading(false);
       });
-  }, [pathname, isBootstrap, router]);
+  }, [pathname, isSpecialPage, router]);
 
   if (isLoading) {
     return (
@@ -46,7 +46,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (isBootstrap) {
+  if (isSpecialPage) {
     return <>{children}</>;
   }
 
