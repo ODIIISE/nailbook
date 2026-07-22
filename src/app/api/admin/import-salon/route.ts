@@ -32,7 +32,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `خطا در خواندن salon_info: ${e.message}` }, { status: 500 });
     }
 
-    // 2. Create salon record from existing data
+    // 2. Ensure salons table has all required columns (ALTER if needed)
+    const salonColumns = [
+      { name: "description", type: "TEXT DEFAULT ''" },
+      { name: "slogan", type: "TEXT DEFAULT ''" },
+      { name: "hero_image_url", type: "TEXT" },
+      { name: "logo_url", type: "TEXT" },
+      { name: "working_hours", type: "JSONB DEFAULT '{}'" },
+      { name: "working_hours_text", type: "TEXT DEFAULT ''" },
+      { name: "specific_days_off", type: "JSONB DEFAULT '[]'" },
+      { name: "slot_buffer_minutes", type: "INTEGER DEFAULT 0" },
+      { name: "slot_interval_minutes", type: "INTEGER DEFAULT 15" },
+      { name: "early_extra_hours", type: "INTEGER DEFAULT 0" },
+      { name: "late_extra_hours", type: "INTEGER DEFAULT 0" },
+      { name: "expand_threshold", type: "INTEGER DEFAULT 80" },
+      { name: "proximity_window_hours", type: "INTEGER DEFAULT 2" },
+      { name: "allow_overflow", type: "BOOLEAN DEFAULT false" },
+      { name: "overflow_minutes", type: "INTEGER DEFAULT 0" },
+    ];
+
+    for (const col of salonColumns) {
+      try {
+        await sql.query(`ALTER TABLE salons ADD COLUMN IF NOT EXISTS ${col.name} ${col.type}`);
+      } catch (e: any) {
+        // Column might already exist, that's fine
+      }
+    }
+    results.push("ستون‌های salons بررسی شد");
+
+    // 3. Create salon record from existing data
     const salonSlug = slug || name.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
 
     // Handle specific_days_off type (TEXT[] in salon_info, JSONB in salons)
@@ -88,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     const salonId = salonRows[0].id;
 
-    // 3. Ensure salon_id columns exist on all tables
+    // 4. Ensure salon_id columns exist on all tables
     const tables = [
       "users", "services", "addons", "bookings",
       "blocked_times", "highlights", "highlight_images", "activity_logs"
@@ -106,7 +134,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 4. Backfill salon_id on all existing tables
+    // 5. Backfill salon_id on all existing tables
     for (const table of tables) {
       try {
         const { rowCount } = await sql.query(
@@ -119,7 +147,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 5. Create indexes
+    // 6. Create indexes
     try {
       await sql`CREATE INDEX IF NOT EXISTS idx_users_salon ON users(salon_id)`;
       await sql`CREATE INDEX IF NOT EXISTS idx_services_salon ON services(salon_id)`;
