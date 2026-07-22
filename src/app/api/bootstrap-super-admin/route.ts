@@ -15,13 +15,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
     }
 
-    // Check if super_admins table exists
-    const { rows: tableCheck } = await sql`
-      SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'super_admins') as exists
+    // Auto-create tables if they don't exist (first-time setup)
+    await sql`
+      CREATE TABLE IF NOT EXISTS super_admins (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        phone TEXT UNIQUE NOT NULL,
+        pin TEXT NOT NULL,
+        name TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
     `;
-    if (!tableCheck[0].exists) {
-      return NextResponse.json({ error: "جدول super_admins وجود ندارد. ابتدا مایگریشن را اجرا کنید." }, { status: 500 });
-    }
+    await sql`
+      CREATE TABLE IF NOT EXISTS salons (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        slug TEXT UNIQUE NOT NULL,
+        phone TEXT,
+        address TEXT,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
 
     // Check how many super-admins exist
     const { rows: existing } = await sql`SELECT COUNT(*) as count FROM super_admins`;
