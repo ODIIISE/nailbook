@@ -4,13 +4,14 @@ import type { NextRequest } from "next/server";
 const SECRET = process.env.OWNER_SESSION_SECRET;
 
 async function verifySessionSignature(cookieValue: string): Promise<boolean> {
-  if (!SECRET) return false;
+  if (!SECRET || !cookieValue) return false;
 
   const parts = cookieValue.split(":");
   // Accept both 3-part (legacy) and 4-part (versioned) tokens
   if (parts.length !== 3 && parts.length !== 4) return false;
 
   const signature = parts[parts.length - 1]; // Last part is always signature
+  if (!/^[a-f0-9]+$/.test(signature)) return false;
 
   // Build payload: for 3-part it's "userId:timestamp", for 4-part it's "userId:timestamp:version"
   const payloadParts = parts.slice(0, -1); // Everything except signature
@@ -32,8 +33,11 @@ async function verifySessionSignature(cookieValue: string): Promise<boolean> {
       .join("");
 
     // Constant-time comparison using Uint8Arrays
-    const sigBytes = new Uint8Array(signature.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
-    const expectedBytes = new Uint8Array(expectedSig.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+    const sigHexPairs = signature.match(/.{1,2}/g);
+    const expHexPairs = expectedSig.match(/.{1,2}/g);
+    if (!sigHexPairs || !expHexPairs) return false;
+    const sigBytes = new Uint8Array(sigHexPairs.map((byte) => parseInt(byte, 16)));
+    const expectedBytes = new Uint8Array(expHexPairs.map((byte) => parseInt(byte, 16)));
     if (sigBytes.length !== expectedBytes.length) return false;
     return crypto.subtle.verify("HMAC", key, new TextEncoder().encode(payload), sigBytes);
   } catch {
