@@ -129,13 +129,13 @@ export default function AdminImportPage() {
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button onClick={handleImport} disabled={importing} className="gap-2">
+            <div className="flex gap-3">
+              <Button onClick={handleImport} disabled={importing} className="gap-2 flex-1">
                 <Download className="h-4 w-4" />
                 {importing ? "در حال ایمپورت..." : "ایمپورت کن"}
               </Button>
-              <Button variant="ghost" onClick={() => setDetected(false)}>
-                <ArrowLeft className="h-4 w-4 ml-1" />
+              <Button variant="outline" onClick={() => setDetected(false)} className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
                 بازگشت
               </Button>
             </div>

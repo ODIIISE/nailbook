@@ -20,46 +20,93 @@ export async function POST(request: NextRequest) {
     const results: string[] = [];
 
     // 1. Read existing salon_info
-    const { rows: salonInfo } = await sql`SELECT * FROM salon_info LIMIT 1`;
-    if (salonInfo.length === 0) {
-      return NextResponse.json({ error: "داده salon_info یافت نشد" }, { status: 404 });
+    let info: any;
+    try {
+      const { rows: salonInfo } = await sql`SELECT * FROM salon_info LIMIT 1`;
+      if (salonInfo.length === 0) {
+        return NextResponse.json({ error: "داده salon_info یافت نشد" }, { status: 404 });
+      }
+      info = salonInfo[0];
+      results.push("salon_info خوانده شد");
+    } catch (e: any) {
+      return NextResponse.json({ error: `خطا در خواندن salon_info: ${e.message}` }, { status: 500 });
     }
-    const info = salonInfo[0];
-    results.push("salon_info خوانده شد");
 
     // 2. Create salon record from existing data
     const salonSlug = slug || name.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
 
-    const { rows: salonRows } = await sql`
-      INSERT INTO salons (
-        name, slug, phone, address, description, slogan,
-        hero_image_url, logo_url, working_hours, working_hours_text,
-        specific_days_off, slot_buffer_minutes, slot_interval_minutes,
-        early_extra_hours, late_extra_hours, expand_threshold,
-        proximity_window_hours, allow_overflow, overflow_minutes
-      ) VALUES (
-        ${name}, ${salonSlug},
-        ${info.phone || null}, ${info.address || null},
-        ${info.description || ""}, ${info.slogan || ""},
-        ${info.hero_image_url || null}, ${info.logo_url || null},
-        ${JSON.stringify(info.working_hours || {})}, ${info.working_hours_text || ""},
-        ${JSON.stringify(info.specific_days_off || [])},
-        ${info.slot_buffer_minutes || 0}, ${info.slot_interval_minutes || 15},
-        ${info.early_extra_hours || 0}, ${info.late_extra_hours || 0},
-        ${info.expand_threshold || 80}, ${info.proximity_window_hours || 2},
-        ${info.allow_overflow || false}, ${info.overflow_minutes || 0}
-      )
-      RETURNING id, name, slug
-    `;
-    const salonId = salonRows[0].id;
-    results.push(`سالن "${name}" ایجاد شد (ID: ${salonId})`);
+    // Handle specific_days_off type (TEXT[] in salon_info, JSONB in salons)
+    let specificDaysOff = "[]";
+    try {
+      if (Array.isArray(info.specific_days_off)) {
+        specificDaysOff = JSON.stringify(info.specific_days_off);
+      } else if (typeof info.specific_days_off === "string") {
+        specificDaysOff = info.specific_days_off;
+      }
+    } catch {
+      specificDaysOff = "[]";
+    }
 
-    // 3. Backfill salon_id on all existing tables
+    // Handle working_hours type (JSONB in both)
+    let workingHours = "{}";
+    try {
+      if (info.working_hours && typeof info.working_hours === "object") {
+        workingHours = JSON.stringify(info.working_hours);
+      }
+    } catch {
+      workingHours = "{}";
+    }
+
+    let salonRows: any[];
+    try {
+      const result = await sql`
+        INSERT INTO salons (
+          name, slug, phone, address, description, slogan,
+          hero_image_url, logo_url, working_hours, working_hours_text,
+          specific_days_off, slot_buffer_minutes, slot_interval_minutes,
+          early_extra_hours, late_extra_hours, expand_threshold,
+          proximity_window_hours, allow_overflow, overflow_minutes
+        ) VALUES (
+          ${name}, ${salonSlug},
+          ${info.phone || null}, ${info.address || null},
+          ${info.description || ""}, ${info.slogan || ""},
+          ${info.hero_image_url || null}, ${info.logo_url || null},
+          ${workingHours}::jsonb, ${info.working_hours_text || ""},
+          ${specificDaysOff}::jsonb,
+          ${info.slot_buffer_minutes || 0}, ${info.slot_interval_minutes || 15},
+          ${info.early_extra_hours || 0}, ${info.late_extra_hours || 0},
+          ${info.expand_threshold || 80}, ${info.proximity_window_hours || 2},
+          ${info.allow_overflow || false}, ${info.overflow_minutes || 0}
+        )
+        RETURNING id, name, slug
+      `;
+      salonRows = result.rows;
+      results.push(`سالن "${name}" ایجاد شد (ID: ${salonRows[0].id})`);
+    } catch (e: any) {
+      return NextResponse.json({ error: `خطا در ایجاد سالن: ${e.message}` }, { status: 500 });
+    }
+
+    const salonId = salonRows[0].id;
+
+    // 3. Ensure salon_id columns exist on all tables
     const tables = [
       "users", "services", "addons", "bookings",
       "blocked_times", "highlights", "highlight_images", "activity_logs"
     ];
 
+    for (const table of tables) {
+      try {
+        await sql.query(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS salon_id UUID REFERENCES salons(id)`);
+        results.push(`${table}: salon_id اضافه شد`);
+      } catch (e: any) {
+        // Column might already exist, that's OK
+        if (!e.message?.includes("already exists")) {
+          results.push(`${table}: ${e.message}`);
+        }
+      }
+    }
+
+    // 4. Backfill salon_id on all existing tables
     for (const table of tables) {
       try {
         const { rowCount } = await sql.query(
@@ -70,6 +117,18 @@ export async function POST(request: NextRequest) {
       } catch (e: any) {
         results.push(`${table}: ${e.message}`);
       }
+    }
+
+    // 5. Create indexes
+    try {
+      await sql`CREATE INDEX IF NOT EXISTS idx_users_salon ON users(salon_id)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_services_salon ON services(salon_id)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_bookings_salon ON bookings(salon_id)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_bookings_salon_date ON bookings(salon_id, date_gregorian)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_blocked_times_salon ON blocked_times(salon_id)`;
+      results.push("ایندکس‌ها ایجاد شد");
+    } catch (e: any) {
+      results.push(`ایندکس‌ها: ${e.message}`);
     }
 
     return NextResponse.json({
