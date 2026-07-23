@@ -2,7 +2,6 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,30 +83,30 @@ export default function SalonDetailPage({ params }: { params: Promise<{ id: stri
 
   if (!salon) return null;
 
-  const tabs: { id: Tab; label: string; icon: typeof Store }[] = [
-    { id: "overview", label: " overview", icon: Store },
-    { id: "users", label: "کاربران", icon: Users },
-    { id: "bookings", label: "رزروها", icon: Calendar },
-    { id: "services", label: "خدمات", icon: Store },
-    { id: "settings", label: "تنظیمات", icon: Settings },
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "overview", label: " نمای کلی" },
+    { id: "users", label: "کاربران" },
+    { id: "bookings", label: "رزروها" },
+    { id: "services", label: "خدمات" },
+    { id: "settings", label: "تنظیمات" },
   ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/salons")}>
+        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/salons")} className="rounded-full">
           <ArrowRight className="h-4 w-4" />
         </Button>
         <div className="flex-1">
-          <h2 className="text-xl font-bold">{salon.name}</h2>
+          <h2 className="text-xl font-extrabold">{salon.name}</h2>
           <p className="text-sm text-muted-foreground">{salon.address || salon.slug}</p>
         </div>
         <Button
           variant="outline"
           size="sm"
           onClick={() => window.open(`https://${salon.slug}.vercel.app`, "_blank")}
-          className="gap-2"
+          className="gap-2 rounded-full"
         >
           <ExternalLink className="h-4 w-4" />
           مشاهده سایت
@@ -115,14 +114,14 @@ export default function SalonDetailPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border">
+      <div className="flex gap-1 border-b border-border overflow-x-auto">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
+            className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
               tab === t.id
-                ? "text-foreground border-b-2 border-foreground"
+                ? "text-foreground border-b-2 border-primary"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -144,19 +143,19 @@ export default function SalonDetailPage({ params }: { params: Promise<{ id: stri
 // Overview Tab
 function OverviewTab({ salon }: { salon: Salon }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <Card className="p-4">
-        <p className="text-sm text-muted-foreground">کاربران</p>
-        <p className="text-2xl font-bold">{parseInt(salon.user_count as any) || 0}</p>
-      </Card>
-      <Card className="p-4">
-        <p className="text-sm text-muted-foreground">رزروها</p>
-        <p className="text-2xl font-bold">{parseInt(salon.booking_count as any) || 0}</p>
-      </Card>
-      <Card className="p-4">
-        <p className="text-sm text-muted-foreground">خدمات</p>
-        <p className="text-2xl font-bold">{parseInt(salon.service_count as any) || 0}</p>
-      </Card>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="p-4 rounded-2xl border border-border">
+        <p className="text-xs text-muted-foreground mb-1">کاربران</p>
+        <p className="text-2xl font-extrabold">{parseInt(salon.user_count as any) || 0}</p>
+      </div>
+      <div className="p-4 rounded-2xl border border-border">
+        <p className="text-xs text-muted-foreground mb-1">رزروها</p>
+        <p className="text-2xl font-extrabold">{parseInt(salon.booking_count as any) || 0}</p>
+      </div>
+      <div className="p-4 rounded-2xl border border-border">
+        <p className="text-xs text-muted-foreground mb-1">خدمات</p>
+        <p className="text-2xl font-extrabold">{parseInt(salon.service_count as any) || 0}</p>
+      </div>
     </div>
   );
 }
@@ -178,7 +177,7 @@ function UsersTab({ salonId }: { salonId: string }) {
   }, [salonId, search]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -192,21 +191,26 @@ function UsersTab({ salonId }: { salonId: string }) {
       {isLoading ? (
         <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : users.length === 0 ? (
-        <Card className="p-8 text-center text-muted-foreground">کاربری یافت نشد</Card>
+        <div className="p-8 text-center text-muted-foreground text-sm">کاربری یافت نشد</div>
       ) : (
-        <div className="space-y-2">
-          {users.map((user) => (
-            <Card key={user.id} className="p-3 flex items-center justify-between">
+        <div className="rounded-2xl border border-border overflow-hidden">
+          {users.map((user, i) => (
+            <div
+              key={user.id}
+              className={`p-3 flex items-center justify-between ${
+                i < users.length - 1 ? "border-b border-border" : ""
+              }`}
+            >
               <div>
-                <p className="font-medium">{user.name || "بدون نام"}</p>
-                <p className="text-sm text-muted-foreground" dir="ltr">{user.phone}</p>
+                <p className="font-medium text-sm">{user.name || "بدون نام"}</p>
+                <p className="text-xs text-muted-foreground" dir="ltr">{user.phone}</p>
               </div>
               <span className={`px-2 py-1 rounded-full text-xs ${
                 user.role === "owner" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
               }`}>
                 {user.role === "owner" ? "مدیر" : "مشتری"}
               </span>
-            </Card>
+            </div>
           ))}
         </div>
       )}
@@ -231,14 +235,14 @@ function BookingsTab({ salonId }: { salonId: string }) {
   }, [salonId, status]);
 
   const statusColors: Record<string, string> = {
-    reserved: "bg-blue-100 text-blue-700",
-    confirmed: "bg-green-100 text-green-700",
-    completed: "bg-purple-100 text-purple-700",
-    cancelled: "bg-red-100 text-red-700",
+    reserved: "bg-primary/10 text-primary",
+    confirmed: "bg-success/10 text-success",
+    completed: "bg-rose-500/10 text-rose-500",
+    cancelled: "bg-destructive/10 text-destructive",
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex gap-2 flex-wrap">
         {["", "reserved", "confirmed", "completed", "cancelled"].map((s) => (
           <Button
@@ -246,6 +250,7 @@ function BookingsTab({ salonId }: { salonId: string }) {
             variant={status === s ? "default" : "outline"}
             size="sm"
             onClick={() => setStatus(s)}
+            className="rounded-full"
           >
             {s === "" ? "همه" : s === "reserved" ? "رزرو شده" : s === "confirmed" ? "تأیید شده" : s === "completed" ? "انجام شده" : "لغو شده"}
           </Button>
@@ -255,22 +260,27 @@ function BookingsTab({ salonId }: { salonId: string }) {
       {isLoading ? (
         <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : bookings.length === 0 ? (
-        <Card className="p-8 text-center text-muted-foreground">رزروی یافت نشد</Card>
+        <div className="p-8 text-center text-muted-foreground text-sm">رزروی یافت نشد</div>
       ) : (
-        <div className="space-y-2">
-          {bookings.map((b) => (
-            <Card key={b.id} className="p-3 flex items-center justify-between">
+        <div className="rounded-2xl border border-border overflow-hidden">
+          {bookings.map((b, i) => (
+            <div
+              key={b.id}
+              className={`p-3 flex items-center justify-between ${
+                i < bookings.length - 1 ? "border-b border-border" : ""
+              }`}
+            >
               <div>
-                <p className="font-medium">{b.customer_name || "مشتری"}</p>
-                <p className="text-sm text-muted-foreground">{b.date_gregorian} • {b.start_time}-{b.end_time}</p>
+                <p className="font-medium text-sm">{b.customer_name || "مشتری"}</p>
+                <p className="text-xs text-muted-foreground">{b.date_gregorian} • {b.start_time}-{b.end_time}</p>
               </div>
               <div className="flex items-center gap-2">
                 {b.paid && <span className="text-xs text-success">پرداخت شده</span>}
-                <span className={`px-2 py-1 rounded-full text-xs ${statusColors[b.status] || "bg-muted"}`}>
+                <span className={`px-2 py-1 rounded-full text-xs ${statusColors[b.status] || "bg-muted text-muted-foreground"}`}>
                   {b.status}
                 </span>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}
@@ -294,26 +304,31 @@ function ServicesTab({ salonId }: { salonId: string }) {
   }, [salonId]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {isLoading ? (
         <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : services.length === 0 ? (
-        <Card className="p-8 text-center text-muted-foreground">خدمتی یافت نشد</Card>
+        <div className="p-8 text-center text-muted-foreground text-sm">خدمتی یافت نشد</div>
       ) : (
-        <div className="space-y-2">
-          {services.map((s) => (
-            <Card key={s.id} className="p-3 flex items-center justify-between">
+        <div className="rounded-2xl border border-border overflow-hidden">
+          {services.map((s, i) => (
+            <div
+              key={s.id}
+              className={`p-3 flex items-center justify-between ${
+                i < services.length - 1 ? "border-b border-border" : ""
+              }`}
+            >
               <div>
-                <p className="font-medium">{s.name}</p>
-                <p className="text-sm text-muted-foreground">{s.duration_minutes} دقیقه</p>
+                <p className="font-medium text-sm">{s.name}</p>
+                <p className="text-xs text-muted-foreground">{s.duration_minutes} دقیقه</p>
               </div>
               <div className="text-left">
-                <p className="font-medium">{s.price.toLocaleString("fa-IR")} تومان</p>
+                <p className="font-medium text-sm">{s.price.toLocaleString("fa-IR")} تومان</p>
                 <p className={`text-xs ${s.is_active ? "text-success" : "text-muted-foreground"}`}>
                   {s.is_active ? "فعال" : "غیرفعال"}
                 </p>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}
@@ -351,28 +366,28 @@ function SettingsTab({ salon }: { salon: Salon }) {
   };
 
   return (
-    <Card className="p-6 space-y-4 max-w-2xl">
+    <div className="p-5 rounded-2xl border border-border space-y-4 max-w-2xl">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label>نام سالن</Label>
-          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1" />
         </div>
         <div>
           <Label>تلفن</Label>
-          <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} dir="ltr" />
+          <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} dir="ltr" className="mt-1" />
         </div>
         <div className="md:col-span-2">
           <Label>آدرس</Label>
-          <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+          <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="mt-1" />
         </div>
         <div className="md:col-span-2">
           <Label>توضیحات</Label>
-          <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1" />
         </div>
       </div>
-      <Button onClick={handleSave} disabled={saving}>
+      <Button onClick={handleSave} disabled={saving} className="rounded-full">
         {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
       </Button>
-    </Card>
+    </div>
   );
 }

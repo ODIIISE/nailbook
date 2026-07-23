@@ -41,9 +41,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
       </head>
-      <body className={`min-h-full flex flex-col ${USE_PAPER_THEME ? "paper-theme" : ""}`}>
-        {USE_PAPER_THEME && <PaperTexture />}
-        <GradientBackground />
+      <body className="min-h-full flex flex-col">
         <Providers>
           <ErrorBoundary>
             {children}

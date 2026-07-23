@@ -14,6 +14,7 @@ import { SalonGuard } from "@/components/ui/salon-guard";
 import { Heart, Shield, Store, Users, ArrowLeft, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { GradientBackground } from "@/components/layout/gradient-background";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 
 import { useSalon } from "@/lib/salon-context";
@@ -131,7 +132,8 @@ function SalonBooking() {
 
   return (
     <SalonGuard>
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen paper-theme">
+      <GradientBackground />
       <div className="relative z-10">
         <AppHeader />
         <Highlights highlights={highlights} onSelect={setViewingHighlight} />
