@@ -106,17 +106,6 @@ function AdminLanding() {
   );
 }
 
-      {/* Footer */}
-      <footer className="border-t border-border py-6">
-        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-xs text-muted-foreground">
-          <span>NailBook</span>
-          <span>v1.0</span>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
 // Salon booking page (when SALON_ID is set)
 function SalonBooking() {
   const router = useRouter();
