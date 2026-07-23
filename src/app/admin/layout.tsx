@@ -83,13 +83,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+      <header className="border-b border-border bg-background/90 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">N</span>
+            <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-xs">X</span>
             </div>
-            <span className="font-semibold text-sm">پنل مدیریت</span>
+            <span className="font-semibold text-sm tracking-wider uppercase">پنل مدیریت</span>
           </div>
           <nav className="flex items-center gap-1">
             {navItems.map((item) => (
@@ -98,7 +98,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 variant={pathname === item.href ? "default" : "ghost"}
                 size="sm"
                 onClick={() => router.push(item.href)}
-                className="gap-2 rounded-full"
+                className="gap-2 rounded"
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
@@ -106,10 +106,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             ))}
             <div className="h-6 w-px bg-border mx-1" />
             {user?.picture && (
-              <img src={user.picture} alt="" className="h-7 w-7 rounded-full" />
+              <img src={user.picture} alt="" className="h-7 w-7 rounded" />
             )}
             <span className="text-sm text-muted-foreground">{user?.name}</span>
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-destructive rounded-full">
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-destructive rounded">
               <LogOut className="h-4 w-4" />
             </Button>
           </nav>
