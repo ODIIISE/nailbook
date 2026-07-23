@@ -20,31 +20,25 @@ import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
 import type { Highlight } from "@/lib/types";
 
-// Admin landing page (when SALON_ID is not set) — Notion-inspired design
+// Admin landing page (when SALON_ID is not set) — Dark minimal design
 function AdminLanding() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
-      {/* Grid pattern background */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
-      />
-
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-[#FAFAFA]/80 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-[#2563EB] flex items-center justify-center">
-              <span className="text-white font-bold text-sm">N</span>
+    <div className="min-h-screen bg-[#0A0A0A] text-white">
+      {/* Nav */}
+      <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#0A0A0A]/80 backdrop-blur-xl">
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="h-7 w-7 rounded-md bg-white flex items-center justify-center">
+              <span className="text-black font-bold text-xs">N</span>
             </div>
-            <span className="font-semibold text-[#1A1A1A]">NailBook</span>
+            <span className="font-medium text-sm tracking-tight">NailBook</span>
           </div>
           <Button
             variant="ghost"
-            className="text-[#6B7280] hover:text-[#1A1A1A] hover:bg-[#F3F4F6]"
+            size="sm"
+            className="text-zinc-400 hover:text-white hover:bg-white/5 text-sm"
             onClick={() => router.push("/admin")}
           >
             ورود
@@ -53,34 +47,31 @@ function AdminLanding() {
       </nav>
 
       {/* Hero */}
-      <section className="max-w-6xl mx-auto px-6 pt-20 pb-16">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EFF6FF] text-[#2563EB] text-xs font-medium mb-6 border border-[#BFDBFE]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#2563EB] animate-pulse" />
-            پنل مدیریت سالن
+      <section className="max-w-5xl mx-auto px-6 pt-24 pb-20">
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 text-zinc-400 text-xs mb-8 border border-white/5">
+            <span className="h-1 w-1 rounded-full bg-emerald-400" />
+            پنل مدیریت
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-[#1A1A1A] leading-tight mb-4" style={{ fontFamily: "'Plus Jakarta Sans', Inter, sans-serif" }}>
-            مدیریت سالن‌های زیبایی
-            <br />
-            <span className="text-[#6B7280]">از یک مکان</span>
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
+            مدیریت سالن‌ها
           </h1>
-          <p className="text-lg text-[#6B7280] max-w-xl mb-8 leading-relaxed">
-            سیستم رزرو آنلاین برای سالن‌های ناخن، آرایشگاه و خدمات زیبایی.
-            همه چیز از یک پنل مدیریت می‌شود.
+          <p className="text-zinc-400 text-base max-w-md mb-10 leading-relaxed">
+            رزرو آنلاین، مدیریت کاربران، و درآمد — همه از یک پنل.
           </p>
           <div className="flex gap-3">
             <Button
               size="lg"
-              className="bg-[#1A1A1A] hover:bg-[#1A1A1A]/90 text-white px-6"
+              className="bg-white text-black hover:bg-white/90 px-5 font-medium"
               onClick={() => router.push("/admin")}
             >
-              ورود به پنل مدیریت
+              ورود
               <ArrowLeft className="h-4 w-4 mr-2" />
             </Button>
             <Button
               size="lg"
-              variant="outline"
-              className="border-[#E5E7EB] text-[#6B7280] hover:bg-[#F9FAFB]"
+              variant="ghost"
+              className="text-zinc-400 hover:text-white hover:bg-white/5"
               onClick={() => router.push("/admin/bootstrap")}
             >
               شروع
@@ -89,66 +80,19 @@ function AdminLanding() {
         </div>
       </section>
 
-      {/* Features — Notion-style cards */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            {
-              icon: Store,
-              title: "مدیریت سالن‌ها",
-              description: "سالن‌های خود را ایجاد، ویرایش و مدیریت کنید. هر سالن تنظیمات مستقل دارد.",
-              color: "#2563EB",
-            },
-            {
-              icon: Users,
-              title: "مدیریت کاربران",
-              description: "مدیران و مشتریان هر سالن را مدیریت کنید. دسترسی‌ها را کنترل کنید.",
-              color: "#059669",
-            },
-            {
-              icon: Calendar,
-              title: "رزروها و درآمد",
-              description: "رزروها و درآمد همه سالن‌ها را مشاهده کنید. گزارش‌گیری کنید.",
-              color: "#D97706",
-            },
-          ].map((feature) => (
-            <div
-              key={feature.title}
-              className="group p-5 rounded-xl border border-[#E5E7EB] bg-white hover:border-[#D1D5DB] hover:shadow-sm transition-all cursor-pointer"
-            >
-              <div
-                className="h-10 w-10 rounded-lg flex items-center justify-center mb-3"
-                style={{ backgroundColor: `${feature.color}10` }}
-              >
-                <feature.icon className="h-5 w-5" style={{ color: feature.color }} />
-              </div>
-              <h3 className="font-semibold text-[#1A1A1A] mb-1">{feature.title}</h3>
-              <p className="text-sm text-[#6B7280] leading-relaxed">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* How it works — clean numbered steps */}
-      <section className="border-t border-[#E5E7EB] bg-white">
-        <div className="max-w-6xl mx-auto px-6 py-16">
-          <h2 className="text-2xl font-bold text-[#1A1A1A] mb-8" style={{ fontFamily: "'Plus Jakarta Sans', Inter, sans-serif" }}>
-            شروع در ۳ مرحله
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* Features — minimal grid */}
+      <section className="border-t border-white/5">
+        <div className="max-w-5xl mx-auto px-6 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5 rounded-xl overflow-hidden">
             {[
-              { step: "۱", title: "ایجاد اکانت", desc: "اکانت مدیر کل خود را بسازید" },
-              { step: "۲", title: "ساخت سالن", desc: "سالن خود را با تنظیمات دلخواه ایجاد کنید" },
-              { step: "۳", title: "شروع رزرو", desc: "لینک اختصاصی سالن را به مشتریان بدهید" },
-            ].map((item) => (
-              <div key={item.step} className="flex gap-4">
-                <div className="h-10 w-10 rounded-full bg-[#F3F4F6] flex items-center justify-center shrink-0">
-                  <span className="text-sm font-bold text-[#6B7280]">{item.step}</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[#1A1A1A] mb-1">{item.title}</h3>
-                  <p className="text-sm text-[#6B7280]">{item.desc}</p>
-                </div>
+              { icon: Store, label: "سالن‌ها", desc: "ایجاد و مدیریت" },
+              { icon: Users, label: "کاربران", desc: "مدیران و مشتریان" },
+              { icon: Calendar, label: "رزروها", desc: "رزرو و درآمد" },
+            ].map((f) => (
+              <div key={f.label} className="bg-[#0A0A0A] p-6 group hover:bg-white/[0.02] transition-colors">
+                <f.icon className="h-5 w-5 text-zinc-500 mb-3 group-hover:text-white transition-colors" />
+                <p className="font-medium text-sm mb-1">{f.label}</p>
+                <p className="text-xs text-zinc-500">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -156,10 +100,10 @@ function AdminLanding() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#E5E7EB] py-6">
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between text-sm text-[#9CA3AF]">
+      <footer className="border-t border-white/5 py-6">
+        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-xs text-zinc-600">
           <span>NailBook</span>
-          <span>سیستم رزرو آنلاین سالن زیبایی</span>
+          <span>v1.0</span>
         </div>
       </footer>
     </div>
