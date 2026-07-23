@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Store } from "lucide-react";
+import { LogOut, LayoutDashboard, Store, Download } from "lucide-react";
 
 interface UserInfo {
   email: string;
@@ -73,6 +73,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { href: "/admin", label: "داشبورد", icon: LayoutDashboard },
     { href: "/admin/salons", label: "سالن‌ها", icon: Store },
+    { href: "/admin/export", label: "خروجی", icon: Download },
   ];
 
   const handleLogout = async () => {
