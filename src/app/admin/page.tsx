@@ -61,7 +61,7 @@ export default function AdminDashboard() {
 
   // Prepare chart data
   const chartData = stats.dailyBookings.map((d: any) => ({
-    name: d.date?.slice(5) || "",
+    name: d.date ? new Date(d.date).toLocaleDateString("fa-IR", { month: "short", day: "numeric" }) : "",
     count: parseInt(d.count) || 0,
   }));
 
@@ -160,10 +160,13 @@ function OverviewTab({ stats, analytics, chartData, statusData, router }: any) {
           {chartData.length > 0 ? (
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} />
-                  <Tooltip />
+                <BarChart data={chartData} barSize={24}>
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#71767B" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "#71767B" }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "#16181C", border: "1px solid #2F3336", borderRadius: "12px", color: "#E7E9EA", fontSize: "12px" }}
+                    cursor={{ fill: "rgba(29,155,240,0.08)" }}
+                  />
                   <Bar dataKey="count" fill="#1D9BF0" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -211,10 +214,13 @@ function BookingsTab({ analytics, chartData }: any) {
         {analytics.peakHours?.length > 0 ? (
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={analytics.peakHours.map((h: any) => ({ hour: `${h.hour}:00`, count: parseInt(h.count) }))}>
-                <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip />
+              <BarChart data={analytics.peakHours.map((h: any) => ({ hour: `${h.hour}:00`, count: parseInt(h.count) }))} barSize={20}>
+                <XAxis dataKey="hour" tick={{ fontSize: 10, fill: "#71767B" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#71767B" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "#16181C", border: "1px solid #2F3336", borderRadius: "12px", color: "#E7E9EA", fontSize: "12px" }}
+                  cursor={{ fill: "rgba(29,155,240,0.08)" }}
+                />
                 <Bar dataKey="count" fill="#1D9BF0" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
