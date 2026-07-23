@@ -45,9 +45,9 @@ function AdminLanding() {
             variant="ghost"
             size="sm"
             className="text-muted-foreground hover:text-foreground hover:bg-muted text-sm"
-            onClick={() => router.push("/admin")}
+            onClick={() => window.location.href = "/api/auth/google"}
           >
-            ورود
+            ورود با Google
           </Button>
         </div>
       </nav>
@@ -69,18 +69,10 @@ function AdminLanding() {
             <Button
               size="lg"
               className="bg-primary text-primary-foreground hover:bg-primary/90 px-5 font-medium"
-              onClick={() => router.push("/admin")}
+              onClick={() => window.location.href = "/api/auth/google"}
             >
-              ورود
+              ورود با Google
               <ArrowLeft className="h-4 w-4 mr-2" />
-            </Button>
-            <Button
-              size="lg"
-              variant="ghost"
-              className="text-muted-foreground hover:text-foreground hover:bg-muted"
-              onClick={() => router.push("/admin/bootstrap")}
-            >
-              شروع
             </Button>
           </div>
         </div>

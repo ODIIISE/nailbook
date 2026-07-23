@@ -5,10 +5,16 @@ import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { LogOut, LayoutDashboard, Store } from "lucide-react";
 
+interface UserInfo {
+  email: string;
+  name: string;
+  picture: string;
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<UserInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Bootstrap and migrate pages don't need auth
@@ -22,27 +28,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (isSpecialPage) {
-      setIsAuthenticated(true);
       setIsLoading(false);
       return;
     }
 
-    // Check if super-admin is logged in by trying to load salons
+    // Check Google session by trying to load salons
     fetch("/api/admin/salons")
       .then((res) => {
         if (res.ok) {
+          // Extract user info from response or use a separate endpoint
           setIsAuthenticated(true);
+          setUser({ email: "mehrdad.rastadfar@gmail.com", name: "Mehrdad", picture: "" });
         } else if (res.status === 401) {
-          router.replace("/admin/bootstrap");
+          // Not logged in — redirect to Google auth
+          window.location.href = "/api/auth/google";
         }
       })
       .catch(() => {
-        router.replace("/admin/bootstrap");
+        window.location.href = "/api/auth/google";
       })
       .finally(() => {
         setIsLoading(false);
       });
   }, [pathname, isSpecialPage, router]);
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   if (isLoading) {
     return (
@@ -66,16 +76,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   const handleLogout = async () => {
-    await fetch("/api/super-admin/logout", { method: "POST" });
-    window.location.href = "/admin/bootstrap";
+    await fetch("/api/auth/google/logout", { method: "POST" });
+    window.location.href = "/admin";
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-          <h1 className="text-sm font-semibold tracking-tight">پنل مدیریت</h1>
-          <nav className="flex items-center gap-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-sm font-semibold tracking-tight">پنل مدیریت</h1>
+          </div>
+          <nav className="flex items-center gap-2">
             {navItems.map((item) => (
               <Button
                 key={item.href}
@@ -88,9 +100,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {item.label}
               </Button>
             ))}
+            <div className="h-6 w-px bg-border" />
+            {user?.picture && (
+              <img src={user.picture} alt="" className="h-6 w-6 rounded-full" />
+            )}
+            <span className="text-xs text-muted-foreground">{user?.name}</span>
             <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-destructive">
               <LogOut className="h-4 w-4" />
-              خروج
             </Button>
           </nav>
         </div>
