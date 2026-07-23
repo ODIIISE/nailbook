@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Plus, Store, Trash2, ExternalLink } from "lucide-react";
+import { ArrowRight, Plus, Store, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Salon {
@@ -78,20 +77,16 @@ export default function AdminSalonsPage() {
     }
   };
 
-  if (isLoading) {
-    return <div className="text-center py-8 text-muted-foreground">در حال بارگذاری...</div>;
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => router.push("/admin")}>
+          <Button variant="ghost" size="icon" onClick={() => router.push("/admin")} className="rounded-full">
             <ArrowRight className="h-4 w-4" />
           </Button>
-          <h2 className="text-2xl font-bold text-foreground">مدیریت سالن‌ها</h2>
+          <h2 className="text-xl font-extrabold">مدیریت سالن‌ها</h2>
         </div>
-        <Button onClick={() => setShowCreate(true)} className="gap-2">
+        <Button onClick={() => setShowCreate(true)} className="gap-2 rounded-full" size="sm">
           <Plus className="h-4 w-4" />
           سالن جدید
         </Button>
@@ -99,7 +94,7 @@ export default function AdminSalonsPage() {
 
       {/* Create Salon Form */}
       {showCreate && (
-        <Card className="p-4 space-y-4">
+        <div className="p-5 rounded-2xl border border-border space-y-4">
           <h3 className="font-bold">سالن جدید</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -108,6 +103,7 @@ export default function AdminSalonsPage() {
                 value={newSalon.name}
                 onChange={(e) => setNewSalon({ ...newSalon, name: e.target.value })}
                 placeholder="مثال: استدیو ناخن فورهند"
+                className="mt-1"
               />
             </div>
             <div>
@@ -116,6 +112,8 @@ export default function AdminSalonsPage() {
                 value={newSalon.slug}
                 onChange={(e) => setNewSalon({ ...newSalon, slug: e.target.value })}
                 placeholder="forehand-nail"
+                className="mt-1"
+                dir="ltr"
               />
             </div>
             <div>
@@ -125,6 +123,7 @@ export default function AdminSalonsPage() {
                 onChange={(e) => setNewSalon({ ...newSalon, phone: e.target.value })}
                 placeholder="09121234567"
                 dir="ltr"
+                className="mt-1"
               />
             </div>
             <div>
@@ -133,64 +132,77 @@ export default function AdminSalonsPage() {
                 value={newSalon.address}
                 onChange={(e) => setNewSalon({ ...newSalon, address: e.target.value })}
                 placeholder="مشهد، خیابان ..."
+                className="mt-1"
               />
             </div>
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleCreate} disabled={creating}>
+            <Button onClick={handleCreate} disabled={creating} className="rounded-full">
               {creating ? "در حال ایجاد..." : "ایجاد سالن"}
             </Button>
-            <Button variant="ghost" onClick={() => setShowCreate(false)}>
+            <Button variant="ghost" onClick={() => setShowCreate(false)} className="rounded-full">
               انصراف
             </Button>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Salon List */}
-      {salons.length === 0 ? (
-        <Card className="p-8 text-center">
-          <Store className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-          <p className="text-muted-foreground">هنوز سالنی ثبت نشده</p>
-          <Button className="mt-4" onClick={() => setShowCreate(true)}>
+      {isLoading ? (
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : salons.length === 0 ? (
+        <div className="p-8 text-center text-muted-foreground text-sm">
+          <p>هنوز سالنی ثبت نشده</p>
+          <Button variant="outline" size="sm" className="mt-3 rounded-full" onClick={() => setShowCreate(true)}>
             اولین سالن را ایجاد کنید
           </Button>
-        </Card>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {salons.map((salon) => (
-            <Card key={salon.id} className="p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="font-bold text-lg">{salon.name}</h3>
-                  <p className="text-sm text-muted-foreground">{salon.address || salon.slug}</p>
+        <div className="rounded-2xl border border-border overflow-hidden">
+          {salons.map((salon, i) => (
+            <div
+              key={salon.id}
+              className={`p-4 hover:bg-muted/30 transition-colors ${
+                i < salons.length - 1 ? "border-b border-border" : ""
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                    <Store className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm">{salon.name}</p>
+                    <p className="text-xs text-muted-foreground">{salon.address || salon.slug}</p>
+                  </div>
                 </div>
-                <span className={`px-2 py-1 rounded-full text-xs ${salon.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
-                  {salon.is_active ? 'فعال' : 'غیرفعال'}
-                </span>
+                <div className="flex items-center gap-3">
+                  <div className="text-left text-xs text-muted-foreground">
+                    <span>{parseInt(salon.user_count as any) || 0} کاربر</span>
+                    <span className="mx-2">•</span>
+                    <span>{parseInt(salon.booking_count as any) || 0} رزرو</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.push(`/admin/salons/${salon.id}`)}
+                    className="rounded-full"
+                  >
+                    مدیریت
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => window.open(`https://${salon.slug}.vercel.app`, "_blank")}
+                    className="rounded-full"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
-                <span>{parseInt(salon.user_count as any) || 0} کاربر</span>
-                <span>{parseInt(salon.booking_count as any) || 0} رزرو</span>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => router.push(`/admin/salons/${salon.id}`)}
-                >
-                  مدیریت
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => window.open(`https://${salon.slug}.vercel.app`, "_blank")}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-              </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}

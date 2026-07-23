@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Download, FileText, Users, Store, Loader2 } from "lucide-react";
@@ -46,7 +45,6 @@ export default function AdminExportPage() {
         return;
       }
 
-      // Download CSV
       const blob = new Blob([data.csv], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -70,9 +68,9 @@ export default function AdminExportPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h2 className="text-xl font-bold">خروجی داده</h2>
+      <h2 className="text-xl font-extrabold">خروجی داده</h2>
 
-      <Card className="p-6 space-y-4">
+      <div className="p-5 rounded-2xl border border-border space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label>نوع داده</Label>
@@ -83,7 +81,7 @@ export default function AdminExportPage() {
                   variant={exportType === t.id ? "default" : "outline"}
                   size="sm"
                   onClick={() => setExportType(t.id)}
-                  className="gap-1"
+                  className="gap-1 rounded-full"
                 >
                   <t.icon className="h-3.5 w-3.5" />
                   {t.label}
@@ -96,7 +94,7 @@ export default function AdminExportPage() {
             <select
               value={selectedSalon}
               onChange={(e) => setSelectedSalon(e.target.value)}
-              className="w-full mt-2 h-9 px-3 rounded-md border border-border bg-background text-sm"
+              className="w-full mt-2 h-9 px-3 rounded-xl border border-border bg-background text-sm"
             >
               <option value="">همه سالن‌ها</option>
               {salons.map((s) => (
@@ -106,7 +104,7 @@ export default function AdminExportPage() {
           </div>
         </div>
 
-        <Button onClick={handleExport} disabled={exporting} className="gap-2">
+        <Button onClick={handleExport} disabled={exporting} className="gap-2 rounded-full">
           {exporting ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
@@ -114,7 +112,7 @@ export default function AdminExportPage() {
           )}
           {exporting ? "در حال خروجی..." : "خروجی CSV"}
         </Button>
-      </Card>
+      </div>
     </div>
   );
 }
