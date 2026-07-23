@@ -220,15 +220,14 @@ export default function HomePage() {
   const [isSalonMode, setIsSalonMode] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Check if SALON_ID is set by trying to load salon data
-    fetch("/api/read/salon")
+    // Check if SALON_ID is set via config endpoint
+    fetch("/api/config")
       .then((res) => res.json())
       .then((data) => {
-        // If salon data exists and has an ID, we're in salon mode
-        setIsSalonMode(data && data.id && data.id !== "");
+        setIsSalonMode(data.isSalon);
       })
       .catch(() => {
-        // Error means no salon configured = admin mode
+        // Error = admin mode
         setIsSalonMode(false);
       });
   }, []);
