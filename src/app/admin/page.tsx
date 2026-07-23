@@ -189,7 +189,7 @@ function OverviewTab({ stats, analytics, chartData, statusData, router }: any) {
       </div>
 
       {/* Salon Table */}
-      <SalonTable salons={stats.salons} salonRevenue={stats.salonRevenue} router={router} />
+      <SalonTable salons={stats.salons} salonRevenue={stats.salonRevenue} />
     </div>
   );
 }
@@ -367,7 +367,7 @@ function QuickStat({ label, value }: { label: string; value: number }) {
   );
 }
 
-function SalonTable({ salons, salonRevenue, router }: { salons: any[]; salonRevenue: any[]; router: any }) {
+function SalonTable({ salons, salonRevenue, router }: { salons: any[]; salonRevenue: any[]; router?: any }) {
   const formatPrice = (n: number) => n.toLocaleString("fa-IR");
   return (
     <div className="rounded-2xl border border-border overflow-hidden">

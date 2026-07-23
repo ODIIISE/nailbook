@@ -13,52 +13,42 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get("start") || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
     const endDate = searchParams.get("end") || new Date().toISOString().split("T")[0];
 
-    const salonFilter = salonId ? sql`AND b.salon_id = ${salonId}` : sql``;
+    const salonClause = salonId ? `AND b.salon_id = '${salonId}'` : "";
+    const query = (sqlStr: string) => sql.query(sqlStr);
 
-    // W: Daily Summary
     if (type === "daily") {
-      const { rows: summary } = await sql`
-        SELECT
-          COUNT(*) as total_bookings,
+      const { rows } = await query(`
+        SELECT COUNT(*) as total_bookings,
           COUNT(*) FILTER (WHERE status = 'completed') as completed,
           COUNT(*) FILTER (WHERE status = 'cancelled') as cancelled,
           COUNT(*) FILTER (WHERE paid = true) as paid,
           COUNT(*) FILTER (WHERE paid = false AND status != 'cancelled') as unpaid,
           COUNT(DISTINCT customer_phone) as unique_customers
-        FROM bookings b
-        WHERE date_gregorian = CURRENT_DATE ${salonFilter}
-      `;
-      return NextResponse.json({ type: "daily", date: new Date().toISOString().split("T")[0], ...summary[0] });
+        FROM bookings b WHERE date_gregorian = CURRENT_DATE ${salonClause}
+      `);
+      return NextResponse.json({ type: "daily", date: new Date().toISOString().split("T")[0], ...rows[0] });
     }
 
-    // X: Weekly Report
     if (type === "weekly") {
-      const { rows: weekly } = await sql`
-        SELECT
-          date_gregorian as date,
-          COUNT(*) as bookings,
+      const { rows } = await query(`
+        SELECT date_gregorian as date, COUNT(*) as bookings,
           COUNT(*) FILTER (WHERE paid = true) as paid
-        FROM bookings b
-        WHERE date_gregorian >= (CURRENT_DATE - INTERVAL '7 days') ${salonFilter}
+        FROM bookings b WHERE date_gregorian >= (CURRENT_DATE - INTERVAL '7 days') ${salonClause}
         GROUP BY date_gregorian ORDER BY date_gregorian
-      `;
-      return NextResponse.json({ type: "weekly", data: weekly });
+      `);
+      return NextResponse.json({ type: "weekly", data: rows });
     }
 
-    // Y: Custom Date Range
     if (type === "custom") {
-      const { rows: custom } = await sql`
-        SELECT
-          date_gregorian as date,
-          COUNT(*) as bookings,
+      const { rows } = await query(`
+        SELECT date_gregorian as date, COUNT(*) as bookings,
           COUNT(*) FILTER (WHERE status = 'completed') as completed,
           COUNT(*) FILTER (WHERE paid = true) as paid
-        FROM bookings b
-        WHERE date_gregorian >= ${startDate}::date
-        AND date_gregorian <= ${endDate}::date ${salonFilter}
+        FROM bookings b WHERE date_gregorian >= '${startDate}'::date
+        AND date_gregorian <= '${endDate}'::date ${salonClause}
         GROUP BY date_gregorian ORDER BY date_gregorian
-      `;
-      return NextResponse.json({ type: "custom", start: startDate, end: endDate, data: custom });
+      `);
+      return NextResponse.json({ type: "custom", start: startDate, end: endDate, data: rows });
     }
 
     return NextResponse.json({ error: "نوع نامعتبر" }, { status: 400 });
