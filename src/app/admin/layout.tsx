@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Store, Users } from "lucide-react";
+import { LogOut, LayoutDashboard, Store } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -13,6 +13,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // Bootstrap and migrate pages don't need auth
   const isSpecialPage = pathname === "/admin/bootstrap" || pathname === "/admin/migrate";
+
+  // Add dark class to html element
+  useEffect(() => {
+    document.documentElement.classList.add("dark");
+    return () => document.documentElement.classList.remove("dark");
+  }, []);
 
   useEffect(() => {
     if (isSpecialPage) {
@@ -40,7 +46,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground">در حال بارگذاری...</p>
       </div>
     );
@@ -65,10 +71,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <h1 className="text-lg font-bold text-foreground">پنل مدیریت</h1>
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+          <h1 className="text-sm font-semibold tracking-tight">پنل مدیریت</h1>
           <nav className="flex items-center gap-1">
             {navItems.map((item) => (
               <Button
@@ -89,7 +95,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
         </div>
       </header>
-      <main className="max-w-6xl mx-auto px-4 py-6">
+      <main className="max-w-5xl mx-auto px-6 py-8">
         {children}
       </main>
     </div>

@@ -119,6 +119,33 @@
   --paper-tile: none;
 }
 
+/* ── Dark mode ── */
+.dark {
+  --background: #0A0A0A;
+  --foreground: #FAFAFA;
+  --card: #18181B;
+  --card-foreground: #FAFAFA;
+  --popover: #18181B;
+  --popover-foreground: #FAFAFA;
+  --primary: #FAFAFA;
+  --primary-foreground: #0A0A0A;
+  --secondary: #27272A;
+  --secondary-foreground: #FAFAFA;
+  --muted: #27272A;
+  --muted-foreground: #A1A1AA;
+  --accent: #27272A;
+  --accent-foreground: #FAFAFA;
+  --destructive: #EF4444;
+  --success: #22C55E;
+  --border: #27272A;
+  --input: #27272A;
+  --ring: #D4D4D8;
+  --rose: #FB7185;
+  --gold: #FBBF24;
+  --warm-white: #FAFAFA;
+  --navy: #18181B;
+}
+
 /* ── Paper theme overrides ── */
 .paper-theme {
   --background: var(--paper-bg);

@@ -24,21 +24,27 @@ import type { Highlight } from "@/lib/types";
 function AdminLanding() {
   const router = useRouter();
 
+  // Add dark class to html element
+  useEffect(() => {
+    document.documentElement.classList.add("dark");
+    return () => document.documentElement.classList.remove("dark");
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#0A0A0A]/80 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="h-7 w-7 rounded-md bg-white flex items-center justify-center">
-              <span className="text-black font-bold text-xs">N</span>
+            <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-xs">N</span>
             </div>
             <span className="font-medium text-sm tracking-tight">NailBook</span>
           </div>
           <Button
             variant="ghost"
             size="sm"
-            className="text-zinc-400 hover:text-white hover:bg-white/5 text-sm"
+            className="text-muted-foreground hover:text-foreground hover:bg-muted text-sm"
             onClick={() => router.push("/admin")}
           >
             ورود
@@ -49,20 +55,20 @@ function AdminLanding() {
       {/* Hero */}
       <section className="max-w-5xl mx-auto px-6 pt-24 pb-20">
         <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 text-zinc-400 text-xs mb-8 border border-white/5">
-            <span className="h-1 w-1 rounded-full bg-emerald-400" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs mb-8 border border-border">
+            <span className="h-1 w-1 rounded-full bg-emerald-500" />
             پنل مدیریت
           </div>
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
             مدیریت سالن‌ها
           </h1>
-          <p className="text-zinc-400 text-base max-w-md mb-10 leading-relaxed">
+          <p className="text-muted-foreground text-base max-w-md mb-10 leading-relaxed">
             رزرو آنلاین، مدیریت کاربران، و درآمد — همه از یک پنل.
           </p>
           <div className="flex gap-3">
             <Button
               size="lg"
-              className="bg-white text-black hover:bg-white/90 px-5 font-medium"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 px-5 font-medium"
               onClick={() => router.push("/admin")}
             >
               ورود
@@ -71,7 +77,7 @@ function AdminLanding() {
             <Button
               size="lg"
               variant="ghost"
-              className="text-zinc-400 hover:text-white hover:bg-white/5"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted"
               onClick={() => router.push("/admin/bootstrap")}
             >
               شروع
@@ -81,18 +87,18 @@ function AdminLanding() {
       </section>
 
       {/* Features — minimal grid */}
-      <section className="border-t border-white/5">
+      <section className="border-t border-border">
         <div className="max-w-5xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5 rounded-xl overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border rounded-xl overflow-hidden">
             {[
               { icon: Store, label: "سالن‌ها", desc: "ایجاد و مدیریت" },
               { icon: Users, label: "کاربران", desc: "مدیران و مشتریان" },
               { icon: Calendar, label: "رزروها", desc: "رزرو و درآمد" },
             ].map((f) => (
-              <div key={f.label} className="bg-[#0A0A0A] p-6 group hover:bg-white/[0.02] transition-colors">
-                <f.icon className="h-5 w-5 text-zinc-500 mb-3 group-hover:text-white transition-colors" />
+              <div key={f.label} className="bg-background p-6 group hover:bg-muted/50 transition-colors">
+                <f.icon className="h-5 w-5 text-muted-foreground mb-3 group-hover:text-foreground transition-colors" />
                 <p className="font-medium text-sm mb-1">{f.label}</p>
-                <p className="text-xs text-zinc-500">{f.desc}</p>
+                <p className="text-xs text-muted-foreground">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -100,8 +106,8 @@ function AdminLanding() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-6">
-        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-xs text-zinc-600">
+      <footer className="border-t border-border py-6">
+        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-xs text-muted-foreground">
           <span>NailBook</span>
           <span>v1.0</span>
         </div>
