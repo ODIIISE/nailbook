@@ -77,8 +77,8 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">داشبورد</h2>
-        <Button onClick={() => router.push("/admin/salons")} className="gap-2" size="sm">
+        <h2 className="text-xl font-extrabold">داشبورد</h2>
+        <Button onClick={() => router.push("/admin/salons")} className="gap-2 rounded-full" size="sm">
           <Plus className="h-4 w-4" />
           سالن جدید
         </Button>
@@ -86,41 +86,41 @@ export default function AdminDashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="p-4">
+        <div className="p-4 rounded-2xl border border-border">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-muted-foreground">سالن‌ها</span>
-            <Store className="h-4 w-4 text-muted-foreground" />
+            <Store className="h-4 w-4 text-primary" />
           </div>
-          <p className="text-2xl font-bold">{salons.length}</p>
-        </Card>
-        <Card className="p-4">
+          <p className="text-2xl font-extrabold">{salons.length}</p>
+        </div>
+        <div className="p-4 rounded-2xl border border-border">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-muted-foreground">کاربران</span>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-success" />
           </div>
-          <p className="text-2xl font-bold">{totalUsers}</p>
-        </Card>
-        <Card className="p-4">
+          <p className="text-2xl font-extrabold">{totalUsers}</p>
+        </div>
+        <div className="p-4 rounded-2xl border border-border">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-muted-foreground">رزروها</span>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Calendar className="h-4 w-4 text-rose-500" />
           </div>
-          <p className="text-2xl font-bold">{totalBookings}</p>
-        </Card>
-        <Card className="p-4">
+          <p className="text-2xl font-extrabold">{totalBookings}</p>
+        </div>
+        <div className="p-4 rounded-2xl border border-border">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-muted-foreground">امروز</span>
-            <TrendingUp className="h-4 w-4 text-success" />
+            <TrendingUp className="h-4 w-4 text-primary" />
           </div>
-          <p className="text-2xl font-bold">{todayBookings}</p>
-        </Card>
+          <p className="text-2xl font-extrabold">{todayBookings}</p>
+        </div>
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Status Distribution */}
-        <Card className="p-4">
-          <h3 className="text-sm font-medium mb-4">وضعیت رزروها</h3>
+        <div className="p-4 rounded-2xl border border-border">
+          <h3 className="text-sm font-bold mb-4">وضعیت رزروها</h3>
           {statusData.length > 0 ? (
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
@@ -156,11 +156,11 @@ export default function AdminDashboard() {
               </div>
             ))}
           </div>
-        </Card>
+        </div>
 
         {/* Salon Comparison */}
-        <Card className="p-4">
-          <h3 className="text-sm font-medium mb-4">مقایسه سالن‌ها</h3>
+        <div className="p-4 rounded-2xl border border-border">
+          <h3 className="text-sm font-bold mb-4">مقایسه سالن‌ها</h3>
           {salonData.length > 0 ? (
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
-                  <Bar dataKey="bookings" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="bookings" fill="var(--primary)" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -178,33 +178,37 @@ export default function AdminDashboard() {
               داده‌ای موجود نیست
             </div>
           )}
-        </Card>
+        </div>
       </div>
 
       {/* Salon List */}
-      <Card className="p-4">
-        <h3 className="text-sm font-medium mb-3">سالن‌ها</h3>
+      <div className="rounded-2xl border border-border overflow-hidden">
+        <div className="p-4 border-b border-border">
+          <h3 className="text-sm font-bold">سالن‌ها</h3>
+        </div>
         {salons.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground text-sm">
             <p>هنوز سالنی ثبت نشده</p>
-            <Button variant="outline" size="sm" className="mt-3" onClick={() => router.push("/admin/salons")}>
+            <Button variant="outline" size="sm" className="mt-3 rounded-full" onClick={() => router.push("/admin/salons")}>
               اولین سالن را ایجاد کنید
             </Button>
           </div>
         ) : (
-          <div className="space-y-2">
-            {salons.map((salon) => (
+          <div>
+            {salons.map((salon, i) => (
               <div
                 key={salon.id}
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                className={`flex items-center justify-between p-4 hover:bg-muted/30 cursor-pointer transition-colors ${
+                  i < salons.length - 1 ? "border-b border-border" : ""
+                }`}
                 onClick={() => router.push(`/admin/salons/${salon.id}`)}
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
-                    <Store className="h-4 w-4 text-muted-foreground" />
+                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                    <Store className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">{salon.name}</p>
+                    <p className="font-bold text-sm">{salon.name}</p>
                     <p className="text-xs text-muted-foreground">{salon.address || salon.slug}</p>
                   </div>
                 </div>
@@ -216,7 +220,7 @@ export default function AdminDashboard() {
             ))}
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 }

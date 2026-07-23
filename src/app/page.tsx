@@ -20,7 +20,7 @@ import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
 import type { Highlight } from "@/lib/types";
 
-// Admin landing page (when SALON_ID is not set) — Dark minimal design
+// Admin landing page (when SALON_ID is not set) — X.com design system
 function AdminLanding() {
   const router = useRouter();
 
@@ -34,68 +34,77 @@ function AdminLanding() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xs">N</span>
+        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">N</span>
             </div>
-            <span className="font-medium text-sm tracking-tight">NailBook</span>
+            <span className="font-semibold text-base">NailBook</span>
           </div>
           <Button
             variant="ghost"
             size="sm"
-            className="text-muted-foreground hover:text-foreground hover:bg-muted text-sm"
+            className="rounded-full px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
             onClick={() => window.location.href = "/api/auth/google"}
           >
-            ورود با Google
+            ورود
           </Button>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="max-w-5xl mx-auto px-6 pt-24 pb-20">
+      <section className="max-w-6xl mx-auto px-6 pt-20 pb-16">
         <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs mb-8 border border-border">
-            <span className="h-1 w-1 rounded-full bg-emerald-500" />
-            پنل مدیریت
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
-            مدیریت سالن‌ها
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-4">
+            مدیریت سالن‌های زیبایی
           </h1>
-          <p className="text-muted-foreground text-base max-w-md mb-10 leading-relaxed">
+          <p className="text-muted-foreground text-lg max-w-lg mb-8 leading-relaxed">
             رزرو آنلاین، مدیریت کاربران، و درآمد — همه از یک پنل.
           </p>
           <div className="flex gap-3">
             <Button
               size="lg"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 px-5 font-medium"
+              className="rounded-full px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 font-bold"
               onClick={() => window.location.href = "/api/auth/google"}
             >
               ورود با Google
-              <ArrowLeft className="h-4 w-4 mr-2" />
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Features — minimal grid */}
+      {/* Features — X.com style cards */}
       <section className="border-t border-border">
-        <div className="max-w-5xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border rounded-xl overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { icon: Store, label: "سالن‌ها", desc: "ایجاد و مدیریت" },
-              { icon: Users, label: "کاربران", desc: "مدیران و مشتریان" },
-              { icon: Calendar, label: "رزروها", desc: "رزرو و درآمد" },
+              { icon: Store, label: "سالن‌ها", desc: "ایجاد و مدیریت سالن‌های خود", color: "text-primary" },
+              { icon: Users, label: "کاربران", desc: "مدیران و مشتریان هر سالن", color: "text-success" },
+              { icon: Calendar, label: "رزروها", desc: "مشاهده رزروها و درآمد", color: "text-rose-500" },
             ].map((f) => (
-              <div key={f.label} className="bg-background p-6 group hover:bg-muted/50 transition-colors">
-                <f.icon className="h-5 w-5 text-muted-foreground mb-3 group-hover:text-foreground transition-colors" />
-                <p className="font-medium text-sm mb-1">{f.label}</p>
-                <p className="text-xs text-muted-foreground">{f.desc}</p>
+              <div
+                key={f.label}
+                className="p-5 rounded-2xl border border-border hover:bg-muted/30 transition-colors cursor-pointer"
+              >
+                <f.icon className={`h-6 w-6 ${f.color} mb-3`} />
+                <p className="font-bold text-base mb-1">{f.label}</p>
+                <p className="text-sm text-muted-foreground">{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border py-6">
+        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between text-sm text-muted-foreground">
+          <span>© 2026 NailBook</span>
+          <span>v1.0</span>
+        </div>
+      </footer>
+    </div>
+  );
+}
 
       {/* Footer */}
       <footer className="border-t border-border py-6">

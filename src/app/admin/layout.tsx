@@ -84,35 +84,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="text-sm font-semibold tracking-tight">پنل مدیریت</h1>
+            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">N</span>
+            </div>
+            <span className="font-semibold text-sm">پنل مدیریت</span>
           </div>
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center gap-1">
             {navItems.map((item) => (
               <Button
                 key={item.href}
                 variant={pathname === item.href ? "default" : "ghost"}
                 size="sm"
                 onClick={() => router.push(item.href)}
-                className="gap-2"
+                className="gap-2 rounded-full"
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
               </Button>
             ))}
-            <div className="h-6 w-px bg-border" />
+            <div className="h-6 w-px bg-border mx-1" />
             {user?.picture && (
-              <img src={user.picture} alt="" className="h-6 w-6 rounded-full" />
+              <img src={user.picture} alt="" className="h-7 w-7 rounded-full" />
             )}
-            <span className="text-xs text-muted-foreground">{user?.name}</span>
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-destructive">
+            <span className="text-sm text-muted-foreground">{user?.name}</span>
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-destructive rounded-full">
               <LogOut className="h-4 w-4" />
             </Button>
           </nav>
         </div>
       </header>
-      <main className="max-w-5xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-6 py-8">
         {children}
       </main>
     </div>

@@ -119,31 +119,31 @@
   --paper-tile: none;
 }
 
-/* ── Dark mode ── */
+/* ── Dark mode (X.com design system) ── */
 .dark {
-  --background: #0A0A0A;
-  --foreground: #FAFAFA;
-  --card: #18181B;
-  --card-foreground: #FAFAFA;
-  --popover: #18181B;
-  --popover-foreground: #FAFAFA;
-  --primary: #FAFAFA;
-  --primary-foreground: #0A0A0A;
-  --secondary: #27272A;
-  --secondary-foreground: #FAFAFA;
-  --muted: #27272A;
-  --muted-foreground: #A1A1AA;
-  --accent: #27272A;
-  --accent-foreground: #FAFAFA;
-  --destructive: #EF4444;
-  --success: #22C55E;
-  --border: #27272A;
-  --input: #27272A;
-  --ring: #D4D4D8;
-  --rose: #FB7185;
-  --gold: #FBBF24;
-  --warm-white: #FAFAFA;
-  --navy: #18181B;
+  --background: #000000;
+  --foreground: #E7E9EA;
+  --card: #16181C;
+  --card-foreground: #E7E9EA;
+  --popover: #16181C;
+  --popover-foreground: #E7E9EA;
+  --primary: #1D9BF0;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1D1F23;
+  --secondary-foreground: #E7E9EA;
+  --muted: #1D1F23;
+  --muted-foreground: #71767B;
+  --accent: #1D9BF0;
+  --accent-foreground: #FFFFFF;
+  --destructive: #F4212E;
+  --success: #00BA7C;
+  --border: #2F3336;
+  --input: #2F3336;
+  --ring: #1D9BF0;
+  --rose: #F91880;
+  --gold: #FFD700;
+  --warm-white: #E7E9EA;
+  --navy: #16181C;
 }
 
 /* ── Paper theme overrides ── */
