@@ -23,23 +23,11 @@ async function verifySessionSignature(cookieValue: string): Promise<boolean> {
       new TextEncoder().encode(SECRET),
       { name: "HMAC", hash: "SHA-256" },
       false,
-      ["sign"]
+      ["verify"]
     );
 
-    const expectedSig = Array.from(
-      new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload)))
-    )
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-
-    // Constant-time comparison using Uint8Arrays
-    const sigHexPairs = signature.match(/.{1,2}/g);
-    const expHexPairs = expectedSig.match(/.{1,2}/g);
-    if (!sigHexPairs || !expHexPairs) return false;
-    const sigBytes = new Uint8Array(sigHexPairs.map((byte) => parseInt(byte, 16)));
-    const expectedBytes = new Uint8Array(expHexPairs.map((byte) => parseInt(byte, 16)));
-    if (sigBytes.length !== expectedBytes.length) return false;
-    return crypto.subtle.verify("HMAC", key, new TextEncoder().encode(payload), sigBytes);
+    const sigBytes = new Uint8Array(signature.match(/.{1,2}/g)!.map((b) => parseInt(b, 16)));
+    return crypto.subtle.verify("HMAC", key, sigBytes, new TextEncoder().encode(payload));
   } catch {
     return false;
   }
