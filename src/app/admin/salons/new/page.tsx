@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, ArrowLeft, Store, Check, Loader2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, Store, Check, Loader2, Rocket, Shield, Package, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5 | 6;
+type DeployStatus = "idle" | "deploying" | "success" | "error";
 
 interface SalonData {
   name: string;
@@ -40,6 +41,9 @@ export default function NewSalonPage() {
   const [creating, setCreating] = useState(false);
   const [salonId, setSalonId] = useState("");
   const [salonSlug, setSalonSlug] = useState("");
+  const [deployUrl, setDeployUrl] = useState("");
+  const [deployStatus, setDeployStatus] = useState<DeployStatus>("idle");
+  const [deployError, setDeployError] = useState("");
 
   const [data, setData] = useState<SalonData>({
     name: "",
@@ -74,7 +78,7 @@ export default function NewSalonPage() {
       }
       setSalonId(result.salon.id);
       setSalonSlug(result.salon.slug);
-      setStep(4);
+      setStep(5);
       toast.success("سالن با موفقیت ایجاد شد");
     } catch {
       toast.error("خطای سرور");
@@ -82,11 +86,46 @@ export default function NewSalonPage() {
     setCreating(false);
   };
 
+  const handleDeploy = async () => {
+    setDeployStatus("deploying");
+    setDeployError("");
+    try {
+      const res = await fetch("/api/admin/salons/deploy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          salonId,
+          salonName: data.name,
+          salonSlug: data.slug,
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        setDeployStatus("error");
+        setDeployError(result.error || "خطا در استقرار");
+        return;
+      }
+      setDeployUrl(result.deployUrl);
+      setDeployStatus("success");
+      toast.success("سالن با موفقیت مستقر شد");
+      // Fire-and-forget seed call
+      fetch(`/api/admin/salons/${salonId}/seed`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch {
+      setDeployStatus("error");
+      setDeployError("خطای سرور");
+    }
+  };
+
   const steps = [
     { num: 1, label: "اطلاعات پایه" },
     { num: 2, label: "اطلاعات تماس" },
     { num: 3, label: "ساعات کاری" },
-    { num: 4, label: "تکمیل" },
+    { num: 4, label: "بررسی و ایجاد" },
+    { num: 5, label: "استقرار" },
+    { num: 6, label: "تکمیل" },
   ];
 
   return (
@@ -234,7 +273,7 @@ export default function NewSalonPage() {
       )}
 
       {/* Step 4: Review & Create */}
-      {step === 4 && !salonId && (
+      {step === 4 && (
         <div className="p-5 rounded-2xl border border-border space-y-4">
           <h3 className="font-bold">بررسی و ایجاد</h3>
           <div className="space-y-3">
@@ -257,33 +296,137 @@ export default function NewSalonPage() {
         </div>
       )}
 
-      {/* Step 4: Success */}
-      {step === 4 && salonId && (
+      {/* Step 5: Deploy */}
+      {step === 5 && (
+        <div className="p-5 rounded-2xl border border-border space-y-4">
+          <h3 className="font-bold">استقرار سالن</h3>
+          <div className="space-y-3">
+            <InfoRow label="شناسه" value={salonId} mono />
+            <InfoRow label="Slug" value={salonSlug} />
+            <InfoRow label="نام" value={data.name} />
+          </div>
+
+          {/* Deploy status: idle */}
+          {deployStatus === "idle" && (
+            <div className="p-4 rounded-xl bg-muted/30 space-y-3">
+              <div className="flex items-center gap-2 text-sm">
+                <Rocket className="h-4 w-4" />
+                <span className="font-medium">عملیات استقرار:</span>
+              </div>
+              <ul className="text-sm text-muted-foreground space-y-1.5 mr-6">
+                <li className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                  ایجاد سایت اختصاصی سالن
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                  تنظیم متغیرهای محیطی
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                  استقرار روی Vercel
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                  کاش داده‌های اولیه (خدمات، قیمت‌ها)
+                </li>
+              </ul>
+            </div>
+          )}
+
+          {/* Deploy status: deploying */}
+          {deployStatus === "deploying" && (
+            <div className="p-4 rounded-xl bg-primary/10 flex items-center gap-3">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <span className="text-sm font-medium">در حال استقرار...</span>
+            </div>
+          )}
+
+          {/* Deploy status: error */}
+          {deployStatus === "error" && (
+            <div className="p-4 rounded-xl bg-destructive/10 space-y-3">
+              <p className="text-sm text-destructive">{deployError}</p>
+              <Button onClick={handleDeploy} variant="outline" size="sm" className="rounded-full gap-2">
+                <Loader2 className="h-4 w-4" />
+                تلاش مجدد
+              </Button>
+            </div>
+          )}
+
+          <div className="flex justify-between">
+            <Button variant="ghost" onClick={() => setStep(4)} disabled={deployStatus === "deploying"} className="rounded-full gap-2">
+              <ArrowRight className="h-4 w-4" />
+              بازگشت
+            </Button>
+            {deployStatus === "idle" && (
+              <Button onClick={handleDeploy} className="rounded-full gap-2">
+                <Rocket className="h-4 w-4" />
+                شروع استقرار
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Step 6: Success */}
+      {step === 6 && (
         <div className="p-5 rounded-2xl border border-success/30 bg-success/5 space-y-4">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
               <Check className="h-5 w-5 text-success" />
             </div>
             <div>
-              <h3 className="font-bold">سالن ایجاد شد</h3>
+              <h3 className="font-bold">سالن مستقر شد</h3>
               <p className="text-sm text-muted-foreground">{data.name}</p>
             </div>
           </div>
+
+          {/* Live URL */}
           <div className="p-3 rounded-xl bg-muted/50 space-y-2">
+            <InfoRow label="آدرس سایت" value={deployUrl || `${salonSlug}.vercel.app`} />
             <InfoRow label="شناسه" value={salonId} mono />
-            <InfoRow label="آدرس سایت" value={`${salonSlug}.vercel.app`} />
           </div>
-          <div className="p-3 rounded-xl bg-primary/10 text-sm">
-            <p className="font-bold mb-1">مرحله بعدی:</p>
-            <p className="text-muted-foreground">
-              برای راه‌اندازی سایت این سالن، یک پروژه Vercel جدید ایجاد کنید و متغیر محیطی زیر را تنظیم کنید:
+
+          {/* Owner bootstrap */}
+          <div className="p-3 rounded-xl bg-primary/10 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <Shield className="h-4 w-4" />
+              لینک راه‌اندازی مالک
+            </div>
+            <p className="text-sm text-muted-foreground">
+              مالک سالن می‌تواند از طریق لینک زیر اکانت خود را راه‌اندازی کند:
             </p>
-            <code className="text-xs bg-background px-2 py-1 rounded-lg mt-2 inline-block" dir="ltr">
-              SALON_ID={salonId}
-            </code>
+            <a
+              href={`${deployUrl}/bootstrap`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+              dir="ltr"
+            >
+              {deployUrl}/bootstrap
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
           </div>
+
+          {/* Seeded services */}
+          <div className="p-3 rounded-xl bg-muted/30 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <Package className="h-4 w-4" />
+              خدمات کاش‌شده
+            </div>
+            <p className="text-sm text-muted-foreground">
+              خدمات و قیمت‌های پیش‌فرض سالن به صورت خودکار اضافه شده‌اند. می‌توانید آن‌ها را از پنل مدیریت ویرایش کنید.
+            </p>
+          </div>
+
           <div className="flex gap-2">
-            <Button onClick={() => router.push(`/admin/salons/${salonId}`)} className="rounded-full">
+            <a href={deployUrl} target="_blank" rel="noopener noreferrer">
+              <Button className="rounded-full gap-2">
+                <ExternalLink className="h-4 w-4" />
+                مشاهده سایت
+              </Button>
+            </a>
+            <Button onClick={() => router.push(`/admin/salons/${salonId}`)} variant="outline" className="rounded-full">
               مدیریت سالن
             </Button>
             <Button variant="ghost" onClick={() => router.push("/admin/salons")} className="rounded-full">

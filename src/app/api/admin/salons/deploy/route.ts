@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
     // 2. Set SALON_ID environment variable
     const envVars = [
       { key: "SALON_ID", value: salonId, target: ["production", "preview"] },
+      { key: "SALON_NAME", value: salonName || "", target: ["production", "preview"] },
       { key: "CUSTOMER_SESSION_SECRET", value: process.env.CUSTOMER_SESSION_SECRET || "", target: ["production", "preview"] },
       { key: "OWNER_SESSION_SECRET", value: process.env.OWNER_SESSION_SECRET || "", target: ["production", "preview"] },
       { key: "SUPER_ADMIN_SESSION_SECRET", value: process.env.SUPER_ADMIN_SESSION_SECRET || "", target: ["production", "preview"] },
