@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,9 +36,12 @@ export default function OwnerDashboard() {
   const [showEarnings, setShowEarnings] = useState(false);
   const [bookingSearch, setBookingSearch] = useState("");
 
-  // Show welcome toast on first login
+  // Show welcome toast on first login (use ref to prevent re-trigger)
+  const welcomeShown = useRef(false);
   useEffect(() => {
+    if (welcomeShown.current) return;
     if (searchParams.get("welcome") === "1") {
+      welcomeShown.current = true;
       toast.success("خوش آمدید مدیر", {
         description: "ورود شما با موفقیت انجام شد",
         duration: 3000,
