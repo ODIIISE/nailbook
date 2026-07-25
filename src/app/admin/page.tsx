@@ -66,10 +66,10 @@ export default function AdminDashboard() {
   }));
 
   const statusData = [
-    { name: "رزرو شده", value: parseInt(stats.bookingStats.reserved) || 0, color: "#1D9BF0" },
-    { name: "تأیید شده", value: parseInt(stats.bookingStats.confirmed) || 0, color: "#00BA7C" },
-    { name: "انجام شده", value: parseInt(stats.bookingStats.completed) || 0, color: "#8B5CF6" },
-    { name: "لغو شده", value: parseInt(stats.bookingStats.cancelled) || 0, color: "#F4212E" },
+    { name: "رزرو شده", value: parseInt(stats.bookingStats.reserved) || 0, color: "var(--foreground)" },
+    { name: "تأیید شده", value: parseInt(stats.bookingStats.confirmed) || 0, color: "var(--success)" },
+    { name: "انجام شده", value: parseInt(stats.bookingStats.completed) || 0, color: "var(--success)" },
+    { name: "لغو شده", value: parseInt(stats.bookingStats.cancelled) || 0, color: "var(--destructive)" },
   ].filter((d) => d.value > 0);
 
   const tabs = [
@@ -161,13 +161,13 @@ function OverviewTab({ stats, analytics, chartData, statusData, router }: any) {
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} barSize={24}>
-                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#71767B" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: "#71767B" }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: "#16181C", border: "1px solid #2F3336", borderRadius: "12px", color: "#E7E9EA", fontSize: "12px" }}
-                    cursor={{ fill: "rgba(29,155,240,0.08)" }}
+                    contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", color: "var(--foreground)", fontSize: "12px" }}
+                    cursor={{ fill: "var(--primary)", fillOpacity: 0.08 }}
                   />
-                  <Bar dataKey="count" fill="#1D9BF0" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="count" fill="var(--foreground)" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -215,13 +215,13 @@ function BookingsTab({ analytics, chartData }: any) {
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={analytics.peakHours.map((h: any) => ({ hour: `${h.hour}:00`, count: parseInt(h.count) }))} barSize={20}>
-                <XAxis dataKey="hour" tick={{ fontSize: 10, fill: "#71767B" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: "#71767B" }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="hour" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "#16181C", border: "1px solid #2F3336", borderRadius: "12px", color: "#E7E9EA", fontSize: "12px" }}
-                  cursor={{ fill: "rgba(29,155,240,0.08)" }}
+                  contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", color: "var(--foreground)", fontSize: "12px" }}
+                  cursor={{ fill: "var(--primary)", fillOpacity: 0.08 }}
                 />
-                <Bar dataKey="count" fill="#1D9BF0" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill="var(--foreground)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

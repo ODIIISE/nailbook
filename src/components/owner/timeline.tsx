@@ -6,6 +6,7 @@ import { User, Ban, Clock, CreditCard, CheckCircle2, Loader, XCircle, Layers, Do
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
 import { STATUS_CONFIG } from "@/lib/constants";
+import { servicePalette, statusColors, themeColor } from "@/lib/design-tokens";
 import type { Booking, Service, Addon } from "@/lib/types";
 
 interface BlockedTime {
@@ -26,16 +27,6 @@ interface TimelineProps {
 
 const HOUR_HEIGHT = 64;
 
-// Fixed color palette — from homepage service card gradients
-const SERVICE_PALETTE = [
-  { accent: "#FDA4AF", bg: "#FFF5F6", bgDark: "#2D1518" }, // rose
-  { accent: "#FCD34D", bg: "#FFFCF0", bgDark: "#2D2A15" }, // amber
-  { accent: "#6EE7B7", bg: "#F0FDF8", bgDark: "#152D22" }, // emerald
-  { accent: "#93C5FD", bg: "#F0F7FF", bgDark: "#151F2D" }, // blue
-  { accent: "#C4B5FD", bg: "#F5F3FF", bgDark: "#1F1A2D" }, // purple
-];
-
-// Icon mapping for statuses
 const STATUS_ICONS: Record<string, typeof CheckCircle2> = {
   reserved: Clock,
   confirmed: CheckCircle2,
@@ -55,9 +46,9 @@ function hashString(str: string): number {
 }
 
 function getServiceStyle(serviceId: string, isDark: boolean) {
-  const idx = hashString(serviceId) % SERVICE_PALETTE.length;
-  const palette = SERVICE_PALETTE[idx];
-  return { accent: palette.accent, bg: isDark ? palette.bgDark : palette.bg };
+  const idx = hashString(serviceId) % servicePalette.length;
+  const p = servicePalette[idx];
+  return { accent: p.accent, bg: isDark ? p.bgDark : p.bg };
 }
 
 function getStatusConfig(status: string) {
@@ -74,11 +65,7 @@ function formatHourPersian(hour: number): string {
   return toPersianDigits(String(hour).padStart(2, "0") + ":00");
 }
 
-function getBlockPosition(
-  startTime: string,
-  endTime: string,
-  startHour: number
-): { top: number; height: number; durationMinutes: number } {
+function getBlockPosition(startTime: string, endTime: string, startHour: number) {
   const start = timeToMinutes(startTime) - startHour * 60;
   const end = timeToMinutes(endTime) - startHour * 60;
   return {
@@ -88,21 +75,16 @@ function getBlockPosition(
   };
 }
 
-function computeBookingTotal(
-  booking: Booking,
-  service?: Service,
-  addons?: Addon[]
-): { totalPrice: number; totalDuration: number; hasAddons: boolean } {
+function computeBookingTotal(booking: Booking, service?: Service, addons?: Addon[]) {
   const servicePrice = Number(service?.price) || 0;
-  const selectedAddons = booking.selected_addons || [];
-  const addonsPrice = selectedAddons.reduce((sum, addonId) => {
-    const addon = addons?.find((a) => a.id === addonId);
-    return sum + (Number(addon?.price) || 0);
+  const addonsPrice = (booking.selected_addons || []).reduce((sum, id) => {
+    const a = addons?.find((x) => x.id === id);
+    return sum + (Number(a?.price) || 0);
   }, 0);
   return {
     totalPrice: servicePrice + addonsPrice,
     totalDuration: getBlockPosition(booking.start_time, booking.end_time, 0).durationMinutes,
-    hasAddons: selectedAddons.length > 0,
+    hasAddons: (booking.selected_addons || []).length > 0,
   };
 }
 
@@ -135,275 +117,188 @@ export function Timeline({
   useEffect(() => {
     const nowEl = document.getElementById("timeline-now");
     if (nowEl) {
-      setTimeout(() => {
-        nowEl.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 300);
+      setTimeout(() => nowEl.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
     }
   }, []);
 
-  // Theme-aware color helpers
-  const textMuted = isDark ? "text-white/40" : "text-black/40";
-  const textSubtle = isDark ? "text-white/50" : "text-black/50";
-  const textFaint = isDark ? "text-white/30" : "text-black/30";
-  const textGhost = isDark ? "text-white/20" : "text-black/20";
-  const borderSubtle = isDark ? "border-white/[0.06]" : "border-black/[0.06]";
-  const lineColor = isDark ? "bg-white/[0.04]" : "bg-black/[0.04]";
-  const dotPattern = isDark
-    ? "repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 3px, transparent 3px, transparent 6px)"
-    : "repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 3px, transparent 3px, transparent 6px)";
-  const emptyBg = isDark ? "bg-white/[0.025]" : "bg-black/[0.025]";
-  const emptyIcon = isDark ? "text-white/[0.18]" : "text-black/[0.18]";
-  const emptyText = isDark ? "text-white/[0.28]" : "text-black/[0.28]";
-  const emptySubtext = isDark ? "text-white/[0.18]" : "text-black/[0.18]";
+  // Theme-aware classes
+  const t = (light: string, dark: string) => themeColor(light, dark, isDark);
+  const hourColor = t("text-black/40", "text-white/40");
+  const lineColor = t("bg-black/[0.04]", "bg-white/[0.04]");
+  const dotBg = t("bg-black/[0.025]", "bg-white/[0.025]");
+  const dotIcon = t("text-black/[0.18]", "text-white/[0.18]");
+  const dotText = t("text-black/[0.28]", "text-white/[0.28]");
+  const dotSub = t("text-black/[0.18]", "text-white/[0.18]");
+  const borderColor = t("border-black/[0.06]", "border-white/[0.06]");
+  const textPrimary = isDark ? "text-white" : "text-black";
+  const textSecondary = t("text-black/50", "text-white/50");
+  const textTertiary = t("text-black/40", "text-white/40");
+  const textGhost = t("text-black/20", "text-white/20");
+  const dotPattern = t(
+    "repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 3px, transparent 3px, transparent 6px)",
+    "repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 3px, transparent 3px, transparent 6px)"
+  );
 
   return (
     <Card className="overflow-hidden">
       <div className="relative" style={{ height: totalHeight }}>
-        {/* Hour labels — RTL: left side */}
+        {/* Hour labels */}
         {hourMarks.map((hour, i) => (
           <span
-            key={`hour-${hour}`}
-            className={`absolute left-0 w-11 text-center text-[11px] font-bold ${textFaint} z-5`}
+            key={`h-${hour}`}
+            className={`absolute left-0 w-11 text-center text-[11px] font-bold ${hourColor} z-5`}
             style={{ top: i * HOUR_HEIGHT, fontVariantNumeric: "tabular-nums", transform: "translateY(-50%)" }}
           >
             {formatHourPersian(hour)}
           </span>
         ))}
 
-        {/* Hour grid lines — left offset from labels */}
+        {/* Grid lines */}
         {hourMarks.map((hour, i) => (
-          <div
-            key={`line-${hour}`}
-            className={`absolute h-px ${lineColor}`}
-            style={{ top: i * HOUR_HEIGHT, left: 44, right: 0 }}
-          />
+          <div key={`l-${hour}`} className={`absolute h-px ${lineColor}`} style={{ top: i * HOUR_HEIGHT, left: 44, right: 0 }} />
         ))}
 
-        {/* Half-hour dotted lines */}
-        {hourMarks.slice(0, -1).map((hour, i) => (
-          <div
-            key={`half-${hour}`}
-            className="absolute h-px"
-            style={{
-              top: (i + 0.5) * HOUR_HEIGHT,
-              left: 44,
-              right: 0,
-              backgroundImage: dotPattern,
-            }}
-          />
+        {/* Half-hour dots */}
+        {hourMarks.slice(0, -1).map((_, i) => (
+          <div key={`h-${i}`} className="absolute h-px" style={{ top: (i + 0.5) * HOUR_HEIGHT, left: 44, right: 0, backgroundImage: dotPattern }} />
         ))}
 
         {hasContent ? (
           <>
-            {/* Booking blocks */}
-            {bookings.map((booking) => {
-              const pos = getBlockPosition(booking.start_time, booking.end_time, startHour);
-              const { totalPrice, totalDuration, hasAddons } = computeBookingTotal(booking, booking.service, addons);
-              const style = getServiceStyle(booking.service_id, isDark);
-              const statusCfg = getStatusConfig(booking.status);
-              const StatusIcon = statusCfg.icon;
-              const isCompact = pos.height < 60;
+            {/* Bookings */}
+            {bookings.map((b) => {
+              const pos = getBlockPosition(b.start_time, b.end_time, startHour);
+              const { totalPrice, totalDuration, hasAddons } = computeBookingTotal(b, b.service, addons);
+              const style = getServiceStyle(b.service_id, isDark);
+              const sc = getStatusConfig(b.status);
+              const StatusIcon = sc.icon;
+              const compact = pos.height < 60;
 
-              if (isCompact) {
-                // ─── Compact variant ───
-                return (
-                  <div
-                    key={booking.id}
-                    className="absolute left-12 right-2 cursor-pointer z-10"
-                    style={{ top: pos.top, height: pos.height }}
-                    onClick={() => onSelectBooking(booking)}
-                  >
-                    <div
-                      className={`h-full ${borderSubtle} border overflow-hidden flex items-stretch`}
-                      style={{ backgroundColor: style.bg }}
-                    >
-                      <div className="w-[3px] shrink-0" style={{ backgroundColor: style.accent }} />
+              const paidColor = t(statusColors.paid.light, statusColors.paid.dark);
+              const addonColor = t(statusColors.addon.light, statusColors.addon.dark);
 
+              return (
+                <div key={b.id} className="absolute left-12 right-2 cursor-pointer z-10" style={{ top: pos.top, height: pos.height }} onClick={() => onSelectBooking(b)}>
+                  <div className={`h-full ${borderColor} border overflow-hidden ${compact ? "flex items-stretch" : "flex"}`} style={{ backgroundColor: style.bg }}>
+                    <div className="w-[3px] shrink-0" style={{ backgroundColor: style.accent }} />
+
+                    {compact ? (
                       <div className="flex-1 min-w-0 flex items-center gap-2 px-2">
-                        {/* Name */}
                         <div className="flex items-center gap-1 min-w-0 shrink">
-                          <User className={`h-[11px] w-[11px] shrink-0 ${textFaint}`} />
-                          <span className={`text-[12px] font-extrabold truncate ${isDark ? "text-white" : "text-black"}`}>
-                            {booking.customer_name}
-                          </span>
+                          <User className={`h-[11px] w-[11px] shrink-0 ${textGhost}`} />
+                          <span className={`text-[12px] font-extrabold truncate ${textPrimary}`}>{b.customer_name}</span>
                         </div>
-
-                        {/* Service + Addon icon + Time */}
-                        <span className={`text-[10px] font-medium truncate min-w-0 shrink ${textSubtle}`}>
-                          {booking.service?.name}
-                          {hasAddons && (
-                            <Layers className="inline h-[9px] w-[9px] mx-0.5 text-[#7B1FA2]" />
-                          )}
+                        <span className={`text-[10px] font-medium truncate min-w-0 shrink ${textSecondary}`}>
+                          {b.service?.name}
+                          {hasAddons && <Layers className={`inline h-[9px] w-[9px] mx-0.5 ${addonColor}`} />}
                           {' · '}
-                          {toPersianDigits(booking.start_time.slice(0, 5))}–{toPersianDigits(booking.end_time.slice(0, 5))}
+                          {toPersianDigits(b.start_time.slice(0, 5))}–{toPersianDigits(b.end_time.slice(0, 5))}
                         </span>
-
-                        {/* Tags */}
                         <div className="flex items-center gap-1.5 shrink ml-auto">
                           <div className="flex items-center gap-0.5">
                             <Clock className={`h-2.5 w-2.5 ${textGhost}`} />
-                            <span className={`text-[10px] font-medium whitespace-nowrap ${textMuted}`}>
-                              {toPersianDigits(totalDuration)}
-                            </span>
+                            <span className={`text-[10px] font-medium whitespace-nowrap ${textTertiary}`}>{toPersianDigits(totalDuration)}</span>
                           </div>
                           <div className="flex items-center gap-0.5">
                             <DollarSign className={`h-2.5 w-2.5 ${textGhost}`} />
-                            <span className={`text-[10px] font-bold whitespace-nowrap ${textSubtle}`}>
-                              {formatPrice(totalPrice)}
-                            </span>
+                            <span className={`text-[10px] font-bold whitespace-nowrap ${textSecondary}`}>{formatPrice(totalPrice)}</span>
                           </div>
-                          <div className="flex items-center gap-0.5">
-                            {booking.paid ? (
-                              <CreditCard className="h-2.5 w-2.5 text-[#2E7D32]" />
-                            ) : (
-                              <CreditCard className={`h-2.5 w-2.5 ${textGhost}`} />
-                            )}
-                          </div>
+                          <CreditCard className={`h-2.5 w-2.5 ${b.paid ? paidColor : textGhost}`} />
                         </div>
-
-                        {/* Status badge */}
-                        <div
-                          className="flex items-center gap-1 px-1.5 py-0.5 shrink-0"
-                          style={{ backgroundColor: statusCfg.bg, borderRadius: 4 }}
-                        >
-                          <StatusIcon className="h-2.5 w-2.5" style={{ color: statusCfg.color }} />
-                          <span className="text-[9px] font-semibold" style={{ color: statusCfg.color }}>
-                            {statusCfg.label}
-                          </span>
+                        <div className="flex items-center gap-1 px-1.5 py-0.5 shrink-0" style={{ backgroundColor: sc.bg, borderRadius: 4 }}>
+                          <StatusIcon className="h-2.5 w-2.5" style={{ color: sc.color }} />
+                          <span className="text-[9px] font-semibold" style={{ color: sc.color }}>{sc.label}</span>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              }
-
-              // ─── Normal variant ───
-              return (
-                <div
-                  key={booking.id}
-                  className="absolute left-12 right-2 cursor-pointer z-10"
-                  style={{ top: pos.top, height: pos.height }}
-                  onClick={() => onSelectBooking(booking)}
-                >
-                  <div
-                    className={`h-full ${borderSubtle} border overflow-hidden flex`}
-                    style={{ backgroundColor: style.bg }}
-                  >
-                    <div className="w-[3px] shrink-0" style={{ backgroundColor: style.accent }} />
-
-                    <div className="flex-1 min-w-0 p-2">
-                      {/* Row 1: Name + Status badge */}
-                      <div className="flex items-center justify-between gap-1">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <User className={`h-3 w-3 shrink-0 ${textFaint}`} />
-                          <span className={`text-[12px] font-extrabold truncate leading-tight ${isDark ? "text-white" : "text-black"}`}>
-                            {booking.customer_name}
-                          </span>
+                    ) : (
+                      <div className="flex-1 min-w-0 p-2">
+                        <div className="flex items-center justify-between gap-1">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <User className={`h-3 w-3 shrink-0 ${textGhost}`} />
+                            <span className={`text-[12px] font-extrabold truncate leading-tight ${textPrimary}`}>{b.customer_name}</span>
+                          </div>
+                          <div className="flex items-center gap-1 px-1.5 py-0.5 shrink-0" style={{ backgroundColor: sc.bg, borderRadius: 4 }}>
+                            <StatusIcon className="h-2.5 w-2.5" style={{ color: sc.color }} />
+                            <span className="text-[9px] font-semibold" style={{ color: sc.color }}>{sc.label}</span>
+                          </div>
                         </div>
-                        <div
-                          className="flex items-center gap-1 px-1.5 py-0.5 shrink-0"
-                          style={{ backgroundColor: statusCfg.bg, borderRadius: 4 }}
-                        >
-                          <StatusIcon className="h-2.5 w-2.5" style={{ color: statusCfg.color }} />
-                          <span className="text-[9px] font-semibold" style={{ color: statusCfg.color }}>
-                            {statusCfg.label}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Row 2: Service + Addon icon + Time */}
-                      <p className={`text-[10px] font-medium mt-0.5 truncate ${textSubtle}`}>
-                        {booking.service?.name}
-                        {hasAddons && (
-                          <Layers className="inline h-[9px] w-[9px] mx-0.5 text-[#7B1FA2]" />
+                        <p className={`text-[10px] font-medium mt-0.5 truncate ${textSecondary}`}>
+                          {b.service?.name}
+                          {hasAddons && <Layers className={`inline h-[9px] w-[9px] mx-0.5 ${addonColor}`} />}
+                          {' · '}
+                          {toPersianDigits(b.start_time.slice(0, 5))}–{toPersianDigits(b.end_time.slice(0, 5))}
+                        </p>
+                        {pos.height > 55 && (
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-center gap-1">
+                              <Clock className={`h-2.5 w-2.5 ${textGhost}`} />
+                              <span className={`text-[10px] font-medium ${textTertiary}`}>{toPersianDigits(totalDuration)} دقیقه</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <DollarSign className={`h-2.5 w-2.5 ${textGhost}`} />
+                              <span className={`text-[10px] font-bold ${textSecondary}`}>{formatPrice(totalPrice)}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <CreditCard className={`h-2.5 w-2.5 ${b.paid ? paidColor : textGhost}`} />
+                              <span className={`text-[10px] font-medium ${b.paid ? paidColor : textTertiary}`}>
+                                {b.paid ? "پرداخت شده" : "پرداخت نشده"}
+                              </span>
+                            </div>
+                          </div>
                         )}
-                        {' · '}
-                        {toPersianDigits(booking.start_time.slice(0, 5))}–{toPersianDigits(booking.end_time.slice(0, 5))}
-                      </p>
-
-                      {/* Row 3: Tags with icons */}
-                      {pos.height > 55 && (
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="flex items-center gap-1">
-                            <Clock className={`h-2.5 w-2.5 ${textGhost}`} />
-                            <span className={`text-[10px] font-medium ${textMuted}`}>
-                              {toPersianDigits(totalDuration)} دقیقه
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <DollarSign className={`h-2.5 w-2.5 ${textGhost}`} />
-                            <span className={`text-[10px] font-bold ${textSubtle}`}>
-                              {formatPrice(totalPrice)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            {booking.paid ? (
-                              <CreditCard className="h-2.5 w-2.5 text-[#2E7D32]" />
-                            ) : (
-                              <CreditCard className={`h-2.5 w-2.5 ${textGhost}`} />
-                            )}
-                            <span className={`text-[10px] font-medium ${booking.paid ? 'text-[#2E7D32]' : textMuted}`}>
-                              {booking.paid ? "پرداخت شده" : "پرداخت نشده"}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
             })}
 
-            {/* Blocked time blocks */}
-            {blockedTimes.map((block, index) => {
+            {/* Blocked times */}
+            {blockedTimes.map((block, idx) => {
               const pos = getBlockPosition(block.start_time, block.end_time, startHour);
-              const isConfirming = confirmRemoveIndex === index;
+              const isConfirming = confirmRemoveIndex === idx;
+              const wb = t(statusColors.warningBg.light, statusColors.warningBg.dark);
+              const wbBorder = t(statusColors.warningBorder.light, statusColors.warningBorder.dark);
+              const wt = t(statusColors.blockText.light, statusColors.blockText.dark);
+              const wst = t(statusColors.blockSubtext.light, statusColors.blockSubtext.dark);
+              const wf = t(statusColors.blockFaint.light, statusColors.blockFaint.dark);
+              const wa = t(statusColors.warningAccent.light, statusColors.warningAccent.dark);
+              const bh = t(statusColors.blockHover.light, statusColors.blockHover.dark);
+              const deleteBg = t(statusColors.delete.light, statusColors.delete.dark);
+
               return (
-                <div
-                  key={`block-${index}`}
-                  className="absolute left-12 right-2 z-10"
-                  style={{ top: pos.top, height: pos.height }}
-                >
+                <div key={`blk-${idx}`} className="absolute left-12 right-2 z-10" style={{ top: pos.top, height: pos.height }}>
                   {isConfirming ? (
-                    /* Confirmation state */
-                    <div className={`h-full ${isDark ? "bg-[#2D2A15] border-[#FFD54F]/40" : "bg-[#FFF3E0] border-[#FF9800]/40"} border overflow-hidden flex flex-col justify-center items-center p-2 animate-scale`}>
-                      <AlertTriangle className={`h-4 w-4 ${isDark ? "text-[#FFD54F]" : "text-[#F57F17]"} mb-1`} />
-                      <p className={`text-[9px] ${isDark ? "text-[#FFD54F]" : "text-[#E65100]"} font-semibold mb-1.5 text-center`}>حذف شود؟</p>
+                    <div className={`h-full ${wb} border ${wbBorder} overflow-hidden flex flex-col justify-center items-center p-2 animate-scale`}>
+                      <AlertTriangle className={`h-4 w-4 ${wa} mb-1`} />
+                      <p className={`text-[9px] ${wt} font-semibold mb-1.5 text-center`}>حذف شود؟</p>
                       <div className="flex gap-1">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); onRemoveBlock?.(index); setConfirmRemoveIndex(null); }}
-                          className="px-2 py-0.5 bg-[#C62828] text-white text-[8px] font-semibold rounded"
-                        >
+                        <button onClick={(e) => { e.stopPropagation(); onRemoveBlock?.(idx); setConfirmRemoveIndex(null); }}
+                          className="px-2 py-0.5 bg-[var(--destructive)] text-white text-[8px] font-semibold rounded">
                           بله
                         </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setConfirmRemoveIndex(null); }}
-                          className={`px-2 py-0.5 ${isDark ? "bg-white/10" : "bg-black/10"} text-[8px] font-semibold rounded`}
-                        >
+                        <button onClick={(e) => { e.stopPropagation(); setConfirmRemoveIndex(null); }}
+                          className={`px-2 py-0.5 ${t("bg-black/10", "bg-white/10")} text-[8px] font-semibold rounded`}>
                           خیر
                         </button>
                       </div>
                     </div>
                   ) : (
-                    /* Normal state */
                     <div
-                      className={`h-full ${isDark ? "bg-[#2D2A15] border-[#FFD54F]/30 hover:bg-[#3D3515]" : "bg-[#FFF8E1] border-[#FFD54F]/40 hover:bg-[#FFF3E0]"} border overflow-hidden flex cursor-pointer transition-colors`}
-                      onClick={() => setConfirmRemoveIndex(index)}
+                      className={`h-full border overflow-hidden flex cursor-pointer transition-colors`}
+                      style={{ backgroundColor: t(statusColors.blockBg.light, statusColors.blockBg.dark), borderColor: wbBorder }}
+                      onClick={() => setConfirmRemoveIndex(idx)}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = bh)}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = t(statusColors.blockBg.light, statusColors.blockBg.dark))}
                     >
-                      <div className="w-[3px] shrink-0 bg-[#FFB300]" />
+                      <div className="w-[3px] shrink-0" style={{ backgroundColor: wa as string }} />
                       <div className="flex-1 min-w-0 p-2">
                         <div className="flex items-center gap-1">
-                          <Ban className={`h-3 w-3 ${isDark ? "text-[#FFD54F]" : "text-[#F57F17]"} shrink-0`} />
-                          <span className={`text-[11px] font-bold ${isDark ? "text-[#FFD54F]" : "text-[#E65100]"} truncate`}>استراحت</span>
+                          <Ban className={`h-3 w-3 shrink-0 ${wt}`} />
+                          <span className={`text-[11px] font-bold truncate ${wt}`}>استراحت</span>
                         </div>
-                        {pos.height > 30 && (
-                          <p className={`text-[9px] ${isDark ? "text-[#FFD54F]/70" : "text-[#F57F17]/70"} mt-0.5`}>
-                            {toPersianDigits(block.start_time.slice(0, 5))} – {toPersianDigits(block.end_time.slice(0, 5))}
-                          </p>
-                        )}
-                        {pos.height > 50 && (
-                          <p className={`text-[8px] ${isDark ? "text-[#FFD54F]/50" : "text-[#F57F17]/50"} mt-0.5`}>حذف: کلیک کنید</p>
-                        )}
+                        {pos.height > 30 && <p className={`text-[9px] ${wst} mt-0.5`}>{toPersianDigits(block.start_time.slice(0, 5))} – {toPersianDigits(block.end_time.slice(0, 5))}</p>}
+                        {pos.height > 50 && <p className={`text-[8px] ${wf} mt-0.5`}>حذف: کلیک کنید</p>}
                       </div>
                     </div>
                   )}
@@ -411,26 +306,23 @@ export function Timeline({
               );
             })}
 
-            {/* Current time indicator */}
+            {/* Now indicator */}
             {showNow && (
-              <div
-                id="timeline-now"
-                className="absolute z-20 pointer-events-none"
-                style={{ top: nowPosition, left: 44, right: 0 }}
-              >
-                <div className={`h-[2px] ${isDark ? "bg-[#5B9BD5]/40" : "bg-[#5B9BD5]/30"}`} />
-                <div className={`absolute left-0 top-[3px] w-2 h-2 rounded-full ${isDark ? "bg-[#5B9BD5]/50" : "bg-[#5B9BD5]/40"} -translate-x-1/2 -translate-y-1/2`} />
+              <div id="timeline-now" className="absolute z-20 pointer-events-none" style={{ top: nowPosition, left: 44, right: 0 }}>
+                <div className="h-[2px]" style={{ backgroundColor: t(statusColors.currentLine.light, statusColors.currentLine.dark) }} />
+                <div className="absolute left-0 top-[3px] w-2 h-2 rounded-full -translate-x-1/2 -translate-y-1/2"
+                  style={{ backgroundColor: t(statusColors.currentDot.light, statusColors.currentDot.dark) }} />
               </div>
             )}
           </>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2.5">
-              <div className={`w-[52px] h-[52px] rounded-[14px] ${emptyBg} flex items-center justify-center`}>
-                <Calendar className={`h-[22px] w-[22px] ${emptyIcon}`} />
+              <div className={`w-[52px] h-[52px] rounded-[14px] ${dotBg} flex items-center justify-center`}>
+                <Calendar className={`h-[22px] w-[22px] ${dotIcon}`} />
               </div>
-              <p className={`text-[14px] font-medium ${emptyText}`}>برنامه‌ای برای این روز نیست</p>
-              <p className={`text-[11px] ${emptySubtext}`}>رزرو جدید یا زمان مسدود اضافه کنید</p>
+              <p className={`text-[14px] font-medium ${dotText}`}>برنامه‌ای برای این روز نیست</p>
+              <p className={`text-[11px] ${dotSub}`}>رزرو جدید یا زمان مسدود اضافه کنید</p>
             </div>
           </div>
         )}

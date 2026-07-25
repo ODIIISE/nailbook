@@ -475,8 +475,8 @@ export default function BookContent() {
             {/* Selected Date Display */}
             {selectedDate && (
               <div className="mx-auto max-w-lg">
-                <div className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-[#2888d0]/5 border border-[#2888d0]/10">
-                  <CalendarDays className="h-4 w-4 text-[#2888d0]" />
+                <div className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-primary/5 border border-primary/10">
+                  <CalendarDays className="h-4 w-4 text-primary" />
                   <span className="text-[15px] font-bold text-foreground">
                     {(() => {
                       const j = gregorianToJalali(selectedDate);
@@ -653,7 +653,7 @@ export default function BookContent() {
                     {/* Service info */}
                     <div className="flex items-center gap-2.5 mb-3 relative z-[2]">
                       <div className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(40,136,208,0.06), rgba(91,179,228,0.03))" }}>
-                        <Sparkles className="h-4 w-4 text-[#2888d0]" />
+                        <Sparkles className="h-4 w-4 text-primary" />
                       </div>
                       <div>
                         <div className="text-[13px] font-semibold text-foreground">{selectedService.name}</div>
@@ -677,7 +677,7 @@ export default function BookContent() {
                       </div>
                       <div className="flex justify-between items-center pt-2.5 pb-0.5 border-t border-dashed border-black/[0.05]">
                         <span className="text-[12px] font-medium text-muted-foreground">هزینه کل</span>
-                        <span className="text-[16px] font-extrabold text-[#2888d0]">{formatPrice(Number(totalPrice))} تومان</span>
+                        <span className="text-[16px] font-extrabold text-primary">{formatPrice(Number(totalPrice))} تومان</span>
                       </div>
                     </div>
                   </div>

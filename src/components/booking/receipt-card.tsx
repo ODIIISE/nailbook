@@ -213,7 +213,7 @@ interface ReceiptRowProps {
   iconColor?: string;
 }
 
-export function ReceiptRow({ icon, value, subValue, iconBg = "rgba(40,136,208,0.08)", iconColor = "#2888d0" }: ReceiptRowProps) {
+export function ReceiptRow({ icon, value, subValue, iconBg, iconColor }: ReceiptRowProps) {
   return (
     <div className="flex items-center gap-3 py-2.5">
       <div

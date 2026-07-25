@@ -126,9 +126,9 @@ export function BookingConfirm({
           <div className="flex items-center gap-2.5 mb-2 relative z-[2]">
             <div
               className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0"
-              style={{ background: "linear-gradient(135deg, rgba(40,136,208,0.06), rgba(91,179,228,0.03))" }}
+              style={{ background: "linear-gradient(135deg, rgba(10,10,10,0.06), rgba(10,10,10,0.03))" }}
             >
-              <Sparkles className="h-4 w-4 text-[#2888d0]" />
+              <Sparkles className="h-4 w-4 text-foreground" />
             </div>
             <div>
               <div className="text-[13px] font-semibold text-foreground">{serviceName}</div>
@@ -154,7 +154,7 @@ export function BookingConfirm({
             </div>
             <div className="flex justify-between items-center pt-2.5 pb-0.5 border-t border-dashed border-black/[0.05]">
               <span className="text-[12px] font-medium text-muted-foreground">هزینه کل</span>
-              <span className="text-[16px] font-extrabold text-[#2888d0]">{formatPrice(Number(price))} تومان</span>
+              <span className="text-[16px] font-extrabold text-foreground">{formatPrice(Number(price))} تومان</span>
             </div>
           </div>
 

@@ -191,17 +191,17 @@ export function JalaliCalendar({
               style={{
                 transition: "transform 0.2s ease, box-shadow 0.3s ease",
                 background: d.isSelected
-                  ? "linear-gradient(135deg, #5bb3e4 0%, #2888d0 100%)"
+                  ? "var(--foreground)"
                   : d.isFullyBooked
                     ? "var(--muted)"
                     : "var(--card)",
-                color: d.isSelected ? "white" : "var(--foreground)",
+                color: d.isSelected ? "var(--background)" : "var(--foreground)",
                 border: d.isToday && !d.isSelected
-                  ? "2px solid rgba(40,136,208,0.4)"
+                  ? "2px solid var(--foreground)"
                   : "1px solid var(--border)",
                 opacity: d.isFullyBooked && !d.isSelected ? 0.6 : 1,
                 boxShadow: d.isSelected
-                  ? "0 4px 14px rgba(40,136,208,0.3)"
+                  ? "0 4px 14px rgba(0,0,0,0.15)"
                   : "none",
               }}
             >
@@ -209,7 +209,7 @@ export function JalaliCalendar({
               <div
                 className="absolute inset-0 rounded-2xl"
                 style={{
-                  background: "linear-gradient(135deg, #5bb3e4 0%, #2888d0 100%)",
+                  background: "var(--foreground)",
                   opacity: d.isSelected ? 1 : 0,
                   transition: "opacity 0.3s ease",
                 }}
