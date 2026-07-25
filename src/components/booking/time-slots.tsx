@@ -166,6 +166,7 @@ function SlotButton({
 }) {
   const formattedTime = slot.time.split(":").map((p) => toPersianDigits(p)).join(":");
   const isBooked = slot.booked || slot.locked;
+  const isUnavailable = !slot.available && !isBooked;
 
   return (
     <button
@@ -176,27 +177,25 @@ function SlotButton({
       style={{
         background: isSelected
           ? "var(--foreground)"
-          : isBooked
-            ? "var(--muted)"
-            : "var(--card)",
+          : "var(--card)",
         color: isSelected
           ? "var(--background)"
-          : isBooked
+          : isBooked || isUnavailable
             ? "var(--muted-foreground)"
             : "var(--foreground)",
         border: isSelected ? "none" : "1px solid var(--border)",
         boxShadow: isSelected ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
         cursor: slot.available ? "pointer" : "not-allowed",
-        opacity: isBooked ? 0.5 : 1,
+        opacity: isBooked || isUnavailable ? 0.6 : 1,
       }}
     >
-      {/* Booked diagonal stripes */}
-      {isBooked && (
+      {/* Hatching pattern for reserved/unavailable slots */}
+      {(isBooked || isUnavailable) && (
         <div
           className="absolute inset-0 rounded-xl"
           style={{
-            background: "repeating-linear-gradient(-45deg, transparent, transparent 4px, var(--muted-foreground) 4px, var(--muted-foreground) 5px)",
-            opacity: 0.08,
+            background: "repeating-linear-gradient(-45deg, transparent, transparent 3px, var(--muted-foreground) 3px, var(--muted-foreground) 4px)",
+            opacity: 0.12,
           }}
         />
       )}
