@@ -14,6 +14,7 @@ import { TimeSlots } from "@/components/booking/time-slots";
 import { BookingConfirm } from "@/components/booking/booking-confirm";
 import { TornPaperCard } from "@/components/booking/torn-paper-card";
 import { PinInput } from "@/components/booking/pin-input";
+import { BookingProgress } from "@/components/booking/booking-progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { generateTimeSlots } from "@/lib/slots";
@@ -389,7 +390,18 @@ export default function BookContent() {
         onBack={step !== "receipt" ? goBack : undefined}
       />
 
-      <div className="mx-auto max-w-lg px-4 pt-6 pb-28 space-y-4">
+      {/* Progress Indicator */}
+      {step !== "receipt" && selectedService && (
+        <div className="mx-auto max-w-lg">
+          <BookingProgress
+            currentStep={step}
+            hasAddons={hasAddons}
+            isLoggedIn={!!user}
+          />
+        </div>
+      )}
+
+      <div className="mx-auto max-w-lg px-4 pt-4 pb-28 space-y-4">
 
         {/* ─── Step 1: Addons ─── */}
         {step === "addons" && (
