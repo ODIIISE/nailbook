@@ -71,8 +71,8 @@ export function AppHeader({
         icon: <LogOut className="h-4 w-4" />,
         label: "خروج",
         destructive: true,
-        onClick: () => {
-          logout();
+        onClick: async () => {
+          await logout();
           window.location.href = "/";
         },
       });

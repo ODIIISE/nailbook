@@ -18,8 +18,8 @@ export default function ProfilePage() {
   const [editName, setEditName] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     window.location.href = "/";
   };
 
