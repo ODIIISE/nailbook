@@ -324,7 +324,7 @@ function CalendarModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-sm bg-card rounded-3xl p-5 animate-scale shadow-elevated">
+      <div className="relative w-full max-w-sm bg-card rounded-3xl p-5 animate-scale">
         <div className="flex items-center justify-between mb-2">
           <Button variant="ghost" size="icon-sm" onClick={prevMonth}>
             <ChevronRight className="h-5 w-5" />
@@ -371,7 +371,7 @@ function CalendarModal({
                 className={`
                   h-10 rounded-xl text-[13px] font-bold transition-all duration-150
                   ${cell.isSelected
-                    ? "bg-foreground text-background shadow-md"
+                    ? "bg-foreground text-background"
                     : cell.isToday
                       ? "bg-foreground/10 text-foreground border border-foreground/30"
                       : cell.isPast

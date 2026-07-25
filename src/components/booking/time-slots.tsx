@@ -15,7 +15,7 @@ interface TimeSlotsProps {
 export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextDay }: TimeSlotsProps) {
   if (!date) {
     return (
-      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center shadow-card">
+      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center">
         <Clock className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
         <p className="text-[15px] text-muted-foreground">تاریخ را انتخاب کنید</p>
       </div>
@@ -28,7 +28,7 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
 
   if (slots.length === 0) {
     return (
-      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center shadow-card">
+      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center">
         <Ban className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
         <p className="text-[15px] text-muted-foreground">ساعتی موجود نیست</p>
         <p className="text-[13px] text-muted-foreground/50 mt-1">تاریخ دیگری انتخاب کنید</p>
@@ -184,18 +184,28 @@ function SlotButton({
             ? "var(--muted-foreground)"
             : "var(--foreground)",
         border: isSelected ? "none" : "1px solid var(--border)",
-        boxShadow: isSelected ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
+        boxShadow: "none",
         cursor: slot.available ? "pointer" : "not-allowed",
-        opacity: isBooked || isUnavailable ? 0.6 : 1,
+        opacity: isBooked ? 0.5 : isUnavailable ? 0.35 : 1,
       }}
     >
-      {/* Hatching pattern for reserved/unavailable slots */}
-      {(isBooked || isUnavailable) && (
+      {/* Bold hatching for reserved slots */}
+      {isBooked && (
         <div
           className="absolute inset-0 rounded-xl"
           style={{
-            background: "repeating-linear-gradient(-45deg, transparent, transparent 3px, var(--muted-foreground) 3px, var(--muted-foreground) 4px)",
-            opacity: 0.12,
+            background: "repeating-linear-gradient(-45deg, transparent, transparent 2px, var(--muted-foreground) 2px, var(--muted-foreground) 4px)",
+            opacity: 0.2,
+          }}
+        />
+      )}
+      {/* Cross-hatch for unavailable slots */}
+      {isUnavailable && (
+        <div
+          className="absolute inset-0 rounded-xl"
+          style={{
+            background: "repeating-linear-gradient(-45deg, transparent, transparent 3px, var(--muted-foreground) 3px, var(--muted-foreground) 5px), repeating-linear-gradient(45deg, transparent, transparent 3px, var(--muted-foreground) 3px, var(--muted-foreground) 5px)",
+            opacity: 0.15,
           }}
         />
       )}

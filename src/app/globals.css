@@ -341,9 +341,9 @@
 
 /* ── Shadows ── */
 
-.shadow-card { box-shadow: var(--shadow-card); }
-.shadow-elevated { box-shadow: var(--shadow-elevated); }
-.shadow-floating { box-shadow: var(--shadow-floating); }
+.shadow-card { box-shadow: none; }
+.shadow-elevated { box-shadow: none; }
+.shadow-floating { box-shadow: none; }
 
 /* ── Scrollbar ── */
 

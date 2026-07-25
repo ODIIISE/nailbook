@@ -15,9 +15,6 @@ export function TornPaperCard({ children, className = "" }: TornPaperCardProps) 
   return (
     <div
       className={`relative ${className}`}
-      style={{
-        filter: "drop-shadow(0 4px 12px rgba(80,70,60,0.08)) drop-shadow(0 8px 24px rgba(60,50,40,0.06))",
-      }}
     >
       <div
         className="relative"
