@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { toPersianDigits } from "@/lib/jalali";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -17,9 +18,12 @@ import {
   LogIn,
   LogOut,
   User,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "./menu-context";
+import { useTheme } from "@/lib/hooks/use-theme";
 
 interface MenuItem {
   icon: ReactNode;
@@ -108,20 +112,23 @@ export function AppHeader({
               </div>
             )}
           </div>
-          <Button variant="ghost" size="icon-sm" onClick={openMenu} aria-label="منو" aria-expanded={menuOpen}>
-            <Menu className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <Button variant="ghost" size="icon-sm" onClick={openMenu} aria-label="منو" aria-expanded={menuOpen}>
+              <Menu className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
       {menuOpen && (
         <div className="fixed inset-0 z-50">
           <div
-            className="absolute inset-0 bg-black/15 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={closeMenu}
           />
           <div
-            className="absolute top-0 right-0 h-full w-[280px] glass-strong rounded-l-[24px] shadow-floating animate-slideUp flex flex-col"
+            className="absolute top-0 right-0 h-full w-[280px] bg-background border-l border-border shadow-floating animate-slideUp flex flex-col"
             role="dialog"
             aria-modal="true"
             aria-label="منوی جانبی"
@@ -137,14 +144,14 @@ export function AppHeader({
               <div className="flex-1 flex flex-col">
                 {defaultMenuItems.map((item, i) => (
                   <div key={i}>
-                    {item.icon === undefined && <Separator className="my-2 bg-black/5" />}
+                    {item.icon === undefined && <Separator className="my-2" />}
                     <button
                       onClick={() => { item.onClick(); closeMenu(); }}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] hover:bg-white/40 text-right transition-colors duration-150 ${
-                        item.destructive ? "text-red-500 hover:bg-red-500/10" : ""
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors duration-150 ${
+                        item.destructive ? "text-destructive hover:bg-destructive/10" : ""
                       }`}
                     >
-                      <span className={item.destructive ? "text-red-500" : "text-muted-foreground"}>
+                      <span className={item.destructive ? "text-destructive" : "text-muted-foreground"}>
                         {item.icon}
                       </span>
                       <span className="text-[14px]">{item.label}</span>
@@ -152,19 +159,24 @@ export function AppHeader({
                   </div>
                 ))}
 
-                <Separator className="my-2 bg-black/5" />
+                <Separator className="my-2" />
+
+                {/* Theme Toggle in Menu */}
+                <ThemeToggleMenuItem onClose={closeMenu} />
+
+                <Separator className="my-2" />
 
                 {menuFooter ?? (
                   <>
                     <a
                       href={`tel:${salon.phone}`}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] hover:bg-white/40 text-right transition-colors duration-150"
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors duration-150"
                     >
                       <Phone className="h-4 w-4 text-muted-foreground" />
                       <span className="text-[14px]" dir="ltr">{toPersianDigits(salon.phone)}</span>
                     </a>
 
-                    <Separator className="my-2 bg-black/5" />
+                    <Separator className="my-2" />
 
                     <div className="px-3 py-2 space-y-1.5">
                       <div className="flex items-center gap-2">
@@ -183,12 +195,12 @@ export function AppHeader({
               </div>
 
               {!isOwner && (
-                <div className="pt-2 border-t border-black/5">
+                <div className="pt-2 border-t border-border">
                   <button
                     onClick={() => { router.push("/owner/login"); closeMenu(); }}
-                    className="w-full flex items-center justify-center px-3 py-2.5 rounded-[12px] hover:bg-white/40 text-right transition-colors duration-150"
+                    className="w-full flex items-center justify-center px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors duration-150"
                   >
-                    <span className="text-[13px] text-muted-foreground/60">ورود مدیر</span>
+                    <span className="text-[13px] text-muted-foreground">ورود مدیر</span>
                   </button>
                 </div>
               )}
@@ -197,5 +209,23 @@ export function AppHeader({
         </div>
       )}
     </>
+  );
+}
+
+function ThemeToggleMenuItem({ onClose }: { onClose: () => void }) {
+  const { theme, toggleTheme } = useTheme();
+
+  return (
+    <button
+      onClick={() => { toggleTheme(); onClose(); }}
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors duration-150"
+    >
+      <span className="text-muted-foreground">
+        {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </span>
+      <span className="text-[14px]">
+        {theme === "dark" ? "حالت روشن" : "حالت تاریک"}
+      </span>
+    </button>
   );
 }

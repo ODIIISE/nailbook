@@ -165,33 +165,48 @@ function SlotButton({
   onSelect: () => void;
 }) {
   const formattedTime = slot.time.split(":").map((p) => toPersianDigits(p)).join(":");
+  const isBooked = slot.booked || slot.locked;
 
   return (
     <button
       disabled={!slot.available}
       onClick={onSelect}
       aria-label={`${formattedTime} ${slot.available ? "موجود" : slot.booked ? "رزرو شده" : slot.locked ? "مسدود" : "غیرقابل رزرو"}`}
-      className="h-[46px] rounded-full text-[13px] font-bold transition-all duration-200 select-none relative overflow-hidden focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:outline-none"
+      className="h-[46px] rounded-xl text-[13px] font-bold transition-all duration-200 select-none relative overflow-hidden focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
       style={{
         background: isSelected
-          ? "linear-gradient(135deg, #5bb3e4 0%, #2888d0 100%)"
-          : slot.available
-            ? "var(--card)"
-            : "transparent",
-        color: isSelected ? "white" : slot.available ? "var(--foreground)" : "var(--muted-foreground)",
+          ? "var(--foreground)"
+          : isBooked
+            ? "var(--muted)"
+            : "var(--card)",
+        color: isSelected
+          ? "var(--background)"
+          : isBooked
+            ? "var(--muted-foreground)"
+            : "var(--foreground)",
         border: isSelected ? "none" : "1px solid var(--border)",
-        boxShadow: isSelected ? "0 4px 14px rgba(40,136,208,0.3)" : "none",
+        boxShadow: isSelected ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
         cursor: slot.available ? "pointer" : "not-allowed",
-        opacity: !slot.available && (slot.booked || slot.locked) ? 1 : slot.available ? 1 : 0.5,
+        opacity: isBooked ? 0.5 : 1,
       }}
     >
-      {/* Smooth selection overlay */}
+      {/* Booked diagonal stripes */}
+      {isBooked && (
+        <div
+          className="absolute inset-0 rounded-xl"
+          style={{
+            background: "repeating-linear-gradient(-45deg, transparent, transparent 4px, var(--muted-foreground) 4px, var(--muted-foreground) 5px)",
+            opacity: 0.08,
+          }}
+        />
+      )}
+      {/* Selection overlay */}
       <div
-        className="absolute inset-0 rounded-full"
+        className="absolute inset-0 rounded-xl"
         style={{
-          background: "linear-gradient(135deg, #5bb3e4 0%, #2888d0 100%)",
+          background: "var(--foreground)",
           opacity: isSelected ? 1 : 0,
-          transition: "opacity 0.3s ease",
+          transition: "opacity 0.15s ease",
         }}
       />
       <span className="relative z-10">{formattedTime}</span>

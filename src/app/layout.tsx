@@ -2,16 +2,12 @@ import type { Metadata, Viewport } from "next";
 import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Providers } from "./providers";
-import { GradientBackground } from "@/components/layout/gradient-background";
-import { PaperTexture } from "@/components/layout/paper-texture";
+import { SplashScreen } from "@/components/layout/splash-screen";
 import "./globals.css";
-
-// Toggle this to switch between themes
-const USE_PAPER_THEME = true;
 
 export const metadata: Metadata = {
   title: "Forehand Nail Studio | رزرو آنلاین",
-  description: "Forehand Nail Studio — رزرو آنلاین نوبت ناخن در مشهد",
+  description: "Forehand Nail Studio — رزرو آنلاین نوبت ناخن",
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.svg",
@@ -23,7 +19,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: "#E86A92",
+  themeColor: "#000000",
   viewportFit: "cover",
 };
 
@@ -42,6 +38,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
       </head>
       <body className="min-h-full flex flex-col">
+        <SplashScreen />
         <Providers>
           <ErrorBoundary>
             {children}

@@ -118,8 +118,7 @@ function SalonBooking() {
 
   return (
     <SalonGuard>
-    <div className="relative min-h-screen paper-theme">
-      <GradientBackground />
+    <div className="relative min-h-screen">
       <div className="relative z-10">
         <AppHeader />
         <Highlights highlights={highlights} onSelect={setViewingHighlight} />

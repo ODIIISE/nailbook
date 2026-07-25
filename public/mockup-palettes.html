@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clean Slate — 5 Color Palettes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* Selector Bar */
+    .selector-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 20px 24px;
+    }
+
+    .selector-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .selector-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .selector-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .mode-toggle {
+      display: flex;
+      gap: 8px;
+      background: rgba(255,255,255,0.05);
+      padding: 4px;
+      border-radius: 10px;
+    }
+
+    .mode-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      background: transparent;
+      color: #888;
+    }
+
+    .mode-btn.active {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+
+    .palette-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .palette-tab {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+      background: rgba(255,255,255,0.04);
+      color: #888;
+    }
+
+    .palette-tab:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+
+    .palette-tab.active {
+      color: #fff;
+      border-color: var(--tab-color);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .color-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Preview Container */
+    .preview-container {
+      padding-top: 140px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 32px;
+      padding-left: 32px;
+      padding-right: 32px;
+      flex-wrap: wrap;
+    }
+
+    /* Phone Frame */
+    .phone-frame {
+      width: 390px;
+      height: 844px;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.5), 0 0 0 8px #1a1a1a;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .phone-frame.hidden { display: none; }
+
+    .phone-content {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: none;
+    }
+
+    .phone-content::-webkit-scrollbar { display: none; }
+
+    /* ============ PALETTES ============ */
+    [data-palette="ocean"] {
+      --accent: #0EA5E9;
+      --accent-hover: #0284C7;
+      --accent-light: rgba(14, 165, 233, 0.1);
+    }
+
+    [data-palette="emerald"] {
+      --accent: #10B981;
+      --accent-hover: #059669;
+      --accent-light: rgba(16, 185, 129, 0.1);
+    }
+
+    [data-palette="violet"] {
+      --accent: #8B5CF6;
+      --accent-hover: #7C3AED;
+      --accent-light: rgba(139, 92, 246, 0.1);
+    }
+
+    [data-palette="rose"] {
+      --accent: #F43F5E;
+      --accent-hover: #E11D48;
+      --accent-light: rgba(244, 63, 94, 0.1);
+    }
+
+    [data-palette="teal"] {
+      --accent: #14B8A6;
+      --accent-hover: #0D9488;
+      --accent-light: rgba(20, 184, 166, 0.1);
+    }
+
+    /* Dark mode */
+    [data-mode="dark"] {
+      --bg: #000000;
+      --bg-secondary: #16181C;
+      --bg-tertiary: #1D1F23;
+      --text: #E7E9EA;
+      --text-secondary: #71767B;
+      --text-tertiary: #536471;
+      --border: #2F3336;
+      --border-light: #1D1F23;
+      --card: #16181C;
+      --nav: rgba(0,0,0,0.88);
+    }
+
+    /* Light mode */
+    [data-mode="light"] {
+      --bg: #FFFFFF;
+      --bg-secondary: #F8FAFC;
+      --bg-tertiary: #F1F5F9;
+      --text: #0F172A;
+      --text-secondary: #64748B;
+      --text-tertiary: #94A3B8;
+      --border: #E2E8F0;
+      --border-light: #F1F5F9;
+      --card: #FFFFFF;
+      --nav: rgba(255,255,255,0.92);
+    }
+
+    /* ============ APP STYLES ============ */
+    .app {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--nav);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+    }
+
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+
+    .header-logo {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-logo svg { width: 18px; height: 18px; color: #fff; }
+    .header-title { font-size: 15px; font-weight: 700; }
+
+    .header-menu {
+      width: 40px;
+      height: 40px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .header-menu:hover { background: var(--bg-tertiary); }
+    .header-menu svg { width: 20px; height: 20px; color: var(--text); }
+
+    .hero { padding: 32px 16px 24px; text-align: center; }
+
+    .hero-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      background: var(--bg-tertiary);
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--border);
+    }
+
+    .hero-avatar svg { width: 40px; height: 40px; color: var(--text-tertiary); }
+    .hero-name { font-size: 28px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.02em; }
+    .hero-slogan { font-size: 15px; font-weight: 500; color: var(--accent); margin-bottom: 8px; }
+    .hero-desc { font-size: 14px; color: var(--text-secondary); max-width: 320px; margin: 0 auto 20px; line-height: 1.6; }
+
+    .info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin: 0 16px 24px;
+    }
+
+    .info-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+    .info-row:not(:last-child) { border-bottom: 1px solid var(--border-light); }
+
+    .info-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--accent-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .info-icon svg { width: 18px; height: 18px; color: var(--accent); }
+    .info-text { font-size: 14px; }
+
+    .cta-container { padding: 0 16px 32px; }
+
+    .cta-button {
+      width: 100%;
+      height: 56px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .cta-button:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .cta-button svg { width: 20px; height: 20px; transform: scaleX(-1); }
+
+    .section-header { padding: 0 16px; margin-bottom: 16px; }
+    .section-title { font-size: 20px; font-weight: 700; }
+
+    .services-container { padding: 0 16px 32px; }
+
+    .service-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .service-card:hover { border-color: var(--accent); }
+
+    .service-image {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .service-image svg { width: 28px; height: 28px; color: #fff; }
+    .service-info { flex: 1; min-width: 0; }
+    .service-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+    .service-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .service-meta { display: flex; align-items: center; gap: 12px; }
+    .service-meta-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-secondary); }
+    .service-meta-item svg { width: 14px; height: 14px; }
+    .service-meta-item.price { color: var(--accent); font-weight: 600; }
+    .service-arrow { width: 20px; height: 20px; color: var(--text-tertiary); flex-shrink: 0; }
+
+    .highlights-container { padding: 0 16px 32px; }
+    .highlights-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+    .highlights-scroll::-webkit-scrollbar { display: none; }
+
+    .highlight-card {
+      width: 120px;
+      height: 160px;
+      border-radius: 16px;
+      flex-shrink: 0;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+
+    .highlight-card:hover { transform: scale(1.02); }
+    .highlight-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%); }
+    .highlight-label { position: absolute; bottom: 12px; left: 12px; right: 12px; color: #fff; font-size: 12px; font-weight: 600; z-index: 1; }
+
+    .trust-container {
+      padding: 24px 16px;
+      margin: 0 16px 24px;
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .trust-number { font-size: 32px; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
+    .trust-label { font-size: 13px; color: var(--text-secondary); }
+
+    .contact-container { padding: 0 16px 32px; display: flex; gap: 12px; }
+
+    .contact-button {
+      flex: 1;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .contact-button.primary { background: var(--accent); color: #fff; border: none; }
+    .contact-button.primary:hover { background: var(--accent-hover); }
+    .contact-button.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .contact-button.secondary:hover { background: var(--bg-secondary); }
+    .contact-button svg { width: 18px; height: 18px; }
+
+    .bottom-nav {
+      position: sticky;
+      bottom: 0;
+      height: 64px;
+      background: var(--nav);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 16px;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .nav-item:hover { background: var(--bg-tertiary); }
+    .nav-item.active { color: var(--accent); }
+    .nav-item:not(.active) { color: var(--text-secondary); }
+    .nav-item svg { width: 24px; height: 24px; }
+    .nav-item span { font-size: 11px; font-weight: 500; }
+
+    .footer { padding: 24px 16px 32px; text-align: center; }
+    .footer-text { font-size: 12px; color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .footer-heart { color: #F4212E; }
+
+    /* Description */
+    .palette-info {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(20px);
+      padding: 16px 24px;
+      border-radius: 12px;
+      max-width: 500px;
+      text-align: center;
+      z-index: 1000;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .palette-info h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .palette-info p { font-size: 13px; color: #888; line-height: 1.5; }
+    .palette-info .swatch { display: inline-flex; gap: 6px; margin-top: 8px; }
+    .palette-info .swatch span { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); }
+
+    @media (max-width: 860px) {
+      .phone-frame { width: 100%; max-width: 390px; height: 700px; }
+      .preview-container { padding-top: 160px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Selector -->
+  <div class="selector-bar">
+    <div class="selector-inner">
+      <div class="selector-header">
+        <h2>Clean Slate — Color Palettes</h2>
+        <div class="mode-toggle">
+          <button class="mode-btn" onclick="switchMode('light')">Light</button>
+          <button class="mode-btn active" onclick="switchMode('dark')">Dark</button>
+        </div>
+      </div>
+      <div class="palette-tabs">
+        <div class="palette-tab active" onclick="switchPalette('ocean')" style="--tab-color: #0EA5E9;">
+          <span class="color-dot" style="background: #0EA5E9;"></span>
+          1. Ocean Blue
+        </div>
+        <div class="palette-tab" onclick="switchPalette('emerald')" style="--tab-color: #10B981;">
+          <span class="color-dot" style="background: #10B981;"></span>
+          2. Emerald
+        </div>
+        <div class="palette-tab" onclick="switchPalette('violet')" style="--tab-color: #8B5CF6;">
+          <span class="color-dot" style="background: #8B5CF6;"></span>
+          3. Violet
+        </div>
+        <div class="palette-tab" onclick="switchPalette('rose')" style="--tab-color: #F43F5E;">
+          <span class="color-dot" style="background: #F43F5E;"></span>
+          4. Rose
+        </div>
+        <div class="palette-tab" onclick="switchPalette('teal')" style="--tab-color: #14B8A6;">
+          <span class="color-dot" style="background: #14B8A6;"></span>
+          5. Teal
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div class="palette-info" id="palette-info">
+    <h3 id="info-title" style="color: #0EA5E9;">Ocean Blue</h3>
+    <p id="info-desc">Fresh, trustworthy, professional. The classic tech blue — clean and universally appealing.</p>
+    <div class="swatch" id="info-swatches"></div>
+  </div>
+
+  <!-- Preview -->
+  <div class="preview-container" id="preview-container">
+    <!-- 5 phone frames generated by JS -->
+  </div>
+
+  <script>
+    const palettes = {
+      ocean: {
+        name: 'Ocean Blue',
+        desc: 'Fresh, trustworthy, professional. The classic tech blue — clean and universally appealing.',
+        colors: ['#0EA5E9', '#0284C7', '#38BDF8', '#E0F2FE'],
+        dark: { accent: '#0EA5E9', accentHover: '#0284C7', accentLight: 'rgba(14,165,233,0.12)' },
+        light: { accent: '#0284C7', accentHover: '#0369A1', accentLight: 'rgba(2,132,199,0.08)' }
+      },
+      emerald: {
+        name: 'Emerald',
+        desc: 'Natural, calming, growth-oriented. Evokes freshness and renewal — perfect for beauty and wellness.',
+        colors: ['#10B981', '#059669', '#34D399', '#D1FAE5'],
+        dark: { accent: '#10B981', accentHover: '#059669', accentLight: 'rgba(16,185,129,0.12)' },
+        light: { accent: '#059669', accentHover: '#047857', accentLight: 'rgba(5,150,105,0.08)' }
+      },
+      violet: {
+        name: 'Violet',
+        desc: 'Creative, luxurious, feminine. Bold yet elegant — stands out while feeling premium.',
+        colors: ['#8B5CF6', '#7C3AED', '#A78BFA', '#EDE9FE'],
+        dark: { accent: '#8B5CF6', accentHover: '#7C3AED', accentLight: 'rgba(139,92,246,0.12)' },
+        light: { accent: '#7C3AED', accentHover: '#6D28D9', accentLight: 'rgba(124,58,237,0.08)' }
+      },
+      rose: {
+        name: 'Rose',
+        desc: 'Bold, passionate, energetic. Vibrant and eye-catching — makes a strong statement.',
+        colors: ['#F43F5E', '#E11D48', '#FB7185', '#FFE4E6'],
+        dark: { accent: '#F43F5E', accentHover: '#E11D48', accentLight: 'rgba(244,63,94,0.12)' },
+        light: { accent: '#E11D48', accentHover: '#BE123C', accentLight: 'rgba(225,29,72,0.08)' }
+      },
+      teal: {
+        name: 'Teal',
+        desc: 'Balanced, sophisticated, serene. A blend of blue calm and green vitality — refined and modern.',
+        colors: ['#14B8A6', '#0D9488', '#2DD4BF', '#CCFBF1'],
+        dark: { accent: '#14B8A6', accentHover: '#0D9488', accentLight: 'rgba(20,184,166,0.12)' },
+        light: { accent: '#0D9488', accentHover: '#0F766E', accentLight: 'rgba(13,148,136,0.08)' }
+      }
+    };
+
+    let currentPalette = 'ocean';
+    let currentMode = 'dark';
+
+    const appHTML = `
+      <header class="header">
+        <div class="header-brand">
+          <div class="header-logo">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+          </div>
+          <span class="header-title">Forehand Nail</span>
+        </div>
+        <div class="header-menu">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+        </div>
+      </header>
+      <section class="hero">
+        <div class="hero-avatar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+        </div>
+        <h1 class="hero-name">Forehand Nail</h1>
+        <p class="hero-slogan">Nail Art Studio</p>
+        <p class="hero-desc">نمونه‌کار، رزرو آنلاین، و مدیریت قرارها — همه در یک مکان</p>
+      </section>
+      <div class="info-card">
+        <div class="info-row">
+          <div class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg></div>
+          <span class="info-text">تهران، خیابان ولیعصر</span>
+        </div>
+        <div class="info-row">
+          <div class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg></div>
+          <span class="info-text" dir="ltr">0912 123 4567</span>
+        </div>
+        <div class="info-row">
+          <div class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+          <span class="info-text">شنبه تا پنجشنبه • ۱۰:۰۰ - ۱۸:۰۰</span>
+        </div>
+      </div>
+      <div class="cta-container">
+        <button class="cta-button">رزرو کن<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></button>
+      </div>
+      <div class="highlights-container">
+        <div class="section-header" style="padding:0;margin-bottom:12px;"><h2 class="section-title">نمونه‌کارها</h2></div>
+        <div class="highlights-scroll">
+          <div class="highlight-card" style="background:linear-gradient(135deg,#667eea,#764ba2);"><span class="highlight-label">ژلlish</span></div>
+          <div class="highlight-card" style="background:linear-gradient(135deg,#f093fb,#f5576c);"><span class="highlight-label">آرت ناخن</span></div>
+          <div class="highlight-card" style="background:linear-gradient(135deg,#4facfe,#00f2fe);"><span class="highlight-label">کاشت</span></div>
+          <div class="highlight-card" style="background:linear-gradient(135deg,#43e97b,#38f9d7);"><span class="highlight-label">مانیکور</span></div>
+        </div>
+      </div>
+      <div class="services-container">
+        <div class="section-header" style="padding:0;margin-bottom:12px;"><h2 class="section-title">خدمات ما</h2></div>
+        <div class="service-card">
+          <div class="service-image" style="background:linear-gradient(135deg,#667eea,#764ba2);"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg></div>
+          <div class="service-info">
+            <div class="service-name">کاشت ناخن ژله‌ای</div>
+            <div class="service-desc">کاشت حرفه‌ای با مواد درجه یک</div>
+            <div class="service-meta">
+              <div class="service-meta-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span>۹۰ دقیقه</span></div>
+              <div class="service-meta-item price"><span>۴۵۰,۰۰۰ تومان</span></div>
+            </div>
+          </div>
+          <svg class="service-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+        </div>
+        <div class="service-card">
+          <div class="service-image" style="background:linear-gradient(135deg,#f093fb,#f5576c);"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg></div>
+          <div class="service-info">
+            <div class="service-name">مانیکور و پدیکور</div>
+            <div class="service-desc">مراقبت کامل ناخن‌های دست و پا</div>
+            <div class="service-meta">
+              <div class="service-meta-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span>۶۰ دقیقه</span></div>
+              <div class="service-meta-item price"><span>۲۸۰,۰۰۰ تومان</span></div>
+            </div>
+          </div>
+          <svg class="service-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+        </div>
+        <div class="service-card">
+          <div class="service-image" style="background:linear-gradient(135deg,#4facfe,#00f2fe);"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg></div>
+          <div class="service-info">
+            <div class="service-name">طراحی و آرت ناخن</div>
+            <div class="service-desc">طراحی خلاقانه و منحصر به فرد</div>
+            <div class="service-meta">
+              <div class="service-meta-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span>۴۵ دقیقه</span></div>
+              <div class="service-meta-item price"><span>۱۸۰,۰۰۰ تومان</span></div>
+            </div>
+          </div>
+          <svg class="service-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+        </div>
+      </div>
+      <div class="trust-container">
+        <div class="trust-number">+۵۰۰</div>
+        <div class="trust-label">رزرو موفق</div>
+      </div>
+      <div class="contact-container">
+        <a href="#" class="contact-button primary"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>تماس</a>
+        <a href="#" class="contact-button secondary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>واتساپ</a>
+      </div>
+      <footer class="footer"><p class="footer-text">ساخته شده با <span class="footer-heart">❤</span> برای Forehand Nail</p></footer>
+      <nav class="bottom-nav">
+        <div class="nav-item active"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg><span>خانه</span></div>
+        <div class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg><span>رزرو</span></div>
+        <div class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg><span>پروفایل</span></div>
+      </nav>
+    `;
+
+    // Build frames
+    const container = document.getElementById('preview-container');
+    Object.keys(palettes).forEach(key => {
+      const frame = document.createElement('div');
+      frame.className = 'phone-frame' + (key === 'ocean' ? '' : ' hidden');
+      frame.id = 'frame-' + key;
+      frame.innerHTML = `
+        <div class="phone-content" data-palette="${key}" data-mode="${currentMode}">
+          <div class="app" data-palette="${key}" data-mode="${currentMode}">${appHTML}</div>
+        </div>
+      `;
+      container.appendChild(frame);
+    });
+
+    function switchPalette(palette) {
+      currentPalette = palette;
+      document.querySelectorAll('.palette-tab').forEach(t => t.classList.remove('active'));
+      event.target.closest('.palette-tab').classList.add('active');
+
+      document.querySelectorAll('.phone-frame').forEach(f => f.classList.add('hidden'));
+      document.getElementById('frame-' + palette).classList.remove('hidden');
+
+      const p = palettes[palette];
+      document.getElementById('info-title').textContent = p.name;
+      document.getElementById('info-title').style.color = p[currentMode].accent;
+      document.getElementById('info-desc').textContent = p.desc;
+
+      // Update swatches
+      const swatchEl = document.getElementById('info-swatches');
+      swatchEl.innerHTML = p.colors.map(c => `<span style="background:${c};"></span>`).join('');
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.querySelectorAll('.phone-content').forEach(el => {
+        el.setAttribute('data-mode', mode);
+        el.querySelector('.app').setAttribute('data-mode', mode);
+      });
+
+      // Refresh info color
+      const p = palettes[currentPalette];
+      document.getElementById('info-title').style.color = p[mode].accent;
+    }
+
+    // Init swatches
+    document.getElementById('info-swatches').innerHTML = palettes.ocean.colors.map(c => `<span style="background:${c};"></span>`).join('');
+  </script>
+</body>
+</html>
