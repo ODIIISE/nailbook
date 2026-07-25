@@ -41,6 +41,7 @@ export interface Service {
   sort_order: number;
   addon_ids: string[];
   priority_score: number;
+  image_url?: string;
 }
 
 export interface Booking {

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit2, Trash2, X, Check, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Check, ChevronUp, ChevronDown, Upload, Image } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import type { Service, Addon } from "@/lib/types";
 
@@ -80,6 +80,7 @@ function ServicesTab({
     duration_minutes: 45,
     price: 0,
     priority_score: 5,
+    image_url: "",
   });
 
   useEffect(() => {
@@ -89,7 +90,7 @@ function ServicesTab({
 
   const markChanged = () => setHasChanges(true);
 
-  const resetForm = () => setForm({ name: "", description: "", duration_minutes: 45, price: 0, priority_score: 5 });
+  const resetForm = () => setForm({ name: "", description: "", duration_minutes: 45, price: 0, priority_score: 5, image_url: "" });
 
   const handleAdd = () => {
     if (!form.name.trim()) return;
@@ -102,6 +103,7 @@ function ServicesTab({
       is_active: true,
       sort_order: pending.length + 1,
       addon_ids: [],
+      image_url: form.image_url || undefined,
     };
     setPending([...pending, newService]);
     resetForm();
@@ -111,7 +113,7 @@ function ServicesTab({
 
   const handleSaveEdit = () => {
     if (!editingId || !form.name.trim()) return;
-    setPending(pending.map((s) => (s.id === editingId ? { ...s, ...form } : s)));
+    setPending(pending.map((s) => (s.id === editingId ? { ...s, ...form, image_url: form.image_url || s.image_url } : s)));
     setEditingId(null);
     resetForm();
     markChanged();
@@ -185,6 +187,7 @@ function ServicesTab({
       duration_minutes: service.duration_minutes,
       price: service.price,
       priority_score: service.priority_score || 5,
+      image_url: service.image_url || "",
     });
   };
 
@@ -221,7 +224,18 @@ function ServicesTab({
             />
           ) : (
             <>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {service.image_url ? (
+                  <img
+                    src={service.image_url}
+                    alt={service.name}
+                    className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                    <Image className="h-5 w-5 text-muted-foreground/50" />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{service.name}</span>
@@ -491,12 +505,44 @@ function ServiceForm({
   onCancel,
   title,
 }: {
-  form: { name: string; description: string; duration_minutes: number; price: number; priority_score: number };
+  form: { name: string; description: string; duration_minutes: number; price: number; priority_score: number; image_url: string };
   setForm: (f: typeof form) => void;
   onSave: () => void;
   onCancel: () => void;
   title?: string;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload-service-image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "خطا در آپلود");
+      }
+
+      const data = await res.json();
+      setForm({ ...form, image_url: data.url });
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("خطا در آپلود تصویر");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <Card className="p-4 space-y-3">
       {title && (
@@ -507,6 +553,46 @@ function ServiceForm({
           </Button>
         </div>
       )}
+
+      {/* Image Upload */}
+      <div className="flex items-center gap-4">
+        <div
+          className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors overflow-hidden"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {isUploading ? (
+            <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
+          ) : form.image_url ? (
+            <img src={form.image_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="text-center">
+              <Upload className="h-5 w-5 mx-auto text-muted-foreground" />
+              <span className="text-[10px] text-muted-foreground">تصویر</span>
+            </div>
+          )}
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          className="hidden"
+        />
+        <div className="flex-1">
+          <p className="text-xs text-muted-foreground">تصویر خدمت</p>
+          <p className="text-[10px] text-muted-foreground/60">اختیاری - حداکثر ۵ مگابایت</p>
+          {form.image_url && (
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, image_url: "" })}
+              className="text-xs text-destructive mt-1"
+            >
+              حذف تصویر
+            </button>
+          )}
+        </div>
+      </div>
+
       <Input
         value={form.name}
         onChange={(e) => setForm({ ...form, name: e.target.value })}

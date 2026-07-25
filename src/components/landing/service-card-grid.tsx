@@ -48,12 +48,20 @@ export function ServiceCardGrid({ services }: ServiceCardGridProps) {
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(`/book?service=${service.id}`); } }}
             >
               <div className="flex items-center gap-4">
-                {/* Placeholder Image */}
-                <div
-                  className={`w-16 h-16 rounded-xl bg-gradient-to-br ${PLACEHOLDER_COLORS[index % PLACEHOLDER_COLORS.length]} flex items-center justify-center flex-shrink-0`}
-                >
-                  <Sparkles className="h-6 w-6 text-white/80" />
-                </div>
+                {/* Service Image or Placeholder */}
+                {service.image_url ? (
+                  <img
+                    src={service.image_url}
+                    alt={service.name}
+                    className="w-16 h-16 rounded-xl object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div
+                    className={`w-16 h-16 rounded-xl bg-gradient-to-br ${PLACEHOLDER_COLORS[index % PLACEHOLDER_COLORS.length]} flex items-center justify-center flex-shrink-0`}
+                  >
+                    <Sparkles className="h-6 w-6 text-white/80" />
+                  </div>
+                )}
 
                 {/* Service Info */}
                 <div className="flex-1 min-w-0">

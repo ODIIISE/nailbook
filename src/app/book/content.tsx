@@ -664,9 +664,17 @@ export default function BookContent() {
 
                     {/* Service info */}
                     <div className="flex items-center gap-2.5 mb-3 relative z-[2]">
-                      <div className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(40,136,208,0.06), rgba(91,179,228,0.03))" }}>
-                        <Sparkles className="h-4 w-4 text-primary" />
-                      </div>
+                      {selectedService.image_url ? (
+                        <img
+                          src={selectedService.image_url}
+                          alt={selectedService.name}
+                          className="w-8 h-8 rounded-[9px] object-cover shrink-0"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(40,136,208,0.06), rgba(91,179,228,0.03))" }}>
+                          <Sparkles className="h-4 w-4 text-primary" />
+                        </div>
+                      )}
                       <div>
                         <div className="text-[13px] font-semibold text-foreground">{selectedService.name}</div>
                         <div className="text-[10px] text-muted-foreground">{salon.name}</div>
