@@ -49,7 +49,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent
         showCloseButton={false}
-        className="max-w-[340px] bg-white/95 backdrop-blur-2xl rounded-[20px] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.08)] ring-0 border-0"
+        className="max-w-[340px] bg-card border border-border rounded-2xl p-5 shadow-elevated ring-0"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-3.5">
@@ -219,7 +219,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
 
       {/* Delete Confirmation AlertDialog */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent className="max-w-[300px] bg-white/95 backdrop-blur-2xl rounded-[20px] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.08)] ring-0 border-0">
+        <AlertDialogContent className="max-w-[300px] bg-card border border-border rounded-2xl p-5 shadow-elevated ring-0">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-[#C62828]">
               <AlertTriangle className="h-4 w-4" />

@@ -528,7 +528,7 @@ export default function BookContent() {
                     <p className="text-[13px] text-destructive">{authError}</p>
                   </div>
                 )}
-                <Button size="xl" variant="paper" className="w-full" onClick={handleAuthPhoneSubmit} disabled={!isValidIranianPhone(normalizeDigits(authPhone)) || isAuthLoading}>
+                <Button size="xl" className="w-full bg-foreground text-background hover:bg-foreground/90" onClick={handleAuthPhoneSubmit} disabled={!isValidIranianPhone(normalizeDigits(authPhone)) || isAuthLoading}>
                   ادامه
                 </Button>
               </div>
@@ -600,7 +600,7 @@ export default function BookContent() {
                     <p className="text-[13px] text-destructive">{authError}</p>
                   </div>
                 )}
-                <Button size="xl" variant="paper" className="w-full" onClick={handleAuthNameSubmit} disabled={isAuthLoading || !authName.trim()}>
+                <Button size="xl" className="w-full bg-foreground text-background hover:bg-foreground/90" onClick={handleAuthNameSubmit} disabled={isAuthLoading || !authName.trim()}>
                   {isAuthLoading ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -692,7 +692,7 @@ export default function BookContent() {
                 )}
 
                 {/* Confirm Button */}
-                <Button size="xl" onClick={handleConfirmBooking} disabled={isBookingLoading} variant="paper" className="w-full">
+                <Button size="xl" onClick={handleConfirmBooking} disabled={isBookingLoading} className="w-full bg-foreground text-background hover:bg-foreground/90">
                   {isBookingLoading ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -729,7 +729,7 @@ export default function BookContent() {
       {step === "datetime" && selectedTime && (
         <div className="fixed bottom-[72px] left-0 right-0 z-30 px-4 pb-2 pointer-events-none">
           <div className="mx-auto max-w-lg pointer-events-auto">
-            <Button size="xl" variant="paper" onClick={handleDateTimeContinue} className="w-full shadow-lg">
+            <Button size="xl" className="w-full bg-foreground text-background hover:bg-foreground/90 shadow-lg" onClick={handleDateTimeContinue}>
               ادامه
               <ChevronLeft className="h-5 w-5 mr-2" />
             </Button>
@@ -741,7 +741,7 @@ export default function BookContent() {
       {step === "addons" && (
         <div className="fixed bottom-[72px] left-0 right-0 z-30 px-4 pb-2 pointer-events-none">
           <div className="mx-auto max-w-lg pointer-events-auto">
-            <Button size="xl" variant="paper" onClick={handleAddonsContinue} className="w-full shadow-lg">
+            <Button size="xl" className="w-full bg-foreground text-background hover:bg-foreground/90 shadow-lg" onClick={handleAddonsContinue}>
               {hasAddons ? "انتخاب زمان" : "ادامه"}
               <ChevronLeft className="h-5 w-5 mr-2" />
             </Button>

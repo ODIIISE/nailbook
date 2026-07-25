@@ -58,9 +58,9 @@ export default function OwnerLoginPage() {
 
   return (
     <div className="min-h-[100dvh] flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-sm glass rounded-3xl p-6 animate-scale">
+      <div className="w-full max-w-sm border border-border bg-card rounded-2xl p-6 animate-scale">
         <div className="text-center mb-6">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/50">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
             <Sparkles className="h-6 w-6 text-foreground" />
           </div>
           <h1 className="text-h1 text-foreground">ورود مدیر</h1>
@@ -88,8 +88,7 @@ export default function OwnerLoginPage() {
               )}
               <Button
                 size="xl"
-                variant="paper"
-                className="w-full"
+                className="w-full bg-foreground text-background hover:bg-foreground/90"
                 onClick={handlePhoneSubmit}
                 disabled={phone.length < 10}
               >

@@ -129,7 +129,7 @@ export default function OwnerHighlightsPage() {
                 {/* Collapsed header — always visible */}
                 <button
                   onClick={() => toggleExpand(highlight)}
-                  className="w-full p-4 flex items-center gap-3 text-left hover:bg-white/40 transition-colors"
+                  className="w-full p-4 flex items-center gap-3 text-left hover:bg-muted transition-colors"
                 >
                   <div className="w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0">
                     {highlight.cover_url ? (

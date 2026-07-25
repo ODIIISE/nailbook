@@ -127,7 +127,7 @@ export function ManualReserveModal({
         <div>
           <Label className="text-[13px]">خدمت</Label>
           <Select value={serviceId} onValueChange={(val) => handleServiceChange(val as string)}>
-            <SelectTrigger className="mt-1 w-full h-12 rounded-2xl glass px-3 text-[15px]" dir="rtl">
+            <SelectTrigger className="mt-1 w-full h-12 rounded-xl border border-border bg-card px-3 text-[15px]" dir="rtl">
               <SelectValue placeholder="خدمت را انتخاب کنید" />
             </SelectTrigger>
             <SelectContent>

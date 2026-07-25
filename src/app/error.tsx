@@ -24,7 +24,7 @@ export default function Error({
         <p className="text-sm text-muted-foreground mb-6">
           متأسفانه مشکلی پیش آمده است. لطفاً دوباره تلاش کنید.
         </p>
-        <Button variant="paper" onClick={reset}>
+        <Button className="bg-foreground text-background hover:bg-foreground/90" onClick={reset}>
           تلاش مجدد
         </Button>
       </div>

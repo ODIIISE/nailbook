@@ -57,7 +57,7 @@ export function EarningsModal({
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent
         showCloseButton={false}
-        className="glass rounded-3xl p-6 max-h-[80vh] overflow-y-auto bg-black/40 backdrop-blur-sm"
+        className="rounded-2xl p-6 max-h-[80vh] overflow-y-auto bg-card border border-border"
       >
         <DialogTitle className="text-h2 text-foreground">درآمد</DialogTitle>
 
@@ -69,7 +69,7 @@ export function EarningsModal({
               className={`flex-1 h-9 rounded-full text-[13px] font-bold transition-all ${
                 period === p
                   ? "bg-foreground text-background"
-                  : "glass text-foreground hover:bg-white/60"
+                  : "border border-border text-foreground hover:bg-muted"
               }`}
             >
               {p === "day" ? "امروز" : p === "week" ? "این هفته" : "این ماه"}

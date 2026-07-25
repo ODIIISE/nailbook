@@ -91,8 +91,7 @@ export default function AdminBootstrapPage() {
               )}
               <Button
                 size="xl"
-                variant="paper"
-                className="w-full"
+                className="w-full bg-foreground text-background hover:bg-foreground/90"
                 onClick={handleFormSubmit}
                 disabled={phone.length < 10}
               >

@@ -11,7 +11,7 @@ export default function NotFound() {
           صفحه‌ای که دنبال آن هستید وجود ندارد یا منتقل شده است.
         </p>
         <Link href="/">
-          <Button variant="paper">بازگشت به صفحه اصلی</Button>
+          <Button className="bg-foreground text-background hover:bg-foreground/90">بازگشت به صفحه اصلی</Button>
         </Link>
       </div>
     </div>

@@ -68,7 +68,7 @@ function Help({ text }: { text: string }) {
   return (
     <Tooltip>
       <TooltipTrigger render={<HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help hover:text-muted-foreground transition-colors" />} />
-      <TooltipContent side="top" className="w-52 text-[11px] leading-relaxed p-2.5 rounded-xl shadow-elevated">
+      <TooltipContent side="top" className="w-52 text-[11px] leading-relaxed p-2.5 rounded-xl bg-card border border-border">
         {text}
       </TooltipContent>
     </Tooltip>
@@ -321,7 +321,7 @@ export function ScheduleManager({
             روزهای فعال و ساعت‌ها را تنظیم کنید
           </p>
         </div>
-        <Button size="sm" onClick={handleSave} disabled={!hasChanges} variant="paper">
+        <Button size="sm" onClick={handleSave} disabled={!hasChanges} className="bg-foreground text-background hover:bg-foreground/90">
           <Save className="h-4 w-4 ml-1" />
           ذخیره
         </Button>
