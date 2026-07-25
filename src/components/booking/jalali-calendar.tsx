@@ -187,51 +187,61 @@ export function JalaliCalendar({
               key={i}
               data-selected={d.isSelected}
               onClick={() => onSelectDate(d.date)}
-              className="flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl cursor-pointer active:scale-95 relative overflow-hidden focus-visible:ring-3 focus-visible:ring-primary/50 focus-visible:outline-none"
+              className="flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl cursor-pointer active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
               style={{
-                transition: "transform 0.2s ease, box-shadow 0.3s ease",
                 background: d.isSelected
                   ? "var(--foreground)"
                   : d.isFullyBooked
                     ? "var(--muted)"
                     : "var(--card)",
-                color: d.isSelected ? "var(--background)" : "var(--foreground)",
                 border: d.isToday && !d.isSelected
                   ? "2px solid var(--foreground)"
                   : "1px solid var(--border)",
-                opacity: d.isFullyBooked && !d.isSelected ? 0.6 : 1,
+                opacity: d.isFullyBooked && !d.isSelected ? 0.5 : 1,
                 boxShadow: d.isSelected
-                  ? "0 4px 14px rgba(0,0,0,0.15)"
+                  ? "0 4px 12px rgba(0,0,0,0.2)"
                   : "none",
               }}
             >
-              {/* Selection overlay for smooth transition */}
-              <div
-                className="absolute inset-0 rounded-2xl"
-                style={{
-                  background: "var(--foreground)",
-                  opacity: d.isSelected ? 1 : 0,
-                  transition: "opacity 0.3s ease",
-                }}
-              />
-              <span className="relative z-10 text-[11px] font-medium leading-none" style={{ color: d.isSelected ? "rgba(255,255,255,0.7)" : "var(--muted-foreground)" }}>
+              {/* Weekday label */}
+              <span
+                className="text-[11px] font-medium leading-none"
+                style={{ color: d.isSelected ? "var(--background)" : "var(--muted-foreground)" }}
+              >
                 {d.weekday}
               </span>
-              <span className="relative z-10 text-xl font-bold leading-tight mt-1" style={{ color: d.isSelected ? "white" : "var(--foreground)" }}>
+
+              {/* Day number */}
+              <span
+                className="text-xl font-bold leading-tight mt-1"
+                style={{ color: d.isSelected ? "var(--background)" : "var(--foreground)" }}
+              >
                 {toPersianDigits(d.jalaliDay)}
               </span>
+
+              {/* Today label */}
               {d.isToday && (
-                <span className="relative z-10 text-[10px] font-semibold mt-0.5 leading-none" style={{ color: d.isSelected ? "white" : "var(--primary)" }}>
+                <span
+                  className="text-[10px] font-semibold mt-0.5 leading-none"
+                  style={{ color: d.isSelected ? "var(--background)" : "var(--foreground)" }}
+                >
                   امروز
                 </span>
               )}
+
+              {/* Tomorrow label */}
               {d.isTomorrow && (
-                <span className="relative z-10 text-[10px] font-semibold mt-0.5 leading-none" style={{ color: d.isSelected ? "rgba(255,255,255,0.8)" : "var(--muted-foreground)" }}>
+                <span
+                  className="text-[10px] font-semibold mt-0.5 leading-none"
+                  style={{ color: d.isSelected ? "var(--background)" : "var(--muted-foreground)" }}
+                >
                   فردا
                 </span>
               )}
+
+              {/* Fully booked label */}
               {d.isFullyBooked && !d.isSelected && (
-                <span className="relative z-10 text-[9px] font-medium mt-0.5 leading-none text-destructive">
+                <span className="text-[9px] font-medium mt-0.5 leading-none text-destructive">
                   تکمیل
                 </span>
               )}
@@ -363,9 +373,9 @@ function CalendarModal({
                 className={`
                   h-10 rounded-xl text-[13px] font-bold transition-all duration-150
                   ${cell.isSelected
-                    ? "bg-primary text-white shadow-md"
+                    ? "bg-foreground text-background shadow-md"
                     : cell.isToday
-                      ? "bg-primary/10 text-primary border border-primary/30"
+                      ? "bg-foreground/10 text-foreground border border-foreground/30"
                       : cell.isPast
                         ? "text-muted-foreground/30 cursor-not-allowed"
                         : "text-foreground hover:bg-muted active:scale-95 cursor-pointer"
