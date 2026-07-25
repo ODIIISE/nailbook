@@ -198,9 +198,7 @@ export function JalaliCalendar({
                   ? "2px solid var(--foreground)"
                   : "1px solid var(--border)",
                 opacity: d.isFullyBooked && !d.isSelected ? 0.5 : 1,
-                boxShadow: d.isSelected
-                  ? "0 4px 12px rgba(0,0,0,0.2)"
-                  : "none",
+                boxShadow: "none",
               }}
             >
               {/* Weekday label */}
