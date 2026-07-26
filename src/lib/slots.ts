@@ -429,11 +429,13 @@ export function getNearestAvailableSlot(
     let jm = todayJalali.jm;
     let jd = todayJalali.jd + offset;
 
-    const monthLength = isJalaliLeapYear(jy) && jm === 12 ? 30 : DAYS_IN_MONTH[jm - 1];
+    // ── FIX: recalculate monthLength after every month rollover ──
+    let monthLength = isJalaliLeapYear(jy) && jm === 12 ? 30 : DAYS_IN_MONTH[jm - 1];
     while (jd > monthLength) {
       jd -= monthLength;
       jm++;
       if (jm > 12) { jm = 1; jy++; }
+      monthLength = isJalaliLeapYear(jy) && jm === 12 ? 30 : DAYS_IN_MONTH[jm - 1];
     }
 
     const checkDate = jalaliToGregorian(jy, jm, jd);
