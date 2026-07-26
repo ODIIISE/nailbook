@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
 
     // Step 8b: Validate booking is within working hours and not on a day off
     const { rows: salonFullRows } = await client.query(
-      `SELECT working_hours, specific_days_off FROM salon_info LIMIT 1`
+      `SELECT working_hours, specific_days_off, allow_overflow, overflow_minutes FROM salon_info LIMIT 1`
     );
     if (salonFullRows[0]) {
       // Check specific days off
@@ -146,11 +146,8 @@ export async function POST(request: NextRequest) {
         const endMinutes = expectedEndMinutes;
 
         // Allow overflow up to overflow_minutes past closing
-        const { rows: overflowRows } = await client.query(
-          `SELECT allow_overflow, overflow_minutes FROM salon_info LIMIT 1`
-        );
-        const allowOverflow = overflowRows[0]?.allow_overflow ?? false;
-        const overflowMinutes = overflowRows[0]?.overflow_minutes ?? 0;
+        const allowOverflow = salonFullRows[0]?.allow_overflow ?? false;
+        const overflowMinutes = salonFullRows[0]?.overflow_minutes ?? 0;
         const hardEndLimit = closeMinutes + (allowOverflow ? overflowMinutes : 0);
 
         if (startMinutes < openMinutes || endMinutes > hardEndLimit) {
@@ -158,6 +155,24 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "ساعت رزرو خارج از ساعات کاری است", conflict: true }, { status: 409 });
         }
       }
+    }
+
+    // ── FIX: Check blocked times BEFORE insert (inside transaction) ──
+    // This prevents the TOCTOU race where a slot is blocked between generation
+    // and booking. We query with FOR UPDATE to lock any existing blocked rows
+    // for this date, reducing the concurrency window.
+    const blockedCheck = await client.query(
+      `SELECT id FROM blocked_times
+       WHERE date_gregorian = $1::date
+       AND start_time < ($2 || ':00')::time
+       AND end_time > ($3 || ':00')::time
+       FOR UPDATE`,
+      [date_gregorian, normEnd, normStart]
+    );
+
+    if (blockedCheck.rows.length > 0) {
+      await client.query("ROLLBACK");
+      return NextResponse.json({ error: "این زمان مسدود شده", conflict: true }, { status: 409 });
     }
 
     // Step 9: Atomic INSERT with ON CONFLICT — eliminates TOCTOU race condition
@@ -193,25 +208,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "این زمان قبلاً رزرو شده", conflict: true }, { status: 409 });
     }
 
-    // Step 10: Check blocked times (after insert to minimize race window)
-    const blockedCheck = await client.query(
-      `SELECT id FROM blocked_times
-       WHERE date_gregorian = $1::date
-       AND start_time < ($2 || ':00')::time
-       AND end_time > ($3 || ':00')::time`,
-      [date_gregorian, normEnd, normStart]
-    );
-
-    if (blockedCheck.rows.length > 0) {
-      // ROLLBACK undoes the preceding INSERT within the same transaction
-      await client.query("ROLLBACK");
-      return NextResponse.json({ error: "این زمان مسدود شده", conflict: true }, { status: 409 });
-    }
-
-    // Step 11: Commit
+    // Step 10: Commit
     await client.query("COMMIT");
 
-    // Log the booking creation
+    // Log the booking creation (fire-and-forget is acceptable here; log after commit)
     logActivity({
       eventType: "booking_created",
       entityType: "booking",
