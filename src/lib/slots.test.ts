@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   generateTimeSlots,
   getNearestAvailableSlot,
@@ -23,12 +23,12 @@ vi.mock("./time", () => ({
 
 // Mock jalali.ts
 vi.mock("./jalali", () => ({
-  gregorianToJalali: (date: Date) => ({
+  gregorianToJalali: () => ({
     jy: 1405,
     jm: 4,
     jd: 23,
   }),
-  jalaliToGregorian: (jy: number, jm: number, jd: number) => new Date(2026, 6, 14),
+  jalaliToGregorian: () => new Date(2026, 6, 14),
   DAYS_IN_MONTH: [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29],
   isJalaliLeapYear: () => false,
 }));

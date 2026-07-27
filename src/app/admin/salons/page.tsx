@@ -77,9 +77,9 @@ export default function AdminSalonsPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-left text-xs text-muted-foreground">
-                    <span>{parseInt(salon.user_count as any) || 0} کاربر</span>
+                    <span>{Number(salon.user_count) || 0} کاربر</span>
                     <span className="mx-2">•</span>
-                    <span>{parseInt(salon.booking_count as any) || 0} رزرو</span>
+                    <span>{Number(salon.booking_count) || 0} رزرو</span>
                   </div>
                   <Button
                     variant="ghost"

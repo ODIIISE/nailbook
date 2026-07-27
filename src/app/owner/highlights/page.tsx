@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { Plus, X, Trash2, ImagePlus, ChevronDown, ChevronUp } from "lucide-react";
+import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useSalon } from "@/lib/salon-context";
 import type { Highlight, HighlightImage } from "@/lib/types";
@@ -131,9 +132,9 @@ export default function OwnerHighlightsPage() {
                   onClick={() => toggleExpand(highlight)}
                   className="w-full p-4 flex items-center gap-3 text-left hover:bg-muted transition-colors"
                 >
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0">
+                  <div className="relative w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0">
                     {highlight.cover_url ? (
-                      <img src={highlight.cover_url} alt="" className="w-full h-full object-cover" />
+                      <Image src={highlight.cover_url} alt={highlight.name} fill unoptimized className="object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <span className="text-lg font-bold text-muted-foreground">
@@ -192,9 +193,9 @@ export default function OwnerHighlightsPage() {
                     <div>
                       <Label className="text-[13px]">کاور</Label>
                       <div className="mt-2 flex items-center gap-3">
-                        <div className="w-14 h-14 rounded-full overflow-hidden bg-muted shrink-0">
+                        <div className="relative w-14 h-14 rounded-full overflow-hidden bg-muted shrink-0">
                           {expandedHighlight.cover_url ? (
-                            <img src={expandedHighlight.cover_url} alt="" className="w-full h-full object-cover" />
+                            <Image src={expandedHighlight.cover_url} alt={expandedHighlight.name} fill unoptimized className="object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               <ImagePlus className="h-5 w-5 text-muted-foreground" />
@@ -245,10 +246,12 @@ export default function OwnerHighlightsPage() {
                         <div className="grid grid-cols-3 gap-2">
                           {expandedHighlight.images.map((image, index) => (
                             <div key={image.id} className="relative group aspect-square rounded-xl overflow-hidden bg-muted">
-                              <img
+                              <Image
                                 src={image.image_url}
                                 alt={`تصویر ${index + 1}`}
-                                className="w-full h-full object-cover"
+                                fill
+                                unoptimized
+                                className="object-cover"
                               />
                               <button
                                 onClick={() => handleRemoveImage(image.id)}

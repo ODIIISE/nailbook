@@ -1,6 +1,7 @@
 "use client";
 
 import { MapPin, Phone, Clock, ChevronLeft } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { toPersianDigits } from "@/lib/jalali";
 import type { SalonInfo } from "@/lib/types";
@@ -18,15 +19,17 @@ export function Hero({ salon, onBookNow }: HeroProps) {
   return (
     <div className="px-4 pt-6 pb-4">
       <div className="mx-auto max-w-lg text-center animate-stagger">
-        <div className="mx-auto mb-4 flex h-[72px] w-[72px] items-center justify-center rounded-2xl bg-muted overflow-hidden">
+        <div className="relative mx-auto mb-4 flex h-[72px] w-[72px] items-center justify-center rounded-2xl bg-muted overflow-hidden">
           {salon.logo_url ? (
-            <img
+            <Image
               src={salon.logo_url}
               alt={salon.name}
-              className="w-full h-full object-cover"
+              fill
+              unoptimized
+              className="object-cover"
             />
           ) : (
-            <img src="/logo-placeholder.svg" alt="" className="w-10 h-10 opacity-60" />
+            <Image src="/logo-placeholder.svg" alt="" width={40} height={40} className="opacity-60" unoptimized />
           )}
         </div>
         <h1 className="text-display text-foreground mb-1.5">

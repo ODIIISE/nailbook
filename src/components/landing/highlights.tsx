@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Image from "next/image";
 import { Scissors, Sparkles, Heart, Star, Palette } from "lucide-react";
 import type { Highlight } from "@/lib/types";
 import { useHorizontalDrag } from "@/lib/hooks/use-horizontal-drag";
@@ -32,12 +33,14 @@ export function Highlights({ highlights, onSelect }: HighlightsProps) {
         >
           <div className="relative">
             <div className="w-[68px] h-[68px] rounded-full p-[3px] bg-gradient-to-tr from-rose-400 via-amber-400 to-purple-400">
-              <div className="w-full h-full rounded-full overflow-hidden bg-background p-[2px]">
+              <div className="relative w-full h-full rounded-full overflow-hidden bg-background p-[2px]">
                 {highlight.cover_url ? (
-                  <img
+                  <Image
                     src={highlight.cover_url}
                     alt={highlight.name}
-                    className="w-full h-full rounded-full object-cover"
+                    fill
+                    unoptimized
+                    className="rounded-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full rounded-full bg-muted flex items-center justify-center">

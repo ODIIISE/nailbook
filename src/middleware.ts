@@ -86,9 +86,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect /api/owner/* and /api/update-salon, /api/upload-* endpoints
-  // Exclude /api/owner-login (needs to be accessible without session)
   if (
-    (pathname.startsWith("/api/owner") && pathname !== "/api/owner-login") ||
+    pathname.startsWith("/api/owner") ||
     pathname === "/api/update-salon" ||
     pathname.startsWith("/api/upload") ||
     pathname === "/api/owner-logout"
@@ -105,10 +104,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect customer auth mutation routes (not check-phone or auth/me)
+  // Protect customer auth mutation routes (not public OTP or auth/me)
   if (
     pathname.startsWith("/api/auth/") &&
-    pathname !== "/api/auth/check-phone" &&
+    pathname !== "/api/auth/send-otp" &&
+    pathname !== "/api/auth/verify-otp" &&
     pathname !== "/api/auth/me" &&
     request.method !== "GET"
   ) {

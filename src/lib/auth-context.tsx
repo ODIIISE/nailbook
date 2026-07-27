@@ -12,9 +12,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  checkPhone: (phone: string) => Promise<{ exists: boolean }>;
-  login: (phone: string, pin: string) => Promise<{ success: boolean; error?: string }>;
-  signup: (phone: string, pin: string, name: string) => Promise<{ success: boolean; error?: string }>;
+  sendOtp: (phone: string, roleContext?: "customer" | "owner") => Promise<{ success: boolean; error?: string }>;
+  verifyOtp: (phone: string, code: string, options?: { name?: string; roleContext?: "customer" | "owner" }) => Promise<{ success: boolean; error?: string; user?: User }>;
   logout: () => void;
 }
 
@@ -84,54 +83,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  const checkPhone = useCallback(async (phone: string) => {
+  const sendOtp = useCallback(async (phone: string, roleContext: "customer" | "owner" = "customer") => {
     try {
-      const res = await fetch("/api/auth/check-phone", {
+      const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone, roleContext }),
       });
       const data = await res.json();
-      // Only return exists — never leak hasPin or role
-      return { exists: !!data.exists };
-    } catch {
-      return { exists: false };
-    }
-  }, []);
-
-  const login = useCallback(async (phone: string, pin: string) => {
-    try {
-      const res = await fetch("/api/auth/verify-pin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, pin }),
-      });
-      const data = await res.json();
-
-      if (data.success && data.user) {
-        setUser(data.user);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.user));
-        return { success: true };
-      }
-      return { success: false, error: data.error };
+      if (res.ok) return { success: true };
+      return { success: false, error: data.error || "خطا در ارسال کد" };
     } catch {
       return { success: false, error: "خطای سرور" };
     }
   }, []);
 
-  const signup = useCallback(async (phone: string, pin: string, name: string) => {
+  const verifyOtp = useCallback(async (phone: string, code: string, options: { name?: string; roleContext?: "customer" | "owner" } = {}) => {
     try {
-      const res = await fetch("/api/auth/create-pin", {
+      const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, pin, name }),
+        body: JSON.stringify({
+          phone,
+          code,
+          name: options.name,
+          roleContext: options.roleContext || "customer",
+        }),
       });
       const data = await res.json();
 
       if (data.success && data.user) {
         setUser(data.user);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data.user));
-        return { success: true };
+        return { success: true, user: data.user };
       }
       return { success: false, error: data.error };
     } catch {
@@ -148,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, checkPhone, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, sendOtp, verifyOtp, logout }}>
       {children}
     </AuthContext.Provider>
   );

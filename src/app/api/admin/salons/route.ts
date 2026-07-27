@@ -38,8 +38,9 @@ export async function POST(request: NextRequest) {
     `;
 
     return NextResponse.json({ success: true, salon: rows[0] });
-  } catch (error: any) {
-    if (error?.code === "23505") {
+  } catch (error) {
+    const code = error && typeof error === "object" && "code" in error ? (error as { code?: string }).code : undefined;
+    if (code === "23505") {
       return NextResponse.json({ error: "این slug قبلاً استفاده شده" }, { status: 409 });
     }
     console.error("Create salon error:", error);

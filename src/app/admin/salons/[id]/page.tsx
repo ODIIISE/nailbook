@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Users, Calendar, Settings, Store, Search, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowRight, Search, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 type Tab = "overview" | "users" | "bookings" | "services" | "settings";
@@ -146,15 +146,15 @@ function OverviewTab({ salon }: { salon: Salon }) {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       <div className="p-4 rounded-2xl border border-border">
         <p className="text-xs text-muted-foreground mb-1">کاربران</p>
-        <p className="text-2xl font-extrabold">{parseInt(salon.user_count as any) || 0}</p>
+        <p className="text-2xl font-extrabold">{parseInt(String(salon.user_count)) || 0}</p>
       </div>
       <div className="p-4 rounded-2xl border border-border">
         <p className="text-xs text-muted-foreground mb-1">رزروها</p>
-        <p className="text-2xl font-extrabold">{parseInt(salon.booking_count as any) || 0}</p>
+        <p className="text-2xl font-extrabold">{parseInt(String(salon.booking_count)) || 0}</p>
       </div>
       <div className="p-4 rounded-2xl border border-border">
         <p className="text-xs text-muted-foreground mb-1">خدمات</p>
-        <p className="text-2xl font-extrabold">{parseInt(salon.service_count as any) || 0}</p>
+        <p className="text-2xl font-extrabold">{parseInt(String(salon.service_count)) || 0}</p>
       </div>
     </div>
   );

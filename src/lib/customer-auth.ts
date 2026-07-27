@@ -7,7 +7,7 @@ function getSecretKey(): string {
   if (process.env.NODE_ENV === "development") {
     // Dev-only: random per-process key so sessions can't cross processes
     if (!globalThis.__nailbook_customer_dev_key) {
-      globalThis.__nailbook_customer_dev_key = require("crypto").randomBytes(32).toString("hex");
+      globalThis.__nailbook_customer_dev_key = crypto.randomBytes(32).toString("hex");
     }
     return globalThis.__nailbook_customer_dev_key!;
   }

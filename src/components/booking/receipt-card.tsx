@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 
 interface ReceiptCardProps {
   children: ReactNode;
-  barcode?: string;
   stubLabel?: string;
   sideText?: string;
   className?: string;
@@ -18,7 +17,6 @@ interface ReceiptCardProps {
  */
 export function ReceiptCard({
   children,
-  barcode = "ADMIT ONE",
   stubLabel = "FOREHAND NAIL STUDIO",
   sideText,
   className = "",
@@ -72,7 +70,7 @@ export function ReceiptCard({
                 key={i}
                 style={{
                   width: `${w}px`,
-                  height: `${24 + Math.random() * 4}px`,
+                  height: `${24 + ((i * 37) % 5)}px`,
                   background: "var(--foreground)",
                   borderRadius: "0.5px",
                   opacity: 0.12,

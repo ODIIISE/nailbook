@@ -9,7 +9,8 @@ import { ImageCrop } from "@/components/ui/image-crop";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
-import { Save, Camera, Phone, FileText, Sparkles, Clock } from "lucide-react";
+import Image from "next/image";
+import { Save, Camera, Phone, FileText, Sparkles } from "lucide-react";
 
 export default function OwnerSettingsPage() {
   const { salon, updateSalon } = useSalon();
@@ -92,9 +93,12 @@ export default function OwnerSettingsPage() {
               className="hidden"
             />
             {avatarUrl ? (
-              <img
+              <Image
                 src={avatarUrl}
                 alt={salon.name}
+                width={80}
+                height={80}
+                unoptimized
                 className="h-20 w-20 rounded-full object-cover"
               />
             ) : (

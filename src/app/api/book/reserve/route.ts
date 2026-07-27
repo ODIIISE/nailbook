@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ available: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

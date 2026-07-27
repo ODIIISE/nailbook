@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Clock, DollarSign, Sparkles, ChevronLeft } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
@@ -50,9 +51,12 @@ export function ServiceCardGrid({ services }: ServiceCardGridProps) {
               <div className="flex items-center gap-4">
                 {/* Service Image or Placeholder */}
                 {service.image_url ? (
-                  <img
+                  <Image
                     src={service.image_url}
                     alt={service.name}
+                    width={64}
+                    height={64}
+                    unoptimized
                     className="w-16 h-16 rounded-xl object-cover flex-shrink-0"
                   />
                 ) : (

@@ -6,34 +6,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
-import { PinInput } from "@/components/booking/pin-input";
+import { isValidIranianPhone, normalizeDigits } from "@/lib/digits";
 
 export default function BootstrapPage() {
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
-  const [pin, setPin] = useState("");
-  const [step, setStep] = useState<"form" | "pin" | "done">("form");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleFormSubmit = () => {
-    if (phone.length < 10) {
+  const handleSubmit = async () => {
+    const normalized = normalizeDigits(phone);
+    if (!isValidIranianPhone(normalized)) {
       setError("شماره موبایل معتبر نیست");
       return;
     }
-    setError("");
-    setStep("pin");
-  };
 
-  const handlePinComplete = async (enteredPin: string) => {
     setIsLoading(true);
     setError("");
+
     try {
       const res = await fetch("/api/bootstrap-owner", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, pin: enteredPin, name: name || "مدیر" }),
+        body: JSON.stringify({ phone: normalized, name: name || "مدیر" }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -41,8 +37,7 @@ export default function BootstrapPage() {
         setIsLoading(false);
         return;
       }
-      setStep("done");
-      setTimeout(() => router.push("/owner?welcome=1"), 1500);
+      router.push("/owner?welcome=1");
     } catch {
       setError("خطای سرور");
       setIsLoading(false);
@@ -62,59 +57,40 @@ export default function BootstrapPage() {
           </p>
         </div>
 
-        {step === "form" && (
-          <div className="space-y-4">
-            <div>
-              <Label className="text-[13px]">شماره موبایل</Label>
-              <Input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="mt-1"
-                dir="ltr"
-                placeholder="09121234567"
-              />
-            </div>
-            <div>
-              <Label className="text-[13px]">نام (اختیاری)</Label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="mt-1"
-                placeholder="مدیر"
-              />
-            </div>
-            {error && (
-              <p className="text-[13px] text-destructive text-center">{error}</p>
-            )}
-            <Button
-              size="xl"
-              className="w-full bg-foreground text-background hover:bg-foreground/90"
-              onClick={handleFormSubmit}
-              disabled={phone.length < 10}
-            >
-              ادامه
-            </Button>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-[13px]">شماره موبایل</Label>
+            <Input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              className="mt-1"
+              dir="ltr"
+              placeholder="09121234567"
+            />
           </div>
-        )}
-
-        {step === "pin" && (
-          <div className="space-y-4">
-            <p className="text-[13px] text-muted-foreground text-center">
-              یک رمز ۴ رقمی برای مدیر انتخاب کنید
-            </p>
-            <PinInput onComplete={handlePinComplete} disabled={isLoading} />
-            {error && (
-              <p className="text-[13px] text-destructive text-center">{error}</p>
-            )}
+          <div>
+            <Label className="text-[13px]">نام (اختیاری)</Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              className="mt-1"
+              placeholder="مدیر"
+            />
           </div>
-        )}
-
-        {step === "done" && (
-          <div className="text-center py-4">
-            <p className="text-[15px] font-bold text-success">اکانت مدیر با موفقیت ایجاد شد</p>
-            <p className="text-[13px] text-muted-foreground mt-2">در حال انتقال...</p>
-          </div>
-        )}
+          {error && (
+            <p className="text-[13px] text-destructive text-center">{error}</p>
+          )}
+          <Button
+            size="xl"
+            className="w-full bg-foreground text-background hover:bg-foreground/90"
+            onClick={handleSubmit}
+            disabled={isLoading || !isValidIranianPhone(normalizeDigits(phone))}
+          >
+            {isLoading ? "در حال ایجاد..." : "ایجاد اکانت"}
+          </Button>
+        </div>
       </div>
     </div>
   );

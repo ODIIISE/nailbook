@@ -3,6 +3,12 @@ import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 
+interface BlockedTimeItem {
+  date_gregorian: string;
+  start_time: string;
+  end_time: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const owner = await verifyOwner(request);
@@ -21,11 +27,11 @@ export async function PUT(request: NextRequest) {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const { blockedTimes } = await request.json();
+    const { blockedTimes }: { blockedTimes: BlockedTimeItem[] } = await request.json();
 
     // Validate no overlapping blocks within the same day
     if (blockedTimes && blockedTimes.length > 1) {
-      const sorted = [...blockedTimes].sort((a: any, b: any) => {
+      const sorted = [...blockedTimes].sort((a, b) => {
         if (a.date_gregorian !== b.date_gregorian) return a.date_gregorian.localeCompare(b.date_gregorian);
         return a.start_time.localeCompare(b.start_time);
       });
@@ -63,7 +69,7 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     if (client) {
       try { await client.query("ROLLBACK"); } catch (rbError) { console.error("ROLLBACK failed:", rbError); }
     }

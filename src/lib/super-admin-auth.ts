@@ -6,7 +6,7 @@ function getSecretKey(): string {
   if (secret) return secret;
   if (process.env.NODE_ENV === "development") {
     if (!globalThis.__nailbook_super_admin_dev_key) {
-      globalThis.__nailbook_super_admin_dev_key = require("crypto").randomBytes(32).toString("hex");
+      globalThis.__nailbook_super_admin_dev_key = crypto.randomBytes(32).toString("hex");
     }
     return globalThis.__nailbook_super_admin_dev_key!;
   }

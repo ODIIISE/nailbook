@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useRef, useEffect, useState } from "react";
-import { gregorianToJalali, jalaliToGregorian, toPersianDigits, PERSIAN_MONTHS, DAYS_IN_MONTH, JS_TO_IRAN_DAY, getJalaliMonthDays } from "@/lib/jalali";
-import { CalendarDays, ChevronRight, ChevronLeft, Ban } from "lucide-react";
+import { gregorianToJalali, jalaliToGregorian, toPersianDigits, PERSIAN_MONTHS, JS_TO_IRAN_DAY, getJalaliMonthDays } from "@/lib/jalali";
+import { CalendarDays, ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { generateTimeSlots, type WorkingHours } from "@/lib/slots";
 import { getTehranDateKey } from "@/lib/time";
@@ -141,7 +141,7 @@ export function JalaliCalendar({
       });
     }
     return result;
-  }, [today, selectedDate, showPast, workingHours, salonConfig, serviceDuration, addonsDuration, bookings, blockedTimes, config]);
+  }, [today, selectedDate, showPast, workingHours, salonConfig, serviceDuration, addonsDuration, bookings, blockedTimes, config, specificDaysOff]);
 
   // Scroll to selected date
   useEffect(() => {

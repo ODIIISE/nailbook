@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Cropper from "react-easy-crop";
+import Cropper, { type Area } from "react-easy-crop";
 import { Button } from "./button";
 
 interface ImageCropProps {
@@ -44,7 +44,7 @@ export function ImageCrop({ image, onCropComplete: onComplete, onCancel, aspect 
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
   const handleCropComplete = useCallback(
-    (_: any, croppedAreaPixels: { x: number; y: number; width: number; height: number }) => {
+    (_: Area, croppedAreaPixels: Area) => {
       setCroppedAreaPixels(croppedAreaPixels);
     },
     []

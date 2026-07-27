@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get("type") || "bookings";
     const salonId = searchParams.get("salon_id") || "";
 
-    let data: any[] = [];
+    let data: Record<string, unknown>[] = [];
 
     switch (type) {
       case "bookings":

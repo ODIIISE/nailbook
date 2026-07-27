@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppNavbar } from "@/components/layout/app-navbar";
 import { Hero } from "@/components/landing/hero";
@@ -13,14 +13,12 @@ import { ServiceCardGrid } from "@/components/landing/service-card-grid";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { Heart, Store, Users, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { GradientBackground } from "@/components/layout/gradient-background";
 
 import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
 import type { Highlight } from "@/lib/types";
 
 function AdminLanding() {
-  const router = useRouter();
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
@@ -95,7 +93,6 @@ function AdminLanding() {
 }
 
 function SalonBooking() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { salon, bookings, highlights, services } = useSalon();
   const [viewingHighlight, setViewingHighlight] = useState<Highlight | null>(null);

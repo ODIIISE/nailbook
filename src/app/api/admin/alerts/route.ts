@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const admin = await verifySuperAdmin(request);
     if (!admin) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const alerts: any[] = [];
+    const alerts: Record<string, unknown>[] = [];
 
     // S: No-Show Alert — bookings cancelled on the same day
     const { rows: noShows } = await sql`
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       FROM salons sal
       WHERE sal.is_active = true
     `;
-    const inactiveSalons = lowActivity.filter((s: any) => parseInt(s.recent_bookings) === 0);
+    const inactiveSalons = lowActivity.filter((s) => parseInt(String(s.recent_bookings)) === 0);
     if (inactiveSalons.length > 0) {
       alerts.push({
         type: "low-activity",

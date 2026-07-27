@@ -13,22 +13,16 @@ import { ManualReserveModal } from "@/components/owner/manual-reserve-modal";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { ChevronLeft, Plus, Search } from "lucide-react";
-import { toPersianDigits, formatPrice, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
+import { formatPrice, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey } from "@/lib/time";
 import { calculateEarnings } from "@/lib/pricing";
 import { toast } from "sonner";
 import type { Booking } from "@/lib/types";
 
-interface BlockedTime {
-  date_gregorian: string;
-  start_time: string;
-  end_time: string;
-}
-
 export default function OwnerDashboard() {
   const searchParams = useSearchParams();
-  const { salon, bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
+  const { bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
@@ -104,7 +98,7 @@ export default function OwnerDashboard() {
     return calculateEarnings(bookings, services, addons, today, endOfToday);
   }, [currentDate, bookings, services, addons]);
 
-  const handleBlockTime = (startTime: string, endTime: string, reason: string) => {
+  const handleBlockTime = (startTime: string, endTime: string) => {
     const dateStr = getTehranDateKey(currentDate);
     updateBlockedTimes([...blockedTimes, { date_gregorian: dateStr, start_time: startTime, end_time: endTime }]);
     setShowBlockTime(false);
@@ -128,9 +122,10 @@ export default function OwnerDashboard() {
     // Check if user exists, if not create a placeholder
     let userId: string | undefined;
     try {
-      const checkRes = await fetch("/api/auth/check-phone", {
+      const checkRes = await fetch("/api/owner/users/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ phone: data.customer_phone }),
       });
       const checkData = await checkRes.json();

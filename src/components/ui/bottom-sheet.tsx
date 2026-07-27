@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { X } from "lucide-react";
 import { Button } from "./button";
 
@@ -16,7 +16,10 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
   const [dragOffset, setDragOffset] = useState(0);
   const touchStartY = useRef(0);
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (open) {
@@ -30,6 +33,12 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
     };
   }, [open]);
 
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setDragOffset(0);
+    setTimeout(() => onCloseRef.current(), 200);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
 
@@ -39,13 +48,7 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [open]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    setDragOffset(0);
-    setTimeout(() => onCloseRef.current(), 200);
-  };
+  }, [open, handleClose]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;

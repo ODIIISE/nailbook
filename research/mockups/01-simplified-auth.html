@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup 1: Simplified Auth - SMS OTP</title>
+  <link rel="stylesheet" href="clean-theme.css">
+  <style>
+    .page-title {
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .mockup-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      background: var(--bg-tertiary);
+      padding: 20px;
+    }
+    .step-indicator {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .step-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border-color);
+    }
+    .step-dot.active {
+      background: var(--accent);
+      width: 24px;
+      border-radius: 4px;
+    }
+    .timer {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 16px;
+    }
+    .resend-link {
+      color: var(--accent);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .help-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">◑</button>
+  
+  <div class="page-title">
+    <strong>Mockup 1:</strong> Simplified Auth - SMS OTP Flow
+    <br>
+    <small>4 steps → 2 steps (Phone → OTP Code)</small>
+  </div>
+  
+  <div class="mockup-container">
+    <!-- Phone Frame -->
+    <div class="phone-frame">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>●●● WiFi 🔋</span>
+      </div>
+      
+      <div class="nav-bar">
+        <button class="nav-back">→</button>
+        <div class="nav-title">ورود</div>
+        <div style="width: 32px"></div>
+      </div>
+      
+      <div class="content">
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+        </div>
+        
+        <!-- Auth Container -->
+        <div class="auth-container">
+          <div class="auth-icon">📱</div>
+          <h1 class="auth-title">شماره موبایل</h1>
+          <p class="auth-subtitle">کد تایید ۶ رقمی برای شما ارسال می‌شود</p>
+          
+          <input type="tel" class="input" placeholder="۰۹۱۲ ۱۲۳ ۴۵۶۷" dir="ltr" style="text-align: center; font-size: 18px; margin-bottom: 24px;">
+          
+          <button class="btn btn-primary">ارسال کد تایید</button>
+          
+          <div class="guest-option">
+            <span>✓</span>
+            <span>مهمان ادامه دهید (بدون ثبت‌نام)</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bottom-cta">
+        <button class="btn btn-outline">بازگشت به انتخاب خدمت</button>
+      </div>
+    </div>
+    
+    <!-- Second Phone: OTP Step -->
+    <div class="phone-frame" style="margin-top: 40px;">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>●●● WiFi 🔋</span>
+      </div>
+      
+      <div class="nav-bar">
+        <button class="nav-back">→</button>
+        <div class="nav-title">تایید کد</div>
+        <div style="width: 32px"></div>
+      </div>
+      
+      <div class="content">
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+          <div class="step-dot"></div>
+          <div class="step-dot active"></div>
+        </div>
+        
+        <!-- OTP Container -->
+        <div class="auth-container">
+          <div class="auth-icon">🔐</div>
+          <h1 class="auth-title">کد تایید</h1>
+          <p class="auth-subtitle">کد ۶ رقمی ارسال شده به شماره زیر را وارد کنید</p>
+          <p style="font-size: 16px; font-weight: 600; margin-bottom: 24px;" dir="ltr">۰۹۱۲ ۱۲۳ ۴۵۶۷</p>
+          
+          <!-- OTP Inputs -->
+          <div class="otp-inputs">
+            <input type="text" class="otp-input" maxlength="1" value="۴">
+            <input type="text" class="otp-input" maxlength="1" value="۷">
+            <input type="text" class="otp-input" maxlength="1" value="۲">
+            <input type="text" class="otp-input" maxlength="1" value="۹">
+            <input type="text" class="otp-input" maxlength="1" value="۱">
+            <input type="text" class="otp-input" maxlength="1" value="۵">
+          </div>
+          
+          <button class="btn btn-primary">تایید و ورود</button>
+          
+          <div class="timer">
+            ارسال مجدد کد تا <span class="resend-link">۰۲:۴۵</span>
+          </div>
+          
+          <p class="help-text">
+            کد را دریافت نکردید؟ <span class="resend-link">ارسال مجدد</span>
+          </p>
+        </div>
+      </div>
+      
+      <div class="bottom-cta">
+        <button class="btn btn-outline">تغییر شماره</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
+  </script>
+</body>
+</html>

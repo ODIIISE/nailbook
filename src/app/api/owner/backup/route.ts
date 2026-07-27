@@ -3,6 +3,66 @@ import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 
+interface BackupService {
+  id: string;
+  name: string;
+  description?: string;
+  duration_minutes?: number;
+  price?: number;
+  is_active?: boolean;
+  sort_order?: number;
+  addon_ids?: string[];
+  priority_score?: number;
+}
+
+interface BackupAddon {
+  id: string;
+  name: string;
+  price?: number;
+  duration_minutes?: number;
+  is_active?: boolean;
+  sort_order?: number;
+}
+
+interface BackupBooking {
+  id: string;
+  service_id?: string;
+  selected_addons?: string[];
+  customer_name?: string;
+  customer_phone: string;
+  date?: string;
+  date_gregorian: string;
+  start_time: string;
+  end_time: string;
+  status?: string;
+  paid?: boolean;
+  phone_verified?: boolean;
+  created_at?: string;
+}
+
+interface BackupSalonInfo {
+  name?: string;
+  description?: string;
+  slogan?: string;
+  phone?: string;
+  address?: string;
+  working_hours?: Record<string, { open: string; close: string } | null>;
+  working_hours_text?: string;
+  slot_buffer_minutes?: number;
+  slot_interval_minutes?: number;
+  specific_days_off?: string[];
+  proximity_window_hours?: number;
+  allow_overflow?: boolean;
+  overflow_minutes?: number;
+}
+
+interface BackupData {
+  salon_info?: BackupSalonInfo[];
+  services?: unknown[];
+  addons?: unknown[];
+  bookings?: unknown[];
+}
+
 // GET: Export all salon data as JSON backup
 export async function GET(request: NextRequest) {
   try {
@@ -47,23 +107,33 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function validateBooking(b: any): boolean {
+function validateBooking(b: unknown): b is BackupBooking {
   if (!b || typeof b !== "object") return false;
-  if (!b.id || typeof b.id !== "string") return false;
-  if (!b.customer_phone || typeof b.customer_phone !== "string") return false;
-  if (!b.date_gregorian || !/^\d{4}-\d{2}-\d{2}$/.test(b.date_gregorian)) return false;
-  if (!b.start_time || !/^\d{2}:\d{2}/.test(b.start_time)) return false;
-  if (!b.end_time || !/^\d{2}:\d{2}/.test(b.end_time)) return false;
+  const booking = b as BackupBooking;
+  if (!booking.id || typeof booking.id !== "string") return false;
+  if (!booking.customer_phone || typeof booking.customer_phone !== "string") return false;
+  if (!booking.date_gregorian || !/^\d{4}-\d{2}-\d{2}$/.test(booking.date_gregorian)) return false;
+  if (!booking.start_time || !/^\d{2}:\d{2}/.test(booking.start_time)) return false;
+  if (!booking.end_time || !/^\d{2}:\d{2}/.test(booking.end_time)) return false;
   const validStatuses = ["pending", "reserved", "confirmed", "completed", "cancelled", "in_progress", "no_show"];
-  if (b.status && !validStatuses.includes(b.status)) return false;
+  if (booking.status && !validStatuses.includes(booking.status)) return false;
   return true;
 }
 
-function validateService(s: any): boolean {
+function validateService(s: unknown): s is BackupService {
   if (!s || typeof s !== "object") return false;
-  if (!s.id || typeof s.id !== "string") return false;
-  if (!s.name || typeof s.name !== "string" || !s.name.trim()) return false;
-  if (typeof s.duration_minutes === "number" && (s.duration_minutes <= 0 || !Number.isFinite(s.duration_minutes))) return false;
+  const service = s as BackupService;
+  if (!service.id || typeof service.id !== "string") return false;
+  if (!service.name || typeof service.name !== "string" || !service.name.trim()) return false;
+  if (typeof service.duration_minutes === "number" && (service.duration_minutes <= 0 || !Number.isFinite(service.duration_minutes))) return false;
+  return true;
+}
+
+function validateAddon(a: unknown): a is BackupAddon {
+  if (!a || typeof a !== "object") return false;
+  const addon = a as BackupAddon;
+  if (!addon.id || typeof addon.id !== "string") return false;
+  if (!addon.name || typeof addon.name !== "string" || !addon.name.trim()) return false;
   return true;
 }
 
@@ -73,7 +143,7 @@ export async function POST(request: NextRequest) {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const { data, mode = "merge", confirmDelete = false } = await request.json();
+    const { data, mode = "merge", confirmDelete = false } = await request.json() as { data?: BackupData; mode?: string; confirmDelete?: boolean };
     if (!data || typeof data !== "object") return NextResponse.json({ error: "داده‌ای ارسال نشد" }, { status: 400 });
 
     // Require explicit confirmation for destructive operations
@@ -92,7 +162,7 @@ export async function POST(request: NextRequest) {
     if (data.services && Array.isArray(data.services)) {
       for (const s of data.services) {
         if (!validateService(s)) {
-          errors.push(`service:invalid:${s?.id || "unknown"}`);
+          errors.push(`service:invalid:${(s as { id?: string }).id || "unknown"}`);
           continue;
         }
         try {
@@ -105,7 +175,7 @@ export async function POST(request: NextRequest) {
               addon_ids = ${JSON.stringify(s.addon_ids || [])}, priority_score = ${Math.min(10, Math.max(1, Number(s.priority_score) || 5))}
           `;
           results.push(`service:${s.id}`);
-        } catch (e) {
+        } catch {
           errors.push(`service:${s.id}`);
         }
       }
@@ -114,8 +184,8 @@ export async function POST(request: NextRequest) {
     // Restore addons (with validation)
     if (data.addons && Array.isArray(data.addons)) {
       for (const a of data.addons) {
-        if (!a?.id || !a?.name) {
-          errors.push(`addon:invalid:${a?.id || "unknown"}`);
+        if (!validateAddon(a)) {
+          errors.push(`addon:invalid:${(a as { id?: string }).id || "unknown"}`);
           continue;
         }
         try {
@@ -127,7 +197,7 @@ export async function POST(request: NextRequest) {
               is_active = ${a.is_active ?? true}, sort_order = ${Number(a.sort_order) || 0}
           `;
           results.push(`addon:${a.id}`);
-        } catch (e) {
+        } catch {
           errors.push(`addon:${a.id}`);
         }
       }
@@ -148,7 +218,7 @@ export async function POST(request: NextRequest) {
           WHERE id = (SELECT id FROM salon_info LIMIT 1)
         `;
         results.push("salon_info");
-      } catch (e) {
+      } catch {
         errors.push("salon_info");
       }
     }
@@ -173,12 +243,12 @@ export async function POST(request: NextRequest) {
               [b.id, b.service_id || null, JSON.stringify(b.selected_addons || []), b.customer_name || "", b.customer_phone, b.date || null, b.date_gregorian, b.start_time, b.end_time, b.status || "confirmed", b.paid ?? false, b.phone_verified ?? true, b.created_at || new Date().toISOString()]
             );
             results.push(`booking:${b.id}`);
-          } catch (e) {
+          } catch {
             errors.push(`booking:${b.id}`);
           }
         }
         await client.query("COMMIT");
-      } catch (e) {
+      } catch {
         if (client) try { await client.query("ROLLBACK"); } catch {}
         errors.push("bookings:transaction_failed");
       } finally {

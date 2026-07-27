@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, CreditCard, Check, Trash2, AlertTriangle } from "lucide-react";
+import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Check, Trash2, AlertTriangle } from "lucide-react";
 import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
 import { calculateBookingPrice } from "@/lib/pricing";
 import { STATUS_CONFIG } from "@/lib/constants";

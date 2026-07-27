@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
-import { storePin, hashPin } from "@/lib/pin-hash";
+
 import crypto from "crypto";
 import { logActivity } from "@/lib/db/activity-log";
 import { normalizeDigits } from "@/lib/digits";
@@ -24,26 +24,17 @@ export async function POST(request: NextRequest) {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const { phone, pin, name, role } = await request.json();
+    const { phone, name, role } = await request.json();
     if (!phone) return NextResponse.json({ error: "شماره الزامی است" }, { status: 400 });
     if (!name || !name.trim()) return NextResponse.json({ error: "نام الزامی است" }, { status: 400 });
 
     const normalized = normalizeDigits(String(phone).trim());
 
-    // Validate PIN is exactly 4 digits if provided
-    if (pin !== undefined && pin !== null && pin !== "") {
-      if (String(pin).length !== 4 || !/^\d{4}$/.test(String(pin))) {
-        return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
-      }
-    }
-
     const validRole = role === "owner" ? "owner" : "customer";
     const userId = crypto.randomUUID();
-    // Hash PIN for owners, store plain for customers
-    const storedPin = pin ? (validRole === "owner" ? hashPin(String(pin)) : storePin(String(pin))) : null;
     await sql`
-      INSERT INTO users (id, phone, pin, name, role)
-      VALUES (${userId}, ${normalized}, ${storedPin}, ${name.trim()}, ${validRole})
+      INSERT INTO users (id, phone, name, role)
+      VALUES (${userId}, ${normalized}, ${name.trim()}, ${validRole})
     `;
 
     logActivity({
@@ -104,14 +95,12 @@ export async function PUT(request: NextRequest) {
       }
       await sql`UPDATE users SET role = ${body.role} WHERE id = ${userId}`;
     }
-    if (body.pin !== undefined && body.pin !== null && body.pin !== "") {
-      if (String(body.pin).length !== 4 || !/^\d{4}$/.test(String(body.pin))) {
-        return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
+    if (typeof body.locked === "boolean") {
+      if (body.locked) {
+        await sql`UPDATE users SET locked_until = ${new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toISOString()} WHERE id = ${userId}`;
+      } else {
+        await sql`UPDATE users SET locked_until = NULL WHERE id = ${userId}`;
       }
-      // Determine target role to decide hashing strategy
-      const targetRole = body.role || (await sql`SELECT role FROM users WHERE id = ${userId}`).rows[0]?.role;
-      const storedPin = targetRole === "owner" ? hashPin(String(body.pin)) : storePin(String(body.pin));
-      await sql`UPDATE users SET pin = ${storedPin}, failed_attempts = 0, locked_until = NULL WHERE id = ${userId}`;
     }
 
     // Log the update

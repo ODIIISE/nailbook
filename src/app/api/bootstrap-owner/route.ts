@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { storePin } from "@/lib/pin-hash";
 import { signOwnerSession } from "@/lib/owner-auth";
-import { normalizeDigits } from "@/lib/digits";
+import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
 
 /**
  * Bootstrap the first owner account.
@@ -11,16 +10,15 @@ import { normalizeDigits } from "@/lib/digits";
  */
 export async function POST(request: NextRequest) {
   try {
-    const { phone, pin, name } = await request.json();
+    const { phone, name } = await request.json();
 
-    if (!phone || !pin) {
-      return NextResponse.json({ error: "شماره و رمز الزامی است" }, { status: 400 });
+    if (!phone) {
+      return NextResponse.json({ error: "شماره الزامی است" }, { status: 400 });
     }
 
     const normalizedPhone = normalizeDigits(String(phone).trim());
-    const cleanPin = String(pin).trim();
-    if (cleanPin.length !== 4 || !/^\d{4}$/.test(cleanPin)) {
-      return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
+    if (!isValidIranianPhone(normalizedPhone)) {
+      return NextResponse.json({ error: "شماره موبایل معتبر نیست" }, { status: 400 });
     }
 
     // Check how many owners exist
@@ -47,15 +45,15 @@ export async function POST(request: NextRequest) {
       // Upgrade existing customer to owner
       userId = existingUser[0].id;
       await sql`
-        UPDATE users SET role = 'owner', pin = ${storePin(cleanPin)}, name = ${name || "مدیر"},
+        UPDATE users SET role = 'owner', name = ${name || "مدیر"},
         failed_attempts = 0, locked_until = NULL
         WHERE id = ${userId}
       `;
     } else {
       // Create new owner
       const { rows } = await sql`
-        INSERT INTO users (phone, pin, name, role)
-        VALUES (${normalizedPhone}, ${storePin(cleanPin)}, ${name || "مدیر"}, 'owner')
+        INSERT INTO users (phone, name, role)
+        VALUES (${normalizedPhone}, ${name || "مدیر"}, 'owner')
         RETURNING id
       `;
       userId = rows[0].id;

@@ -49,7 +49,6 @@ export function BookingConfirm({
   bookingId,
   salonName = "",
   salonAddress = "",
-  phone = "",
 }: BookingConfirmProps) {
   const jalali = gregorianToJalali(date);
   const fullDate = formatJalaliDate(jalali.jy, jalali.jm, jalali.jd);

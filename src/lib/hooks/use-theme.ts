@@ -28,15 +28,23 @@ function applyTheme(theme: Theme) {
 }
 
 export function useTheme() {
-  const [theme, setThemeState] = useState<Theme>("light");
+  // Initialize lazily from storage/system to avoid a synchronous setState in an effect.
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "light";
+    const stored = getStoredTheme();
+    return stored || getSystemTheme();
+  });
   const [resolved, setResolved] = useState(false);
 
-  // Initialize theme on mount
+  // Apply the current theme whenever it changes.
   useEffect(() => {
-    const stored = getStoredTheme();
-    const initial = stored || getSystemTheme();
-    setThemeState(initial);
-    applyTheme(initial);
+    applyTheme(theme);
+  }, [theme]);
+
+  // Mark as resolved and listen for system theme changes once on mount.
+  useEffect(() => {
+    // This is a one-time hydration guard; suppressing the strict hook rule.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setResolved(true);
 
     // Listen for system theme changes
@@ -56,7 +64,10 @@ export function useTheme() {
   const setTheme = useCallback((newTheme: Theme) => {
     // Use View Transitions API for smooth transition if supported
     if (typeof document !== "undefined" && "startViewTransition" in document) {
-      (document as any).startViewTransition(() => {
+      const doc = document as Document & {
+        startViewTransition?: (callback: () => void) => void;
+      };
+      doc.startViewTransition?.(() => {
         setThemeState(newTheme);
         applyTheme(newTheme);
         try {

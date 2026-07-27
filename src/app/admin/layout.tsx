@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { LogOut, LayoutDashboard, Store, Download } from "lucide-react";
 
@@ -15,10 +16,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<UserInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Bootstrap and migrate pages don't need auth
   const isSpecialPage = pathname === "/admin/bootstrap" || pathname === "/admin/migrate";
+  const [isLoading, setIsLoading] = useState(!isSpecialPage);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Add dark class to html element
   useEffect(() => {
@@ -28,7 +28,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (isSpecialPage) {
-      setIsLoading(false);
       return;
     }
 
@@ -51,8 +50,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         setIsLoading(false);
       });
   }, [pathname, isSpecialPage, router]);
-
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   if (isLoading) {
     return (
@@ -106,7 +103,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             ))}
             <div className="h-6 w-px bg-border mx-1" />
             {user?.picture && (
-              <img src={user.picture} alt="" className="h-7 w-7 rounded" />
+              <Image src={user.picture} alt="Admin profile" width={28} height={28} className="h-7 w-7 rounded" />
             )}
             <span className="text-sm text-muted-foreground">{user?.name}</span>
             <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-destructive rounded">

@@ -103,7 +103,7 @@ function groupByDate(logs: ActivityLogEntry[]): Map<string, ActivityLogEntry[]> 
 }
 
 function MetadataDisplay({ metadata }: { metadata: Record<string, unknown> }) {
-  const entries = Object.entries(metadata).filter(([_, v]) => v !== null && v !== undefined && v !== "");
+  const entries = Object.entries(metadata).filter(([, v]) => v !== null && v !== undefined && v !== "");
   if (entries.length === 0) return <p className="text-[12px] text-muted-foreground">اطلاعات اضافی موجود نیست</p>;
 
   return (

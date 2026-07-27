@@ -5,15 +5,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppNavbar } from "@/components/layout/app-navbar";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, Puzzle, Check, AlertCircle, CalendarDays, Timer, ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { ChevronLeft, Check, AlertCircle, CalendarDays, ArrowLeft, Loader2, Sparkles, User, Smartphone, ArrowRight, LogIn } from "lucide-react";
+import Image from "next/image";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { TimeSlots } from "@/components/booking/time-slots";
 import { BookingConfirm } from "@/components/booking/booking-confirm";
 import { TornPaperCard } from "@/components/booking/torn-paper-card";
 import { PinInput } from "@/components/booking/pin-input";
+import { AuthCard, AuthCardRoot, AuthError } from "@/components/auth/auth-card";
 import { BookingProgress } from "@/components/booking/booking-progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SalonGuard } from "@/components/ui/salon-guard";
@@ -21,7 +22,7 @@ import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
 import { formatPrice, toPersianDigits, gregorianToJalali, jalaliToGregorian, formatJalaliDate, DAYS_IN_MONTH, isJalaliLeapYear } from "@/lib/jalali";
-import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
+import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
 import { getTehranDateKey } from "@/lib/time";
 import type { Booking } from "@/lib/types";
 
@@ -31,7 +32,7 @@ export default function BookContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { salon, workingHours, services, addons, bookings, blockedTimes, addBooking, refreshSalonData, refreshBookings, specificDaysOff } = useSalon();
-  const { user, checkPhone, login, signup } = useAuth();
+  const { user, sendOtp, verifyOtp } = useAuth();
 
   // Refresh salon data on mount to get latest working hours
   useEffect(() => {
@@ -63,12 +64,12 @@ export default function BookContent() {
 
   // Auth state
   const [authPhone, setAuthPhone] = useState("");
-  const [authPin, setAuthPin] = useState("");
   const [authName, setAuthName] = useState("");
-  const [authStep, setAuthStep] = useState<"phone" | "pin" | "confirm-pin" | "name" | "verify-pin">("phone");
+  const [authStep, setAuthStep] = useState<"phone" | "otp" | "name">("phone");
   const [authError, setAuthError] = useState("");
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isBookingLoading, setIsBookingLoading] = useState(false);
+  const verifiedUserRef = useRef<{ id: string } | null>(null);
 
   // Determine initial step based on service addons
   const selectedService = services.find((s) => s.id === selectedServiceId);
@@ -83,9 +84,12 @@ export default function BookContent() {
   // Start at addons if service has them, otherwise datetime
   const [step, setStep] = useState<BookingStep>("addons");
 
+  // Sync initial step with the ?service=... query param.
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     const serviceId = searchParams.get("service");
     if (serviceId && services.length > 0) {
+      // Sync URL query param to local booking step state
       setSelectedServiceId(serviceId);
       const service = services.find((s) => s.id === serviceId);
       if (service) {
@@ -94,8 +98,8 @@ export default function BookContent() {
       }
     }
     // Only run on mount + when services load (not on every services/addons update)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [searchParams, services, addons]);
 
   // Compute total duration with addons
   const totalDuration = useMemo(() => {
@@ -183,7 +187,6 @@ export default function BookContent() {
   const resetAuth = useCallback(() => {
     setAuthStep("phone");
     setAuthPhone("");
-    setAuthPin("");
     setAuthName("");
     setAuthError("");
   }, []);
@@ -266,51 +269,64 @@ export default function BookContent() {
     setAuthError("");
     setAuthPhone(normalized);
 
-    const result = await checkPhone(normalized);
+    const result = await sendOtp(normalized, "customer");
     setIsAuthLoading(false);
 
-    if (result.exists) {
-      setAuthStep("verify-pin");
+    if (result.success) {
+      setAuthStep("otp");
     } else {
-      setAuthStep("pin");
+      setAuthError(result.error || "خطا در ارسال کد");
     }
-  }, [authPhone, checkPhone]);
+  }, [authPhone, sendOtp, isAuthLoading]);
 
-  const handleAuthPinSubmit = useCallback((pin: string) => {
-    setAuthPin(pin);
-    setAuthStep("confirm-pin");
-  }, []);
+  const handleAuthOtpSubmit = useCallback(async (code: string) => {
+    if (isAuthLoading) return;
+    setIsAuthLoading(true);
+    setAuthError("");
+    const result = await verifyOtp(normalizeDigits(authPhone), code, { roleContext: "customer" });
+    setIsAuthLoading(false);
 
-  const handleAuthConfirmPinSubmit = useCallback(async (confirmPin: string) => {
-    if (authPin !== confirmPin) {
-      setAuthError("رمزها مطابقت ندارند");
-      return;
+    if (result.success && result.user) {
+      verifiedUserRef.current = result.user;
+      if (!result.user.name) {
+        setAuthStep("name");
+      } else {
+        setStep("confirm");
+      }
+    } else {
+      setAuthError(result.error || "کد نادرست است");
     }
-    setAuthStep("name");
-  }, [authPin]);
+  }, [authPhone, verifyOtp, isAuthLoading]);
 
   const handleAuthNameSubmit = useCallback(async () => {
     if (!authName.trim()) {
       setAuthError("نام الزامی است");
       return;
     }
+    const userId = verifiedUserRef.current?.id;
+    if (!userId) {
+      setAuthError("خطا در شناسایی کاربر");
+      return;
+    }
     setIsAuthLoading(true);
     setAuthError("");
-    const result = await signup(normalizeDigits(authPhone), authPin, authName.trim());
+    try {
+      const res = await fetch("/api/auth/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, name: authName.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setStep("confirm");
+      } else {
+        setAuthError(data.error || "خطا در ثبت‌نام");
+      }
+    } catch {
+      setAuthError("خطای سرور");
+    }
     setIsAuthLoading(false);
-    if (result.success) setStep("confirm");
-    else setAuthError(result.error || "خطا در ثبت‌نام");
-  }, [authPin, authPhone, authName, signup]);
-
-  const handleAuthVerifyPinSubmit = useCallback(async (pin: string) => {
-    if (isAuthLoading) return;
-    setIsAuthLoading(true);
-    setAuthError("");
-    const result = await login(normalizeDigits(authPhone), pin);
-    setIsAuthLoading(false);
-    if (result.success) setStep("confirm");
-    else setAuthError(result.error || "کد نادرست است");
-  }, [authPhone, login]);
+  }, [authName]);
 
   // ─── Confirm booking ───
 
@@ -511,140 +527,104 @@ export default function BookContent() {
 
         {/* ─── Step 3: Auth ─── */}
         {step === "auth" && (
-          <Card className="glass p-6">
+          <AuthCardRoot>
             {authStep === "phone" && (
-              <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--rose)]/10">
-                    <span className="text-xl">📱</span>
+              <AuthCard
+                icon={<Smartphone className="h-6 w-6" />}
+                title="ورود"
+                subtitle="شماره موبایل خود را وارد کنید"
+              >
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-caption text-muted-foreground mb-1.5 block">شماره موبایل</Label>
+                    <Input
+                      value={authPhone}
+                      onChange={(e) => setAuthPhone(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleAuthPhoneSubmit()}
+                      placeholder="۰۹۱۲۱۲۳۴۵۶۷"
+                      dir="ltr"
+                      className="h-14 text-left text-lg rounded-2xl"
+                      autoFocus
+                    />
                   </div>
-                  <h2 className="text-h1 text-foreground">ورود</h2>
-                  <p className="text-[13px] text-muted-foreground mt-1">
-                    شماره موبایل خود را وارد کنید
-                  </p>
+                  <AuthError error={authError} />
+                  <Button
+                    size="xl"
+                    className="w-full rounded-2xl bg-foreground text-background hover:bg-foreground/90"
+                    onClick={handleAuthPhoneSubmit}
+                    disabled={!isValidIranianPhone(normalizeDigits(authPhone)) || isAuthLoading}
+                  >
+                    {isAuthLoading ? "در حال ارسال..." : "دریافت کد"}
+                  </Button>
                 </div>
-                <div>
-                  <Label className="text-[13px]">شماره موبایل</Label>
-                  <Input
-                    value={authPhone}
-                    onChange={(e) => setAuthPhone(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAuthPhoneSubmit()}
-                    placeholder="۰۹۱۲۱۲۳۴۵۶۷"
-                    dir="ltr"
-                    className="mt-1 text-left"
-                  />
-                </div>
-                {authError && (
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
-                    <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
-                    <p className="text-[13px] text-destructive">{authError}</p>
-                  </div>
-                )}
-                <Button size="xl" className="w-full bg-foreground text-background hover:bg-foreground/90" onClick={handleAuthPhoneSubmit} disabled={!isValidIranianPhone(normalizeDigits(authPhone)) || isAuthLoading}>
-                  ادامه
-                </Button>
-              </div>
+              </AuthCard>
             )}
 
-            {authStep === "pin" && (
-              <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/10">
-                    <span className="text-xl">🔑</span>
+            {authStep === "otp" && (
+              <AuthCard
+                icon={<LogIn className="h-6 w-6" />}
+                title="کد ورود"
+                subtitle="کد ۶ رقمی پیامک‌شده را وارد کنید"
+              >
+                <div className="space-y-5">
+                  <div className="text-center">
+                    <p
+                      className="inline-block text-body text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-full"
+                      dir="ltr"
+                    >
+                      {displayDigits(authPhone)}
+                    </p>
                   </div>
-                  <h2 className="text-h1 text-foreground">ساخت رمز</h2>
-                  <p className="text-[13px] text-muted-foreground mt-1">یک کد ۴ رقمی بسازید</p>
+                  <PinInput length={6} onComplete={handleAuthOtpSubmit} disabled={isAuthLoading} />
+                  <AuthError error={authError} />
+                  <Button
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => setAuthStep("phone")}
+                  >
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                    تغییر شماره
+                  </Button>
                 </div>
-                <PinInput onComplete={handleAuthPinSubmit} disabled={isAuthLoading} />
-                {authError && (
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
-                    <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
-                    <p className="text-[13px] text-destructive">{authError}</p>
-                  </div>
-                )}
-                <Button size="lg" variant="outline" className="w-full" onClick={() => setAuthStep("phone")}>بازگشت</Button>
-              </div>
-            )}
-
-            {authStep === "confirm-pin" && (
-              <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
-                    <span className="text-xl">✅</span>
-                  </div>
-                  <h2 className="text-h1 text-foreground">تکرار رمز</h2>
-                  <p className="text-[13px] text-muted-foreground mt-1">رمز خود را دوباره وارد کنید</p>
-                </div>
-                <PinInput onComplete={handleAuthConfirmPinSubmit} disabled={isAuthLoading} />
-                {authError && (
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
-                    <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
-                    <p className="text-[13px] text-destructive">{authError}</p>
-                  </div>
-                )}
-                <Button size="lg" variant="outline" className="w-full" onClick={() => setAuthStep("pin")}>بازگشت</Button>
-              </div>
+              </AuthCard>
             )}
 
             {authStep === "name" && (
-              <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
-                    <span className="text-xl">👤</span>
+              <AuthCard
+                icon={<User className="h-6 w-6" />}
+                title="نام شما"
+                subtitle="نام و نام خانوادگی خود را وارد کنید"
+              >
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-caption text-muted-foreground mb-1.5 block">نام و نام خانوادگی</Label>
+                    <Input
+                      value={authName}
+                      onChange={(e) => setAuthName(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleAuthNameSubmit()}
+                      placeholder="مثال: سارا احمدی"
+                      className="h-14 text-lg rounded-2xl"
+                      autoFocus
+                    />
                   </div>
-                  <h2 className="text-h1 text-foreground">نام شما</h2>
-                  <p className="text-[13px] text-muted-foreground mt-1">نام و نام خانوادگی خود را وارد کنید</p>
+                  <AuthError error={authError} />
+                  <Button
+                    size="xl"
+                    className="w-full rounded-2xl bg-foreground text-background hover:bg-foreground/90"
+                    onClick={handleAuthNameSubmit}
+                    disabled={isAuthLoading || !authName.trim()}
+                  >
+                    {isAuthLoading ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        در حال ثبت‌نام...
+                      </span>
+                    ) : "تکمیل ثبت‌نام"}
+                  </Button>
                 </div>
-                <div>
-                  <Label className="text-[13px]">نام</Label>
-                  <Input
-                    value={authName}
-                    onChange={(e) => setAuthName(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAuthNameSubmit()}
-                    placeholder="نام و نام خانوادگی"
-                    className="mt-1"
-                    autoFocus
-                  />
-                </div>
-                {authError && (
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
-                    <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
-                    <p className="text-[13px] text-destructive">{authError}</p>
-                  </div>
-                )}
-                <Button size="xl" className="w-full bg-foreground text-background hover:bg-foreground/90" onClick={handleAuthNameSubmit} disabled={isAuthLoading || !authName.trim()}>
-                  {isAuthLoading ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      در حال ثبت‌نام...
-                    </span>
-                  ) : "ثبت‌نام"}
-                </Button>
-                <Button size="lg" variant="outline" className="w-full" onClick={() => setAuthStep("confirm-pin")}>بازگشت</Button>
-              </div>
+              </AuthCard>
             )}
-
-            {authStep === "verify-pin" && (
-              <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-500/10">
-                    <span className="text-xl">🔐</span>
-                  </div>
-                  <h2 className="text-h1 text-foreground">ورود</h2>
-                  <p className="text-[13px] text-muted-foreground mt-1">کد ۴ رقمی خود را وارد کنید</p>
-                  <p className="text-[13px] text-muted-foreground mt-1" dir="ltr">{authPhone}</p>
-                </div>
-                <PinInput onComplete={handleAuthVerifyPinSubmit} disabled={isAuthLoading} />
-                {authError && (
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
-                    <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
-                    <p className="text-[13px] text-destructive">{authError}</p>
-                  </div>
-                )}
-                <Button size="lg" variant="outline" className="w-full" onClick={() => setAuthStep("phone")}>بازگشت</Button>
-              </div>
-            )}
-          </Card>
+          </AuthCardRoot>
         )}
 
         {/* ─── Step 4: Confirm (Pre-Receipt) ─── */}
@@ -665,9 +645,12 @@ export default function BookContent() {
                     {/* Service info */}
                     <div className="flex items-center gap-2.5 mb-3 relative z-[2]">
                       {selectedService.image_url ? (
-                        <img
+                        <Image
                           src={selectedService.image_url}
                           alt={selectedService.name}
+                          width={32}
+                          height={32}
+                          unoptimized
                           className="w-8 h-8 rounded-[9px] object-cover shrink-0"
                         />
                       ) : (

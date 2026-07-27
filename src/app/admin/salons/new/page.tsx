@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, ArrowLeft, Store, Check, Loader2, Rocket, Shield, Package, ExternalLink } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Loader2, Rocket, Shield, Package, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 type Step = 1 | 2 | 3 | 4 | 5 | 6;
@@ -54,7 +54,7 @@ export default function NewSalonPage() {
     working_hours: DEFAULT_HOURS,
   });
 
-  const updateField = (field: keyof SalonData, value: any) => {
+  const updateField = (field: keyof SalonData, value: string) => {
     setData((prev) => ({ ...prev, [field]: value }));
   };
 

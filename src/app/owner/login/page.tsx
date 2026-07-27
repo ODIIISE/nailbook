@@ -2,119 +2,144 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles } from "lucide-react";
+import { ShieldCheck, ArrowRight } from "lucide-react";
 import { PinInput } from "@/components/booking/pin-input";
-import { normalizeDigits } from "@/lib/digits";
-import { toast } from "sonner";
+import { AuthCard, AuthCardRoot, AuthError } from "@/components/auth/auth-card";
+import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
 
-const salon = { name: "استدیو تخصصی ناخن فورهند" };
+const SALON_NAME = "استدیو تخصصی ناخن فورهند";
+
+type Step = "phone" | "otp";
 
 export default function OwnerLoginPage() {
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState<"phone" | "pin">("phone");
+  const [step, setStep] = useState<Step>("phone");
 
-  const handlePhoneSubmit = () => {
+  const handlePhoneSubmit = async () => {
     const normalized = normalizeDigits(phone);
-    if (normalized.length < 10) {
+    if (!isValidIranianPhone(normalized)) {
       setError("شماره موبایل معتبر نیست");
       return;
     }
     setError("");
     setPhone(normalized);
-    setStep("pin");
-  };
-
-  const handlePinSubmit = async (pin: string) => {
     setIsLoading(true);
-    setError("");
+
     try {
-      const res = await fetch("/api/owner-login", {
+      const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: normalizeDigits(phone), pin }),
+        body: JSON.stringify({ phone: normalized, roleContext: "owner" }),
       });
       const data = await res.json();
+      setIsLoading(false);
+
       if (!res.ok) {
-        setError(data.error || "خطا در ورود");
-        setIsLoading(false);
+        setError(data.error || "خطا در ارسال کد");
         return;
       }
-      window.location.href = "/owner?welcome=1";
+      setStep("otp");
     } catch {
-      setError("خطای سرور");
       setIsLoading(false);
+      setError("خطای سرور");
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && step === "phone") handlePhoneSubmit();
+  const handleOtpSubmit = async (code: string) => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: normalizeDigits(phone), code, roleContext: "owner" }),
+      });
+      const data = await res.json();
+      setIsLoading(false);
+
+      if (!res.ok) {
+        setError(data.error || "کد نادرست است");
+        return;
+      }
+      router.replace("/owner?welcome=1");
+    } catch {
+      setIsLoading(false);
+      setError("خطای سرور");
+    }
   };
 
   return (
     <div className="min-h-[100dvh] flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-sm border border-border bg-card rounded-2xl p-6 animate-scale">
-        <div className="text-center mb-6">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
-            <Sparkles className="h-6 w-6 text-foreground" />
-          </div>
-          <h1 className="text-h1 text-foreground">ورود مدیر</h1>
-          <p className="text-[13px] text-muted-foreground mt-1">
-            {salon.name}
-          </p>
-        </div>
-
-        <div className="space-y-4">
+      <AuthCardRoot className="w-full max-w-sm animate-scale">
           {step === "phone" && (
-            <>
+          <AuthCard
+            icon={<ShieldCheck className="h-6 w-6" />}              title="ورود مدیر"
+                subtitle={SALON_NAME}
+          >
+            <div className="space-y-4">
               <div>
-                <Label className="text-[13px]">شماره موبایل</Label>
+                <Label className="text-caption text-muted-foreground mb-1.5 block">
+                  شماره موبایل
+                </Label>
                 <Input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="mt-1"
+                  onKeyDown={(e) => e.key === "Enter" && handlePhoneSubmit()}
+                  className="h-14 text-left text-lg rounded-2xl"
                   dir="ltr"
-                  placeholder="09121234567"
+                  placeholder="۰۹۱۲۱۲۳۴۵۶۷"
+                  autoFocus
                 />
               </div>
-              {error && (
-                <p className="text-[13px] text-destructive text-center">{error}</p>
-              )}
+              <AuthError error={error} />
               <Button
                 size="xl"
-                className="w-full bg-foreground text-background hover:bg-foreground/90"
+                className="w-full rounded-2xl bg-foreground text-background hover:bg-foreground/90"
                 onClick={handlePhoneSubmit}
-                disabled={phone.length < 10}
+                disabled={isLoading || !isValidIranianPhone(normalizeDigits(phone))}
               >
-                ادامه
+                {isLoading ? "در حال ارسال..." : "دریافت کد"}
               </Button>
-            </>
-          )}
+            </div>
+          </AuthCard>
+        )}
 
-          {step === "pin" && (
-            <>
+        {step === "otp" && (
+          <AuthCard
+            icon={<ShieldCheck className="h-6 w-6" />}
+            title="کد ورود"
+            subtitle="کد ۶ رقمی پیامک‌شده را وارد کنید"
+          >
+            <div className="space-y-5">
               <div className="text-center">
-                <p className="text-[13px] text-muted-foreground">
-                  کد ۴ رقمی خود را وارد کنید
-                </p>
-                <p className="text-[13px] text-muted-foreground mt-1" dir="ltr">
-                  {phone}
+                <p
+                  className="inline-block text-body text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-full"
+                  dir="ltr"
+                >
+                  {displayDigits(phone)}
                 </p>
               </div>
-              <PinInput onComplete={handlePinSubmit} disabled={isLoading} />
-              {error && (
-                <p className="text-[13px] text-destructive text-center">{error}</p>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+              <PinInput length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
+              <AuthError error={error} />
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => { setStep("phone"); setError(""); }}
+              >
+                <ArrowRight className="h-4 w-4 ml-2" />
+                تغییر شماره
+              </Button>
+            </div>
+          </AuthCard>
+        )}
+      </AuthCardRoot>
     </div>
   );
 }

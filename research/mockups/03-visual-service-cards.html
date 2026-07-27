@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup 3: Visual Service Cards</title>
+  <link rel="stylesheet" href="clean-theme.css">
+  <style>
+    .page-title {
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .mockup-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      background: var(--bg-tertiary);
+      padding: 20px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .service-image-placeholder {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, var(--bg-tertiary), var(--border-color));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    .service-card-enhanced {
+      padding: 16px;
+      border-radius: var(--radius-lg);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .service-card-enhanced:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .service-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .service-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .service-rating {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .service-description {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .service-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .service-duration {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .service-price-large {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .service-book-btn {
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      background: var(--accent);
+      color: var(--bg-primary);
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .addon-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    .addon-card.selected {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--bg-primary);
+    }
+    .addon-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .addon-card.selected .addon-icon {
+      background: var(--bg-primary);
+    }
+    .addon-info {
+      flex: 1;
+    }
+    .addon-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .addon-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .addon-card.selected .addon-meta {
+      color: var(--text-secondary);
+      opacity: 0.8;
+    }
+    .addon-price {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .total-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      margin-top: 16px;
+    }
+    .total-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .total-amount {
+      font-size: 24px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">◑</button>
+  
+  <div class="page-title">
+    <strong>Mockup 3:</strong> Visual Service Cards
+    <br>
+    <small>Images + Price + Duration + Rating</small>
+  </div>
+  
+  <div class="mockup-container">
+    <!-- Phone Frame: Service Selection -->
+    <div class="phone-frame">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>●●● WiFi 🔋</span>
+      </div>
+      
+      <div class="nav-bar">
+        <button class="nav-back">→</button>
+        <div class="nav-title">انتخاب خدمت</div>
+        <div style="width: 32px"></div>
+      </div>
+      
+      <div class="content">
+        <!-- Service Card 1 -->
+        <div class="service-card-enhanced">
+          <div class="service-image-placeholder">💅</div>
+          <div class="service-header">
+            <div class="service-title">مانیکور و پدیکور</div>
+            <div class="service-rating">⭐ ۴.۸ (۱۲۰)</div>
+          </div>
+          <div class="service-description">
+            مانیکور حرفه‌ای با بهترین مواد اولیه
+          </div>
+          <div class="service-footer">
+            <div class="service-duration">⏱ ۶۰ دقیقه</div>
+            <div class="service-price-large">۴۵۰,۰۰۰</div>
+          </div>
+        </div>
+        
+        <!-- Service Card 2 -->
+        <div class="service-card-enhanced">
+          <div class="service-image-placeholder">✨</div>
+          <div class="service-header">
+            <div class="service-title">ژلیش ناخن</div>
+            <div class="service-rating">⭐ ۴.۹ (۸۵)</div>
+          </div>
+          <div class="service-description">
+            ژلیش با ماندگاری بالا و رنگ‌های متنوع
+          </div>
+          <div class="service-footer">
+            <div class="service-duration">⏱ ۴۵ دقیقه</div>
+            <div class="service-price-large">۳۵۰,۰۰۰</div>
+          </div>
+        </div>
+        
+        <!-- Service Card 3 -->
+        <div class="service-card-enhanced">
+          <div class="service-image-placeholder">🎨</div>
+          <div class="service-header">
+            <div class="service-title">طراحی ناخن</div>
+            <div class="service-rating">⭐ ۴.۷ (۶۰)</div>
+          </div>
+          <div class="service-description">
+            طراحی سه بعدی و فانتزی با سنگ و نگین
+          </div>
+          <div class="service-footer">
+            <div class="service-duration">⏱ ۹۰ دقیقه</div>
+            <div class="service-price-large">۶۰۰,۰۰۰</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bottom-cta">
+        <button class="btn btn-primary">انتخاب خدمت</button>
+      </div>
+    </div>
+    
+    <!-- Phone Frame: Addons with Visual Design -->
+    <div class="phone-frame" style="margin-top: 40px;">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>●●● WiFi 🔋</span>
+      </div>
+      
+      <div class="nav-bar">
+        <button class="nav-back">→</button>
+        <div class="nav-title">آپشن‌ها</div>
+        <div style="width: 32px"></div>
+      </div>
+      
+      <div class="content">
+        <div class="section-title">آپشن‌های اضافی</div>
+        
+        <!-- Addon 1 (Selected) -->
+        <div class="addon-card selected">
+          <div class="addon-icon">💎</div>
+          <div class="addon-info">
+            <div class="addon-name">سنگ و نگین</div>
+            <div class="addon-meta">+۱۵ دقیقه • +۵۰,۰۰۰ تومان</div>
+          </div>
+          <div class="addon-price">✓</div>
+        </div>
+        
+        <!-- Addon 2 -->
+        <div class="addon-card">
+          <div class="addon-icon">✨</div>
+          <div class="addon-info">
+            <div class="addon-name">کاشت ناخن</div>
+            <div class="addon-meta">+۳۰ دقیقه • +۱۲۰,۰۰۰ تومان</div>
+          </div>
+          <div class="addon-price">+۱۲۰,۰۰۰</div>
+        </div>
+        
+        <!-- Addon 3 -->
+        <div class="addon-card">
+          <div class="addon-icon">🌿</div>
+          <div class="addon-info">
+            <div class="addon-name">ماساژ دست</div>
+            <div class="addon-meta">+۱۰ دقیقه • +۳۰,۰۰۰ تومان</div>
+          </div>
+          <div class="addon-price">+۳۰,۰۰۰</div>
+        </div>
+        
+        <!-- Total Section -->
+        <div class="total-section">
+          <div>
+            <div class="total-label">هزینه کل</div>
+            <div style="font-size: 13px; color: var(--text-secondary);">۷۵ دقیقه</div>
+          </div>
+          <div class="total-amount">۵۰۰,۰۰۰ تومان</div>
+        </div>
+      </div>
+      
+      <div class="bottom-cta">
+        <button class="btn btn-primary">انتخاب زمان</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
+  </script>
+</body>
+</html>

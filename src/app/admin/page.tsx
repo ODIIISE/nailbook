@@ -3,24 +3,108 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Store, Users, Calendar, Plus, TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2, ArrowUpRight, AlertTriangle, Clock, UserCheck, BarChart3 } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2, ArrowUpRight, AlertTriangle, UserCheck, BarChart3, Calendar, type LucideIcon } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
+interface Salon {
+  id: string;
+  name: string;
+}
+
+interface Revenue {
+  total_revenue: string;
+  paid_revenue: string;
+  unpaid_revenue: string;
+}
+
+interface BookingStats {
+  total: string;
+  reserved: string;
+  confirmed: string;
+  completed: string;
+  cancelled: string;
+}
+
+interface SalonRevenue {
+  salon_name: string;
+  bookings: string;
+  revenue: string;
+}
+
+interface DailyBooking {
+  date: string;
+  count: string;
+}
+
+interface Alert {
+  title: string;
+  message: string;
+  severity: "error" | "warning" | "info";
+  count?: number;
+  items?: Array<{ customer_name?: string; name?: string; salon_name?: string; date_gregorian?: string }>;
+}
+
 interface Stats {
-  salons: any[];
-  bookingStats: any;
+  salons: Salon[];
+  bookingStats: BookingStats;
   todayBookings: number;
-  revenue: any;
-  salonRevenue: any[];
-  dailyBookings: any[];
+  revenue: Revenue;
+  salonRevenue: SalonRevenue[];
+  dailyBookings: DailyBooking[];
   totalUsers: number;
 }
+
+interface PeakHour {
+  hour: number;
+  count: string;
+}
+
+interface ServicePopularity {
+  name: string;
+  booking_count: number;
+}
+
+interface TopCustomer {
+  customer_name: string;
+  customer_phone: string;
+  booking_count: number;
+}
+
+interface CustomerSplit {
+  new_customers: number;
+  returning_customers: number;
+}
+
+interface Analytics {
+  noShow?: { rate: number };
+  cancellation?: { rate: number };
+  repeat?: { rate: number };
+  payment?: { paid_rate: number; unpaid: number };
+  completion?: { rate: number };
+  peakHours?: PeakHour[];
+  servicePop?: ServicePopularity[];
+  topCustomers?: TopCustomer[];
+  customerSplit?: CustomerSplit;
+}
+
+interface ChartPoint {
+  name: string;
+  count: number;
+}
+
+interface StatusDatum {
+  name: string;
+  value: number;
+  color: string;
+}
+
+const formatPrice = (n: number) => n.toLocaleString("fa-IR");
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
-  const [alerts, setAlerts] = useState<any[]>([]);
-  const [analytics, setAnalytics] = useState<any>({});
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [analytics, setAnalytics] = useState<Analytics>({});
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "bookings" | "customers" | "operations" | "alerts">("overview");
 
@@ -38,9 +122,9 @@ export default function AdminDashboard() {
       fetch("/api/admin/analytics?type=top-customers").then((r) => r.json()),
     ])
       .then(([s, a, ns, cr, rr, ps, comp, ph, sp, tc]) => {
-        if (!s.error) setStats(s);
+        if (!s.error) setStats(s as Stats);
         if (!a.error) setAlerts(a.alerts || []);
-        setAnalytics({ noShow: ns, cancellation: cr, repeat: rr, payment: ps, completion: comp, peakHours: ph, servicePop: sp, topCustomers: tc });
+        setAnalytics({ noShow: ns, cancellation: cr, repeat: rr, payment: ps, completion: comp, peakHours: ph, servicePop: sp, topCustomers: tc, customerSplit: ns.customerSplit });
       })
       .catch(console.error)
       .finally(() => setIsLoading(false));
@@ -56,16 +140,12 @@ export default function AdminDashboard() {
 
   if (!stats) return null;
 
-  const formatPrice = (n: number) => n.toLocaleString("fa-IR");
-  const today = new Date().toISOString().split("T")[0];
-
-  // Prepare chart data
-  const chartData = stats.dailyBookings.map((d: any) => ({
+  const chartData: ChartPoint[] = stats.dailyBookings.map((d) => ({
     name: d.date ? new Date(d.date).toLocaleDateString("fa-IR", { month: "short", day: "numeric" }) : "",
     count: parseInt(d.count) || 0,
   }));
 
-  const statusData = [
+  const statusData: StatusDatum[] = [
     { name: "رزرو شده", value: parseInt(stats.bookingStats.reserved) || 0, color: "var(--foreground)" },
     { name: "تأیید شده", value: parseInt(stats.bookingStats.confirmed) || 0, color: "var(--success)" },
     { name: "انجام شده", value: parseInt(stats.bookingStats.completed) || 0, color: "var(--success)" },
@@ -115,10 +195,10 @@ export default function AdminDashboard() {
 
       {/* Tab Content */}
       {activeTab === "overview" && (
-        <OverviewTab stats={stats} analytics={analytics} chartData={chartData} statusData={statusData} router={router} />
+        <OverviewTab stats={stats} chartData={chartData} statusData={statusData} router={router} />
       )}
       {activeTab === "bookings" && (
-        <BookingsTab analytics={analytics} chartData={chartData} />
+        <BookingsTab analytics={analytics} />
       )}
       {activeTab === "customers" && (
         <CustomersTab analytics={analytics} />
@@ -134,8 +214,7 @@ export default function AdminDashboard() {
 }
 
 // Overview Tab
-function OverviewTab({ stats, analytics, chartData, statusData, router }: any) {
-  const formatPrice = (n: number) => n.toLocaleString("fa-IR");
+function OverviewTab({ stats, chartData, statusData, router }: { stats: Stats; chartData: ChartPoint[]; statusData: StatusDatum[]; router: ReturnType<typeof useRouter> }) {
   return (
     <div className="space-y-4">
       {/* Revenue Stats */}
@@ -178,7 +257,7 @@ function OverviewTab({ stats, analytics, chartData, statusData, router }: any) {
         <div className="p-4 rounded-2xl border border-border">
           <h3 className="text-sm font-bold mb-4">وضعیت رزروها</h3>
           <div className="space-y-2">
-            {statusData.map((d: any) => (
+            {statusData.map((d) => (
               <div key={d.name} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: d.color }} />
@@ -192,13 +271,13 @@ function OverviewTab({ stats, analytics, chartData, statusData, router }: any) {
       </div>
 
       {/* Salon Table */}
-      <SalonTable salons={stats.salons} salonRevenue={stats.salonRevenue} />
+      <SalonTable salons={stats.salons} salonRevenue={stats.salonRevenue} router={router} />
     </div>
   );
 }
 
 // Bookings Tab
-function BookingsTab({ analytics, chartData }: any) {
+function BookingsTab({ analytics }: { analytics: Analytics }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -211,10 +290,10 @@ function BookingsTab({ analytics, chartData }: any) {
       {/* Peak Hours */}
       <div className="p-4 rounded-2xl border border-border">
         <h3 className="text-sm font-bold mb-4">ساعات شلوغ</h3>
-        {analytics.peakHours?.length > 0 ? (
+        {analytics.peakHours && analytics.peakHours.length > 0 ? (
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={analytics.peakHours.map((h: any) => ({ hour: `${h.hour}:00`, count: parseInt(h.count) }))} barSize={20}>
+              <BarChart data={analytics.peakHours.map((h) => ({ hour: `${h.hour}:00`, count: parseInt(h.count) }))} barSize={20}>
                 <XAxis dataKey="hour" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
                 <Tooltip
@@ -234,8 +313,8 @@ function BookingsTab({ analytics, chartData }: any) {
       <div className="p-4 rounded-2xl border border-border">
         <h3 className="text-sm font-bold mb-4">محبوبیت خدمات</h3>
         <div className="space-y-2">
-          {analytics.servicePop?.slice(0, 5).map((s: any, i: number) => (
-            <div key={i} className="flex items-center justify-between">
+          {analytics.servicePop?.slice(0, 5).map((s) => (
+            <div key={s.name} className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">{s.name}</span>
               <span className="text-sm font-bold">{s.booking_count} رزرو</span>
             </div>
@@ -250,7 +329,7 @@ function BookingsTab({ analytics, chartData }: any) {
 }
 
 // Customers Tab
-function CustomersTab({ analytics }: any) {
+function CustomersTab({ analytics }: { analytics: Analytics }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
@@ -267,8 +346,8 @@ function CustomersTab({ analytics }: any) {
       <div className="p-4 rounded-2xl border border-border">
         <h3 className="text-sm font-bold mb-4">برترین مشتریان</h3>
         <div className="space-y-2">
-          {analytics.topCustomers?.slice(0, 8).map((c: any, i: number) => (
-            <div key={i} className="flex items-center justify-between">
+          {analytics.topCustomers?.slice(0, 8).map((c) => (
+            <div key={c.customer_phone} className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">{c.customer_name || "مشتری"}</p>
                 <p className="text-xs text-muted-foreground" dir="ltr">{c.customer_phone}</p>
@@ -286,7 +365,7 @@ function CustomersTab({ analytics }: any) {
 }
 
 // Operations Tab
-function OperationsTab({ analytics, stats }: any) {
+function OperationsTab({ analytics, stats }: { analytics: Analytics; stats: Stats }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -301,13 +380,13 @@ function OperationsTab({ analytics, stats }: any) {
 }
 
 // Alerts Tab
-function AlertsTab({ alerts }: { alerts: any[] }) {
+function AlertsTab({ alerts }: { alerts: Alert[] }) {
   const severityColors: Record<string, string> = {
     error: "border-destructive bg-destructive/5",
     warning: "border-yellow-500 bg-yellow-500/5",
     info: "border-primary bg-primary/5",
   };
-  const severityIcons: Record<string, any> = {
+  const severityIcons: Record<string, LucideIcon> = {
     error: AlertTriangle,
     warning: AlertTriangle,
     info: TrendingUp,
@@ -321,10 +400,10 @@ function AlertsTab({ alerts }: { alerts: any[] }) {
           <p className="text-xs mt-1">همه چیز عادی به نظر می‌رسد</p>
         </div>
       ) : (
-        alerts.map((alert: any, i: number) => {
+        alerts.map((alert) => {
           const Icon = severityIcons[alert.severity] || AlertTriangle;
           return (
-            <div key={i} className={`p-4 rounded-2xl border ${severityColors[alert.severity] || "border-border"}`}>
+            <div key={alert.title} className={`p-4 rounded-2xl border ${severityColors[alert.severity] || "border-border"}`}>
               <div className="flex items-start gap-3">
                 <Icon className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div className="flex-1">
@@ -332,7 +411,7 @@ function AlertsTab({ alerts }: { alerts: any[] }) {
                   <p className="text-sm text-muted-foreground mt-1">{alert.message}</p>
                   {alert.items && alert.items.length > 0 && (
                     <div className="mt-2 space-y-1">
-                      {alert.items.slice(0, 3).map((item: any, j: number) => (
+                      {alert.items.slice(0, 3).map((item, j) => (
                         <p key={j} className="text-xs text-muted-foreground">
                           {item.customer_name || item.name || item.salon_name} — {item.date_gregorian || ""}
                         </p>
@@ -351,7 +430,7 @@ function AlertsTab({ alerts }: { alerts: any[] }) {
 }
 
 // Shared Components
-function StatCard({ icon: Icon, label, value, sub, color }: { icon: any; label: string; value: string; sub?: string; color: string }) {
+function StatCard({ icon: Icon, label, value, sub, color }: { icon: LucideIcon; label: string; value: string; sub?: string; color: string }) {
   return (
     <div className="p-4 rounded-2xl border border-border">
       <div className="flex items-center justify-between mb-2">
@@ -373,8 +452,7 @@ function QuickStat({ label, value }: { label: string; value: number }) {
   );
 }
 
-function SalonTable({ salons, salonRevenue, router }: { salons: any[]; salonRevenue: any[]; router?: any }) {
-  const formatPrice = (n: number) => n.toLocaleString("fa-IR");
+function SalonTable({ salons, salonRevenue, router }: { salons: Salon[]; salonRevenue: SalonRevenue[]; router?: ReturnType<typeof useRouter> }) {
   return (
     <div className="rounded-2xl border border-border overflow-hidden">
       <div className="p-4 border-b border-border">
@@ -392,13 +470,13 @@ function SalonTable({ salons, salonRevenue, router }: { salons: any[]; salonReve
             </tr>
           </thead>
           <tbody>
-            {salonRevenue.map((s: any, i: number) => {
-              const salon = salons.find((sal: any) => sal.name === s.salon_name);
+            {salonRevenue.map((s) => {
+              const salon = salons.find((sal) => sal.name === s.salon_name);
               return (
                 <tr
-                  key={i}
+                  key={s.salon_name}
                   className="border-b border-border last:border-0 hover:bg-muted/30 cursor-pointer"
-                  onClick={() => salon && router.push(`/admin/salons/${salon.id}`)}
+                  onClick={() => salon && router?.push(`/admin/salons/${salon.id}`)}
                 >
                   <td className="p-3 font-medium">{s.salon_name}</td>
                   <td className="p-3">{parseInt(s.bookings) || 0}</td>

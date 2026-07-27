@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     ]);
 
     // Strip unknown fields
-    const safeUpdates: Record<string, any> = {};
+    const safeUpdates: Record<string, unknown> = {};
     for (const key of Object.keys(updates)) {
       if (ALLOWED_FIELDS.has(key)) safeUpdates[key] = updates[key];
     }

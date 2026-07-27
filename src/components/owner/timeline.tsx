@@ -264,7 +264,6 @@ export function Timeline({
               const wf = t(statusColors.blockFaint.light, statusColors.blockFaint.dark);
               const wa = t(statusColors.warningAccent.light, statusColors.warningAccent.dark);
               const bh = t(statusColors.blockHover.light, statusColors.blockHover.dark);
-              const deleteBg = t(statusColors.delete.light, statusColors.delete.dark);
 
               return (
                 <div key={`blk-${idx}`} className="absolute left-12 right-2 z-10" style={{ top: pos.top, height: pos.height }}>

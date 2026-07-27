@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
         )
       `;
       results.push("salons table created");
-    } catch (e: any) {
-      results.push(`salons: ${e.message}`);
+    } catch (e) {
+      results.push(`salons: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     // Create super_admins table
@@ -54,8 +54,8 @@ export async function POST(request: NextRequest) {
         )
       `;
       results.push("super_admins table created");
-    } catch (e: any) {
-      results.push(`super_admins: ${e.message}`);
+    } catch (e) {
+      results.push(`super_admins: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     // Add salon_id columns
@@ -64,8 +64,8 @@ export async function POST(request: NextRequest) {
       try {
         await sql.query(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS salon_id UUID REFERENCES salons(id)`);
         results.push(`${table}.salon_id added`);
-      } catch (e: any) {
-        results.push(`${table}.salon_id: ${e.message}`);
+      } catch (e) {
+        results.push(`${table}.salon_id: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
 
@@ -77,8 +77,8 @@ export async function POST(request: NextRequest) {
       await sql`CREATE INDEX IF NOT EXISTS idx_bookings_salon_date ON bookings(salon_id, date_gregorian)`;
       await sql`CREATE INDEX IF NOT EXISTS idx_blocked_times_salon ON blocked_times(salon_id)`;
       results.push("indexes created");
-    } catch (e: any) {
-      results.push(`indexes: ${e.message}`);
+    } catch (e) {
+      results.push(`indexes: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     return NextResponse.json({ success: true, results });

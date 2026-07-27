@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit2, Trash2, X, Check, ChevronUp, ChevronDown, Upload, Image } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Check, ChevronUp, ChevronDown, Upload, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import type { Service, Addon } from "@/lib/types";
 
@@ -84,6 +85,8 @@ function ServicesTab({
   });
 
   useEffect(() => {
+    // Sync local editing state with fresh prop data when the parent re-fetches.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPending(services);
     setHasChanges(false);
   }, [services]);
@@ -226,14 +229,17 @@ function ServicesTab({
             <>
               <div className="flex items-center gap-3">
                 {service.image_url ? (
-                  <img
+                  <Image
                     src={service.image_url}
                     alt={service.name}
+                    width={48}
+                    height={48}
+                    unoptimized
                     className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
                   />
                 ) : (
                   <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
-                    <Image className="h-5 w-5 text-muted-foreground/50" />
+                    <ImageIcon className="h-5 w-5 text-muted-foreground/50" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -326,6 +332,8 @@ function AddonsTab({
   const [form, setForm] = useState({ name: "", price: 0, duration_minutes: 5 });
 
   useEffect(() => {
+    // Sync local editing state with fresh prop data when the parent re-fetches.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPending(addons);
     setHasChanges(false);
   }, [addons]);
@@ -557,13 +565,13 @@ function ServiceForm({
       {/* Image Upload */}
       <div className="flex items-center gap-4">
         <div
-          className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors overflow-hidden"
+          className="relative w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors overflow-hidden"
           onClick={() => fileInputRef.current?.click()}
         >
           {isUploading ? (
             <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
           ) : form.image_url ? (
-            <img src={form.image_url} alt="" className="w-full h-full object-cover" />
+            <Image src={form.image_url} alt="" fill unoptimized className="object-cover" />
           ) : (
             <div className="text-center">
               <Upload className="h-5 w-5 mx-auto text-muted-foreground" />

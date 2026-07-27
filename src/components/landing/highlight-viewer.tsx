@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Highlight } from "@/lib/types";
 
@@ -148,7 +149,7 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+      className="relative fixed inset-0 z-[100] bg-black flex items-center justify-center"
       role="dialog"
       aria-modal="true"
       aria-label={`هایلایت ${highlight.name}`}
@@ -186,10 +187,12 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
       </button>
 
       {/* Image */}
-      <img
+      <Image
         src={image.image_url}
         alt={highlight.name}
-        className="max-h-full max-w-full object-contain select-none"
+        fill
+        unoptimized
+        className="object-contain select-none"
         draggable={false}
       />
 

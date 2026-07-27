@@ -20,16 +20,16 @@ export async function POST(request: NextRequest) {
     const results: string[] = [];
 
     // 1. Read existing salon_info
-    let info: any;
+    let info: Record<string, string | number | boolean | null | undefined> = {};
     try {
       const { rows: salonInfo } = await sql`SELECT * FROM salon_info LIMIT 1`;
       if (salonInfo.length === 0) {
         return NextResponse.json({ error: "داده salon_info یافت نشد" }, { status: 404 });
       }
-      info = salonInfo[0];
+      info = salonInfo[0] as Record<string, string | number | boolean | null | undefined>;
       results.push("salon_info خوانده شد");
-    } catch (e: any) {
-      return NextResponse.json({ error: `خطا در خواندن salon_info: ${e.message}` }, { status: 500 });
+    } catch (e) {
+      return NextResponse.json({ error: `خطا در خواندن salon_info: ${e instanceof Error ? e.message : String(e)}` }, { status: 500 });
     }
 
     // 2. Ensure salons table has all required columns (ALTER if needed)
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     for (const col of salonColumns) {
       try {
         await sql.query(`ALTER TABLE salons ADD COLUMN IF NOT EXISTS ${col.name} ${col.type}`);
-      } catch (e: any) {
+      } catch {
         // Column might already exist, that's fine
       }
     }
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       workingHours = "{}";
     }
 
-    let salonRows: any[];
+    let salonRows: Array<{ id: string; name: string; slug: string }> = [];
     try {
       const result = await sql`
         INSERT INTO salons (
@@ -108,10 +108,10 @@ export async function POST(request: NextRequest) {
         )
         RETURNING id, name, slug
       `;
-      salonRows = result.rows;
+      salonRows = result.rows as typeof salonRows;
       results.push(`سالن "${name}" ایجاد شد (ID: ${salonRows[0].id})`);
-    } catch (e: any) {
-      return NextResponse.json({ error: `خطا در ایجاد سالن: ${e.message}` }, { status: 500 });
+    } catch (e) {
+      return NextResponse.json({ error: `خطا در ایجاد سالن: ${e instanceof Error ? e.message : String(e)}` }, { status: 500 });
     }
 
     const salonId = salonRows[0].id;
@@ -126,10 +126,11 @@ export async function POST(request: NextRequest) {
       try {
         await sql.query(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS salon_id UUID REFERENCES salons(id)`);
         results.push(`${table}: salon_id اضافه شد`);
-      } catch (e: any) {
+      } catch (e) {
         // Column might already exist, that's OK
-        if (!e.message?.includes("already exists")) {
-          results.push(`${table}: ${e.message}`);
+        const msg = e instanceof Error ? e.message : String(e);
+        if (!msg.includes("already exists")) {
+          results.push(`${table}: ${msg}`);
         }
       }
     }
@@ -142,8 +143,8 @@ export async function POST(request: NextRequest) {
           [salonId]
         );
         results.push(`${table}: ${rowCount} ردیف به‌روزرسانی شد`);
-      } catch (e: any) {
-        results.push(`${table}: ${e.message}`);
+      } catch (e) {
+        results.push(`${table}: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
 
@@ -155,8 +156,8 @@ export async function POST(request: NextRequest) {
       await sql`CREATE INDEX IF NOT EXISTS idx_bookings_salon_date ON bookings(salon_id, date_gregorian)`;
       await sql`CREATE INDEX IF NOT EXISTS idx_blocked_times_salon ON blocked_times(salon_id)`;
       results.push("ایندکس‌ها ایجاد شد");
-    } catch (e: any) {
-      results.push(`ایندکس‌ها: ${e.message}`);
+    } catch (e) {
+      results.push(`ایندکس‌ها: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     return NextResponse.json({

@@ -106,21 +106,6 @@ function computeEffectiveDuration(
 
 // ─── Free Intervals ───
 
-function getFreeIntervals(
-  shiftStart: number,
-  shiftEnd: number,
-  occupied: TimeBlock[]
-): Array<{ start: number; end: number }> {
-  const free: Array<{ start: number; end: number }> = [];
-  let cursor = shiftStart;
-  for (const block of occupied) {
-    if (cursor < block.start) free.push({ start: cursor, end: block.start });
-    cursor = Math.max(cursor, block.end);
-  }
-  if (cursor < shiftEnd) free.push({ start: cursor, end: shiftEnd });
-  return free;
-}
-
 // ─── Shift Expansion ───
 
 function computeExpandedShift(
@@ -302,7 +287,7 @@ export function generateTimeSlots(
   const occupied = mergeBlocks([...bookings, ...blocks]);
 
   // Compute expanded shift
-  const { start: shiftStart, end: shiftEnd, isExpanded } = computeExpandedShift(
+  const { start: shiftStart, end: shiftEnd } = computeExpandedShift(
     rawShiftStart,
     rawShiftEnd,
     bookings,
@@ -363,18 +348,14 @@ export function generateTimeSlots(
 
   // Classify suggested vs other
   let suggestedSlots: TimeBlock[];
-  let otherSlots: TimeBlock[];
 
   if (bookings.length >= 2) {
     const classified = classifyLevel3(filtered, occupied, effectiveDuration, cfg.resolution);
     suggestedSlots = classified.suggested;
-    otherSlots = classified.other;
   } else if (bookings.length === 1) {
     suggestedSlots = filtered;
-    otherSlots = [];
   } else {
     suggestedSlots = [];
-    otherSlots = filtered;
   }
 
   // Build result — show ALL slots for display (use expanded shiftEnd)
@@ -385,7 +366,6 @@ export function generateTimeSlots(
 
     const isBooked = bookings.some((b) => overlaps(slot, b));
     const isBlocked = blocks.some((b) => overlaps(slot, b));
-    const isPast = isToday && m < nowMinutes;
     const isAvailable = filtered.some((s) => s.start === m);
     const isSuggested = suggestedSlots.some((s) => s.start === m);
 

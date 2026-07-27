@@ -225,6 +225,8 @@ export function ScheduleManager({
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
+    // Sync local form state with fresh prop data when the parent re-fetches.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHours({ ...workingHours });
     setDaysOff([...specificDaysOff]);
     setEarlyExtraHours(initialEarly);

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NailBook Booking Flow Mockups</title>
+  <link rel="stylesheet" href="clean-theme.css">
+  <style>
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .header p {
+      font-size: 16px;
+      color: var(--text-secondary);
+    }
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+    .mockup-card {
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      transition: all 0.2s;
+      text-decoration: none;
+      color: inherit;
+    }
+    .mockup-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+    .mockup-num {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .mockup-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .mockup-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .mockup-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: var(--bg-tertiary);
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 12px;
+    }
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .summary-card {
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      margin-bottom: 24px;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+    .summary-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .summary-value {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .impact-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .impact-item {
+      text-align: center;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: var(--bg-tertiary);
+    }
+    .impact-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--success);
+    }
+    .impact-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .footer {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">◑</button>
+  
+  <div class="container">
+    <div class="header">
+      <h1>NailBook بهبود جریان رزرو</h1>
+      <p>طراحی مجدد با تم تمیز سیاه و سفید با پشتیبانی حالت تاریک و روشن</p>
+    </div>
+    
+    <!-- Mockup Grid -->
+    <div class="mockup-grid">
+      <a href="01-simplified-auth.html" class="mockup-card">
+        <div class="mockup-num">۰۱</div>
+        <div class="mockup-title">احراز هویت ساده</div>
+        <div class="mockup-desc">
+          جایگزینی PIN چهار مرحله‌ای با SMS OTP دو مرحله‌ای. کاهش ۷۵٪ مراحل احراز هویت.
+        </div>
+        <div class="mockup-tag">تاثیر بالا</div>
+      </a>
+      
+      <a href="02-guest-booking.html" class="mockup-card">
+        <div class="mockup-num">۰۲</div>
+        <div class="mockup-title">رزرو مهمان</div>
+        <div class="mockup-desc">
+          امکان رزرو بدون ثبت‌نام اجباری. فقط شماره موبایل کافی است. افزایش ۱۵-۲۵٪ نرخ تبدیل.
+        </div>
+        <div class="mockup-tag">تاثیر بالا</div>
+      </a>
+      
+      <a href="03-visual-service-cards.html" class="mockup-card">
+        <div class="mockup-num">۰۳</div>
+        <div class="mockup-title">کارت‌های تصویری خدمت</div>
+        <div class="mockup-desc">
+          کارت‌های بصری با تصویر، قیمت، مدت زمان و امتیاز. افزایش ۲۰-۳۰٪ تعامل کاربر.
+        </div>
+        <div class="mockup-tag">تاثیر متوسط</div>
+      </a>
+      
+      <a href="04-improved-calendar.html" class="mockup-card">
+        <div class="mockup-num">۰۴</div>
+        <div class="mockup-title">تقویم بهبود یافته</div>
+        <div class="mockup-desc">
+          نمایش网格 ساعت‌ها با نشانگر موجودی و ساعت‌های محبوب. تجربه کاربری بهتر.
+        </div>
+        <div class="mockup-tag">تاثیر متوسط</div>
+      </a>
+      
+      <a href="05-complete-flow.html" class="mockup-card">
+        <div class="mockup-num">۰۵</div>
+        <div class="mockup-title">جریان کامل بهبود یافته</div>
+        <div class="mockup-desc">
+          مقایسه side-by-side فعلی و پیشنهادی. نمایش تمام بهبودها در یک نگاه.
+        </div>
+        <div class="mockup-tag">نمای کلی</div>
+      </a>
+    </div>
+    
+    <!-- Summary -->
+    <div class="section-title">خلاصه بهبودها</div>
+    
+    <div class="summary-card">
+      <div class="summary-row">
+        <span class="summary-label">تعداد مراحل رزرو</span>
+        <span class="summary-value">۵ → ۳-۴ مرحله</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">مراحل احراز هویت</span>
+        <span class="summary-value">۴ → ۱-۲ مرحله</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">رزرو مهمان</span>
+        <span class="summary-value">❌ → ✅</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">تصاویر خدمات</span>
+        <span class="summary-value">❌ → ✅</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">نمایش قیمت</span>
+        <span class="summary-value">فقط در انتها → در تمام مراحل</span>
+      </div>
+    </div>
+    
+    <!-- Expected Impact -->
+    <div class="summary-card">
+      <div style="font-size: 16px; font-weight: 600; margin-bottom: 16px; text-align: center;">تاثیر مورد انتظار</div>
+      <div class="impact-grid">
+        <div class="impact-item">
+          <div class="impact-value">+25%</div>
+          <div class="impact-label">نرخ تکمیل رزرو</div>
+        </div>
+        <div class="impact-item">
+          <div class="impact-value">-75%</div>
+          <div class="impact-label">مراحل احراز هویت</div>
+        </div>
+        <div class="impact-item">
+          <div class="impact-value">+30%</div>
+          <div class="impact-label">تعامل کاربر</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>NailBook Booking Flow Mockups - ژوئیه ۲۰۲۶</p>
+      <p>طراحی با تم تمیز سیاه و سفید با پشتیبانی حالت تاریک و روشن</p>
+    </div>
+  </div>
+  
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
+  </script>
+</body>
+</html>
