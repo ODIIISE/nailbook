@@ -422,7 +422,7 @@ export default function BookContent() {
 
         {/* ─── Step 1: Addons ─── */}
         {step === "addons" && (
-          <div className="space-y-4">
+          <div key={step} className="space-y-4 step-animate">
             {hasAddons ? (
               <>
                 <p className="text-[13px] text-muted-foreground text-center">
@@ -474,7 +474,7 @@ export default function BookContent() {
 
         {/* ─── Step 2: Date & Time ─── */}
         {step === "datetime" && (
-          <div className="space-y-4">
+          <div key={step} className="space-y-4 step-animate">
             <JalaliCalendar
               selectedDate={selectedDate}
               onSelectDate={handleSelectDate}
@@ -528,7 +528,7 @@ export default function BookContent() {
 
         {/* ─── Step 3: Auth ─── */}
         {step === "auth" && (
-          <AuthCardRoot>
+          <AuthCardRoot key={step} className="step-animate">
             {authStep === "phone" && (
               <AuthCard
                 icon={<Smartphone className="h-6 w-6" />}
@@ -639,7 +639,7 @@ export default function BookContent() {
 
         {/* ─── Step 4: Confirm (Pre-Receipt) ─── */}
         {step === "confirm" && selectedService && selectedDate && selectedTime && (
-          <div className="space-y-3">
+          <div key={step} className="space-y-3 step-animate">
             {isBookingLoading ? (
               <div className="space-y-3">
                 <Skeleton className="h-48 w-full rounded-2xl" />
@@ -725,16 +725,18 @@ export default function BookContent() {
 
         {/* ─── Step 5: Receipt ─── */}
         {step === "receipt" && selectedService && selectedDate && selectedTime && (
-          <BookingConfirm
-            serviceName={selectedService.name}
-            date={selectedDate}
-            time={selectedTime}
-            duration={totalDuration}
-            price={totalPrice}
-            customerName={user?.name || ""}
-            bookingId={bookingId}
-            phone={salon.phone}
-          />
+          <div key={step} className="step-animate">
+            <BookingConfirm
+              serviceName={selectedService.name}
+              date={selectedDate}
+              time={selectedTime}
+              duration={totalDuration}
+              price={totalPrice}
+              customerName={user?.name || ""}
+              bookingId={bookingId}
+              phone={salon.phone}
+            />
+          </div>
         )}
       </div>
 

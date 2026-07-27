@@ -12,11 +12,11 @@ import { EarningsModal } from "@/components/owner/earnings-modal";
 import { ManualReserveModal } from "@/components/owner/manual-reserve-modal";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { SalonGuard } from "@/components/ui/salon-guard";
-import { ChevronLeft, Plus, Search } from "lucide-react";
-import { formatPrice, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
+import { ChevronLeft, Plus, Search, CalendarClock, Ban, Banknote, Users, Clock } from "lucide-react";
+import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey } from "@/lib/time";
-import { calculateEarnings } from "@/lib/pricing";
+import { calculateEarnings, calculateBookingPrice } from "@/lib/pricing";
 import { toast } from "sonner";
 import type { Booking } from "@/lib/types";
 
@@ -96,6 +96,18 @@ export default function OwnerDashboard() {
     const endOfToday = new Date(today);
     endOfToday.setHours(23, 59, 59, 999);
     return calculateEarnings(bookings, services, addons, today, endOfToday);
+  }, [currentDate, bookings, services, addons]);
+
+  const todayStats = useMemo(() => {
+    const dateStr = getTehranDateKey(currentDate);
+    const todayBookings = bookings.filter((b) => {
+      const bookingDate = b.date_gregorian.split("T")[0];
+      return bookingDate === dateStr && b.status !== "cancelled";
+    });
+    const totalRevenue = todayBookings.reduce((sum, b) => sum + calculateBookingPrice(b, services, addons), 0);
+    const unpaidCount = todayBookings.filter((b) => !b.paid).length;
+    const nextBooking = [...todayBookings].sort((a, b) => a.start_time.localeCompare(b.start_time))[0];
+    return { count: todayBookings.length, revenue: totalRevenue, unpaidCount, nextBooking };
   }, [currentDate, bookings, services, addons]);
 
   const handleBlockTime = (startTime: string, endTime: string) => {
@@ -203,6 +215,68 @@ export default function OwnerDashboard() {
           />
         </div>
 
+        {/* Quick stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <Card className="p-3 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Users className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-[11px] text-muted-foreground">نوبت‌های امروز</p>
+              <p className="text-[17px] font-bold text-foreground">{toPersianDigits(todayStats.count)}</p>
+            </div>
+          </Card>
+          <Card className="p-3 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+              <Banknote className="h-5 w-5 text-success" />
+            </div>
+            <div>
+              <p className="text-[11px] text-muted-foreground">درآمد امروز</p>
+              <p className="text-[15px] font-bold text-foreground">{formatPrice(todayStats.revenue)}</p>
+            </div>
+          </Card>
+          <Card className="p-3 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+              <Clock className="h-5 w-5 text-destructive" />
+            </div>
+            <div>
+              <p className="text-[11px] text-muted-foreground">پرداخت نشده</p>
+              <p className="text-[17px] font-bold text-foreground">{toPersianDigits(todayStats.unpaidCount)}</p>
+            </div>
+          </Card>
+          <Card className="p-3 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
+              <CalendarClock className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] text-muted-foreground">نوبت بعدی</p>
+              <p className="text-[13px] font-bold text-foreground truncate">
+                {todayStats.nextBooking ? todayStats.nextBooking.start_time.slice(0, 5) : "—"}
+              </p>
+            </div>
+          </Card>
+        </div>
+
+        {/* Quick actions */}
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant="outline"
+            className="w-full h-12 rounded-xl border-border bg-card hover:bg-muted"
+            onClick={() => setShowManualReserve(true)}
+          >
+            <Plus className="h-4 w-4 ms-1.5" />
+            رزرو دستی
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full h-12 rounded-xl border-border bg-card hover:bg-muted"
+            onClick={() => setShowBlockTime(true)}
+          >
+            <Ban className="h-4 w-4 ms-1.5" />
+            مسدود کردن زمان
+          </Button>
+        </div>
+
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[13px] font-bold text-foreground">حساب امروز</span>
@@ -240,24 +314,7 @@ export default function OwnerDashboard() {
           addons={addons}
         />
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => setShowBlockTime(true)}
-          >
-            <Plus className="h-4 w-4 ms-1" />
-            مسدود کردن زمان
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => setShowManualReserve(true)}
-          >
-            <Plus className="h-4 w-4 ms-1" />
-            رزرو دستی
-          </Button>
-        </div>
+
       </div>
 
       {showBlockTime && (

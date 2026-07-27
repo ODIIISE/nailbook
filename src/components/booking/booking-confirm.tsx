@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Check, CalendarDays, Sparkles, Share2 } from "lucide-react";
+import { toast } from "sonner";
+import { Check, CalendarDays, Sparkles, Share2, MessageCircle, Copy, Repeat } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { TornPaperCard } from "./torn-paper-card";
 import { getTehranDateKey } from "@/lib/time";
@@ -50,6 +52,7 @@ export function BookingConfirm({
   salonName = "",
   salonAddress = "",
 }: BookingConfirmProps) {
+  const router = useRouter();
   const jalali = gregorianToJalali(date);
   const fullDate = formatJalaliDate(jalali.jy, jalali.jm, jalali.jd);
   const formattedTime = toPersianDigits(time);
@@ -60,7 +63,6 @@ export function BookingConfirm({
   const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
   const formattedEndTime = toPersianDigits(endTime);
 
-  // Derive domain from current URL instead of hardcoding
   const displayDomain = useMemo(() => {
     if (typeof window !== "undefined") return window.location.hostname;
     return "forehand.vercel.app";
@@ -85,30 +87,52 @@ export function BookingConfirm({
     window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, "_blank");
   };
 
+  const shareText = useMemo(
+    () =>
+      `رزرو ناخن ثبت شد!\n${serviceName}\n${fullDate} - ساعت ${formattedTime} تا ${formattedEndTime}\n${salonName}${salonAddress ? `\n${salonAddress}` : ""}`,
+    [serviceName, fullDate, formattedTime, formattedEndTime, salonName, salonAddress]
+  );
+
   const handleShare = async () => {
-    const text = `رزرو ناخن ثبت شد!\n${serviceName}\n${fullDate} - ساعت ${formattedTime}\n${salonName}`;
     try {
       if (navigator.share) {
-        await navigator.share({ text });
+        await navigator.share({ text: shareText });
       } else {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(shareText);
+        toast.success("اطلاعات رزرو کپی شد");
       }
     } catch {
-      // User cancelled share or clipboard permission denied — silently ignore
+      // ignore
     }
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareText);
+      toast.success("اطلاعات رزرو کپی شد");
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleWhatsAppShare = () => {
+    const encoded = encodeURIComponent(shareText);
+    window.open(`https://wa.me/?text=${encoded}`, "_blank", "noopener,noreferrer");
+  };
+
+  const handleRebook = () => {
+    router.push("/");
   };
 
   return (
     <div className="mx-auto max-w-lg animate-scale">
       <TornPaperCard>
         <div className="px-5 py-4">
-          {/* Paper texture */}
           <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.025] mix-blend-multiply" style={{
             backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.25'/%3E%3C/svg%3E\")",
             backgroundSize: "180px 180px",
           }} />
 
-          {/* Success indicator */}
           <div className="flex items-center gap-2.5 mb-4 relative z-[2]">
             <div
               className="w-8 h-8 rounded-full bg-success flex items-center justify-center shrink-0"
@@ -116,12 +140,9 @@ export function BookingConfirm({
             >
               <Check className="h-4 w-4 text-white" strokeWidth={2.5} />
             </div>
-            <div>
-              <div className="text-[14px] font-bold text-foreground">رزرو ثبت شد</div>
-            </div>
+            <div className="text-[14px] font-bold text-foreground">رزرو ثبت شد</div>
           </div>
 
-          {/* Service info */}
           <div className="flex items-center gap-2.5 mb-2 relative z-[2]">
             <div
               className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0"
@@ -137,7 +158,6 @@ export function BookingConfirm({
 
           <div className="h-px bg-black/[0.04] mb-2 relative z-[2]" />
 
-          {/* Detail list */}
           <div className="relative z-[2]">
             <div className="flex justify-between items-center py-[7px]">
               <span className="text-[12px] text-muted-foreground">تاریخ</span>
@@ -157,7 +177,6 @@ export function BookingConfirm({
             </div>
           </div>
 
-          {/* Barcode + tracking code */}
           <div className="mt-3 relative z-[2]">
             <Barcode id={bookingId} />
             <div className="text-center text-[10px] font-medium tracking-[1px] text-foreground/20 mt-1.5" dir="ltr">
@@ -170,7 +189,6 @@ export function BookingConfirm({
         </div>
       </TornPaperCard>
 
-      {/* Actions */}
       <div className="grid grid-cols-2 gap-2 mt-3">
         <Button size="xl" variant="paper" className="w-full" onClick={handleAddToGoogleCalendar}>
           <CalendarDays className="h-4 w-4 ml-2" />
@@ -181,6 +199,22 @@ export function BookingConfirm({
           اشتراک‌گذاری
         </Button>
       </div>
+
+      <div className="grid grid-cols-2 gap-2 mt-2">
+        <Button size="xl" variant="outline" className="w-full" onClick={handleWhatsAppShare}>
+          <MessageCircle className="h-4 w-4 ml-2" />
+          واتساپ
+        </Button>
+        <Button size="xl" variant="outline" className="w-full" onClick={handleCopy}>
+          <Copy className="h-4 w-4 ml-2" />
+          کپی اطلاعات
+        </Button>
+      </div>
+
+      <Button size="xl" variant="secondary" className="w-full mt-2" onClick={handleRebook}>
+        <Repeat className="h-4 w-4 ml-2" />
+        رزرو مجدد
+      </Button>
     </div>
   );
 }

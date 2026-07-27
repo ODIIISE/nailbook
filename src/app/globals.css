@@ -453,12 +453,40 @@
   .splash-screen,
   .splash-logo,
   .splash-tagline,
-  .page-transition-enter {
+  .page-transition-enter,
+  .step-animate {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
   }
+}
+
+/* ── Accessibility / Touch ── */
+
+@layer utilities {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--foreground);
+    outline-offset: 2px;
+  }
+  .min-tap {
+    min-height: 44px;
+  }
+}
+
+/* ── Step transition helpers ── */
+
+.step-animate {
+  animation: stepSlideIn 0.25s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+}
+
+@keyframes stepSlideIn {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 /* ── View Transitions: Theme Switch ── */

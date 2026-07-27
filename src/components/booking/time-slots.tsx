@@ -29,16 +29,18 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
   if (slots.length === 0) {
     return (
       <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center">
-        <Ban className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
-        <p className="text-[15px] text-muted-foreground">ساعتی موجود نیست</p>
-        <p className="text-[13px] text-muted-foreground/50 mt-1">تاریخ دیگری انتخاب کنید</p>
+        <div className="w-14 h-14 rounded-full bg-muted mx-auto flex items-center justify-center mb-3">
+          <Ban className="h-6 w-6 text-muted-foreground/50" />
+        </div>
+        <p className="text-[15px] font-bold text-foreground mb-1">ساعتی برای این روز موجود نیست</p>
+        <p className="text-[13px] text-muted-foreground mb-4">لطفاً تاریخ دیگری انتخاب کنید</p>
 
         {onGoToNextDay && (
           <button
             onClick={onGoToNextDay}
-            className="mt-4 w-full h-10 rounded-full bg-foreground text-background text-[13px] font-bold hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2"
+            className="mt-2 w-full h-11 rounded-full bg-foreground text-background text-[13px] font-bold hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-foreground/30"
           >
-            روز بعد
+            برو به روز بعد
             <ChevronLeft className="h-4 w-4" />
           </button>
         )}
@@ -48,10 +50,12 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
 
   const suggestedSlots = availableSlots.filter((s) => s.suggested);
   const otherSlots = availableSlots.filter((s) => !s.suggested);
+  const nextAvailable = availableSlots.length > 0 ? availableSlots[0] : null;
+  const remainingSlots = availableSlots.length;
 
   return (
     <div className="mx-auto max-w-lg space-y-4">
-      {/* Legend */}
+      {/* Legend + remaining count */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
@@ -63,10 +67,25 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
             <span className="text-[13px] text-muted-foreground">رزرو شده</span>
           </div>
         </div>
-        <span className="text-[13px] text-muted-foreground">
-          {toPersianDigits(availableSlots.length)} موجود
+        <span className="text-[13px] font-bold text-foreground">
+          {toPersianDigits(remainingSlots)} ساعت خالی
         </span>
       </div>
+
+      {nextAvailable && (
+        <div
+          className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/10 cursor-pointer active:scale-[0.99] transition-transform"
+          onClick={() => onSelectSlot(nextAvailable.time)}
+        >
+          <div>
+            <p className="text-[12px] font-bold text-primary">نزدیک‌ترین ساعت آزاد</p>
+            <p className="text-[11px] text-muted-foreground">برای رزرو سریع کلیک کنید</p>
+          </div>
+          <span className="text-[15px] font-extrabold text-foreground">
+            {toPersianDigits(nextAvailable.time)}
+          </span>
+        </div>
+      )}
 
       {/* Suggested slots */}
       {suggestedSlots.length > 0 && (
@@ -173,7 +192,7 @@ function SlotButton({
       disabled={!slot.available}
       onClick={onSelect}
       aria-label={`${formattedTime} ${slot.available ? "موجود" : slot.booked ? "رزرو شده" : slot.locked ? "مسدود" : "غیرقابل رزرو"}`}
-      className="h-[46px] rounded-xl text-[13px] font-bold transition-all duration-200 select-none relative overflow-hidden focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
+      className="h-[48px] min-h-[44px] rounded-xl text-[13px] font-bold transition-all duration-200 select-none relative overflow-hidden focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
       style={{
         background: isSelected
           ? "var(--foreground)"
