@@ -21,9 +21,8 @@ ON bookings (customer_phone);
 -- 3. Security: Ensure Owner Role is Enforced
 -- Prevents accidental creation of non-owner users with role='owner' without proper setup
 -- (This is a logical check, mostly handled by app logic, but good for data integrity)
-ALTER TABLE users 
-ADD CONSTRAINT chk_role_values 
-CHECK (role IN ('customer', 'owner'));
+ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_role_values;
+ALTER TABLE users ADD CONSTRAINT chk_role_values CHECK (role IN ('customer', 'owner'));
 
 -- 4. Audit Trail (Optional but recommended)
 -- Create a table to log critical actions (bookings, cancellations) for debugging
@@ -35,17 +34,4 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. Clean up any existing duplicate confirmed bookings (Safety Cleanup)
--- NOTE: This keeps the OLDEST booking and marks newer duplicates as 'cancelled'
--- Run this carefully. If you are sure you have no duplicates, you can skip this block.
-/*
-WITH duplicates AS (
-  SELECT id, date_gregorian, start_time, end_time,
-         ROW_NUMBER() OVER (PARTITION BY date_gregorian, start_time, end_time ORDER BY created_at) as rn
-  FROM bookings
-  WHERE status = 'confirmed'
-)
-UPDATE bookings
-SET status = 'cancelled', notes = 'Auto-cancelled due to duplicate detection migration'
-WHERE id IN (SELECT id FROM duplicates WHERE rn > 1);
-*/
+-- 5. (Optional cleanup block removed; it was commented out and broke the migration runner)
