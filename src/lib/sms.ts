@@ -1,3 +1,5 @@
+import { Smsir } from "sms-typescript";
+
 export interface SmsProvider {
   sendOTP(phone: string, code: string): Promise<boolean>;
 }
@@ -25,13 +27,49 @@ export function isValidSmsIrMobile(phone: string): boolean {
   return /^09\d{9}$/.test(cleaned);
 }
 
+interface SmsirConfig {
+  client: Smsir;
+  templateId: number;
+}
+
+let cachedConfig: SmsirConfig | null | undefined;
+
+function getSmsirConfig(): SmsirConfig | null {
+  if (cachedConfig !== undefined) return cachedConfig;
+
+  const apiKey = process.env.SMS_IR_API_KEY;
+  const lineNumber = process.env.SMS_IR_LINE_NUMBER;
+  const templateId = process.env.SMS_IR_TEMPLATE_ID;
+
+  if (!apiKey || !lineNumber || !templateId) {
+    console.warn("[SMS] SMS_IR_API_KEY, SMS_IR_LINE_NUMBER, or SMS_IR_TEMPLATE_ID not set; falling back to console OTP");
+    cachedConfig = null;
+    return cachedConfig;
+  }
+
+  const lineNumberNum = Number(lineNumber);
+  if (!Number.isFinite(lineNumberNum)) {
+    console.error("[SMS] SMS_IR_LINE_NUMBER is not a valid number:", lineNumber);
+    cachedConfig = null;
+    return cachedConfig;
+  }
+
+  const templateIdNum = Number(templateId);
+  if (!Number.isFinite(templateIdNum)) {
+    console.error("[SMS] SMS_IR_TEMPLATE_ID is not a valid number:", templateId);
+    cachedConfig = null;
+    return cachedConfig;
+  }
+
+  cachedConfig = { client: new Smsir(apiKey, lineNumberNum), templateId: templateIdNum };
+  return cachedConfig;
+}
+
 class SmsIrProvider implements SmsProvider {
   async sendOTP(phone: string, code: string): Promise<boolean> {
-    const apiKey = process.env.SMS_IR_API_KEY;
-    const templateId = process.env.SMS_IR_TEMPLATE_ID;
-
-    if (!apiKey || !templateId) {
-      console.warn("[SMS] SMS_IR_API_KEY or SMS_IR_TEMPLATE_ID not set; falling back to console OTP");
+    const config = getSmsirConfig();
+    if (!config) {
+      // Fallback to console when credentials are missing so local/dev flows don't crash.
       console.log(`[SMS] OTP for ${phone}: ${code}`);
       return true;
     }
@@ -42,49 +80,20 @@ class SmsIrProvider implements SmsProvider {
       return false;
     }
 
-    const url = "https://api.sms.ir/v1/send/verify";
-    const body = {
-      mobile,
-      templateId,
-      parameters: [
-        {
-          name: "Code",
-          value: code,
-        },
-      ],
-    };
-
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "text/plain",
-          "x-api-key": apiKey,
-        },
-        body: JSON.stringify(body),
-      });
+      console.log("[SMS] Sending verify request:", { mobile, templateId: config.templateId, parameters: [{ name: "Code", value: code }] });
+      const result = await config.client.sendVerifyCode(mobile, config.templateId, [{ name: "Code", value: code }]);
+      console.log("[SMS] SMS.ir response:", JSON.stringify(result, null, 2));
 
-      const text = await res.text();
-      let data: { status?: number; message?: string; messageText?: string } = {};
-      try {
-        data = JSON.parse(text);
-      } catch {
-        // non-JSON response
-      }
-
-      if (!res.ok) {
-        console.error("[SMS] SMS.ir HTTP error:", res.status, text);
+      if (result.status !== 1) {
+        console.error("[SMS] SMS.ir returned non-success status:", result.status, result.message);
         return false;
       }
 
-      console.log("[SMS] SMS.ir response:", data);
-
-      // SMS.ir returns status 1 on success
-      if (data.status !== 1) {
-        console.error("[SMS] SMS.ir returned non-success status:", data);
-        return false;
+      if (result.data?.messageId) {
+        console.log("[SMS] messageId:", result.data.messageId, "cost:", result.data.cost);
       }
+
       return true;
     } catch (error) {
       console.error("[SMS] Failed to send OTP:", error);
