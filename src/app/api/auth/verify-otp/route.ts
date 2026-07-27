@@ -20,18 +20,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "شماره موبایل معتبر نیست" }, { status: 400 });
     }
 
+    // For owner logins, verify the number is actually an owner before consuming the OTP.
+    let user: { id: string; phone: string; name: string; role: string } | null = null;
+    if (roleContext === "owner") {
+      user = await getUserByPhone(normalized);
+      if (!user || user.role !== "owner") {
+        return NextResponse.json({ error: "شماره یا کد نامعتبر است" }, { status: 401 });
+      }
+    }
+
     const otpResult = await verifyOtp(normalized, String(code).trim());
     if (!otpResult.valid) {
       return NextResponse.json({ error: otpResult.error || "کد نامعتبر است" }, { status: otpResult.locked ? 423 : 401 });
     }
 
-    let user = await getUserByPhone(normalized);
+    if (!user) {
+      user = await getUserByPhone(normalized);
+    }
 
     if (roleContext === "owner") {
-      if (!user || user.role !== "owner") {
+      if (!user) {
         return NextResponse.json({ error: "شماره یا کد نامعتبر است" }, { status: 401 });
       }
-
       await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
 
       await logActivity({
@@ -102,7 +112,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function getUserByPhone(phone: string) {
-  const { rows } = await sql`SELECT id, phone, name, role FROM users WHERE phone = ${phone} LIMIT 1`;
+async function getUserByPhone(phone: string): Promise<{ id: string; phone: string; name: string; role: string } | null> {
+  const { rows } = await sql<{ id: string; phone: string; name: string; role: string }>`SELECT id, phone, name, role FROM users WHERE phone = ${phone} LIMIT 1`;
   return rows[0] || null;
 }

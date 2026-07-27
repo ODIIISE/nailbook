@@ -24,6 +24,21 @@ describe("normalizeDigits", () => {
   it("should strip country code prefix", () => {
     expect(normalizeDigits("00989121234567")).toBe("09121234567");
     expect(normalizeDigits("989121234567")).toBe("09121234567");
+    expect(normalizeDigits("+989121234567")).toBe("09121234567");
+    expect(normalizeDigits("00989357149901")).toBe("09357149901");
+  });
+
+  it("should handle 10-digit numbers without leading 0", () => {
+    expect(normalizeDigits("9121234567")).toBe("09121234567");
+    expect(normalizeDigits("9357149901")).toBe("09357149901");
+    expect(normalizeDigits("9011234567")).toBe("09011234567");
+  });
+
+  it("should not turn incomplete +98 numbers into valid local numbers", () => {
+    // 9891212345 looks like a 10-digit local mobile but is actually an
+    // incomplete +98 number, so it must not gain a leading 0.
+    expect(normalizeDigits("9891212345")).toBe("9891212345");
+    expect(isValidIranianPhone("9891212345")).toBe(false);
   });
 
   it("should handle empty string", () => {

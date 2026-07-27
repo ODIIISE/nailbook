@@ -3,23 +3,6 @@ import { sql } from "@vercel/postgres";
 import { sendOtp } from "@/lib/otp-service";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
 
-// IP-based rate limiting for OTP requests (in-memory, per-process)
-const ipAttempts = new Map<string, { count: number; resetAt: number }>();
-const IP_LIMIT = 10;
-const IP_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-
-function checkIpRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const record = ipAttempts.get(ip);
-  if (!record || now > record.resetAt) {
-    ipAttempts.set(ip, { count: 1, resetAt: now + IP_WINDOW_MS });
-    return true;
-  }
-  if (record.count >= IP_LIMIT) return false;
-  record.count++;
-  return true;
-}
-
 export async function POST(request: NextRequest) {
   try {
     const { phone, roleContext = "customer" } = await request.json();
@@ -33,17 +16,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "شماره موبایل معتبر نیست" }, { status: 400 });
     }
 
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
-    if (!checkIpRateLimit(ip)) {
-      return NextResponse.json({ error: "تعداد تلاش‌ها بیش از حد مجاز است" }, { status: 429 });
-    }
-
-    // If this is an owner login context, do not send OTP to non-owners.
-    // To prevent enumeration, still return success for non-owners but do not persist/send.
+    // If this is an owner login context, only send OTP to registered owners.
+    // Returning an explicit error keeps the user from being trapped on the OTP step
+    // waiting for an SMS that will never arrive.
     if (roleContext === "owner") {
-      const { rows } = await sql`SELECT id FROM users WHERE phone = ${normalized} AND role = 'owner' LIMIT 1`;
+      const { rows } = await sql`SELECT id, role FROM users WHERE phone = ${normalized} AND role = 'owner' LIMIT 1`;
       if (rows.length === 0) {
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ error: "شماره موبایل مدیر یافت نشد" }, { status: 404 });
       }
     }
 

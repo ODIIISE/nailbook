@@ -13,7 +13,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   sendOtp: (phone: string, roleContext?: "customer" | "owner") => Promise<{ success: boolean; error?: string }>;
-  verifyOtp: (phone: string, code: string, options?: { name?: string; roleContext?: "customer" | "owner" }) => Promise<{ success: boolean; error?: string; user?: User }>;
+  verifyOtp: (phone: string, code: string, options?: { roleContext?: "customer" | "owner" }) => Promise<{ success: boolean; error?: string; user?: User }>;
   logout: () => void;
 }
 
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const verifyOtp = useCallback(async (phone: string, code: string, options: { name?: string; roleContext?: "customer" | "owner" } = {}) => {
+  const verifyOtp = useCallback(async (phone: string, code: string, options: { roleContext?: "customer" | "owner" } = {}) => {
     try {
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
@@ -106,7 +106,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           phone,
           code,
-          name: options.name,
           roleContext: options.roleContext || "customer",
         }),
       });

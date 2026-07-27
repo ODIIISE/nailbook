@@ -11,12 +11,23 @@ const EN_TO_FA: Record<string, string> = {
 };
 
 export function normalizeDigits(input: string): string {
-  return input
+  let clean = input
     .split("")
     .map((ch) => FA_TO_EN[ch] || ch)
     .join("")
-    .replace(/[^0-9]/g, "")
-    .replace(/^(0098|98|0)/, "0"); // Strip country code prefix, ensure starts with 0
+    .replace(/[^0-9]/g, "");
+
+  // Handle +98 / 0098 / 98 country codes: convert to 0-prefixed Iranian format
+  if (clean.startsWith("0098")) {
+    clean = "0" + clean.slice(4);
+  } else if (clean.startsWith("98") && clean.length >= 11 && clean[2] === "9") {
+    clean = "0" + clean.slice(2);
+  } else if (clean.length === 10 && clean.startsWith("9") && !clean.startsWith("98")) {
+    // User typed a 10-digit mobile without the leading 0 (e.g. 9121234567)
+    clean = "0" + clean;
+  }
+
+  return clean;
 }
 
 export function isValidIranianPhone(phone: string): boolean {

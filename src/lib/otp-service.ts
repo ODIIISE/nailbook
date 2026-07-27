@@ -98,11 +98,31 @@ export interface VerifyOtpResult {
 }
 
 export async function verifyOtp(phone: string, inputCode: string): Promise<VerifyOtpResult> {
-  const record = await findOtp(phone);
+  const trimmedCode = inputCode.trim();
 
-  if (!record) {
+  // Try to atomically consume a valid, non-expired OTP that hasn't been locked.
+  // If a matching record exists, this DELETE prevents concurrent reuse.
+  const { rows: deleted } = await sql`
+    DELETE FROM otps
+    WHERE phone = ${phone}
+      AND code = ${trimmedCode}
+      AND expires_at > NOW()
+      AND attempts < ${MAX_ATTEMPTS}
+    RETURNING id
+  `;
+
+  if (deleted.length > 0) {
+    return { valid: true };
+  }
+
+  // The code was wrong, expired, maxed out, or already used.
+  // Inspect the remaining record to return a helpful error.
+  const { rows } = await sql`SELECT attempts, expires_at FROM otps WHERE phone = ${phone}`;
+  if (rows.length === 0) {
     return { valid: false, error: "کد نامعتبر است" };
   }
+
+  const record = rows[0];
 
   if (record.attempts >= MAX_ATTEMPTS) {
     return { valid: false, error: "تعداد تلاش‌ها بیش از حد مجاز است", locked: true };
@@ -114,11 +134,18 @@ export async function verifyOtp(phone: string, inputCode: string): Promise<Verif
     return { valid: false, error: "کد منقضی شده است" };
   }
 
-  if (record.code !== inputCode.trim()) {
-    await incrementOtpAttempts(phone);
-    return { valid: false, error: "کد نادرست است" };
+  // Wrong code: atomically increment attempts and re-check lock.
+  const { rows: updated } = await sql`
+    UPDATE otps
+    SET attempts = attempts + 1
+    WHERE phone = ${phone}
+      AND attempts < ${MAX_ATTEMPTS}
+    RETURNING attempts
+  `;
+
+  if (updated.length === 0) {
+    return { valid: false, error: "تعداد تلاش‌ها بیش از حد مجاز است", locked: true };
   }
 
-  await deleteOtp(phone);
-  return { valid: true };
+  return { valid: false, error: "کد نادرست است" };
 }
