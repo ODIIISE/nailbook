@@ -45,7 +45,7 @@ class SmsIrProvider implements SmsProvider {
     const url = "https://api.sms.ir/v1/send/verify";
     const body = {
       mobile,
-      templateId: Number(templateId),
+      templateId,
       parameters: [
         {
           name: "Code",
