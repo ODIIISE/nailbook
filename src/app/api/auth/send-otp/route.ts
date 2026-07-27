@@ -33,7 +33,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("send-otp error:", error);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("send-otp error:", message, error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

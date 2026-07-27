@@ -55,6 +55,26 @@ export default function AdminMigratePage() {
     setIsLoading(false);
   };
 
+  const runFileMigrations = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/admin/run-migrations", { method: "POST" });
+      const data = await res.json();
+      if (data.success && data.results) {
+        setResults(data.results.map((r: { name: string; success: boolean; error?: string }) =>
+          `${r.name}: ${r.success ? "OK" : `ERROR - ${r.error}`}`
+        ));
+        setStep("done");
+        toast.success("مایگریشن فایل‌ها اجرا شد");
+      } else {
+        setError(data.error || "خطا در مایگریشن فایل‌ها");
+      }
+    } catch {
+      setError("خطای سرور");
+    }
+    setIsLoading(false);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-background">
       <div className="w-full max-w-md">
@@ -93,16 +113,24 @@ export default function AdminMigratePage() {
 
           {step === "run" && (
             <div className="space-y-4">
-              <p className="text-[13px] text-muted-foreground text-center">
-                آماده اجرای مایگریشن
-              </p>
               <Button
                 className="w-full"
                 onClick={runMigration}
                 disabled={isLoading}
               >
-                {isLoading ? "در حال اجرا..." : "اجرا کن"}
+                {isLoading ? "در حال اجرا..." : "ایجاد جداول اصلی (salons, super_admins, salon_id)"}
               </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={runFileMigrations}
+                disabled={isLoading}
+              >
+                اجرای فایل‌های مایگریشن (OTP, session_version, ...)
+              </Button>
+              <p className="text-[12px] text-muted-foreground text-center leading-relaxed">
+                اگر خطای سرور هنگام دریافت کد OTP دارید، دکمهٔ دوم را بزنید تا جدول otps ساخته شود.
+              </p>
             </div>
           )}
 

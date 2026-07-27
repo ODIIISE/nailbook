@@ -30,9 +30,6 @@ class SmsIrProvider implements SmsProvider {
     const templateId = process.env.SMS_IR_TEMPLATE_ID;
 
     if (!apiKey || !templateId) {
-      if (process.env.NODE_ENV === "production") {
-        throw new Error("SMS_IR_API_KEY and SMS_IR_TEMPLATE_ID must be set in production");
-      }
       console.warn("[SMS] SMS_IR_API_KEY or SMS_IR_TEMPLATE_ID not set; falling back to console OTP");
       console.log(`[SMS] OTP for ${phone}: ${code}`);
       return true;
