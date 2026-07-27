@@ -2,23 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Store, Download } from "lucide-react";
+import { LogOut, LayoutDashboard, Store, Download, Database, Shield } from "lucide-react";
 
-interface UserInfo {
-  email: string;
+interface SuperAdminInfo {
+  id: string;
+  phone: string;
   name: string;
-  picture: string;
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<UserInfo | null>(null);
-  const isSpecialPage = pathname === "/admin/bootstrap" || pathname === "/admin/migrate";
+  const [user, setUser] = useState<SuperAdminInfo | null>(null);
+  const isSpecialPage = pathname === "/admin/bootstrap" || pathname === "/admin/migrate" || pathname === "/admin/login";
   const [isLoading, setIsLoading] = useState(!isSpecialPage);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Add dark class to html element
   useEffect(() => {
@@ -31,25 +29,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return;
     }
 
-    // Check Google session by trying to load salons
-    fetch("/api/admin/salons")
+    fetch("/api/super-admin/me")
       .then((res) => {
         if (res.ok) {
-          // Extract user info from response or use a separate endpoint
-          setIsAuthenticated(true);
-          setUser({ email: "mehrdad.rastadfar@gmail.com", name: "Mehrdad", picture: "" });
+          return res.json().then((data) => setUser(data));
         } else if (res.status === 401) {
-          // Not logged in — redirect to Google auth
-          window.location.href = "/api/auth/google";
+          window.location.href = "/admin/login";
+        } else {
+          throw new Error("Failed to load admin info");
         }
       })
       .catch(() => {
-        window.location.href = "/api/auth/google";
+        window.location.href = "/admin/login";
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }, [pathname, isSpecialPage, router]);
+  }, [pathname, isSpecialPage]);
 
   if (isLoading) {
     return (
@@ -63,7 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return null;
   }
 
@@ -71,11 +67,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin", label: "داشبورد", icon: LayoutDashboard },
     { href: "/admin/salons", label: "سالن‌ها", icon: Store },
     { href: "/admin/export", label: "خروجی", icon: Download },
+    { href: "/admin/migrate", label: "مایگریشن", icon: Database },
   ];
 
   const handleLogout = async () => {
-    await fetch("/api/auth/google/logout", { method: "POST" });
-    window.location.href = "/admin";
+    await fetch("/api/super-admin/logout", { method: "POST" });
+    window.location.href = "/admin/login";
   };
 
   return (
@@ -84,7 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xs">X</span>
+              <Shield className="h-4 w-4 text-primary-foreground" />
             </div>
             <span className="font-semibold text-sm tracking-wider uppercase">پنل مدیریت</span>
           </div>
@@ -102,10 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </Button>
             ))}
             <div className="h-6 w-px bg-border mx-1" />
-            {user?.picture && (
-              <Image src={user.picture} alt="Admin profile" width={28} height={28} className="h-7 w-7 rounded" />
-            )}
-            <span className="text-sm text-muted-foreground">{user?.name}</span>
+            <span className="text-sm text-muted-foreground">{user.name}</span>
             <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-destructive rounded">
               <LogOut className="h-4 w-4" />
             </Button>

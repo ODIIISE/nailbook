@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +11,30 @@ import { toast } from "sonner";
 
 export default function AdminMigratePage() {
   const [step, setStep] = useState<"login" | "run" | "done">("login");
+  const [checking, setChecking] = useState(true);
+
+  // If already logged in as super admin, start on the migration screen
+  useEffect(() => {
+    fetch("/api/super-admin/me")
+      .then((res) => {
+        if (res.ok) {
+          setStep("run");
+        }
+      })
+      .finally(() => setChecking(false));
+  }, []);
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<string[]>([]);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">در حال بارگذاری...</p>
+      </div>
+    );
+  }
 
   const handleLogin = async (pin: string) => {
     setIsLoading(true);
