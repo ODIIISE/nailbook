@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PinInput } from "@/components/booking/pin-input";
 import { AuthCard, AuthCardRoot, AuthError } from "@/components/auth/auth-card";
+import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { useAuth } from "@/lib/auth-context";
 import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
 import { LogIn, User, Smartphone, ArrowRight } from "lucide-react";
@@ -160,6 +161,15 @@ export default function LoginPage() {
                 </div>
                 <PinInput length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
                 <AuthError error={error} />
+                <ResendOtpButton
+                  onResend={async () => {
+                    const result = await sendOtp(normalizeDigits(phone), "customer");
+                    if (!result.success) {
+                      setError(result.error || "خطا در ارسال مجدد کد");
+                    }
+                  }}
+                  disabled={isLoading}
+                />
                 <Button
                   variant="ghost"
                   className="w-full"

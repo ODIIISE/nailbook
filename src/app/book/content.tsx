@@ -15,6 +15,7 @@ import { BookingConfirm } from "@/components/booking/booking-confirm";
 import { TornPaperCard } from "@/components/booking/torn-paper-card";
 import { PinInput } from "@/components/booking/pin-input";
 import { AuthCard, AuthCardRoot, AuthError } from "@/components/auth/auth-card";
+import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { BookingProgress } from "@/components/booking/booking-progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SalonGuard } from "@/components/ui/salon-guard";
@@ -577,6 +578,15 @@ export default function BookContent() {
                   </div>
                   <PinInput length={6} onComplete={handleAuthOtpSubmit} disabled={isAuthLoading} />
                   <AuthError error={authError} />
+                  <ResendOtpButton
+                    onResend={async () => {
+                      const result = await sendOtp(normalizeDigits(authPhone), "customer");
+                      if (!result.success) {
+                        setAuthError(result.error || "خطا در ارسال مجدد کد");
+                      }
+                    }}
+                    disabled={isAuthLoading}
+                  />
                   <Button
                     variant="ghost"
                     className="w-full"

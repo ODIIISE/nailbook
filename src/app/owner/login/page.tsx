@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { ShieldCheck, ArrowRight } from "lucide-react";
 import { PinInput } from "@/components/booking/pin-input";
 import { AuthCard, AuthCardRoot, AuthError } from "@/components/auth/auth-card";
+import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
 
 const SALON_NAME = "استدیو تخصصی ناخن فورهند";
@@ -128,6 +129,24 @@ export default function OwnerLoginPage() {
               </div>
               <PinInput length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
               <AuthError error={error} />
+              <ResendOtpButton
+                onResend={async () => {
+                  try {
+                    const res = await fetch("/api/auth/send-otp", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ phone: normalizeDigits(phone), roleContext: "owner" }),
+                    });
+                    if (!res.ok) {
+                      const data = await res.json().catch(() => ({}));
+                      setError(data.error || "خطا در ارسال مجدد کد");
+                    }
+                  } catch {
+                    setError("خطای سرور");
+                  }
+                }}
+                disabled={isLoading}
+              />
               <Button
                 variant="ghost"
                 className="w-full"

@@ -44,3 +44,7 @@ next-env.d.ts
 # impeccable (design skill)
 .claude/settings.local.json
 .impeccable/
+
+# research / design docs (not needed in production)
+research/
+docs/compose/
