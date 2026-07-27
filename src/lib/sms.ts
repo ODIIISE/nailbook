@@ -3,25 +3,26 @@ export interface SmsProvider {
 }
 
 /**
- * Convert any common Iranian mobile format to the 9xxxxxxxxx format
- * expected by SMS.ir (no country code, no leading 0).
+ * Convert any common Iranian mobile format to the 09xxxxxxxxx format
+ * expected by SMS.ir (no country code, but keep the leading 0).
  * Examples:
- *   +989357149901  -> 9357149901
- *   00989357149901 -> 9357149901
- *   09357149901    -> 9357149901
- *   9357149901     -> 9357149901
+ *   +989357149901  -> 09357149901
+ *   00989357149901 -> 09357149901
+ *   09357149901    -> 09357149901
+ *   9357149901     -> 09357149901
  */
 export function toSmsIrMobile(phone: string): string {
   let cleaned = phone.replace(/\D/g, ""); // strip non-digits
-  if (cleaned.startsWith("0098")) cleaned = cleaned.slice(4);
-  if (cleaned.startsWith("98") && cleaned.length >= 11) cleaned = cleaned.slice(2);
-  if (cleaned.startsWith("0")) cleaned = cleaned.slice(1);
+  if (cleaned.startsWith("0098")) cleaned = "0" + cleaned.slice(4);
+  else if (cleaned.startsWith("98") && cleaned.length >= 11 && cleaned[2] === "9") cleaned = "0" + cleaned.slice(2);
+  else if (cleaned.length === 10 && cleaned.startsWith("9") && !cleaned.startsWith("98")) cleaned = "0" + cleaned;
+  if (!cleaned.startsWith("0")) cleaned = "0" + cleaned;
   return cleaned;
 }
 
 export function isValidSmsIrMobile(phone: string): boolean {
   const cleaned = toSmsIrMobile(phone);
-  return /^9\d{9}$/.test(cleaned);
+  return /^09\d{9}$/.test(cleaned);
 }
 
 class SmsIrProvider implements SmsProvider {
@@ -76,6 +77,8 @@ class SmsIrProvider implements SmsProvider {
         console.error("[SMS] SMS.ir HTTP error:", res.status, text);
         return false;
       }
+
+      console.log("[SMS] SMS.ir response:", data);
 
       // SMS.ir returns status 1 on success
       if (data.status !== 1) {
