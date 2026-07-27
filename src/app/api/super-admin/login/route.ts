@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySuperAdminPin, signSuperAdminSession } from "@/lib/super-admin-auth";
 import { logActivity } from "@/lib/db/activity-log";
+import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-config";
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: SESSION_MAX_AGE_SECONDS,
       path: "/",
     });
 

@@ -6,6 +6,7 @@ import { signCustomerSession } from "@/lib/customer-auth";
 import { signOwnerSession } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
+import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-config";
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
+        maxAge: SESSION_MAX_AGE_SECONDS,
         path: "/",
       });
       return response;
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 30,
+      maxAge: SESSION_MAX_AGE_SECONDS,
       path: "/",
     });
     return response;

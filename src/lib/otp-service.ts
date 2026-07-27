@@ -22,12 +22,6 @@ function generateCode(): string {
   return crypto.randomInt(100000, 1000000).toString();
 }
 
-export function createOtpRecord(phone: string): Promise<OtpRecord> {
-  const code = generateCode();
-  const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS).toISOString();
-  return upsertOtp(phone, code, expiresAt);
-}
-
 export async function upsertOtp(phone: string, code: string, expiresAt: string): Promise<OtpRecord> {
   const { rows } = await sql`
     INSERT INTO otps (phone, code, expires_at, attempts)
@@ -78,13 +72,23 @@ export async function sendOtp(phone: string): Promise<{ success: boolean; code?:
       return { success: false, error: rateCheck.error };
     }
 
-    const otp = await createOtpRecord(phone);
+    const code = generateCode();
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS).toISOString();
     const provider = getSmsProvider();
-    const sent = await provider.sendOTP(phone, otp.code);
+
+    // Run DB write and SMS send in parallel to reduce perceived delay.
+    // The SMS network call is usually the bottleneck; overlapping it with the
+    // DB upsert saves the DB round-trip time.
+    const [otpRecord, sent] = await Promise.all([upsertOtp(phone, code, expiresAt), provider.sendOTP(phone, code)]);
+
+    if (!otpRecord) {
+      return { success: false, error: "خطا در ذخیره‌سازی کد" };
+    }
+
     if (!sent) {
       return { success: false, error: "خطا در ارسال پیامک" };
     }
-    return { success: true, code: otp.code };
+    return { success: true, code };
   } catch (error) {
     console.error("sendOtp error:", error);
     return { success: false, error: "خطای سرور" };

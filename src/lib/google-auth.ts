@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { SESSION_MAX_AGE_MS } from "./session-config";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -82,7 +83,7 @@ export function verifyGoogleSession(cookieValue: string | undefined): { email: s
   }
 
   const age = Date.now() - parseInt(timestamp);
-  if (age > 7 * 24 * 60 * 60 * 1000) return null;
+  if (age > SESSION_MAX_AGE_MS) return null;
 
   if (!isAllowedEmail(email)) return null;
 

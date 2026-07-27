@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { signOwnerSession } from "@/lib/owner-auth";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
+import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-config";
 
 /**
  * Bootstrap the first owner account.
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: SESSION_MAX_AGE_SECONDS,
       path: "/",
     });
 

@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { sql } from "@vercel/postgres";
+import { SESSION_MAX_AGE_MS } from "./session-config";
 
 function getSecretKey(): string {
   const secret = process.env.CUSTOMER_SESSION_SECRET;
@@ -59,7 +60,7 @@ export function verifyCustomerSession(cookieValue: string | undefined): string |
   }
 
   const age = Date.now() - parseInt(timestamp);
-  if (age > 30 * 24 * 60 * 60 * 1000) return null;
+  if (age > SESSION_MAX_AGE_MS) return null;
 
   return userId;
 }
