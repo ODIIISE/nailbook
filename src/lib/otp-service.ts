@@ -79,14 +79,14 @@ export async function sendOtp(phone: string): Promise<{ success: boolean; code?:
     // Run DB write and SMS send in parallel to reduce perceived delay.
     // The SMS network call is usually the bottleneck; overlapping it with the
     // DB upsert saves the DB round-trip time.
-    const [otpRecord, sent] = await Promise.all([upsertOtp(phone, code, expiresAt), provider.sendOTP(phone, code)]);
+    const [otpRecord, smsResult] = await Promise.all([upsertOtp(phone, code, expiresAt), provider.sendOTP(phone, code)]);
 
     if (!otpRecord) {
       return { success: false, error: "خطا در ذخیره‌سازی کد" };
     }
 
-    if (!sent) {
-      return { success: false, error: "خطا در ارسال پیامک" };
+    if (!smsResult.success) {
+      return { success: false, error: smsResult.error || "خطا در ارسال پیامک" };
     }
     return { success: true, code };
   } catch (error) {

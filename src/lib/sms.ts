@@ -1,5 +1,11 @@
+export interface SmsSendResult {
+  success: boolean;
+  error?: string;
+  response?: unknown;
+}
+
 export interface SmsProvider {
-  sendOTP(phone: string, code: string): Promise<boolean>;
+  sendOTP(phone: string, code: string): Promise<SmsSendResult>;
 }
 
 /**
@@ -57,23 +63,19 @@ function getFarazSmsConfig(): FarazSmsConfig | null {
 }
 
 class FarazSmsProvider implements SmsProvider {
-  async sendOTP(phone: string, code: string): Promise<boolean> {
+  async sendOTP(phone: string, code: string): Promise<SmsSendResult> {
     const config = getFarazSmsConfig();
     if (!config) {
       // Fallback to console when credentials are missing so local/dev flows don't crash.
       console.log(`[SMS] OTP for ${phone}: ${code}`);
-      return true;
+      return { success: true };
     }
 
     const mobile = toIranianMobile(phone);
     if (!isValidIranianMobile(mobile)) {
       console.error("[SMS] Invalid Iranian mobile number:", phone);
-      return false;
+      return { success: false, error: "Invalid Iranian mobile number" };
     }
-
-    const timeoutMs = Number(process.env.FARAZSMS_TIMEOUT_MS) || 10000;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const attributes: Record<string, string> = {};
@@ -93,7 +95,6 @@ class FarazSmsProvider implements SmsProvider {
         line_number: payload.line_number,
         patternCode: payload.code,
         patternVar: config.patternVar,
-        timeoutMs,
       });
 
       const response = await fetch("https://api.iranpayamak.com/ws/v1/sms/pattern", {
@@ -104,10 +105,7 @@ class FarazSmsProvider implements SmsProvider {
           "Api-Key": config.apiKey,
         },
         body: JSON.stringify(payload),
-        signal: controller.signal,
       });
-
-      clearTimeout(timer);
 
       const responseText = await response.text();
       let result: Record<string, unknown>;
@@ -123,33 +121,29 @@ class FarazSmsProvider implements SmsProvider {
       // Common success indicators: status === 1, result === "OK", or HTTP 200 with messageId.
       if (!response.ok) {
         console.error("[SMS] FarazSMS/IranPayamak returned HTTP", response.status, responseText);
-        return false;
+        return { success: false, error: `HTTP ${response.status}: ${responseText}` };
       }
 
       const status = result.status ?? result.Status;
       const message = result.message ?? result.Message ?? result.result ?? responseText;
       if (status !== undefined && status !== 1 && status !== "1" && status !== "OK" && status !== 200) {
         console.error("[SMS] FarazSMS/IranPayamak returned non-success status:", status, message);
-        return false;
+        return { success: false, error: `status ${String(status)}: ${message}` };
       }
 
-      return true;
+      return { success: true, response: result };
     } catch (error) {
-      clearTimeout(timer);
-      if (error instanceof Error && error.name === "AbortSignal") {
-        console.error(`[SMS] FarazSMS/IranPayamak request timed out after ${timeoutMs}ms`);
-      } else {
-        console.error("[SMS] Failed to send OTP via FarazSMS:", error);
-      }
-      return false;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("[SMS] Failed to send OTP via FarazSMS:", errorMessage, error);
+      return { success: false, error: errorMessage };
     }
   }
 }
 
 class ConsoleSmsProvider implements SmsProvider {
-  async sendOTP(phone: string, code: string): Promise<boolean> {
+  async sendOTP(phone: string, code: string): Promise<SmsSendResult> {
     console.log(`[SMS] OTP for ${phone}: ${code}`);
-    return true;
+    return { success: true };
   }
 }
 

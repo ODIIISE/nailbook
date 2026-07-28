@@ -40,7 +40,11 @@ export async function POST(request: NextRequest) {
     const result = await sendOtp(normalized);
     if (!result.success) {
       console.error("[send-otp] sendOtp failed:", result.error, { phone: normalized });
-      return NextResponse.json({ error: result.error || "خطا در ارسال پیامک" }, { status: 500 });
+      const debug = process.env.DEBUG_SMS === "true";
+      return NextResponse.json(
+        { error: result.error || "خطا در ارسال پیامک", debug: debug ? { providerError: result.error } : undefined },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ success: true });
