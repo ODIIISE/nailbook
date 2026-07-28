@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Get current booking status
     const { rows: current } = await client.query(
-      `SELECT status, customer_name, customer_phone, date_gregorian, start_time, end_time FROM bookings WHERE id = $1`,
+      `SELECT status, customer_name, customer_phone, date_gregorian, start_time, end_time FROM bookings WHERE id = $1 FOR UPDATE`,
       [bookingId]
     );
     const oldStatus = current[0]?.status || "unknown";
@@ -47,15 +47,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         error: `تغییر وضعیت از ${oldStatus} به ${status} مجاز نیست`,
       }, { status: 400 });
-    }
-
-    // When reopening a cancelled booking, check for conflicts
-    if (oldStatus === "cancelled" && (status === "reserved" || status === "confirmed")) {
+    }    // When reopening a cancelled booking, check for conflicts
+      if (oldStatus === "cancelled" && (status === "reserved" || status === "confirmed")) {
       const booking = current[0];
       const { rows: conflicts } = await client.query(
         `SELECT id FROM bookings
          WHERE date_gregorian = $1::date
-         AND status IN ('reserved', 'confirmed')
+         AND status IN ('reserved', 'confirmed', 'in_progress')
          AND id != $2
          AND start_time < ($3 || ':00')::time
          AND end_time > ($4 || ':00')::time`,

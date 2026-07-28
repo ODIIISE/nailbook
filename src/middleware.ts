@@ -27,7 +27,16 @@ async function verifySessionSignature(cookieValue: string): Promise<boolean> {
     );
 
     const sigBytes = new Uint8Array(signature.match(/.{1,2}/g)!.map((b) => parseInt(b, 16)));
-    return crypto.subtle.verify("HMAC", key, sigBytes, new TextEncoder().encode(payload));
+    const sigValid = await crypto.subtle.verify("HMAC", key, sigBytes, new TextEncoder().encode(payload));
+    if (!sigValid) return false;
+
+    // Check timestamp expiry (second part of payload is always the timestamp)
+    const timestamp = parseInt(parts[1]);
+    if (isNaN(timestamp)) return false;
+    const SESSION_MAX_AGE_MS = 60 * 60 * 24 * 30 * 1000; // 30 days, matches session-config.ts
+    if (Date.now() - timestamp > SESSION_MAX_AGE_MS) return false;
+
+    return true;
   } catch {
     return false;
   }

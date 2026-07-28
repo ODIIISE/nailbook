@@ -76,16 +76,19 @@ export async function sendOtp(phone: string): Promise<{ success: boolean; code?:
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS).toISOString();
     const provider = getSmsProvider();
 
-    // Run DB write and SMS send in parallel to reduce perceived delay.
-    // The SMS network call is usually the bottleneck; overlapping it with the
-    // DB upsert saves the DB round-trip time.
-    const [otpRecord, smsResult] = await Promise.all([upsertOtp(phone, code, expiresAt), provider.sendOTP(phone, code)]);
-
+    // Write OTP to DB first, THEN send SMS.
+    // Previously these ran in parallel via Promise.all, but that caused a bug:
+    // if SMS failed, the OTP record was already written, and the 60s cooldown
+    // blocked retries. Sequential execution fixes this.
+    const otpRecord = await upsertOtp(phone, code, expiresAt);
     if (!otpRecord) {
       return { success: false, error: "خطا در ذخیره‌سازی کد" };
     }
 
+    const smsResult = await provider.sendOTP(phone, code);
     if (!smsResult.success) {
+      // Rollback the OTP record so the cooldown doesn't block retries
+      await deleteOtp(phone).catch(() => {});
       return { success: false, error: smsResult.error || "خطا در ارسال پیامک" };
     }
     return { success: true, code };

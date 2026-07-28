@@ -42,7 +42,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
   const price = calculateBookingPrice(booking, services, addons);
   const startMinutes = parseInt(booking.start_time.split(":")[0]) * 60 + parseInt(booking.start_time.split(":")[1]);
   const endMinutes = parseInt(booking.end_time.split(":")[0]) * 60 + parseInt(booking.end_time.split(":")[1]);
-  const duration = endMinutes - startMinutes;
+  const duration = endMinutes >= startMinutes ? endMinutes - startMinutes : (endMinutes + 24 * 60) - startMinutes;
   const selectedAddons = (booking.selected_addons || []).map((id) => addons.find((a) => a.id === id)).filter(Boolean);
   const statusConfig = ALL_STATUS_OPTIONS.find((s: { value: string }) => s.value === currentStatus) || ALL_STATUS_OPTIONS[0];
   const shortId = `BK-${booking.id.slice(-6).toUpperCase()}`;
