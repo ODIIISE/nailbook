@@ -1,5 +1,3 @@
-import { Smsir } from "sms-typescript";
-
 export interface SmsProvider {
   sendOTP(phone: string, code: string): Promise<boolean>;
 }
@@ -31,43 +29,6 @@ export function isValidIranianMobile(phone: string): boolean {
 export const toSmsIrMobile = toIranianMobile;
 export const isValidSmsIrMobile = isValidIranianMobile;
 
-interface SmsirConfig {
-  client: Smsir;
-  templateId: number;
-}
-
-let cachedSmsirConfig: SmsirConfig | null | undefined;
-
-function getSmsirConfig(): SmsirConfig | null {
-  if (cachedSmsirConfig !== undefined) return cachedSmsirConfig;
-
-  const apiKey = process.env.SMS_IR_API_KEY;
-  const lineNumber = process.env.SMS_IR_LINE_NUMBER;
-  const templateId = process.env.SMS_IR_TEMPLATE_ID;
-
-  if (!apiKey || !lineNumber || !templateId) {
-    cachedSmsirConfig = null;
-    return cachedSmsirConfig;
-  }
-
-  const lineNumberNum = Number(lineNumber);
-  if (!Number.isFinite(lineNumberNum)) {
-    console.error("[SMS] SMS_IR_LINE_NUMBER is not a valid number:", lineNumber);
-    cachedSmsirConfig = null;
-    return cachedSmsirConfig;
-  }
-
-  const templateIdNum = Number(templateId);
-  if (!Number.isFinite(templateIdNum)) {
-    console.error("[SMS] SMS_IR_TEMPLATE_ID is not a valid number:", templateId);
-    cachedSmsirConfig = null;
-    return cachedSmsirConfig;
-  }
-
-  cachedSmsirConfig = { client: new Smsir(apiKey, lineNumberNum), templateId: templateIdNum };
-  return cachedSmsirConfig;
-}
-
 interface FarazSmsConfig {
   apiKey: string;
   lineNumber: string;
@@ -80,9 +41,9 @@ let cachedFarazSmsConfig: FarazSmsConfig | null | undefined;
 function getFarazSmsConfig(): FarazSmsConfig | null {
   if (cachedFarazSmsConfig !== undefined) return cachedFarazSmsConfig;
 
-  const apiKey = process.env.FARAZSMS_API_KEY || process.env.SMS_IR_API_KEY;
-  const lineNumber = process.env.FARAZSMS_LINE_NUMBER || process.env.SMS_IR_LINE_NUMBER;
-  const patternCode = process.env.FARAZSMS_PATTERN_CODE || process.env.SMS_IR_TEMPLATE_ID;
+  const apiKey = process.env.FARAZSMS_API_KEY;
+  const lineNumber = process.env.FARAZSMS_LINE_NUMBER;
+  const patternCode = process.env.FARAZSMS_PATTERN_CODE;
   const patternVar = process.env.FARAZSMS_PATTERN_VAR || "var1";
 
   if (!apiKey || !lineNumber || !patternCode) {
@@ -93,42 +54,6 @@ function getFarazSmsConfig(): FarazSmsConfig | null {
 
   cachedFarazSmsConfig = { apiKey, lineNumber, patternCode, patternVar };
   return cachedFarazSmsConfig;
-}
-
-class SmsIrProvider implements SmsProvider {
-  async sendOTP(phone: string, code: string): Promise<boolean> {
-    const config = getSmsirConfig();
-    if (!config) {
-      console.log(`[SMS] OTP for ${phone}: ${code}`);
-      return true;
-    }
-
-    const mobile = toIranianMobile(phone);
-    if (!isValidIranianMobile(mobile)) {
-      console.error("[SMS] Invalid Iranian mobile number:", phone);
-      return false;
-    }
-
-    try {
-      console.log("[SMS] Sending verify request:", { mobile, templateId: config.templateId, parameters: [{ name: "Code", value: code }] });
-      const result = await config.client.sendVerifyCode(mobile, config.templateId, [{ name: "Code", value: code }]);
-      console.log("[SMS] SMS.ir response:", JSON.stringify(result, null, 2));
-
-      if (result.status !== 1) {
-        console.error("[SMS] SMS.ir returned non-success status:", result.status, result.message);
-        return false;
-      }
-
-      if (result.data?.messageId) {
-        console.log("[SMS] messageId:", result.data.messageId, "cost:", result.data.cost);
-      }
-
-      return true;
-    } catch (error) {
-      console.error("[SMS] Failed to send OTP:", error);
-      return false;
-    }
-  }
 }
 
 class FarazSmsProvider implements SmsProvider {
@@ -231,7 +156,6 @@ class ConsoleSmsProvider implements SmsProvider {
 export function getSmsProvider(): SmsProvider {
   const provider = process.env.SMS_PROVIDER?.toLowerCase();
   if (provider === "console") return new ConsoleSmsProvider();
-  if (provider === "smsir") return new SmsIrProvider();
-  // Default to FarazSMS/IranPayamak for the Iranian market.
+  // Only FarazSMS/IranPayamak is supported now.
   return new FarazSmsProvider();
 }

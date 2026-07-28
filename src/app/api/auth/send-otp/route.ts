@@ -23,9 +23,6 @@ export async function POST(request: NextRequest) {
       farazsmsLineNumberSet: Boolean(process.env.FARAZSMS_LINE_NUMBER),
       farazsmsPatternCodeSet: Boolean(process.env.FARAZSMS_PATTERN_CODE),
       farazsmsPatternVar: process.env.FARAZSMS_PATTERN_VAR || "var1",
-      smsIrApiKeySet: Boolean(process.env.SMS_IR_API_KEY),
-      smsIrLineNumberSet: Boolean(process.env.SMS_IR_LINE_NUMBER),
-      smsIrTemplateIdSet: Boolean(process.env.SMS_IR_TEMPLATE_ID),
       roleContext,
       phone: normalized,
     });
