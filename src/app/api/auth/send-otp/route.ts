@@ -16,6 +16,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "شماره موبایل معتبر نیست" }, { status: 400 });
     }
 
+    // Help diagnose provider configuration in production without exposing secrets.
+    console.log("[send-otp] config check:", {
+      provider: process.env.SMS_PROVIDER || "default (farazsms)",
+      farazsmsApiKeySet: Boolean(process.env.FARAZSMS_API_KEY),
+      farazsmsLineNumberSet: Boolean(process.env.FARAZSMS_LINE_NUMBER),
+      farazsmsPatternCodeSet: Boolean(process.env.FARAZSMS_PATTERN_CODE),
+      farazsmsPatternVar: process.env.FARAZSMS_PATTERN_VAR || "var1",
+      smsIrApiKeySet: Boolean(process.env.SMS_IR_API_KEY),
+      smsIrLineNumberSet: Boolean(process.env.SMS_IR_LINE_NUMBER),
+      smsIrTemplateIdSet: Boolean(process.env.SMS_IR_TEMPLATE_ID),
+      roleContext,
+      phone: normalized,
+    });
+
     // If this is an owner login context, only send OTP to registered owners.
     // Returning an explicit error keeps the user from being trapped on the OTP step
     // waiting for an SMS that will never arrive.
@@ -28,13 +42,14 @@ export async function POST(request: NextRequest) {
 
     const result = await sendOtp(normalized);
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 500 });
+      console.error("[send-otp] sendOtp failed:", result.error, { phone: normalized });
+      return NextResponse.json({ error: result.error || "خطا در ارسال پیامک" }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error("send-otp error:", message, error);
+    console.error("[send-otp] unhandled error:", message, error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

@@ -146,6 +146,10 @@ class FarazSmsProvider implements SmsProvider {
       return false;
     }
 
+    const timeoutMs = Number(process.env.FARAZSMS_TIMEOUT_MS) || 10000;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
       const attributes: Record<string, string> = {};
       attributes[config.patternVar] = code;
@@ -158,7 +162,14 @@ class FarazSmsProvider implements SmsProvider {
         number_format: "english",
       };
 
-      console.log("[SMS] Sending FarazSMS/IranPayamak verify request:", JSON.stringify({ ...payload, attributes: "[redacted]" }, null, 2));
+      console.log("[SMS] Sending FarazSMS/IranPayamak verify request:", {
+        url: "https://api.iranpayamak.com/ws/v1/sms/pattern",
+        recipient: payload.recipient,
+        line_number: payload.line_number,
+        patternCode: payload.code,
+        patternVar: config.patternVar,
+        timeoutMs,
+      });
 
       const response = await fetch("https://api.iranpayamak.com/ws/v1/sms/pattern", {
         method: "POST",
@@ -168,7 +179,10 @@ class FarazSmsProvider implements SmsProvider {
           "Api-Key": config.apiKey,
         },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+
+      clearTimeout(timer);
 
       const responseText = await response.text();
       let result: Record<string, unknown>;
@@ -178,7 +192,7 @@ class FarazSmsProvider implements SmsProvider {
         result = { raw: responseText };
       }
 
-      console.log("[SMS] FarazSMS/IranPayamak response:", JSON.stringify(result, null, 2));
+      console.log("[SMS] FarazSMS/IranPayamak response:", JSON.stringify({ status: response.status, body: result }, null, 2));
 
       // IranPayamak returns 200 with a status code in the body.
       // Common success indicators: status === 1, result === "OK", or HTTP 200 with messageId.
@@ -196,7 +210,12 @@ class FarazSmsProvider implements SmsProvider {
 
       return true;
     } catch (error) {
-      console.error("[SMS] Failed to send OTP via FarazSMS:", error);
+      clearTimeout(timer);
+      if (error instanceof Error && error.name === "AbortSignal") {
+        console.error(`[SMS] FarazSMS/IranPayamak request timed out after ${timeoutMs}ms`);
+      } else {
+        console.error("[SMS] Failed to send OTP via FarazSMS:", error);
+      }
       return false;
     }
   }
