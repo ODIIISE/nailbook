@@ -22,11 +22,12 @@ import type { Booking } from "@/lib/types";
 
 export default function OwnerDashboard() {
   const searchParams = useSearchParams();
-  const { bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
+  const { bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addOwnerBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const selectedBooking = useMemo(() => bookings.find((b) => b.id === selectedBookingId) || null, [bookings, selectedBookingId]);
   const [showEarnings, setShowEarnings] = useState(false);
   const [bookingSearch, setBookingSearch] = useState("");
 
@@ -131,38 +132,8 @@ export default function OwnerDashboard() {
     const service = services.find((s) => s.id === data.service_id);
     const j = gregorianToJalali(currentDate);
 
-    // Check if user exists, if not create a placeholder
-    let userId: string | undefined;
-    try {
-      const checkRes = await fetch("/api/owner/users/check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ phone: data.customer_phone }),
-      });
-      const checkData = await checkRes.json();
-      if (!checkData.exists) {
-        // Create placeholder user with just phone number (no PIN — user sets their own on first login)
-        const createRes = await fetch("/api/owner/users", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            phone: data.customer_phone,
-            name: data.customer_name || "مشتری",
-            role: "customer",
-          }),
-        });
-        const createData = await createRes.json();
-        if (createData.userId) userId = createData.userId;
-      }
-    } catch (e) {
-      console.error("Failed to ensure user:", e);
-    }
-
-    addBooking({
+    const result = await addOwnerBooking({
       id: crypto.randomUUID(),
-      user_id: userId,
       service_id: data.service_id,
       selected_addons: [],
       customer_name: data.customer_name,
@@ -178,7 +149,12 @@ export default function OwnerDashboard() {
       service,
     });
 
-    setShowManualReserve(false);
+    if (result.success) {
+      toast.success("نوبت با موفقیت ثبت شد");
+      setShowManualReserve(false);
+    } else {
+      toast.error(result.error || "خطا در ثبت نوبت");
+    }
   };
 
   return (
@@ -309,7 +285,7 @@ export default function OwnerDashboard() {
         <Timeline
           bookings={dayBookings}
           blockedTimes={dayBlockedTimes}
-          onSelectBooking={setSelectedBooking}
+          onSelectBooking={(booking) => setSelectedBookingId(booking?.id || null)}
           onRemoveBlock={handleRemoveBlock}
           addons={addons}
         />
@@ -348,11 +324,16 @@ export default function OwnerDashboard() {
           onStatusChange={(status) => {
             updateBookingStatus(selectedBooking.id, status);
           }}
-          onDelete={(id) => {
-            cancelBooking(id);
-            setSelectedBooking(null);
+          onDelete={async (id) => {
+            const success = await cancelBooking(id);
+            if (success) {
+              toast.success("نوبت لغو شد");
+            } else {
+              toast.error("خطا در لغو نوبت");
+            }
+            setSelectedBookingId(null);
           }}
-          onClose={() => setSelectedBooking(null)}
+          onClose={() => setSelectedBookingId(null)}
         />
       )}
 

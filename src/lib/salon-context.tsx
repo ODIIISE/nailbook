@@ -15,6 +15,7 @@ import {
   saveServices,
   saveAddons,
   insertBooking,
+  insertOwnerBooking,
   cancelBooking as cancelBookingApi,
   updateWorkingHours as saveWorkingHours,
   fetchWorkingHours,
@@ -44,6 +45,7 @@ interface SalonContextType {
   updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
   updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => void;
   addBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
+  addOwnerBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   cancelBooking: (bookingId: string) => Promise<boolean>;
   refreshBookings: () => Promise<void>;
   refreshSalonData: () => Promise<void>;
@@ -225,6 +227,22 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const handleAddOwnerBooking = useCallback(async (booking: Booking): Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }> => {
+    setBookings((prev) => [...prev, booking]);
+    try {
+      const result = await insertOwnerBooking(booking);
+      setBookings((prev) => prev.map((b) =>
+        b.id === booking.id ? { ...b, id: result.id, start_time: result.start_time, end_time: result.end_time } : b
+      ));
+      return { success: true, id: result.id, start_time: result.start_time, end_time: result.end_time };
+    } catch (e) {
+      devLog("Failed to save owner booking:", e);
+      setBookings((prev) => prev.filter((b) => b.id !== booking.id));
+      const message = e instanceof Error ? e.message : "خطای ناشناخته";
+      return { success: false, error: message };
+    }
+  }, []);
+
   const handleAddBooking = useCallback(async (booking: Booking): Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }> => {
     setBookings((prev) => [...prev, booking]);
     try {
@@ -380,14 +398,15 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       });
       if (!res.ok) {
         setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, paid: !paid } : b)));
+        toast.error("خطا در تغییر وضعیت پرداخت");
       }
     } catch {
       setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, paid: !paid } : b)));
+      toast.error("خطا در تغییر وضعیت پرداخت");
     }
   }, []);
 
   const handleUpdateBookingStatus = useCallback(async (bookingId: string, status: string) => {
-    // Capture original status from ref to avoid stale closure
     let originalStatus: string | undefined;
     setBookings((prev) => {
       const booking = prev.find((b) => b.id === bookingId);
@@ -400,13 +419,18 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId, status }),
       });
-      if (!res.ok && originalStatus) {
-        setBookings((prev2) => prev2.map((b) => (b.id === bookingId ? { ...b, status: originalStatus as Booking["status"] } : b)));
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        if (originalStatus) {
+          setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: originalStatus as Booking["status"] } : b)));
+        }
+        toast.error(body.error || "خطا در تغییر وضعیت");
       }
     } catch {
       if (originalStatus) {
-        setBookings((prev2) => prev2.map((b) => (b.id === bookingId ? { ...b, status: originalStatus as Booking["status"] } : b)));
+        setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: originalStatus as Booking["status"] } : b)));
       }
+      toast.error("خطا در تغییر وضعیت");
     }
   }, []);
 
@@ -430,6 +454,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         updateSalon: async () => {},
         updateBlockedTimes: () => {},
         addBooking: async () => ({ success: false }),
+    addOwnerBooking: async () => ({ success: false }),
         cancelBooking: async () => false,
         refreshBookings: async () => {},
         refreshSalonData: async () => {},
@@ -461,6 +486,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       updateSalon: handleUpdateSalon,
       updateBlockedTimes: handleUpdateBlockedTimes,
       addBooking: handleAddBooking,
+      addOwnerBooking: handleAddOwnerBooking,
       cancelBooking: handleCancelBooking,
       refreshBookings: refreshBookings,
       refreshSalonData: refreshSalonData,
@@ -483,6 +509,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     handleUpdateSalon,
     handleUpdateBlockedTimes,
     handleAddBooking,
+    handleAddOwnerBooking,
     handleCancelBooking,
     refreshBookings,
     refreshSalonData,

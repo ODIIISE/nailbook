@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Check, Trash2, AlertTriangle } from "lucide-react";
 import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
 import { calculateBookingPrice } from "@/lib/pricing";
-import { STATUS_CONFIG } from "@/lib/constants";
+import { STATUS_CONFIG, VALID_TRANSITIONS } from "@/lib/constants";
 import { statusColors, themeColor } from "@/lib/design-tokens";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -22,13 +22,18 @@ interface BookingModalProps {
   onClose: () => void;
 }
 
-const STATUS_OPTIONS: { value: string; label: string; color: string }[] = Object.entries(STATUS_CONFIG).map(
+const ALL_STATUS_OPTIONS: { value: string; label: string; color: string }[] = Object.entries(STATUS_CONFIG).map(
   ([value, { label, color }]) => ({ value, label, color })
 );
 
 export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, onStatusChange, onDelete, onClose }: BookingModalProps) {
-  const [currentStatus, setCurrentStatus] = useState(booking.status);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const currentStatus = booking.status;
+  const allowedTransitions = useMemo(() => VALID_TRANSITIONS[currentStatus] || [], [currentStatus]);
+  const statusOptions = useMemo(
+    () => ALL_STATUS_OPTIONS.filter((opt) => allowedTransitions.includes(opt.value)),
+    [allowedTransitions]
+  );
   const isDark = document.documentElement.classList.contains("dark");
   const t = (l: string, d: string) => themeColor(l, d, isDark);
 
@@ -39,7 +44,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
   const endMinutes = parseInt(booking.end_time.split(":")[0]) * 60 + parseInt(booking.end_time.split(":")[1]);
   const duration = endMinutes - startMinutes;
   const selectedAddons = (booking.selected_addons || []).map((id) => addons.find((a) => a.id === id)).filter(Boolean);
-  const statusConfig = STATUS_OPTIONS.find((s) => s.value === currentStatus) || STATUS_OPTIONS[0];
+  const statusConfig = ALL_STATUS_OPTIONS.find((s: { value: string }) => s.value === currentStatus) || ALL_STATUS_OPTIONS[0];
   const shortId = `BK-${booking.id.slice(-6).toUpperCase()}`;
   const createdAtTime = booking.created_at ? new Date(booking.created_at).toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit", hour12: false }) : "";
 
@@ -153,10 +158,13 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
               <span style={{ color: statusConfig.color }}>{statusConfig.label}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="min-w-[140px]">
-              {STATUS_OPTIONS.map((opt) => (
-                <DropdownMenuItem key={opt.value} onClick={() => { setCurrentStatus(opt.value as typeof currentStatus); onStatusChange(opt.value); }}>
+              {statusOptions.length === 0 ? (
+                <DropdownMenuItem disabled>
+                  <span className="text-muted-foreground text-[11px]">بدون تغییر وضعیت</span>
+                </DropdownMenuItem>
+              ) : statusOptions.map((opt) => (
+                <DropdownMenuItem key={opt.value} onClick={() => onStatusChange(opt.value)}>
                   <span style={{ color: opt.color }}>{opt.label}</span>
-                  {currentStatus === opt.value && <Check className={`h-3.5 w-3.5 ${paidColor} mr-auto`} />}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>

@@ -91,6 +91,30 @@ export async function insertBooking(booking: Booking): Promise<{ id: string; sta
   return { id: body.booking_id, start_time: body.start_time, end_time: body.end_time };
 }
 
+/** Owner manual booking — uses /api/owner/bookings which skips strict customer validation */
+export async function insertOwnerBooking(booking: Booking): Promise<{ id: string; start_time: string; end_time: string }> {
+  const res = await fetch("/api/owner/bookings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      customer_phone: booking.customer_phone,
+      customer_name: booking.customer_name,
+      service_id: booking.service_id,
+      date: booking.date,
+      date_gregorian: booking.date_gregorian,
+      start_time: booking.start_time,
+      end_time: booking.end_time,
+      selected_addons: booking.selected_addons,
+    }),
+  });
+  const body = await res.json();
+  if (!res.ok) {
+    throw new Error(body.error || "Failed to save booking");
+  }
+  return { id: body.booking_id, start_time: body.start_time, end_time: body.end_time };
+}
+
 export async function cancelBooking(bookingId: string) {
   const res = await fetch(`/api/bookings/${bookingId}`, {
     method: "PATCH",
