@@ -1,3 +1,5 @@
+import { FarazSMS, FarazError } from "farazsms";
+
 export interface SmsSendResult {
   success: boolean;
   error?: string;
@@ -43,6 +45,7 @@ interface FarazSmsConfig {
 }
 
 let cachedFarazSmsConfig: FarazSmsConfig | null | undefined;
+let cachedClient: FarazSMS | null | undefined;
 
 function getFarazSmsConfig(): FarazSmsConfig | null {
   if (cachedFarazSmsConfig !== undefined) return cachedFarazSmsConfig;
@@ -62,10 +65,19 @@ function getFarazSmsConfig(): FarazSmsConfig | null {
   return cachedFarazSmsConfig;
 }
 
+function getFarazClient(): FarazSMS | null {
+  if (cachedClient !== undefined) return cachedClient;
+  const config = getFarazSmsConfig();
+  if (!config) { cachedClient = null; return null; }
+  cachedClient = new FarazSMS(config.apiKey);
+  return cachedClient;
+}
+
 class FarazSmsProvider implements SmsProvider {
   async sendOTP(phone: string, code: string): Promise<SmsSendResult> {
     const config = getFarazSmsConfig();
-    if (!config) {
+    const client = getFarazClient();
+    if (!config || !client) {
       // Fallback to console when credentials are missing so local/dev flows don't crash.
       console.log(`[SMS] OTP for ${phone}: ${code}`);
       return { success: true };
@@ -81,60 +93,27 @@ class FarazSmsProvider implements SmsProvider {
       const attributes: Record<string, string> = {};
       attributes[config.patternVar] = code;
 
-      const payload = {
-        code: config.patternCode,
-        attributes,
+      console.log("[SMS] Sending via official FarazSMS SDK:", {
+        patternCode: config.patternCode,
         recipient: mobile,
-        line_number: config.lineNumber,
-        number_format: "english",
-      };
-
-      const bodyString = JSON.stringify(payload);
-      console.log("[SMS] Sending FarazSMS/IranPayamak verify request:", {
-        url: "https://api.iranpayamak.com/ws/v1/sms/pattern",
-        recipient: payload.recipient,
-        line_number: payload.line_number,
-        patternCode: payload.code,
+        lineNumber: config.lineNumber,
         patternVar: config.patternVar,
-        fullBody: bodyString,
       });
 
-      const response = await fetch("https://api.iranpayamak.com/ws/v1/sms/pattern", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          "Api-Key": config.apiKey,
-        },
-        body: bodyString,
-      });
+      const result = await client.sendPattern(
+        config.patternCode,
+        mobile,
+        attributes,
+        config.lineNumber
+      );
 
-      const responseText = await response.text();
-      let result: Record<string, unknown>;
-      try {
-        result = JSON.parse(responseText);
-      } catch {
-        result = { raw: responseText };
-      }
-
-      console.log("[SMS] FarazSMS/IranPayamak response:", JSON.stringify({ status: response.status, body: result }, null, 2));
-
-      // IranPayamak returns 200 with a status code in the body.
-      // Common success indicators: status === 1, result === "OK", or HTTP 200 with messageId.
-      if (!response.ok) {
-        console.error("[SMS] FarazSMS/IranPayamak returned HTTP", response.status, responseText);
-        return { success: false, error: `HTTP ${response.status}: ${responseText}` };
-      }
-
-      const status = result.status ?? result.Status;
-      const message = result.message ?? result.Message ?? result.result ?? responseText;
-      if (status !== undefined && status !== 1 && status !== "1" && status !== "OK" && status !== 200) {
-        console.error("[SMS] FarazSMS/IranPayamak returned non-success status:", status, message);
-        return { success: false, error: `status ${String(status)}: ${message}` };
-      }
-
+      console.log("[SMS] FarazSMS SDK response:", JSON.stringify(result, null, 2));
       return { success: true, response: result };
     } catch (error) {
+      if (error instanceof FarazError) {
+        console.error("[SMS] FarazSMS API error:", error.status, error.body);
+        return { success: false, error: `HTTP ${error.status}: ${JSON.stringify(error.body)}` };
+      }
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error("[SMS] Failed to send OTP via FarazSMS:", errorMessage, error);
       return { success: false, error: errorMessage };
