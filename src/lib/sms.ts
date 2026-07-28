@@ -47,10 +47,10 @@ let cachedFarazSmsConfig: FarazSmsConfig | null | undefined;
 function getFarazSmsConfig(): FarazSmsConfig | null {
   if (cachedFarazSmsConfig !== undefined) return cachedFarazSmsConfig;
 
-  const apiKey = process.env.FARAZSMS_API_KEY;
-  const lineNumber = process.env.FARAZSMS_LINE_NUMBER;
-  const patternCode = process.env.FARAZSMS_PATTERN_CODE;
-  const patternVar = process.env.FARAZSMS_PATTERN_VAR || "var1";
+  const apiKey = process.env.FARAZSMS_API_KEY?.trim();
+  const lineNumber = process.env.FARAZSMS_LINE_NUMBER?.trim();
+  const patternCode = process.env.FARAZSMS_PATTERN_CODE?.trim();
+  const patternVar = (process.env.FARAZSMS_PATTERN_VAR || "var1").trim();
 
   if (!apiKey || !lineNumber || !patternCode) {
     console.warn("[SMS] FARAZSMS_API_KEY, FARAZSMS_LINE_NUMBER, or FARAZSMS_PATTERN_CODE not set; falling back to console OTP");
@@ -89,12 +89,14 @@ class FarazSmsProvider implements SmsProvider {
         number_format: "english",
       };
 
+      const bodyString = JSON.stringify(payload);
       console.log("[SMS] Sending FarazSMS/IranPayamak verify request:", {
         url: "https://api.iranpayamak.com/ws/v1/sms/pattern",
         recipient: payload.recipient,
         line_number: payload.line_number,
         patternCode: payload.code,
         patternVar: config.patternVar,
+        fullBody: bodyString,
       });
 
       const response = await fetch("https://api.iranpayamak.com/ws/v1/sms/pattern", {
@@ -104,7 +106,7 @@ class FarazSmsProvider implements SmsProvider {
           "Content-Type": "application/json",
           "Api-Key": config.apiKey,
         },
-        body: JSON.stringify(payload),
+        body: bodyString,
       });
 
       const responseText = await response.text();
