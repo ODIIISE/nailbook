@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppNavbar } from "@/components/layout/app-navbar";
@@ -177,5 +177,13 @@ export default function HomePage() {
     return <AdminLanding />;
   }
 
-  return <SalonBooking />;
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">در حال بارگذاری...</div>
+      </div>
+    }>
+      <SalonBooking />
+    </Suspense>
+  );
 }

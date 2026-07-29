@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { Suspense, useState, useMemo, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import { calculateEarnings, calculateBookingPrice } from "@/lib/pricing";
 import { toast } from "sonner";
 import type { Booking } from "@/lib/types";
 
-export default function OwnerDashboard() {
+function OwnerDashboardContent() {
   const searchParams = useSearchParams();
   const { bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addOwnerBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -300,5 +300,17 @@ export default function OwnerDashboard() {
       )}
     </>
     </SalonGuard>
+  );
+}
+
+export default function OwnerDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="px-4 py-4 space-y-4">
+        <div className="animate-pulse text-muted-foreground text-center py-8">در حال بارگذاری...</div>
+      </div>
+    }>
+      <OwnerDashboardContent />
+    </Suspense>
   );
 }

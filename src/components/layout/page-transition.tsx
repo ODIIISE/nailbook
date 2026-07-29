@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Directional cross-route page transition.
@@ -19,26 +19,25 @@ import { useEffect, useRef } from "react";
  */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  // previousPathRef is only ever read inside the diffing effect below —
+  // never during render — so a ref is fine here.
   const previousPathRef = useRef<string | null>(null);
-  const lastDirectionRef = useRef<"forward" | "back">("forward");
-  const reducedMotionRef = useRef<boolean>(false);
+  // direction + reduced MUST be state (not refs) so changes re-render.
+  const [direction, setDirection] = useState<"forward" | "back">("forward");
+  const [reduced, setReduced] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => {
-      reducedMotionRef.current = mq.matches;
-    };
+    const update = () => setReduced(mq.matches);
     update();
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
   }, []);
 
   useEffect(() => {
-    // Track direction. Default forward on mount.
-    const handler = () => {
-      lastDirectionRef.current = "back";
-    };
+    // Track direction. popstate = browser back / OS swipe-back.
+    const handler = () => setDirection("back");
     window.addEventListener("popstate", handler);
     return () => window.removeEventListener("popstate", handler);
   }, []);
@@ -46,16 +45,15 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (previousPathRef.current === pathname) return;
     previousPathRef.current = pathname;
-    // After any non-popstate path change, reset direction back to forward so
-    // the NEXT popstate gets correctly identified as the new "back".
-    const t = setTimeout(() => {
-      lastDirectionRef.current = "forward";
-    }, 0);
+    // After any non-popstate path change, reset direction back to forward
+    // so the NEXT popstate gets correctly identified as the new "back".
+    // setTimeout 0 defers past the current commit so the AnimatePresence
+    // exit/enter pair fires with the correct direction first.
+    const t = setTimeout(() => setDirection("forward"), 0);
     return () => clearTimeout(t);
   }, [pathname]);
 
-  const reduced = reducedMotionRef.current;
-  const isForward = lastDirectionRef.current === "forward";
+  const isForward = direction === "forward";
 
   const variants = reduced
     ? {
