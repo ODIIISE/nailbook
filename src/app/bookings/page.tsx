@@ -11,6 +11,7 @@ import { SalonGuard } from "@/components/ui/salon-guard";
 import { Drawer, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle } from "@/components/ui/drawer";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Clock, Calendar, User, ArrowLeft } from "lucide-react";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
 import { formatPrice, gregorianToJalali, toPersianDigits, formatJalaliTime } from "@/lib/jalali";
@@ -126,6 +127,7 @@ export default function BookingsPage() {
       <AppHeader title="نوبت‌های من" />
 
       <div className="px-4 pt-6 pb-24">
+        <PullToRefresh onRefresh={refreshBookings}>
         <div className="mx-auto max-w-lg space-y-6">
           {myBookings.length === 0 ? (
             <div className="text-center py-16">
@@ -191,6 +193,7 @@ export default function BookingsPage() {
             ))
           )}
         </div>
+        </PullToRefresh>
       </div>
 
       {selectedBooking && (

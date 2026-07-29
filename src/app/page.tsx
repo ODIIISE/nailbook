@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { AppNavbar } from "@/components/layout/app-navbar";
 import { Hero } from "@/components/landing/hero";
 import { TrustSignals } from "@/components/landing/trust-signals";
+import { SocialProofPulse } from "@/components/landing/social-proof-pulse";
 import { ContactButtons } from "@/components/landing/contact-buttons";
 import { Highlights } from "@/components/landing/highlights";
 import { HighlightViewer } from "@/components/landing/highlight-viewer";
@@ -114,6 +115,9 @@ function SalonBooking() {
       <div className="relative z-10">
         <AppHeader />
         <Highlights highlights={highlights} onSelect={setViewingHighlight} />
+        <div className="px-4 pt-2">
+          <SocialProofPulse totalBookings={bookings.filter((b) => b.status !== "cancelled").length} />
+        </div>
         <Hero salon={salon} onBookNow={scrollToServices} />
         <div id="services">
           <ServiceCardGrid services={services} isLoading={!loaded} />
