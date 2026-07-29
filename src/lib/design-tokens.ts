@@ -5,19 +5,6 @@
  * Semantic tokens map to CSS variables; palette tokens are fixed.
  */
 
-// ── Semantic (maps to CSS vars via Tailwind) ──
-export const semantic = {
-  // Actions
-  action: {
-    primary: "var(--foreground)",
-    primaryHover: "var(--foreground)",
-    onPrimary: "var(--background)",
-  },
-  // Status
-  success: "var(--success)",
-  destructive: "var(--destructive)",
-} as const;
-
 // ── Timeline Service Palette ──
 // Decorative colors for booking blocks — not used in interactive UI.
 export const servicePalette = [
@@ -49,19 +36,6 @@ export const statusColors = {
   price: { light: "#E65100", dark: "#FF9800" },
   currentLine: { light: "rgba(91,155,213,0.3)", dark: "rgba(91,155,213,0.4)" },
   currentDot: { light: "rgba(91,155,213,0.4)", dark: "rgba(91,155,213,0.5)" },
-} as const;
-
-// ── Chart Colors (admin dashboard) ──
-export const chartColors = {
-  reserved: { light: "#0A0A0A", dark: "#FAFAFA" },
-  confirmed: { light: "#16A34A", dark: "#22C55E" },
-  completed: { light: "#7C3AED", dark: "#A78BFA" },
-  cancelled: { light: "#DC2626", dark: "#EF4444" },
-  bar: { light: "#0A0A0A", dark: "#FAFAFA" },
-  axis: { light: "#A3A3A3", dark: "#525252" },
-  tooltipBg: { light: "#FFFFFF", dark: "#171717" },
-  tooltipBorder: { light: "#E5E5E5", dark: "#262626" },
-  tooltipText: { light: "#0A0A0A", dark: "#FAFAFA" },
 } as const;
 
 // ── Theme-aware helper ──

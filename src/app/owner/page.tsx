@@ -13,13 +13,12 @@ const EarningsModal = dynamic(() => import("@/components/owner/earnings-modal").
 const ManualReserveModal = dynamic(() => import("@/components/owner/manual-reserve-modal").then(m => ({ default: m.ManualReserveModal })));
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { SalonGuard } from "@/components/ui/salon-guard";
-import { ChevronLeft, Plus, CalendarClock, Ban, Banknote, Users, Clock } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey } from "@/lib/time";
 import { calculateEarnings, calculateBookingPrice } from "@/lib/pricing";
 import { toast } from "sonner";
-import type { Booking } from "@/lib/types";
 
 function OwnerDashboardContent() {
   const searchParams = useSearchParams();

@@ -1,3 +1,5 @@
+> ⚠️ **DEPRECATED**: This document describes a paper-blue (#2888d0) design system that no longer reflects the actual implementation. The live app uses a monochromatic Clean Slate theme (#0A0A0A + cool grays). See `src/app/globals.css` and `src/lib/design-tokens.ts` for the source of truth.
+
 ---
 name: NailBook
 description: Persian-first nail salon booking app with paper texture aesthetic

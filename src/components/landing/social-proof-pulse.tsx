@@ -5,18 +5,18 @@ import { Users } from "lucide-react";
 
 interface SocialProofPulseProps {
   totalBookings: number;
+  pollInterval?: number;
 }
 
 /**
- * Subtle social-proof badge that shows how many bookings have been made.
- * Pulses gently on mount, then settles. Polls nothing — relies on the
- * parent's already-polled `totalBookings` prop for live updates.
- *
+ * Social-proof badge that polls /api/social-proof for live booking count.
+ * Falls back to the static `totalBookings` prop if the API is unreachable.
  * Respects prefers-reduced-motion: skips the pulse, shows static count.
  */
-export function SocialProofPulse({ totalBookings }: SocialProofPulseProps) {
+export function SocialProofPulse({ totalBookings: initialCount, pollInterval = 60000 }: SocialProofPulseProps) {
+  const [count, setCount] = useState(initialCount);
   const [visible, setVisible] = useState(false);
-  const prevCount = useRef(totalBookings);
+  const prevCount = useRef(initialCount);
   const [flash, setFlash] = useState(false);
 
   useEffect(() => {
@@ -24,18 +24,38 @@ export function SocialProofPulse({ totalBookings }: SocialProofPulseProps) {
     return () => clearTimeout(t);
   }, []);
 
+  // Poll /api/social-proof for live data
+  useEffect(() => {
+    let active = true;
+    const poll = async () => {
+      try {
+        const res = await fetch("/api/social-proof", { next: { revalidate: 60 } } as RequestInit);
+        if (!active || !res.ok) return;
+        const data = await res.json();
+        if (data.totalBookings !== undefined) {
+          setCount(data.totalBookings);
+        }
+      } catch {
+        // silently fall back to prop value
+      }
+    };
+    poll();
+    const interval = setInterval(poll, pollInterval);
+    return () => { active = false; clearInterval(interval); };
+  }, [pollInterval]);
+
   // Flash when count increases
   useEffect(() => {
-    if (totalBookings > prevCount.current) {
+    if (count > prevCount.current) {
       setFlash(true);
       const t = setTimeout(() => setFlash(false), 1200);
-      prevCount.current = totalBookings;
+      prevCount.current = count;
       return () => clearTimeout(t);
     }
-    prevCount.current = totalBookings;
-  }, [totalBookings]);
+    prevCount.current = count;
+  }, [count]);
 
-  if (totalBookings === 0) return null;
+  if (count === 0) return null;
 
   return (
     <div
@@ -54,7 +74,7 @@ export function SocialProofPulse({ totalBookings }: SocialProofPulseProps) {
           <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
         </span>
         <Users className="h-3 w-3" />
-        <span>{totalBookings.toLocaleString("fa-IR")} نوبت ثبت شده</span>
+        <span>{count.toLocaleString("fa-IR")} نوبت ثبت شده</span>
       </div>
     </div>
   );
