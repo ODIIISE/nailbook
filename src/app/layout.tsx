@@ -36,6 +36,13 @@ export default function RootLayout({
     >
       <head>
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+        {/* Pre-hydration theme bootstrap: prevents flash of wrong theme when user has persisted dark mode. Must run before React mounts. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var t=localStorage.getItem('nailbook-theme');var mq=window.matchMedia('(prefers-color-scheme: dark)').matches;var d=t==='dark'||(t==null&&mq);if(d)document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');}catch(e){}})();",
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col">
         <SplashScreen />

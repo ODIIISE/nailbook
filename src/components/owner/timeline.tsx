@@ -7,6 +7,7 @@ import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
 import { STATUS_CONFIG } from "@/lib/constants";
 import { servicePalette, statusColors, themeColor } from "@/lib/design-tokens";
+import { useIsDark } from "@/lib/hooks/use-is-dark";
 import type { Booking, Service, Addon } from "@/lib/types";
 
 interface BlockedTime {
@@ -100,7 +101,7 @@ export function Timeline({
   const [confirmRemoveIndex, setConfirmRemoveIndex] = useState<number | null>(null);
   const totalHours = endHour - startHour;
   const totalHeight = totalHours * HOUR_HEIGHT;
-  const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+  const isDark = useIsDark();
 
   const hourMarks = useMemo(
     () => Array.from({ length: totalHours + 1 }, (_, i) => startHour + i),

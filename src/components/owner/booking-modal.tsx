@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Check, Trash2, AlertTriangle } from "lucide-react";
+import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Trash2, AlertTriangle } from "lucide-react";
 import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
 import { calculateBookingPrice } from "@/lib/pricing";
 import { STATUS_CONFIG, VALID_TRANSITIONS } from "@/lib/constants";
 import { statusColors, themeColor } from "@/lib/design-tokens";
+import { useIsDark } from "@/lib/hooks/use-is-dark";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -34,7 +35,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
     () => ALL_STATUS_OPTIONS.filter((opt) => allowedTransitions.includes(opt.value)),
     [allowedTransitions]
   );
-  const isDark = document.documentElement.classList.contains("dark");
+  const isDark = useIsDark();
   const t = (l: string, d: string) => themeColor(l, d, isDark);
 
   const jalali = gregorianToJalali(new Date(booking.date_gregorian));

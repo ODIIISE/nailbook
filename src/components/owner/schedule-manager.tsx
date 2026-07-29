@@ -225,7 +225,10 @@ export function ScheduleManager({
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
-    // Sync local form state with fresh prop data when the parent re-fetches.
+    // Don't wipe local edits when the parent re-fetches props.
+    // The user must explicitly Save (which round-trips new props) or Discard
+    // (TODO: wire up a discard button) before a re-fetch can reset the form.
+    if (hasChanges) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setHours({ ...workingHours });
     setDaysOff([...specificDaysOff]);
@@ -238,7 +241,7 @@ export function ScheduleManager({
     setSlotInterval(initialInterval);
     setSlotBuffer(initialBuffer);
     setHasChanges(false);
-  }, [workingHours, specificDaysOff, initialEarly, initialLate, initialThreshold, initialProximity, initialOverflow, initialOverflowMinutes, initialInterval, initialBuffer]);
+  }, [workingHours, specificDaysOff, initialEarly, initialLate, initialThreshold, initialProximity, initialOverflow, initialOverflowMinutes, initialInterval, initialBuffer, hasChanges]);
 
   const markChanged = () => setHasChanges(true);
 
