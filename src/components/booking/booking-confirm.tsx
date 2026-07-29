@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Check, CalendarDays, Sparkles, Share2, MessageCircle, Copy, Repeat } from "lucide-react";
+import { Check, CalendarDays, Sparkles, Share2, MessageCircle, Copy, Repeat, Image as ImageIcon, Loader2 } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { TornPaperCard } from "./torn-paper-card";
 import { getTehranDateKey } from "@/lib/time";
@@ -125,6 +125,45 @@ export function BookingConfirm({
     window.open(`https://wa.me/?text=${encoded}`, "_blank", "noopener,noreferrer");
   };
 
+  const receiptRef = useRef<HTMLDivElement>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+
+  const handleShareImage = useCallback(async () => {
+    if (!receiptRef.current || isCapturing) return;
+    haptic.tap();
+    setIsCapturing(true);
+    try {
+      const { toBlob } = await import("html-to-image");
+      const blob = await toBlob(receiptRef.current, {
+        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--background").trim() || "#fafafa",
+        pixelRatio: 2,
+        cacheBust: true,
+      });
+      if (!blob) return;
+
+      const file = new File([blob], `receipt-${shortId}.png`, { type: "image/png" });
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], text: shareText });
+      } else {
+        // Fallback: download
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `receipt-${shortId}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success("تصویر رسید دانلود شد");
+      }
+    } catch {
+      toast.error("خطا در ایجاد تصویر");
+    } finally {
+      setIsCapturing(false);
+    }
+  }, [isCapturing, shortId, shareText]);
+
   const handleRebook = () => {
     haptic.tap();
     router.push("/");
@@ -132,6 +171,7 @@ export function BookingConfirm({
 
   return (
     <div className="mx-auto max-w-lg animate-scale">
+      <div ref={receiptRef}>
       <TornPaperCard>
         <div className="px-5 py-4">
           <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.025] mix-blend-multiply" style={{
@@ -194,6 +234,7 @@ export function BookingConfirm({
           </div>
         </div>
       </TornPaperCard>
+      </div>
 
       <div className="grid grid-cols-2 gap-2 mt-3">
         <Button size="xl" variant="paper" className="w-full" onClick={handleAddToGoogleCalendar}>
@@ -217,10 +258,16 @@ export function BookingConfirm({
         </Button>
       </div>
 
-      <Button size="xl" variant="secondary" className="w-full mt-2" onClick={handleRebook}>
-        <Repeat className="h-4 w-4 ml-2" />
-        رزرو مجدد
-      </Button>
+      <div className="grid grid-cols-2 gap-2 mt-2">
+        <Button size="xl" variant="paper" className="w-full" onClick={handleShareImage} disabled={isCapturing}>
+          {isCapturing ? <Loader2 className="h-4 w-4 ml-2 animate-spin" /> : <ImageIcon className="h-4 w-4 ml-2" />}
+          {isCapturing ? "در حال ایجاد..." : "اشتراک تصویری"}
+        </Button>
+        <Button size="xl" variant="secondary" className="w-full" onClick={handleRebook}>
+          <Repeat className="h-4 w-4 ml-2" />
+          رزرو مجدد
+        </Button>
+      </div>
     </div>
   );
 }

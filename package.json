@@ -23,6 +23,7 @@
     "date-fns": "^4.4.0",
     "farazsms": "^1.1.0",
     "framer-motion": "^12.42.2",
+    "html-to-image": "^1.11.13",
     "jalaali-js": "^2.0.0",
     "lucide-react": "^1.24.0",
     "next": "^16.2.10",

@@ -78,5 +78,6 @@ export interface Highlight {
   name: string;
   cover_url: string | null;
   sort_order: number;
+  service_id?: string | null;
   images: HighlightImage[];
 }

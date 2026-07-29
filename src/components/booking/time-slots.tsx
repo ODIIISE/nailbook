@@ -11,9 +11,10 @@ interface TimeSlotsProps {
   selectedSlot: string | null;
   onSelectSlot: (time: string) => void;
   onGoToNextDay?: () => void;
+  onJoinWaitlist?: () => void;
 }
 
-export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextDay }: TimeSlotsProps) {
+export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextDay, onJoinWaitlist }: TimeSlotsProps) {
   if (!date) {
     return (
       <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center">
@@ -36,15 +37,25 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
         <p className="text-[15px] font-bold text-foreground mb-1">ساعتی برای این روز موجود نیست</p>
         <p className="text-[13px] text-muted-foreground mb-4">لطفاً تاریخ دیگری انتخاب کنید</p>
 
-        {onGoToNextDay && (
-          <button
-            onClick={onGoToNextDay}
-            className="mt-2 w-full h-11 rounded-full bg-foreground text-background text-[13px] font-bold hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-foreground/30"
-          >
-            برو به روز بعد
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-        )}
+        <div className="flex flex-col gap-2">
+          {onGoToNextDay && (
+            <button
+              onClick={onGoToNextDay}
+              className="w-full h-11 rounded-full bg-foreground text-background text-[13px] font-bold hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-foreground/30"
+            >
+              برو به روز بعد
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
+          {onJoinWaitlist && (
+            <button
+              onClick={onJoinWaitlist}
+              className="w-full h-11 rounded-full bg-primary/10 text-primary text-[13px] font-bold hover:bg-primary/15 transition-colors flex items-center justify-center gap-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/30"
+            >
+              به من اطلاع بده
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -53,6 +64,25 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
   const otherSlots = availableSlots.filter((s) => !s.suggested);
   const nextAvailable = availableSlots.length > 0 ? availableSlots[0] : null;
   const remainingSlots = availableSlots.length;
+
+  // All slots booked — show waitlist CTA
+  if (availableSlots.length === 0 && slots.length > 0 && onJoinWaitlist) {
+    return (
+      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center">
+        <div className="w-14 h-14 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-3">
+          <Ban className="h-6 w-6 text-primary/50" />
+        </div>
+        <p className="text-[15px] font-bold text-foreground mb-1">همه ساعت‌ها رزرو شده</p>
+        <p className="text-[13px] text-muted-foreground mb-4">اگر نوبت خالی شد، به شما اطلاع می‌دهیم</p>
+        <button
+          onClick={() => { haptic.tap(); onJoinWaitlist(); }}
+          className="w-full h-11 rounded-full bg-primary/10 text-primary text-[13px] font-bold hover:bg-primary/15 transition-colors flex items-center justify-center gap-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/30"
+        >
+          به من اطلاع بده
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-lg space-y-4">

@@ -1,18 +1,22 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, CalendarCheck } from "lucide-react";
+import { haptic } from "@/lib/haptics";
 import type { Highlight } from "@/lib/types";
 
 interface HighlightViewerProps {
   highlight: Highlight;
   onClose: () => void;
+  serviceName?: string;
 }
 
 const AUTO_ADVANCE_MS = 10000;
 
-export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
+export function HighlightViewer({ highlight, onClose, serviceName }: HighlightViewerProps) {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [progressPct, setProgressPct] = useState(0);
@@ -238,8 +242,22 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
         </button>
       )}
 
-      {/* Highlight name */}
-      <div className="absolute bottom-6 left-0 right-0 z-20 text-center">
+      {/* Highlight name + bookable CTA */}
+      <div className="absolute bottom-6 left-0 right-0 z-20 flex flex-col items-center gap-3">
+        {highlight.service_id && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              haptic.tap();
+              onClose();
+              router.push(`/book?service=${highlight.service_id}`);
+            }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black text-[13px] font-bold shadow-lg active:scale-[0.97] transition-transform"
+          >
+            <CalendarCheck className="h-4 w-4" />
+            رزرو {serviceName || "این خدمت"}
+          </button>
+        )}
         <span className="text-white text-sm font-medium bg-black/30 px-3 py-1 rounded-full">
           {highlight.name} · {currentIndex + 1}/{total}
         </span>
