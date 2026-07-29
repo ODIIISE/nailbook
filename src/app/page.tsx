@@ -130,7 +130,7 @@ function SalonBooking() {
         {/* Sticky Book-Now FAB on mobile */}
         <button
           onClick={scrollToServices}
-          className="fixed bottom-20 right-4 z-40 md:hidden h-12 px-4 rounded-full bg-foreground text-background shadow-lg flex items-center gap-2 text-sm font-bold active:scale-95 transition-transform focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2"
+          className="fixed bottom-20 right-4 z-40 md:hidden h-12 px-4 rounded-full bg-foreground text-background shadow-elevated flex items-center gap-2 text-sm font-bold press-feedback transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card"
           aria-label="رزرو نوبت"
         >
           <Calendar className="h-4 w-4" />
