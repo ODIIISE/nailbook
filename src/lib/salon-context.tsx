@@ -71,6 +71,38 @@ const DEFAULT_WORKING_HOURS: WorkingHours = {
   fri: null,
 };
 
+const EMPTY_SALON_CONTEXT: SalonContextType = {
+  salon: { id: "", name: "", description: "", slogan: "", phone: "", address: "", hero_image_url: null, logo_url: null, splash_title: "Forehand Nail", splash_slogan: "Nail Art Studio", splash_logo_url: null, working_hours_text: "", working_hours: DEFAULT_WORKING_HOURS, slot_buffer_minutes: 15, slot_interval_minutes: 15, early_extra_hours: 0, late_extra_hours: 0, expand_threshold: 80, proximity_window_hours: 2, allow_overflow: false, overflow_minutes: 0 },
+  workingHours: DEFAULT_WORKING_HOURS,
+  specificDaysOff: [],
+  services: [],
+  addons: [],
+  bookings: [],
+  highlights: [],
+  blockedTimes: [],
+  loaded: false,
+  updateWorkingHours: async () => {},
+  updateSpecificDaysOff: async () => {},
+  saveSchedule: async () => {},
+  updateServices: async () => null,
+  updateAddons: async () => null,
+  updateSalon: async () => {},
+  updateBlockedTimes: () => {},
+  addBooking: async () => ({ success: false }),
+  addOwnerBooking: async () => ({ success: false }),
+  cancelBooking: async () => false,
+  refreshBookings: async () => {},
+  refreshSalonData: async () => {},
+  addHighlight: async () => {},
+  updateHighlight: async () => {},
+  removeHighlight: async () => {},
+  addHighlightImage: async () => {},
+  removeHighlightImage: async () => {},
+  uploadHighlightImage: async () => null,
+  toggleBookingPaid: async () => {},
+  updateBookingStatus: async () => {},
+};
+
 export function SalonProvider({ children }: { children: ReactNode }) {
   const [salon, setSalon] = useState<SalonInfo | null>(null);
   const [workingHours, setWorkingHours] = useState<WorkingHours>(DEFAULT_WORKING_HOURS);
@@ -436,37 +468,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<SalonContextType>(() => {
     if (!loaded || !salon) {
-      return {
-        salon: { id: "", name: "", description: "", slogan: "", phone: "", address: "", hero_image_url: null, logo_url: null, splash_title: "Forehand Nail", splash_slogan: "Nail Art Studio", splash_logo_url: null, working_hours_text: "", working_hours: DEFAULT_WORKING_HOURS, slot_buffer_minutes: 15, slot_interval_minutes: 15, early_extra_hours: 0, late_extra_hours: 0, expand_threshold: 80, proximity_window_hours: 2, allow_overflow: false, overflow_minutes: 0 },
-        workingHours: DEFAULT_WORKING_HOURS,
-        specificDaysOff: [],
-        services: [],
-        addons: [],
-        bookings: [],
-        highlights: [],
-        blockedTimes: [],
-        loaded: false,
-        updateWorkingHours: async () => {},
-        updateSpecificDaysOff: async () => {},
-        saveSchedule: async () => {},
-        updateServices: async () => null,
-        updateAddons: async () => null,
-        updateSalon: async () => {},
-        updateBlockedTimes: () => {},
-        addBooking: async () => ({ success: false }),
-    addOwnerBooking: async () => ({ success: false }),
-        cancelBooking: async () => false,
-        refreshBookings: async () => {},
-        refreshSalonData: async () => {},
-        addHighlight: async () => {},
-        updateHighlight: async () => {},
-        removeHighlight: async () => {},
-        addHighlightImage: async () => {},
-        removeHighlightImage: async () => {},
-        uploadHighlightImage: async () => null,
-        toggleBookingPaid: async () => {},
-        updateBookingStatus: async () => {},
-      };
+      return EMPTY_SALON_CONTEXT;
     }
     return {
       salon,
@@ -530,8 +532,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useSalon() {
+export function useSalon(): SalonContextType {
   const ctx = useContext(SalonContext);
-  if (!ctx) throw new Error("useSalon must be used within SalonProvider");
-  return ctx;
+  // Return the empty fallback rather than throwing. Some routes are prerendered at build
+  // time without the SalonProvider mounted; the consumer sees loaded=false / empty arrays,
+  // which renders the same loading / empty state as a fresh client without data.
+  return ctx ?? EMPTY_SALON_CONTEXT;
 }
