@@ -29,7 +29,7 @@ export function SocialProofPulse({ totalBookings: initialCount, pollInterval = 6
     let active = true;
     const poll = async () => {
       try {
-        const res = await fetch("/api/social-proof", { next: { revalidate: 60 } } as RequestInit);
+        const res = await fetch("/api/social-proof");
         if (!active || !res.ok) return;
         const data = await res.json();
         if (data.totalBookings !== undefined) {
