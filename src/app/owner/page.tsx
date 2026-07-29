@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Timeline } from "@/components/owner/timeline";
 import { BlockTimeModal } from "@/components/owner/block-time-modal";
 import { BookingModal } from "@/components/owner/booking-modal";
@@ -12,7 +11,7 @@ import { EarningsModal } from "@/components/owner/earnings-modal";
 import { ManualReserveModal } from "@/components/owner/manual-reserve-modal";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { SalonGuard } from "@/components/ui/salon-guard";
-import { ChevronLeft, Plus, Search, CalendarClock, Ban, Banknote, Users, Clock } from "lucide-react";
+import { ChevronLeft, Plus, CalendarClock, Ban, Banknote, Users, Clock } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey } from "@/lib/time";
@@ -29,7 +28,6 @@ export default function OwnerDashboard() {
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const selectedBooking = useMemo(() => bookings.find((b) => b.id === selectedBookingId) || null, [bookings, selectedBookingId]);
   const [showEarnings, setShowEarnings] = useState(false);
-  const [bookingSearch, setBookingSearch] = useState("");
 
   // Show welcome toast on first login (use ref to prevent re-trigger)
   const welcomeShown = useRef(false);
@@ -70,19 +68,13 @@ export default function OwnerDashboard() {
     return bookings
       .filter((b) => {
         const bookingDate = b.date_gregorian.split("T")[0];
-        if (bookingDate !== dateStr || b.status === "cancelled") return false;
-        if (!bookingSearch) return true;
-        const q = bookingSearch.toLowerCase();
-        return (
-          b.customer_name.toLowerCase().includes(q) ||
-          b.customer_phone.includes(q)
-        );
+        return bookingDate === dateStr && b.status !== "cancelled";
       })
       .map((b) => ({
         ...b,
         service: services.find((s) => s.id === b.service_id),
       }));
-  }, [currentDate, bookings, services, bookingSearch]);
+  }, [currentDate, bookings, services]);
 
   const dayBlockedTimes = useMemo(() => {
     const dateStr = getTehranDateKey(currentDate);
@@ -180,103 +172,63 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* Search bookings */}
-        <div className="relative">
-          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={bookingSearch}
-            onChange={(e) => setBookingSearch(e.target.value)}
-            placeholder="جستجوی نام یا شماره مشتری..."
-            className="ps-10"
-          />
-        </div>
-
-        {/* Quick stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <Card className="p-3 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Users className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-[11px] text-muted-foreground">نوبت‌های امروز</p>
-              <p className="text-[17px] font-bold text-foreground">{toPersianDigits(todayStats.count)}</p>
-            </div>
-          </Card>
-          <Card className="p-3 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
-              <Banknote className="h-5 w-5 text-success" />
-            </div>
-            <div>
-              <p className="text-[11px] text-muted-foreground">درآمد امروز</p>
-              <p className="text-[15px] font-bold text-foreground">{formatPrice(todayStats.revenue)}</p>
-            </div>
-          </Card>
-          <Card className="p-3 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
-              <Clock className="h-5 w-5 text-destructive" />
-            </div>
-            <div>
-              <p className="text-[11px] text-muted-foreground">پرداخت نشده</p>
-              <p className="text-[17px] font-bold text-foreground">{toPersianDigits(todayStats.unpaidCount)}</p>
-            </div>
-          </Card>
-          <Card className="p-3 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
-              <CalendarClock className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[11px] text-muted-foreground">نوبت بعدی</p>
-              <p className="text-[13px] font-bold text-foreground truncate">
-                {todayStats.nextBooking ? todayStats.nextBooking.start_time.slice(0, 5) : "—"}
-              </p>
-            </div>
-          </Card>
-        </div>
-
-        {/* Quick actions */}
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            variant="outline"
-            className="w-full h-12 rounded-xl border-border bg-card hover:bg-muted"
-            onClick={() => setShowManualReserve(true)}
-          >
-            <Plus className="h-4 w-4 ms-1.5" />
-            رزرو دستی
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full h-12 rounded-xl border-border bg-card hover:bg-muted"
-            onClick={() => setShowBlockTime(true)}
-          >
-            <Ban className="h-4 w-4 ms-1.5" />
-            مسدود کردن زمان
-          </Button>
-        </div>
-
-        <Card className="p-4">
+        {/* Today overview: revenue + count + next appointment, all in one compact strip. */}
+        <Card className="p-4 surface-interactive">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[13px] font-bold text-foreground">حساب امروز</span>
-            <Button variant="ghost" size="icon-sm" onClick={() => setShowEarnings(true)}>
-              <ChevronLeft className="h-4 w-4" />
+            <h2 className="text-[13px] font-bold text-foreground">نمای کلی امروز</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowEarnings(true)}
+              className="gap-1 px-2 h-7 text-muted-foreground hover:text-foreground"
+              aria-label="مشاهده جزئیات درآمد"
+            >
+              <span className="text-[12px]">جزئیات درآمد</span>
+              <ChevronLeft className="h-3.5 w-3.5" />
             </Button>
           </div>
+
           <div className="grid grid-cols-3 gap-3">
-            <div className="text-center">
-              <p className="text-[13px] text-muted-foreground">پرداخت شده</p>
-              <p className="text-[15px] font-bold text-success">
+            {/* Revenue (lead KPI) */}
+            <div className="space-y-0.5 text-start">
+              <p className="text-[11px] text-muted-foreground font-medium">درآمد</p>
+              <p dir="ltr" className="text-[20px] font-extrabold text-foreground tabular-nums tracking-tight leading-none">
                 {formatPrice(accounting.paid)}
-              </p>
+  </p>
+              {accounting.unpaid > 0 ? (
+                <p className="text-[10px] text-destructive font-semibold mt-0.5">
+                  {toPersianDigits(formatPrice(accounting.unpaid))} طلب
+                </p>
+              ) : (
+                <p className="text-[10px] text-muted-foreground mt-0.5">تسویه شده</p>
+              )}
             </div>
-            <div className="text-center">
-              <p className="text-[13px] text-muted-foreground">پرداخت نشده</p>
-              <p className="text-[15px] font-bold text-destructive">
-                {formatPrice(accounting.unpaid)}
-              </p>
+
+            {/* Bookings count */}
+            <div className="space-y-0.5 text-start border-x border-border px-3">
+              <p className="text-[11px] text-muted-foreground font-medium">نوبت</p>
+              <p dir="ltr" className="text-[20px] font-extrabold text-foreground tabular-nums tracking-tight leading-none">
+                {toPersianDigits(todayStats.count)}
+  </p>
+              {todayStats.unpaidCount > 0 ? (
+                <p className="text-[10px] text-destructive font-semibold mt-0.5">
+                  {toPersianDigits(todayStats.unpaidCount)} پرداخت نشده
+                </p>
+              ) : (
+                <p className="text-[10px] text-muted-foreground mt-0.5">پرداخت‌ها کامل</p>
+              )}
             </div>
-            <div className="text-center">
-              <p className="text-[13px] text-muted-foreground">کل</p>
-              <p className="text-[15px] font-bold text-foreground">
-                {formatPrice(accounting.total)}
+
+            {/* Next appointment */}
+            <div className="space-y-0.5 text-start">
+              <p className="text-[11px] text-muted-foreground font-medium">نوبت بعدی</p>
+              <p dir="ltr" className="text-[20px] font-extrabold text-foreground tabular-nums tracking-tight leading-none">
+                {todayStats.nextBooking
+                  ? toPersianDigits(todayStats.nextBooking.start_time.slice(0, 5))
+                  : "—"}
+  </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-full">
+                {todayStats.nextBooking?.customer_name || "خالی"}
               </p>
             </div>
           </div>
