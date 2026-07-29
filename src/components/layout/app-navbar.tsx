@@ -1,7 +1,9 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useMenu } from "./menu-context";
+import { haptic } from "@/lib/haptics";
 
 // Customer icons — outline (default) + solid (active)
 import { HomeIcon as HomeOutline } from "@heroicons/react/24/outline";
@@ -48,7 +50,6 @@ const defaultOwnerItems: NavItem[] = [
 
 export function AppNavbar({ items }: AppNavbarProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const { openMenu } = useMenu();
 
   const isOwner = pathname.startsWith("/owner");
@@ -57,16 +58,19 @@ export function AppNavbar({ items }: AppNavbarProps) {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-20 bg-background/85 backdrop-blur-2xl border-t border-border shadow-floating"
-      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      style={{
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}
     >
       <div className="mx-auto max-w-lg flex items-stretch">
         {navItems.map(({ path, icon: OutlineIcon, activeIcon: SolidIcon, label }) => {
           const active = pathname === path;
           const Icon = active ? SolidIcon : OutlineIcon;
           return (
-            <button
+            <Link
               key={path}
-              onClick={() => router.push(path)}
+              href={path}
+              onClick={() => haptic.tap()}
               aria-current={active ? "page" : undefined}
               className={`relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] transition-all duration-200 press-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-card rounded-md ${
                 active ? "text-primary" : "text-muted-foreground hover:text-foreground"
@@ -87,12 +91,15 @@ export function AppNavbar({ items }: AppNavbarProps) {
               >
                 {label}
               </span>
-            </button>
+            </Link>
           );
         })}
 
         <button
-          onClick={openMenu}
+          onClick={() => {
+            haptic.tap();
+            openMenu();
+          }}
           aria-label="منو"
           className="relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] transition-colors duration-200 text-muted-foreground hover:text-foreground press-feedback rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >

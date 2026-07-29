@@ -2,6 +2,7 @@
 
 import { Clock, Ban, Sparkles, ChevronLeft } from "lucide-react";
 import { toPersianDigits } from "@/lib/jalali";
+import { haptic } from "@/lib/haptics";
 import type { TimeSlot } from "@/lib/slots";
 
 interface TimeSlotsProps {
@@ -75,7 +76,19 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
       {nextAvailable && (
         <div
           className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/10 cursor-pointer active:scale-[0.99] transition-transform"
-          onClick={() => onSelectSlot(nextAvailable.time)}
+          role="button"
+          tabIndex={0}
+          onClick={() => {
+            haptic.tap();
+            onSelectSlot(nextAvailable.time);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              haptic.tap();
+              onSelectSlot(nextAvailable.time);
+            }
+          }}
         >
           <div>
             <p className="text-[12px] font-bold text-primary">نزدیک‌ترین ساعت آزاد</p>
@@ -190,7 +203,11 @@ function SlotButton({
   return (
     <button
       disabled={!slot.available}
-      onClick={onSelect}
+      onClick={() => {
+        if (!slot.available) return;
+        haptic.tap();
+        onSelect();
+      }}
       aria-label={`${formattedTime} ${slot.available ? "موجود" : slot.booked ? "رزرو شده" : slot.locked ? "مسدود" : "غیرقابل رزرو"}`}
       className="h-[48px] min-h-[44px] rounded-xl text-[13px] font-bold transition-all duration-200 select-none relative overflow-hidden focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
       style={{

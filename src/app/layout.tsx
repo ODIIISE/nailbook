@@ -19,7 +19,13 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: "#000000",
+  // Two theme-colors: Next 15+ maps `themeColor` as the light-mode default
+  // and accepts a media array so Safari/Chrome pick the right one without
+  // needing a hand-rolled <meta> in <head>.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
   viewportFit: "cover",
 };
 
@@ -36,6 +42,14 @@ export default function RootLayout({
     >
       <head>
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+        {/* Native PWA shell: hides Safari/Chrome URL bar and lets the status
+            bar blend into the header so the app feels installed, not browsed. */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Forehand Nail" />
+        <meta name="application-name" content="Forehand Nail" />
+        <meta name="format-detection" content="telephone=no" />
         {/* Pre-hydration theme bootstrap: prevents flash of wrong theme when user has persisted dark mode. Must run before React mounts. */}
         <script
           dangerouslySetInnerHTML={{

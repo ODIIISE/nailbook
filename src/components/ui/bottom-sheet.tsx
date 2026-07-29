@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { X } from "lucide-react";
 import { Button } from "./button";
+import { haptic } from "@/lib/haptics";
 
 interface BottomSheetProps {
   open: boolean;
@@ -24,6 +25,9 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
+      // Sub-tick haptic on sheet open — listener gets a tactile anchor that
+      // the sheet has actually materialised behind the dimmed backdrop.
+      haptic.select();
       requestAnimationFrame(() => setIsVisible(true));
     } else {
       document.body.style.overflow = "";
@@ -34,6 +38,7 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
   }, [open]);
 
   const handleClose = useCallback(() => {
+    haptic.tap();
     setIsVisible(false);
     setDragOffset(0);
     setTimeout(() => onCloseRef.current(), 200);
@@ -98,15 +103,18 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Handle */}
-        <div className="flex justify-center mb-4">
+        {/* Drag handle — taller hit area + grab cursor feels android-native */}
+        <div
+          className="flex justify-center mb-4 -mt-2 pt-2 cursor-grab active:cursor-grabbing"
+          aria-hidden="true"
+        >
           <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
         </div>
 
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-h3 text-foreground">{title}</h3>
-          <Button variant="ghost" size="icon-sm" onClick={handleClose}>
+          <Button variant="ghost" size="icon-sm" onClick={handleClose} aria-label="بستن">
             <X className="h-5 w-5" />
           </Button>
         </div>

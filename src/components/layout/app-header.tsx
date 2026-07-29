@@ -24,6 +24,7 @@ import {
 import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "./menu-context";
 import { useTheme } from "@/lib/hooks/use-theme";
+import { haptic } from "@/lib/haptics";
 
 interface MenuItem {
   icon: ReactNode;
@@ -91,14 +92,29 @@ export function AppHeader({
 
   return (
     <>
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border h-[52px]">
-        <div className="mx-auto max-w-lg px-4 h-full flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {showBack && !isHome ? (
-              <Button variant="ghost" size="icon-sm" onClick={onBack || (() => router.back())}>
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            ) : null}
+      <div
+      className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border"
+      style={{
+        // Native safe-area: notch + Dynamic Island sit above the title row.
+        // padding-top pushes content into the safe zone; the inner row keeps
+        // its 52px height so visual rhythm stays identical on non-notch devices.
+        paddingTop: "env(safe-area-inset-top, 0px)",
+      }}
+    >
+      <div className="mx-auto max-w-lg px-4 h-[52px] flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {showBack && !isHome ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => {
+                haptic.tap();
+                (onBack || (() => router.back()))();
+              }}
+            >
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          ) : null}
             {title ? (
               <div>
                 <h1 className="text-[15px] font-bold text-foreground">{title}</h1>
@@ -114,7 +130,16 @@ export function AppHeader({
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
-            <Button variant="ghost" size="icon-sm" onClick={openMenu} aria-label="منو" aria-expanded={menuOpen}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => {
+                haptic.tap();
+                openMenu();
+              }}
+              aria-label="منو"
+              aria-expanded={menuOpen}
+            >
               <Menu className="h-4 w-4" />
             </Button>
           </div>

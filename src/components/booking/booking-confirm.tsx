@@ -8,6 +8,7 @@ import { Check, CalendarDays, Sparkles, Share2, MessageCircle, Copy, Repeat } fr
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { TornPaperCard } from "./torn-paper-card";
 import { getTehranDateKey } from "@/lib/time";
+import { haptic } from "@/lib/haptics";
 
 interface BookingConfirmProps {
   serviceName: string;
@@ -69,6 +70,7 @@ export function BookingConfirm({
   }, []);
 
   const handleAddToGoogleCalendar = () => {
+    haptic.tap();
     const pad = (n: number) => String(n).padStart(2, "0");
     const tehranKey = getTehranDateKey(date);
     const [year, month, day] = tehranKey.split("-");
@@ -94,6 +96,7 @@ export function BookingConfirm({
   );
 
   const handleShare = async () => {
+    haptic.tap();
     try {
       if (navigator.share) {
         await navigator.share({ text: shareText });
@@ -107,6 +110,7 @@ export function BookingConfirm({
   };
 
   const handleCopy = async () => {
+    haptic.tap();
     try {
       await navigator.clipboard.writeText(shareText);
       toast.success("اطلاعات رزرو کپی شد");
@@ -116,11 +120,13 @@ export function BookingConfirm({
   };
 
   const handleWhatsAppShare = () => {
+    haptic.tap();
     const encoded = encodeURIComponent(shareText);
     window.open(`https://wa.me/?text=${encoded}`, "_blank", "noopener,noreferrer");
   };
 
   const handleRebook = () => {
+    haptic.tap();
     router.push("/");
   };
 

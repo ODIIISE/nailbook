@@ -26,6 +26,7 @@ import { formatPrice, toPersianDigits, gregorianToJalali, jalaliToGregorian, for
 import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
 import { getTehranDateKey } from "@/lib/time";
 import type { Booking } from "@/lib/types";
+import { haptic } from "@/lib/haptics";
 
 type BookingStep = "addons" | "datetime" | "auth" | "confirm" | "receipt";
 
@@ -370,10 +371,13 @@ export default function BookContent() {
     setIsBookingLoading(false);
     isSubmittingRef.current = false;
     if (result.success) {
+      // Success pattern — confirms booking committed.
+      haptic.success();
       // Use server-generated booking ID for display
       if (result.id) setBookingId(`BK-${result.id.slice(-6).toUpperCase()}`);
       setStep("receipt");
     } else {
+      haptic.warning();
       // On conflict: re-fetch fresh bookings and send user back to slot picker
       const isConflict = result.error?.includes("قبلاً رزرو شده") || result.error?.includes("همین الان رزرو شد") || result.error?.includes("مسدود شده");
       if (isConflict) {
