@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppNavbar } from "@/components/layout/app-navbar";
@@ -42,8 +43,8 @@ export default function ProfilePage() {
         localStorage.setItem("nailbook_user", JSON.stringify(updated));
         window.location.reload();
       }
-    } catch (error) {
-      console.error("Failed to update profile:", error);
+    } catch {
+      toast.error("خطا در بروزرسانی پروفایل");
     }
     setSaving(false);
   };
