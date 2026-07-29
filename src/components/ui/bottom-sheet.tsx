@@ -84,7 +84,7 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         style={{
           opacity: isVisible ? 1 : 0,
-          transition: "opacity 200ms ease-out",
+          transition: `opacity var(--dur-base) var(--ease-out)`,
         }}
         onClick={handleClose}
       />
@@ -96,8 +96,8 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
           transform: `translateY(${sheetTranslateY})`,
           opacity: isVisible ? 1 : 0,
           transition: isDragging
-            ? "opacity 200ms ease-out"
-            : "transform 200ms ease-out, opacity 200ms ease-out",
+            ? `opacity var(--dur-fast) var(--ease-out)`
+            : `transform var(--dur-base) var(--ease-spring-decay), opacity var(--dur-base) var(--ease-out)`,
         }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}

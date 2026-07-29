@@ -5,10 +5,12 @@ import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Timeline } from "@/components/owner/timeline";
-import { BlockTimeModal } from "@/components/owner/block-time-modal";
-import { BookingModal } from "@/components/owner/booking-modal";
-import { EarningsModal } from "@/components/owner/earnings-modal";
-import { ManualReserveModal } from "@/components/owner/manual-reserve-modal";
+import dynamic from "next/dynamic";
+
+const BlockTimeModal = dynamic(() => import("@/components/owner/block-time-modal").then(m => ({ default: m.BlockTimeModal })));
+const BookingModal = dynamic(() => import("@/components/owner/booking-modal").then(m => ({ default: m.BookingModal })));
+const EarningsModal = dynamic(() => import("@/components/owner/earnings-modal").then(m => ({ default: m.EarningsModal })));
+const ManualReserveModal = dynamic(() => import("@/components/owner/manual-reserve-modal").then(m => ({ default: m.ManualReserveModal })));
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { ChevronLeft, Plus, CalendarClock, Ban, Banknote, Users, Clock } from "lucide-react";
