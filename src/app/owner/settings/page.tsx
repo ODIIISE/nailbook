@@ -23,6 +23,12 @@ export default function OwnerSettingsPage() {
   const [address, setAddress] = useState(salon.address);
   const [workingHoursText, setWorkingHoursText] = useState(salon.working_hours_text);
   const [avatarUrl, setAvatarUrl] = useState(salon.logo_url || "");
+  const [splashTitle, setSplashTitle] = useState(salon.splash_title || "Forehand Nail");
+  const [splashSlogan, setSplashSlogan] = useState(salon.splash_slogan || "Nail Art Studio");
+  const [splashLogoUrl, setSplashLogoUrl] = useState(salon.splash_logo_url || "");
+  const [splashUploading, setSplashUploading] = useState(false);
+  const [splashCropImage, setSplashCropImage] = useState<string | null>(null);
+  const splashFileInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -68,10 +74,50 @@ export default function OwnerSettingsPage() {
     setUploading(false);
   };
 
+  // ─── Splash logo upload (separate from primary salon logo) ───
+  const handleSplashFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("حجم فایل بیشتر از ۵ مگابایت است");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setSplashCropImage(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleSplashCropComplete = async (blob: Blob) => {
+    setSplashCropImage(null);
+    setSplashUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", blob, "splash-logo.jpg");
+      const res = await fetch("/api/upload-logo", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.url) {
+        setSplashLogoUrl(data.url);
+        await updateSalon({ splash_logo_url: data.url });
+        toast.success("لوگوی اسپلش ذخیره شد");
+      } else {
+        toast.error("خطا در آپلود تصویر");
+      }
+    } catch {
+      toast.error("خطا در آپلود تصویر");
+    }
+    setSplashUploading(false);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updateSalon({ name, slogan, description, phone, address, working_hours_text: workingHoursText });
+      await updateSalon({
+        name, slogan, description, phone, address,
+        working_hours_text: workingHoursText,
+        splash_title: splashTitle,
+        splash_slogan: splashSlogan,
+      });
       toast.success("تغییرات ذخیره شد");
     } catch {
       toast.error("خطا در ذخیره تغییرات");
@@ -177,6 +223,91 @@ export default function OwnerSettingsPage() {
         </div>
       </Card>
 
+      {/* Splash Screen section */}
+      <Card className="p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <h3 className="font-semibold text-foreground">اسپلش (صفحه ورود)</h3>
+        </div>
+        <p className="text-[12px] text-muted-foreground -mt-2">
+          متن و لوگوی صفحه ورود مشتریان. برای دیدن تغییرات، صفحه را رفرش کنید.
+        </p>
+
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <input
+              ref={splashFileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleSplashFileSelect}
+              className="hidden"
+            />
+            {splashLogoUrl ? (
+              <Image
+                src={splashLogoUrl}
+                alt={splashTitle}
+                width={64}
+                height={64}
+                unoptimized
+                className="h-16 w-16 rounded-2xl object-cover border border-border"
+              />
+            ) : (
+              <div className="h-16 w-16 rounded-2xl bg-foreground/5 border border-border border-dashed flex items-center justify-center">
+                <Sparkles className="h-6 w-6 text-muted-foreground" />
+              </div>
+            )}
+            <button
+              onClick={() => splashFileInputRef.current?.click()}
+              disabled={splashUploading}
+              aria-label="تغییر لوگوی اسپلش"
+              className="absolute -bottom-1 -left-1 h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/85 press-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card transition-colors disabled:opacity-50"
+            >
+              <Camera className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-medium text-foreground">لوگوی اسپلش</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">PNG، JPG تا ۵ مگابایت. اختیاری.</p>
+            {splashLogoUrl && (
+              <button
+                onClick={async () => {
+                  setSplashLogoUrl("");
+                  await updateSalon({ splash_logo_url: null });
+                  toast.success("لوگوی اسپلش حذف شد");
+                }}
+                className="text-[11px] text-destructive mt-1 hover:underline"
+              >
+                حذف عکس
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-3 pt-2 border-t border-border">
+          <div>
+            <Label className="text-caption">عنوان اصلی</Label>
+            <Input
+              value={splashTitle}
+              onChange={(e) => setSplashTitle(e.target.value)}
+              className="mt-1 h-11 text-[15px] font-bold"
+              placeholder="Forehand Nail"
+              maxLength={40}
+            />
+          </div>
+          <div>
+            <Label className="text-caption">شعار (انگلیسی، اختیاری)</Label>
+            <Input
+              value={splashSlogan}
+              onChange={(e) => setSplashSlogan(e.target.value)}
+              className="mt-1 h-11 text-[12px] uppercase tracking-wider"
+              placeholder="NAIL ART STUDIO"
+              maxLength={40}
+              dir="ltr"
+            />
+          </div>
+        </div>
+      </Card>
+
       <Button onClick={handleSave} disabled={saving} className="w-full h-12 bg-foreground text-background hover:bg-foreground/90">
         <Save className="h-5 w-5 ml-2" />
         {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
@@ -256,12 +387,21 @@ export default function OwnerSettingsPage() {
         </div>
       </Card>
 
-      {/* Crop Modal */}
+      {/* Crop Modal (salon logo) */}
       {cropImage && (
         <ImageCrop
           image={cropImage}
           onCropComplete={handleCropComplete}
           onCancel={() => setCropImage(null)}
+          aspect={1}
+        />
+      )}
+      {/* Crop Modal (splash logo) */}
+      {splashCropImage && (
+        <ImageCrop
+          image={splashCropImage}
+          onCropComplete={handleSplashCropComplete}
+          onCancel={() => setSplashCropImage(null)}
           aspect={1}
         />
       )}

@@ -134,8 +134,8 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
               onClick={() => onFilterChange(tab.key)}
               className={`px-3 py-1.5 rounded-full text-[12px] font-medium whitespace-nowrap transition-colors ${
                 activeFilter === tab.key
-                  ? "bg-primary text-white"
-                  : "bg-white text-muted-foreground border border-black/[0.06]"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-muted-foreground border border-border"
               }`}
             >
               {tab.label}
@@ -159,21 +159,21 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
             <p className="text-[11px] font-semibold text-muted-foreground mb-1 px-0.5">
               {formatDate(dateLogs[0].created_at)}
             </p>
-            <div className="divide-y divide-black/[0.04] bg-white border border-black/[0.04] overflow-hidden">
+            <div className="divide-y divide-border bg-card border border-border overflow-hidden">
               {dateLogs.map((log) => {
                 const config = getEventConfig(log.event_type);
                 return (
                   <button
                     key={log.id}
                     onClick={() => setSelectedLog(log)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-black/[0.02] transition-colors text-right"
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-muted transition-colors text-right"
                   >
                     <div className={`w-2 h-2 rounded-full shrink-0 ${config.dot}`} />
                     <div className="flex-1 min-w-0">
                       <p className="text-[12px] text-foreground truncate leading-tight">{log.description}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[10px] text-muted-foreground/60 bg-black/[0.03] px-1.5 py-0.5 rounded">
+                      <span className="text-[10px] text-muted-foreground/60 bg-muted px-1.5 py-0.5 rounded">
                         {config.label}
                       </span>
                       <span className="text-[10px] text-muted-foreground/50" dir="ltr">
@@ -201,11 +201,11 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
                 <span className="text-[11px] font-medium bg-primary/10 text-primary px-2 py-1 rounded-md">
                   {getEventConfig(selectedLog.event_type).label}
                 </span>
-                <span className="text-[11px] font-medium bg-black/[0.04] text-muted-foreground px-2 py-1 rounded-md">
+                <span className="text-[11px] font-medium bg-muted text-muted-foreground px-2 py-1 rounded-md">
                   {selectedLog.entity_type}
                 </span>
                 {selectedLog.entity_id && (
-                  <span className="text-[10px] font-mono text-muted-foreground/60 bg-black/[0.03] px-2 py-1 rounded-md">
+                  <span className="text-[10px] font-mono text-muted-foreground/60 bg-muted px-2 py-1 rounded-md">
                     {selectedLog.entity_id.slice(0, 8)}...
                   </span>
                 )}
@@ -226,7 +226,7 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
               {/* Metadata */}
               <div>
                 <p className="text-[11px] text-muted-foreground mb-2">اطلاعات تکمیلی</p>
-                <div className="bg-black/[0.02] rounded-lg p-3">
+                <div className="bg-muted rounded-lg p-3">
                   <MetadataDisplay metadata={selectedLog.metadata} />
                 </div>
               </div>

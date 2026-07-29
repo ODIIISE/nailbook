@@ -7,6 +7,9 @@ export interface SalonInfo {
   address: string;
   hero_image_url: string | null;
   logo_url: string | null;
+  splash_title: string;
+  splash_slogan: string;
+  splash_logo_url: string | null;
   working_hours_text: string;
   working_hours: {
     [key: string]: { open: string; close: string } | null;
