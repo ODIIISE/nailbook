@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مکاپ‌های انتخاب زمان</title>
+  <style>
+    :root { --bg: #000000; --fg: #FAFAFA; --card: #0F0F10; --muted: #171717; --muted-fg: #B5B5B5; --border: #262626; --radius: 18px; --font: 'Vazirmatn', -apple-system, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--fg); min-height: 100dvh; display: flex; justify-content: center; }
+    .phone { width: 100%; max-width: 430px; padding: 16px; }
+    h1 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    p { font-size: 13px; color: var(--muted-fg); margin-bottom: 24px; }
+    .list { display: flex; flex-direction: column; gap: 12px; }
+    a { display: block; padding: 18px 16px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); color: var(--fg); text-decoration: none; transition: background 0.15s; }
+    a:hover { background: var(--muted); }
+    .label { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .desc { font-size: 13px; color: var(--muted-fg); }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <h1>مکاپ‌های انتخاب زمان</h1>
+    <p>۵ طرح متفاوت برای مرحله‌ی انتخاب ساعت رزرو. روی هر کدام بزنید تا باز شود.</p>
+    <div class="list">
+      <a href="mockup-time-wheel.html">
+        <div class="label">۱. چرخ‌انتخاب</div>
+        <div class="desc">iOS-style wheel picker با کمترین شلوغی</div>
+      </a>
+      <a href="mockup-time-list.html">
+        <div class="label">۲. لیست ساده</div>
+        <div class="desc">یک ستون عمودی از ساعات خالی</div>
+      </a>
+      <a href="mockup-time-accordion.html">
+        <div class="label">۳. آکاردئون</div>
+        <div class="desc">گروه‌بندی بر اساس صبح/عصر/شب</div>
+      </a>
+      <a href="mockup-time-segmented.html">
+        <div class="label">۴. شبکه‌ی تمیز</div>
+        <div class="desc">شبکه‌ی ساعت با تب‌های بازه‌ی زمانی</div>
+      </a>
+      <a href="mockup-time-timeline.html">
+        <div class="label">۵. خط‌زمان</div>
+        <div class="desc">نمایش زمانی رویدادها روی خط‌زمان</div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

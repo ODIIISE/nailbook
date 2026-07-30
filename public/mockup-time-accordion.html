@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>انتخاب زمان — طرح آکاردئونی</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --fg: #FAFAFA;
+      --card: #0F0F10;
+      --muted: #171717;
+      --muted-fg: #B5B5B5;
+      --border: #262626;
+      --radius: 18px;
+      --font: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--fg); min-height: 100dvh; display: flex; justify-content: center; }
+    .phone { width: 100%; max-width: 430px; padding: 16px; padding-bottom: 90px; }
+    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .back { width: 36px; height: 36px; border-radius: 12px; background: var(--card); border: 1px solid var(--border); display: grid; place-items: center; color: var(--fg); }
+    .title { font-size: 18px; font-weight: 700; }
+    .subtitle { font-size: 13px; color: var(--muted-fg); }
+
+    .days { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 16px; scrollbar-width: none; }
+    .days::-webkit-scrollbar { display: none; }
+    .day { flex: 0 0 64px; height: 80px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--card); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
+    .day.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+    .day span { font-size: 11px; }
+    .day strong { font-size: 18px; }
+
+    .accordion { display: flex; flex-direction: column; gap: 10px; }
+    .group { border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); overflow: hidden; }
+    .group-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; cursor: pointer; }
+    .group-title { font-size: 15px; font-weight: 700; }
+    .group-count { font-size: 12px; color: var(--muted-fg); }
+    .group-arrow { font-size: 18px; color: var(--muted-fg); transition: transform 0.2s; }
+    .group.open .group-arrow { transform: rotate(-180deg); }
+    .group-body { display: none; padding: 0 16px 16px; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .group.open .group-body { display: grid; }
+
+    .chip { height: 44px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); display: grid; place-items: center; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .chip.selected { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+    .cta { position: fixed; bottom: 16px; left: 16px; right: 16px; max-width: 398px; margin: 0 auto; height: 52px; border-radius: var(--radius); background: var(--fg); color: var(--bg); border: none; font-family: var(--font); font-size: 15px; font-weight: 700; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="header">
+      <div class="back">→</div>
+      <div>
+        <div class="title">انتخاب زمان</div>
+        <div class="subtitle">بازه‌ی زمانی مورد نظر را باز کنید</div>
+      </div>
+    </div>
+
+    <div class="days">
+      <div class="day"><span>شنبه</span><strong>۱۲</strong></div>
+      <div class="day active"><span>یک‌ش</span><strong>۱۳</strong></div>
+      <div class="day"><span>دوش</span><strong>۱۴</strong></div>
+      <div class="day"><span>سه‌ش</span><strong>۱۵</strong></div>
+    </div>
+
+    <div class="accordion">
+      <div class="group" onclick="toggle(this)">
+        <div class="group-header">
+          <div>
+            <div class="group-title">صبح</div>
+            <div class="group-count">۲ ساعت خالی</div>
+          </div>
+          <div class="group-arrow">⌄</div>
+        </div>
+        <div class="group-body">
+          <div class="chip" onclick="selectChip(event, this)">۱۰:۰۰</div>
+          <div class="chip" onclick="selectChip(event, this)">۱۰:۳۰</div>
+        </div>
+      </div>
+      <div class="group open" onclick="toggle(this)">
+        <div class="group-header">
+          <div>
+            <div class="group-title">عصر</div>
+            <div class="group-count">۴ ساعت خالی</div>
+          </div>
+          <div class="group-arrow">⌄</div>
+        </div>
+        <div class="group-body">
+          <div class="chip" onclick="selectChip(event, this)">۱۶:۰۰</div>
+          <div class="chip selected" onclick="selectChip(event, this)">۱۶:۳۰</div>
+          <div class="chip" onclick="selectChip(event, this)">۱:۰۰</div>
+          <div class="chip" onclick="selectChip(event, this)">۱:۳۰</div>
+        </div>
+      </div>
+      <div class="group" onclick="toggle(this)">
+        <div class="group-header">
+          <div>
+            <div class="group-title">شب</div>
+            <div class="group-count">۱ ساعت خالی</div>
+          </div>
+          <div class="group-arrow">⌄</div>
+        </div>
+        <div class="group-body">
+          <div class="chip" onclick="selectChip(event, this)">۲۰:۰۰</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="cta">ادامه با ۱۶:۳۰</button>
+  </div>
+  <script>
+    function toggle(el) { el.classList.toggle('open'); }
+    function selectChip(e, el) {
+      e.stopPropagation();
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+  </script>
+</body>
+</html>
