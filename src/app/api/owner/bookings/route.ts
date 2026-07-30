@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       userId = existingUser[0].id;
     } else {
       const { rows: newUser } = await client.query(
-        `INSERT INTO users (phone, pin, name, role) VALUES ($1, '', $2, 'customer') RETURNING id`,
+        `INSERT INTO users (phone, pin, name, "role") VALUES ($1, '', $2, 'customer') RETURNING id`,
         [phone, customer_name || "مشتری"]
       );
       userId = newUser[0].id;

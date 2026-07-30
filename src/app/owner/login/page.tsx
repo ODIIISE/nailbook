@@ -69,6 +69,14 @@ export default function OwnerLoginPage() {
         setError(data.error || "کد نادرست است");
         return;
       }
+      // Prime localStorage so AuthProvider picks up the owner user
+      // synchronously on the next page, avoiding a loading flash while
+      // /api/auth/me validates the newly-issued session cookie.
+      if (data.user) {
+        try {
+          localStorage.setItem("nailbook_user", JSON.stringify(data.user));
+        } catch { /* quota exceeded or private mode — harmless */ }
+      }
       router.replace("/owner?welcome=1");
     } catch {
       setIsLoading(false);

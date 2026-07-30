@@ -169,6 +169,18 @@ function OwnerDashboardContent() {
     }
   };
 
+  // Auth gate: don't render any owner UI until the session is validated.
+  // Placed AFTER all hooks so React's rule-of-hooks invariant is preserved.
+  // The redirect useEffect above handles navigation for bounced sessions.
+  if (authLoading) {
+    return (
+      <div className="px-4 py-4 space-y-4">
+        <div className="animate-pulse text-muted-foreground text-center py-8">در حال بارگذاری...</div>
+      </div>
+    );
+  }
+  if (!user || !hasRole("owner")) return null;
+
   return (
     <SalonGuard>
     <>
