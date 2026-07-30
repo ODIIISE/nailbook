@@ -1,49 +1,45 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>مکاپ‌های انتخاب زمان</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time Selection Mockups</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { --bg: #000000; --fg: #FAFAFA; --card: #0F0F10; --muted: #171717; --muted-fg: #B5B5B5; --border: #262626; --radius: 18px; --font: 'Vazirmatn', -apple-system, sans-serif; }
+    :root { --bg: #000000; --fg: #FAFAFA; --card: #0F0F10; --border: #262626; --muted: #B5B5B5; --radius: 18px; }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--fg); min-height: 100dvh; display: flex; justify-content: center; }
-    .phone { width: 100%; max-width: 430px; padding: 16px; }
-    h1 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-    p { font-size: 13px; color: var(--muted-fg); margin-bottom: 24px; }
-    .list { display: flex; flex-direction: column; gap: 12px; }
-    a { display: block; padding: 18px 16px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); color: var(--fg); text-decoration: none; transition: background 0.15s; }
-    a:hover { background: var(--muted); }
-    .label { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-    .desc { font-size: 13px; color: var(--muted-fg); }
+    body { margin: 0; font-family: 'Vazirmatn', sans-serif; background: var(--bg); color: var(--fg); min-height: 100dvh; padding: 40px 16px; max-width: 430px; margin-inline: auto; }
+    h1 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    p.lead { font-size: 14px; color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+    .mockup { display: block; text-decoration: none; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 14px; transition: .15s; }
+    .mockup:hover { border-color: var(--fg); }
+    .mockup-title { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+    .mockup-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
   </style>
 </head>
 <body>
-  <div class="phone">
-    <h1>مکاپ‌های انتخاب زمان</h1>
-    <p>۵ طرح متفاوت برای مرحله‌ی انتخاب ساعت رزرو. روی هر کدام بزنید تا باز شود.</p>
-    <div class="list">
-      <a href="mockup-time-wheel.html">
-        <div class="label">۱. چرخ‌انتخاب</div>
-        <div class="desc">iOS-style wheel picker با کمترین شلوغی</div>
-      </a>
-      <a href="mockup-time-list.html">
-        <div class="label">۲. لیست ساده</div>
-        <div class="desc">یک ستون عمودی از ساعات خالی</div>
-      </a>
-      <a href="mockup-time-accordion.html">
-        <div class="label">۳. آکاردئون</div>
-        <div class="desc">گروه‌بندی بر اساس صبح/عصر/شب</div>
-      </a>
-      <a href="mockup-time-segmented.html">
-        <div class="label">۴. شبکه‌ی تمیز</div>
-        <div class="desc">شبکه‌ی ساعت با تب‌های بازه‌ی زمانی</div>
-      </a>
-      <a href="mockup-time-timeline.html">
-        <div class="label">۵. خط‌زمان</div>
-        <div class="desc">نمایش زمانی رویدادها روی خط‌زمان</div>
-      </a>
-    </div>
-  </div>
+  <h1>انتخاب زمان</h1>
+  <p class="lead">پیشنهادهای مختلف برای صفحهٔ انتخاب ساعت.</p>
+
+  <a class="mockup" href="mockup-time-polished.html">
+    <div class="mockup-title">۰. نسخهٔ پالیش‌شدهٔ فعلی</div>
+    <div class="mockup-desc">همان صفحهٔ فعلی اما تمیزتر: حذف ساعت‌های رزروشده/غیرقابل‌رزرو، ترکیب ساعت‌ها در یک گرید ۳ ستونه، و کارت نزدیک‌ترین ساعت برجسته‌تر.</div>
+  </a>
+
+  <a class="mockup" href="mockup-time-agenda-timeline.html">
+    <div class="mockup-title">۱. تایم‌لاین عمودی</div>
+    <div class="mockup-desc">خط زمانی عمودی شبیه تقویم روزانه. ساعت‌ها به‌صورت بلوک‌های بزرگ روی یک خط نشان داده می‌شوند.</div>
+  </a>
+
+  <a class="mockup" href="mockup-time-wheel-picker.html">
+    <div class="mockup-title">۲. انتخابگر چرخشی</div>
+    <div class="mockup-desc">پیمایشگر عمودی شبیه iOS picker. فقط یک ساعت در مرکز قابل مشاهده است و بقیه محو می‌شوند.</div>
+  </a>
+
+  <a class="mockup" href="mockup-time-smart-suggestion.html">
+    <div class="mockup-title">۳. پیشنهاد هوشمند</div>
+    <div class="mockup-desc">فقط یک کارت بزرگ بهترین ساعت را نشان می‌دهد. ساعت‌های دیگر پشت یک لینک کوتاه پنهان هستند.</div>
+  </a>
 </body>
 </html>
