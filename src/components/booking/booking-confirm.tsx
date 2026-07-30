@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useMemo, useState, useCallback } from "react";
+import { useRef, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Check, CalendarDays, Sparkles, Share2, MessageCircle, Copy, Repeat, Image as ImageIcon, Loader2 } from "lucide-react";
+import { CalendarDays, Share2, MessageCircle, Copy, Repeat, Image as ImageIcon, Loader2 } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
-import { TornPaperCard } from "./torn-paper-card";
 import { getTehranDateKey } from "@/lib/time";
 import { haptic } from "@/lib/haptics";
+import { PrintedReceipt } from "./printed-receipt";
+import type { Addon } from "@/lib/types";
 
 interface BookingConfirmProps {
   serviceName: string;
@@ -18,28 +19,13 @@ interface BookingConfirmProps {
   price: number;
   customerName: string;
   bookingId: string;
+  bookingIdRaw?: string;
   salonName?: string;
   salonAddress?: string;
   phone?: string;
-}
-
-function Barcode({ id }: { id: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!ref.current) return;
-    ref.current.innerHTML = "";
-    const bars = [2,1,3,1,2,1,1,3,1,2,1,3,1,1,2,1,3,1,2,1,1,3,1,2,1,3,1,2,1,1,3,1,2,1,3,1,1,2,1,3,1,2,1,1,3,1,2,1,3,1,2,1,1,3,1,2,1,3,1,1,2,1,3,1,2,1];
-    bars.forEach((w) => {
-      const bar = document.createElement("div");
-      bar.style.cssText = `width:${w}px;height:${18+Math.random()*4}px;background:var(--foreground);border-radius:0.5px;opacity:0.08;`;
-      ref.current!.appendChild(bar);
-    });
-  }, [id]);
-
-  return (
-    <div ref={ref} className="flex justify-center gap-[1px] h-[22px] items-end" />
-  );
+  salonLogoUrl?: string | null;
+  addons?: Addon[];
+  servicePrice?: number;
 }
 
 export function BookingConfirm({
@@ -50,24 +36,24 @@ export function BookingConfirm({
   price,
   customerName,
   bookingId,
+  bookingIdRaw,
   salonName = "",
   salonAddress = "",
+  phone,
+  salonLogoUrl,
+  addons = [],
+  servicePrice,
 }: BookingConfirmProps) {
   const router = useRouter();
   const jalali = gregorianToJalali(date);
   const fullDate = formatJalaliDate(jalali.jy, jalali.jm, jalali.jd);
-  const formattedTime = toPersianDigits(time);
   const shortId = bookingId.slice(-4).toUpperCase();
 
   const [h, m] = time.split(":").map(Number);
   const endMinutes = h * 60 + m + duration;
   const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
-  const formattedEndTime = toPersianDigits(endTime);
 
-  const displayDomain = useMemo(() => {
-    if (typeof window !== "undefined") return window.location.hostname;
-    return "forehand.vercel.app";
-  }, []);
+
 
   const handleAddToGoogleCalendar = () => {
     haptic.tap();
@@ -91,8 +77,8 @@ export function BookingConfirm({
 
   const shareText = useMemo(
     () =>
-      `رزرو ناخن ثبت شد!\n${serviceName}\n${fullDate} - ساعت ${formattedTime} تا ${formattedEndTime}\n${salonName}${salonAddress ? `\n${salonAddress}` : ""}`,
-    [serviceName, fullDate, formattedTime, formattedEndTime, salonName, salonAddress]
+      `رزرو ناخن ثبت شد!\n${serviceName}\n${fullDate} - ساعت ${toPersianDigits(time)} تا ${toPersianDigits(endTime)}\n${salonName}${salonAddress ? `\n${salonAddress}` : ""}`,
+    [serviceName, fullDate, time, endTime, salonName, salonAddress]
   );
 
   const handleShare = async () => {
@@ -172,68 +158,24 @@ export function BookingConfirm({
   return (
     <div className="mx-auto max-w-lg animate-scale">
       <div ref={receiptRef}>
-      <TornPaperCard>
-        <div className="px-5 py-4">
-          <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.025] mix-blend-multiply" style={{
-            backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.25'/%3E%3C/svg%3E\")",
-            backgroundSize: "180px 180px",
-          }} />
-
-          <div className="flex items-center gap-2.5 mb-4 relative z-[2]">
-            <div
-              className="w-8 h-8 rounded-full bg-success flex items-center justify-center shrink-0"
-              style={{ boxShadow: "0 2px 8px rgba(34,197,94,0.2)" }}
-            >
-              <Check className="h-4 w-4 text-white" strokeWidth={2.5} />
-            </div>
-            <div className="text-[14px] font-bold text-foreground">رزرو ثبت شد</div>
-          </div>
-
-          <div className="flex items-center gap-2.5 mb-2 relative z-[2]">
-            <div
-              className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0"
-              style={{ background: "linear-gradient(135deg, rgba(10,10,10,0.06), rgba(10,10,10,0.03))" }}
-            >
-              <Sparkles className="h-4 w-4 text-foreground" />
-            </div>
-            <div>
-              <div className="text-[13px] font-semibold text-foreground">{serviceName}</div>
-              <div className="text-[10px] text-muted-foreground">{salonName}</div>
-            </div>
-          </div>
-
-          <div className="h-px bg-black/[0.04] mb-2 relative z-[2]" />
-
-          <div className="relative z-[2]">
-            <div className="flex justify-between items-center py-[7px]">
-              <span className="text-[12px] text-muted-foreground">تاریخ</span>
-              <span className="text-[12px] font-semibold text-foreground">{fullDate}</span>
-            </div>
-            <div className="flex justify-between items-center py-[7px] border-t border-dashed border-black/[0.05]">
-              <span className="text-[12px] text-muted-foreground">ساعت</span>
-              <span className="text-[12px] font-semibold text-foreground">{formattedTime} تا {formattedEndTime}</span>
-            </div>
-            <div className="flex justify-between items-center py-[7px] border-t border-dashed border-black/[0.05]">
-              <span className="text-[12px] text-muted-foreground">مدت</span>
-              <span className="text-[12px] font-semibold text-foreground">{toPersianDigits(duration)} دقیقه</span>
-            </div>
-            <div className="flex justify-between items-center pt-2.5 pb-0.5 border-t border-dashed border-black/[0.05]">
-              <span className="text-[12px] font-medium text-muted-foreground">هزینه کل</span>
-              <span className="text-[16px] font-extrabold text-foreground">{formatPrice(Number(price))} تومان</span>
-            </div>
-          </div>
-
-          <div className="mt-3 relative z-[2]">
-            <Barcode id={bookingId} />
-            <div className="text-center text-[10px] font-medium tracking-[1px] text-foreground/20 mt-1.5" dir="ltr">
-              #{shortId}
-            </div>
-            <div className="text-center text-[7px] font-medium tracking-[2px] text-muted-foreground opacity-30 mt-0.5">
-              {displayDomain}
-            </div>
-          </div>
-        </div>
-      </TornPaperCard>
+        <PrintedReceipt
+          mode="final"
+          salonName={salonName}
+          salonLogoUrl={salonLogoUrl}
+          salonAddress={salonAddress}
+          salonPhone={phone}
+          serviceName={serviceName}
+          servicePrice={servicePrice !== undefined ? servicePrice : price}
+          addons={addons.map((a) => ({ name: a.name, price: Number(a.price) }))}
+          dateLabel={fullDate}
+          startTime={time}
+          endTime={endTime}
+          totalDuration={duration}
+          totalPrice={price}
+          bookingId={bookingId}
+          bookingIdRaw={bookingIdRaw}
+          customerName={customerName}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-2 mt-3">

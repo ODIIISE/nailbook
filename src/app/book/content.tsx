@@ -7,13 +7,12 @@ import { AppNavbar } from "@/components/layout/app-navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, Check, AlertCircle, CalendarDays, ArrowLeft, Loader2, Sparkles, User, Smartphone, ArrowRight, LogIn } from "lucide-react";
-import Image from "next/image";
+import { ChevronLeft, Check, AlertCircle, CalendarDays, ArrowLeft, Loader2, User, Smartphone, ArrowRight, LogIn } from "lucide-react";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { TimeSlots } from "@/components/booking/time-slots";
 import { BookingConfirm } from "@/components/booking/booking-confirm";
-import { TornPaperCard } from "@/components/booking/torn-paper-card";
 import { PinInput } from "@/components/booking/pin-input";
+import { PrintedReceipt } from "@/components/booking/printed-receipt";
 import { AuthCard, AuthCardRoot, AuthError } from "@/components/auth/auth-card";
 import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { BookingProgress } from "@/components/booking/booking-progress";
@@ -61,6 +60,7 @@ export default function BookContent() {
   });
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string>("");
+  const [bookingIdRaw, setBookingIdRaw] = useState<string>("");
   const [spamError, setSpamError] = useState("");
   const [showWaitlist, setShowWaitlist] = useState(false);
 
@@ -136,6 +136,12 @@ export default function BookContent() {
     const j = gregorianToJalali(selectedDate);
     return formatJalaliDate(j.jy, j.jm, j.jd);
   }, [selectedDate]);
+
+  const selectedAddonItems = useMemo(() => {
+    return selectedAddons
+      .map((id) => addons.find((a) => a.id === id))
+      .filter((a): a is NonNullable<typeof a> => Boolean(a));
+  }, [selectedAddons, addons]);
 
   const selectedEndTime = useMemo(() => {
     if (!selectedTime) return "";
@@ -376,7 +382,10 @@ export default function BookContent() {
       // Success pattern — confirms booking committed.
       haptic.success();
       // Use server-generated booking ID for display
-      if (result.id) setBookingId(`BK-${result.id.slice(-6).toUpperCase()}`);
+      if (result.id) {
+        setBookingId(`BK-${result.id.slice(-6).toUpperCase()}`);
+        setBookingIdRaw(result.id);
+      }
       setStep("receipt");
     } else {
       haptic.warning();
@@ -654,54 +663,22 @@ export default function BookContent() {
               </div>
             ) : (
               <>
-                <TornPaperCard>
-                  <div className="px-5 py-4">
-                    {/* Paper texture */}
-                    <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.025] mix-blend-multiply" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.25'/%3E%3C/svg%3E\")", backgroundSize: "180px 180px" }} />
-
-                    {/* Service info */}
-                    <div className="flex items-center gap-2.5 mb-3 relative z-[2]">
-                      {selectedService.image_url ? (
-                        <Image
-                          src={selectedService.image_url}
-                          alt={selectedService.name}
-                          width={32}
-                          height={32}
-                          unoptimized
-                          className="w-8 h-8 rounded-[9px] object-cover shrink-0"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(40,136,208,0.06), rgba(91,179,228,0.03))" }}>
-                          <Sparkles className="h-4 w-4 text-primary" />
-                        </div>
-                      )}
-                      <div>
-                        <div className="text-[13px] font-semibold text-foreground">{selectedService.name}</div>
-                        <div className="text-[10px] text-muted-foreground">{salon.name}</div>
-                      </div>
-                    </div>
-
-                    {/* Detail list */}
-                    <div className="relative z-[2]">
-                      <div className="flex justify-between items-center py-[7px]">
-                        <span className="text-[12px] text-muted-foreground">تاریخ</span>
-                        <span className="text-[12px] font-semibold text-foreground">{selectedFullDate}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-[7px] border-t border-dashed border-black/[0.05]">
-                        <span className="text-[12px] text-muted-foreground">ساعت</span>
-                        <span className="text-[12px] font-semibold text-foreground">{toPersianDigits(selectedTime)} تا {toPersianDigits(selectedEndTime)}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-[7px] border-t border-dashed border-black/[0.05]">
-                        <span className="text-[12px] text-muted-foreground">مدت</span>
-                        <span className="text-[12px] font-semibold text-foreground">{toPersianDigits(totalDuration)} دقیقه</span>
-                      </div>
-                      <div className="flex justify-between items-center pt-2.5 pb-0.5 border-t border-dashed border-black/[0.05]">
-                        <span className="text-[12px] font-medium text-muted-foreground">هزینه کل</span>
-                        <span className="text-[16px] font-extrabold text-primary">{formatPrice(Number(totalPrice))} تومان</span>
-                      </div>
-                    </div>
-                  </div>
-                </TornPaperCard>
+                <PrintedReceipt
+                  mode="preview"
+                  salonName={salon.name}
+                  salonLogoUrl={salon.logo_url}
+                  salonAddress={salon.address}
+                  salonPhone={salon.phone}
+                  serviceName={selectedService.name}
+                  servicePrice={Number(selectedService.price)}
+                  addons={selectedAddonItems.map((a) => ({ name: a.name, price: Number(a.price) }))}
+                  dateLabel={selectedFullDate}
+                  startTime={selectedTime}
+                  endTime={selectedEndTime}
+                  totalDuration={totalDuration}
+                  totalPrice={totalPrice}
+                  customerName={user?.name || authName || ""}
+                />
 
                 {/* Spam Error */}
                 {spamError && (
@@ -739,9 +716,15 @@ export default function BookContent() {
               time={selectedTime}
               duration={totalDuration}
               price={totalPrice}
+              servicePrice={Number(selectedService.price)}
               customerName={user?.name || ""}
               bookingId={bookingId}
+              salonName={salon.name}
+              salonAddress={salon.address}
               phone={salon.phone}
+              salonLogoUrl={salon.logo_url}
+              addons={selectedAddonItems}
+              bookingIdRaw={bookingIdRaw}
             />
           </div>
         )}
