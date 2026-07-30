@@ -12,6 +12,13 @@ export async function POST(request: NextRequest) {
   try {
     const { phone, code, roleContext = "customer" } = await request.json();
 
+    // Help diagnose production configuration without exposing secrets.
+    console.log("[verify-otp] env check:", {
+      customerSecretSet: Boolean(process.env.CUSTOMER_SESSION_SECRET),
+      ownerSecretSet: Boolean(process.env.OWNER_SESSION_SECRET),
+      nodeEnv: process.env.NODE_ENV,
+    });
+
     if (!phone || !code) {
       return NextResponse.json({ error: "شماره و کد الزامی است" }, { status: 400 });
     }
@@ -45,7 +52,7 @@ export async function POST(request: NextRequest) {
       }
       await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
 
-      await logActivity({
+      void logActivity({
         eventType: "owner_login",
         entityType: "user",
         entityId: user.id,
@@ -53,11 +60,19 @@ export async function POST(request: NextRequest) {
         metadata: { userId: user.id, phone: user.phone, name: user.name },
       });
 
+      let ownerSessionToken: string;
+      try {
+        ownerSessionToken = signOwnerSession(user.id);
+      } catch (err) {
+        console.error("[verify-otp] signOwnerSession failed:", err);
+        return NextResponse.json({ error: "خطای پیکربندی نشست" }, { status: 500 });
+      }
+
       const response = NextResponse.json({
         success: true,
         user: { id: user.id, phone: user.phone, name: user.name, role: "owner" },
       });
-      response.cookies.set("owner_session", signOwnerSession(user.id), {
+      response.cookies.set("owner_session", ownerSessionToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
@@ -70,16 +85,20 @@ export async function POST(request: NextRequest) {
     // Customer flow
     if (!user) {
       const userId = crypto.randomUUID();
-      await sql`
+      // ON CONFLICT guards against a rare race where two concurrent verify
+      // requests both try to create the same new user.
+      const { rows: inserted } = await sql<{ id: string; phone: string; name: string; role: string }>`
         INSERT INTO users (id, phone, name, role)
         VALUES (${userId}, ${normalized}, '', 'customer')
+        ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
+        RETURNING id, phone, name, role
       `;
-      user = { id: userId, phone: normalized, name: "", role: "customer" };
+      user = inserted[0];
 
-      await logActivity({
+      void logActivity({
         eventType: "user_registered",
         entityType: "user",
-        entityId: userId,
+        entityId: user.id,
         description: `کاربر جدید ${normalized} ثبت‌نام کرد`,
         metadata: { phone: normalized },
       });
@@ -87,7 +106,7 @@ export async function POST(request: NextRequest) {
       await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
     }
 
-    await logActivity({
+    void logActivity({
       eventType: "user_login",
       entityType: "user",
       entityId: user.id,
@@ -95,11 +114,19 @@ export async function POST(request: NextRequest) {
       metadata: { userId: user.id, phone: user.phone, name: user.name },
     });
 
+    let sessionToken: string;
+    try {
+      sessionToken = signCustomerSession(user.id);
+    } catch (err) {
+      console.error("[verify-otp] signCustomerSession failed:", err);
+      return NextResponse.json({ error: "خطای پیکربندی نشست" }, { status: 500 });
+    }
+
     const response = NextResponse.json({
       success: true,
       user: { id: user.id, phone: user.phone, name: user.name, role: user.role },
     });
-    response.cookies.set("session", signCustomerSession(user.id), {
+    response.cookies.set("session", sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

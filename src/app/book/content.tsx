@@ -74,6 +74,9 @@ export default function BookContent() {
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isBookingLoading, setIsBookingLoading] = useState(false);
   const verifiedUserRef = useRef<{ id: string } | null>(null);
+  const isSendingOtpRef = useRef(false);
+  const isVerifyingOtpRef = useRef(false);
+  const isRegisteringRef = useRef(false);
 
   // Determine initial step based on service addons
   const selectedService = services.find((s) => s.id === selectedServiceId);
@@ -269,42 +272,55 @@ export default function BookContent() {
   // ─── Auth handlers ───
 
   const handleAuthPhoneSubmit = useCallback(async () => {
-    if (isAuthLoading) return;
+    if (isAuthLoading || isSendingOtpRef.current) return;
     const normalized = normalizeDigits(authPhone);
     if (!isValidIranianPhone(normalized)) {
       setAuthError("شماره موبایل معتبر نیست (مثال: ۰۹۱۲۱۲۳۴۵۶۷)");
       return;
     }
+    isSendingOtpRef.current = true;
     setIsAuthLoading(true);
     setAuthError("");
     setAuthPhone(normalized);
 
-    const result = await sendOtp(normalized, "customer");
-    setIsAuthLoading(false);
-
-    if (result.success) {
-      setAuthStep("otp");
-    } else {
-      setAuthError(result.error || "خطا در ارسال کد");
+    try {
+      const result = await sendOtp(normalized, "customer");
+      if (result.success) {
+        setAuthStep("otp");
+      } else {
+        setAuthError(result.error || "خطا در ارسال کد");
+      }
+    } catch {
+      setAuthError("خطای سرور");
+    } finally {
+      setIsAuthLoading(false);
+      isSendingOtpRef.current = false;
     }
   }, [authPhone, sendOtp, isAuthLoading]);
 
   const handleAuthOtpSubmit = useCallback(async (code: string) => {
-    if (isAuthLoading) return;
+    if (isAuthLoading || isVerifyingOtpRef.current) return;
+    isVerifyingOtpRef.current = true;
     setIsAuthLoading(true);
     setAuthError("");
-    const result = await verifyOtp(normalizeDigits(authPhone), code, { roleContext: "customer" });
-    setIsAuthLoading(false);
 
-    if (result.success && result.user) {
-      verifiedUserRef.current = result.user;
-      if (!result.user.name) {
-        setAuthStep("name");
+    try {
+      const result = await verifyOtp(normalizeDigits(authPhone), code, { roleContext: "customer" });
+      if (result.success && result.user) {
+        verifiedUserRef.current = result.user;
+        if (!result.user.name) {
+          setAuthStep("name");
+        } else {
+          setStep("confirm");
+        }
       } else {
-        setStep("confirm");
+        setAuthError(result.error || "کد نادرست است");
       }
-    } else {
-      setAuthError(result.error || "کد نادرست است");
+    } catch {
+      setAuthError("خطای سرور");
+    } finally {
+      setIsAuthLoading(false);
+      isVerifyingOtpRef.current = false;
     }
   }, [authPhone, verifyOtp, isAuthLoading]);
 
@@ -318,6 +334,8 @@ export default function BookContent() {
       setAuthError("خطا در شناسایی کاربر");
       return;
     }
+    if (isRegisteringRef.current) return;
+    isRegisteringRef.current = true;
     setIsAuthLoading(true);
     setAuthError("");
     try {
@@ -334,8 +352,10 @@ export default function BookContent() {
       }
     } catch {
       setAuthError("خطای سرور");
+    } finally {
+      setIsAuthLoading(false);
+      isRegisteringRef.current = false;
     }
-    setIsAuthLoading(false);
   }, [authName]);
 
   // ─── Confirm booking ───

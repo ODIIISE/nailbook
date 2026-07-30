@@ -18,6 +18,7 @@ export function PinInput({ length = 4, onComplete, disabled }: PinInputProps) {
   }, []);
 
   const handleChange = (index: number, value: string) => {
+    if (disabled) return;
     if (!/^\d*$/.test(value)) return;
     const newDigits = [...digits];
     newDigits[index] = value.slice(-1);
@@ -40,6 +41,7 @@ export function PinInput({ length = 4, onComplete, disabled }: PinInputProps) {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
+    if (disabled) return;
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, length);
     if (pasted.length === length) {
       const newDigits = pasted.split("");
