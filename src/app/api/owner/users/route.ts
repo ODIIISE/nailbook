@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
     const validRole = role === "owner" ? "owner" : "customer";
     const userId = crypto.randomUUID();
     await sql`
-      INSERT INTO users (id, phone, name, role)
-      VALUES (${userId}, ${normalized}, ${name.trim()}, ${validRole})
+      INSERT INTO users (id, phone, pin, name, role)
+      VALUES (${userId}, ${normalized}, '', ${name.trim()}, ${validRole})
     `;
 
     logActivity({

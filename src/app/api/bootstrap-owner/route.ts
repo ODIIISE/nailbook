@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
     } else {
       // Create new owner
       const { rows } = await sql`
-        INSERT INTO users (phone, name, role)
-        VALUES (${normalizedPhone}, ${name || "مدیر"}, 'owner')
+        INSERT INTO users (phone, pin, name, role)
+        VALUES (${normalizedPhone}, '', ${name || "مدیر"}, 'owner')
         RETURNING id
       `;
       userId = rows[0].id;

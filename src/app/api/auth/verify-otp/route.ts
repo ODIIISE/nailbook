@@ -88,8 +88,8 @@ export async function POST(request: NextRequest) {
       // ON CONFLICT guards against a rare race where two concurrent verify
       // requests both try to create the same new user.
       const { rows: inserted } = await sql<{ id: string; phone: string; name: string; role: string }>`
-        INSERT INTO users (id, phone, name, role)
-        VALUES (${userId}, ${normalized}, '', 'customer')
+        INSERT INTO users (id, phone, pin, name, role)
+        VALUES (${userId}, ${normalized}, '', '', 'customer')
         ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
         RETURNING id, phone, name, role
       `;
