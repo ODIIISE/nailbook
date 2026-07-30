@@ -1,10 +1,11 @@
 "use client";
 
 import { Suspense, useState, useMemo, useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Timeline } from "@/components/owner/timeline";
+import { useAuth } from "@/lib/auth-context";
 import dynamic from "next/dynamic";
 
 const BlockTimeModal = dynamic(() => import("@/components/owner/block-time-modal").then(m => ({ default: m.BlockTimeModal })));
@@ -22,6 +23,8 @@ import { toast } from "sonner";
 
 function OwnerDashboardContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { user, isLoading: authLoading, hasRole } = useAuth();
   const { bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addOwnerBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
@@ -29,6 +32,22 @@ function OwnerDashboardContent() {
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const selectedBooking = useMemo(() => bookings.find((b) => b.id === selectedBookingId) || null, [bookings, selectedBookingId]);
   const [showEarnings, setShowEarnings] = useState(false);
+
+  // Owner-route guard: even though /api/owner/* endpoints check the DB, the
+  // page itself should bounce a customer session before rendering the layout.
+  // Depends directly on user/authLoading (no useRef one-shot) so a slow
+  // /api/auth/me response still gets re-evaluated when the role arrives later.
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      router.replace("/owner/login");
+      return;
+    }
+    if (!hasRole("owner")) {
+      toast.error("دسترسی به بخش مدیریت ندارید");
+      router.replace("/login");
+    }
+  }, [authLoading, user, hasRole, router]);
 
   // Show welcome toast on first login (use ref to prevent re-trigger)
   const welcomeShown = useRef(false);

@@ -36,6 +36,32 @@ function isColumnMissing(err: unknown, column: string): boolean {
 }
 
 /**
+ * Cheap lookup used by send-otp to gate the owner flow BEFORE the SMS is
+ * sent. Returns true iff this phone is already registered with the owner
+ * role (in the new TEXT[] `roles` column or the legacy `"role"` column).
+ *
+ * Schema-aware: a DB where migration 014 hasn't run yet still works
+ * because the function falls back to the legacy column on SQLSTATE 42703.
+ */
+export async function phoneHasOwnerRole(phone: string): Promise<boolean> {
+  try {
+    const { rows } = await sql`
+      SELECT "role", roles FROM users WHERE phone = ${phone} LIMIT 1
+    `;
+    if (rows.length === 0) return false;
+    const raw = rows[0].roles as unknown;
+    if (Array.isArray(raw) && raw.includes("owner")) return true;
+    if (typeof raw === "string" && /\{[^}]*\bowner\b[^}]*\}/.test(raw)) return true;
+    // Legacy-only schema: rely on the `"role"` column.
+    return rows[0].role === "owner";
+  } catch (err) {
+    if (!isColumnMissing(err, "roles")) throw err;
+    const { rows } = await sql`SELECT "role" FROM users WHERE phone = ${phone} LIMIT 1`;
+    return rows[0]?.role === "owner";
+  }
+}
+
+/**
  * Look up the roles array for a user. The cookie itself only carries the
  * userId; the actual role gating happens here.
  *

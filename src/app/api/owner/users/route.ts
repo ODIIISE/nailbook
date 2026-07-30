@@ -32,9 +32,14 @@ export async function POST(request: NextRequest) {
 
     const validRole = role === "owner" ? "owner" : "customer";
     const userId = crypto.randomUUID();
+    // Keep legacy `"role"` and the new `roles` TEXT[] array in sync so
+    // owner-auth.ts's getUserRoles doesn't have to fall back to legacy
+    // synthesis. The literal is cast to TEXT[] so PG accepts the string
+    // placeholder value.
+    const rolesLiteral = validRole === "owner" ? "{customer,owner}" : "{customer}";
     await sql`
-      INSERT INTO users (id, phone, pin, name, "role")
-      VALUES (${userId}, ${normalized}, '', ${name.trim()}, ${validRole})
+      INSERT INTO users (id, phone, pin, name, "role", roles)
+      VALUES (${userId}, ${normalized}, '', ${name.trim()}, ${validRole}, ${rolesLiteral}::TEXT[])
     `;
 
     logActivity({
@@ -93,7 +98,11 @@ export async function PUT(request: NextRequest) {
       if (!validRoles.includes(body.role)) {
         return NextResponse.json({ error: "نقش نامعتبر است" }, { status: 400 });
       }
-      await sql`UPDATE users SET "role" = ${body.role} WHERE id = ${userId}`;
+      // Keep the legacy "role" column AND the new "roles" TEXT[] array
+      // in sync — owner-auth.ts relies on both, and we don't want to
+      // rely on the legacy-only fallback path forever.
+      const rolesLiteral = body.role === "owner" ? "{customer,owner}" : "{customer}";
+      await sql`UPDATE users SET "role" = ${body.role}, roles = ${rolesLiteral}::TEXT[] WHERE id = ${userId}`;
     }
     if (typeof body.locked === "boolean") {
       if (body.locked) {

@@ -9,7 +9,8 @@ import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-config";
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone, code } = await request.json();
+    const body = await request.json();
+    const { phone, code, roleContext } = body ?? {};
 
     console.log("[verify-otp] env check:", {
       customerSecretSet: Boolean(process.env.CUSTOMER_SESSION_SECRET),
@@ -30,42 +31,78 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: otpResult.error || "کد نامعتبر است" }, { status: otpResult.locked ? 423 : 401 });
     }
 
-    let user = await getUserByPhone(normalized);
+    type OtpUser = { id: string; phone: string; name: string; role: string; roles: string[] };
+    let user: OtpUser | null = await getUserByPhone(normalized);
 
-    if (!user) {
-      const userId = crypto.randomUUID();
-      // ON CONFLICT guards against a rare race where two concurrent verify
-      // requests both try to create the same new user.
-      const { rows: inserted } = await sql<{ id: string; phone: string; name: string; role: string; roles: string[] }>`
-        INSERT INTO users (id, phone, pin, name, role, roles)
-        VALUES (${userId}, ${normalized}, '', '', 'customer', ARRAY['customer']::TEXT[])
-        ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
-        RETURNING id, phone, name, role, roles
-      `;
-      user = inserted[0];
-
-      void logActivity({
-        eventType: "user_registered",
-        entityType: "user",
-        entityId: user.id,
-        description: `کاربر جدید ${normalized} ثبت‌نام کرد`,
-        metadata: { phone: normalized },
-      });
-    } else {
+    // Owner-flow gate: refuse to auto-create a row when /owner/login is
+    // the source. The pre-OTP table check in send-otp already rejected
+    // non-owners, but we double-down here in case the OTP was already
+    // issued (e.g. before this hardening shipped, or a developer hot-patch).
+    if (roleContext === "owner") {
+      if (!user) {
+        return NextResponse.json({ error: "شماره ثبت نشده" }, { status: 401 });
+      }
+      const hasOwner =
+        (Array.isArray(user.roles) && user.roles.includes("owner")) ||
+        user.role === "owner";
+      if (!hasOwner) {
+        void logActivity({
+          eventType: "owner_login_denied",
+          entityType: "user",
+          entityId: user.id,
+          description: `تلاش ورود مدیر توسط ${user.name || user.phone} رد شد`,
+          metadata: { phone: normalized, reason: "verify_otp_role_mismatch" },
+        });
+        return NextResponse.json(
+          { error: "این شماره دسترسی مدیر ندارد" },
+          { status: 403 }
+        );
+      }
+      // Successful owner login.
       await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
+    } else {
+      // Customer flow: auto-create the row if missing, then normal login.
+      if (!user) {
+        const userId = crypto.randomUUID();
+        // ON CONFLICT guards against a rare race where two concurrent verify
+        // requests both try to create the same new user.
+        const { rows: inserted } = await sql<{ id: string; phone: string; name: string; role: string; roles: string[] }>`
+          INSERT INTO users (id, phone, pin, name, "role", roles)
+          VALUES (${userId}, ${normalized}, '', '', 'customer', ARRAY['customer']::TEXT[])
+          ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
+          RETURNING id, phone, name, "role", roles
+        `;
+        const created = inserted[0];
+        if (!created) {
+          return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+        }
+        user = created;
+        void logActivity({
+          eventType: "user_registered",
+          entityType: "user",
+          entityId: user.id,
+          description: `کاربر جدید ${normalized} ثبت‌نام کرد`,
+          metadata: { phone: normalized },
+        });
+      } else {
+        await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
+      }
     }
 
+    // After either branch, `user` is non-null. The type is narrowed by
+    // asserting it; this is unreachable in practice but tsc can't prove it.
+    const signedInUser = user!;
     void logActivity({
       eventType: "user_login",
       entityType: "user",
-      entityId: user.id,
-      description: `کاربر "${user.name || user.phone}" وارد شد`,
-      metadata: { userId: user.id, phone: user.phone, name: user.name, roles: user.roles },
+      entityId: signedInUser.id,
+      description: `کاربر "${signedInUser.name || signedInUser.phone}" وارد شد`,
+      metadata: { userId: signedInUser.id, phone: signedInUser.phone, name: signedInUser.name, roles: signedInUser.roles },
     });
 
     let sessionToken: string;
     try {
-      sessionToken = signCustomerSession(user.id);
+      sessionToken = signCustomerSession(signedInUser.id);
     } catch (err) {
       console.error("[verify-otp] signCustomerSession failed:", err);
       return NextResponse.json({ error: "خطای پیکربندی نشست" }, { status: 500 });
@@ -76,11 +113,11 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
       success: true,
       user: {
-        id: user.id,
-        phone: user.phone,
-        name: user.name,
-        role: Array.isArray(user.roles) && user.roles.includes("owner") ? "owner" : (user.role ?? "customer"),
-        roles: Array.isArray(user.roles) && user.roles.length > 0 ? user.roles : ["customer"],
+        id: signedInUser.id,
+        phone: signedInUser.phone,
+        name: signedInUser.name,
+        role: Array.isArray(signedInUser.roles) && signedInUser.roles.includes("owner") ? "owner" : (signedInUser.role ?? "customer"),
+        roles: Array.isArray(signedInUser.roles) && signedInUser.roles.length > 0 ? signedInUser.roles : ["customer"],
       },
     });
     response.cookies.set("session", sessionToken, {

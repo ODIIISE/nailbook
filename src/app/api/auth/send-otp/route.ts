@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendOtp } from "@/lib/otp-service";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
+import { logActivity } from "@/lib/db/activity-log";
+import { phoneHasOwnerRole } from "@/lib/owner-auth";
 
 // In-memory per-IP+phone rate limiter for SMS-bomb protection.
 // Resets on every cold start (serverless) — a 15-min window keeps the attack
@@ -47,7 +49,8 @@ function checkOtpRateLimit(ip: string, phone: string): { allowed: boolean; retry
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone } = await request.json();
+    const body = await request.json();
+    const { phone, roleContext } = body ?? {};
 
     if (!phone) {
       return NextResponse.json({ error: "شماره الزامی است" }, { status: 400 });
@@ -81,10 +84,33 @@ export async function POST(request: NextRequest) {
       farazsmsPatternCodeSet: Boolean(process.env.FARAZSMS_PATTERN_CODE),
       farazsmsPatternVar: process.env.FARAZSMS_PATTERN_VAR || "var1",
       phone: normalized,
+      roleContext: roleContext || "customer",
     });
 
-    // Unified OTP: works for both customer and owner roles.
-    // The owner-only restriction was removed — we just send OTP.
+    // Owner flow gate: "check the table before sending otp message." Only
+    // send OTP if the phone is already registered with the owner role.
+    // Returns a uniform error so the endpoint can't be used to enumerate
+    // which phones have owner privileges.
+    if (roleContext === "owner") {
+      const ownerEligible = await phoneHasOwnerRole(normalized);
+      if (!ownerEligible) {
+        void logActivity({
+          eventType: "owner_login_denied",
+          entityType: "user",
+          entityId: normalized,
+          description: `تلاش ورود مدیر برای شماره ${normalized} رد شد`,
+          metadata: { phone: normalized, reason: "phone_not_owner" },
+        });
+        console.warn("[send-otp] owner flow blocked for phone (not registered or not owner)", {
+          phone: normalized,
+        });
+        return NextResponse.json(
+          { error: "شماره ثبت نشده یا دسترسی ندارد" },
+          { status: 403 }
+        );
+      }
+    }
+
     const result = await sendOtp(normalized);
     if (!result.success) {
       console.error("[send-otp] sendOtp failed:", result.error, { phone: normalized });

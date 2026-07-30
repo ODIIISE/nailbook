@@ -28,7 +28,8 @@ export type EventType =
   | "hours_updated"
   | "salon_updated"
   | "database_migrated"
-  | "owner_login";
+  | "owner_login"
+  | "owner_login_denied";
 
 export interface ActivityLog {
   id: string;

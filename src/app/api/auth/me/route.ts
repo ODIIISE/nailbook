@@ -11,8 +11,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }
 
+    // "role" is a Postgres reserved keyword — must be doubly-quoted even
+    // in a SELECT list.
     const { rows } = await sql`
-      SELECT id, phone, name, role, roles FROM users WHERE id = ${userId} LIMIT 1
+      SELECT id, phone, name, "role", roles FROM users WHERE id = ${userId} LIMIT 1
     `;
 
     if (rows.length === 0) {
