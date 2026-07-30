@@ -89,7 +89,14 @@ export async function verifySuperAdminPin(phone: string, pin: string) {
   return rows[0].id;
 }
 
-// Reuse PIN functions from pin-hash.ts
+export async function setSuperAdminPassword(phone: string, password: string) {
+  const hashedPin = hashPin(password);
+  const { rows } = await sql`
+    UPDATE super_admins SET pin = ${hashedPin} WHERE phone = ${phone} RETURNING id
+  `;
+  return rows[0]?.id || null;
+}
+
 function hashPin(pin: string): string {
   const ALGO = "sha256";
   const ITERATIONS = 100000;
@@ -101,26 +108,31 @@ function hashPin(pin: string): string {
   return `${salt}:${hash}`;
 }
 
-function verifyPin(plaintext: string, storedValue: string): boolean {
+export function verifyPin(plaintext: string, storedValue: string): boolean {
   if (!storedValue || !plaintext) return false;
 
   const input = String(plaintext).trim();
 
-  // Plain 4-digit PIN
-  if (storedValue.length === 4 && /^\d{4}$/.test(storedValue)) {
+  // Numeric PIN up to 8 digits (legacy compatibility - 4 to 8 digits plain).
+  if (/^\d{4,8}$/.test(storedValue)) {
     return input === storedValue;
   }
 
   // PBKDF2 format: "salt:hash"
   const SALT_LENGTH = 16;
   const KEY_LENGTH = 64;
-  const ITERATIONS = 100000;
-  const ALGO = "sha256";
 
-  if (storedValue.includes(":") && storedValue.length === SALT_LENGTH * 2 + 1 + KEY_LENGTH * 2) {
+  if (storedValue.includes(":")) {
     const [salt, hash] = storedValue.split(":");
-    const computed = crypto.pbkdf2Sync(input, salt, ITERATIONS, KEY_LENGTH, ALGO).toString("hex");
-    return crypto.timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(hash, "hex"));
+    if (!salt || !hash) return false;
+    if (salt.length !== SALT_LENGTH * 2) return false;
+    if (hash.length !== KEY_LENGTH * 2) return false;
+    const computed = crypto.pbkdf2Sync(input, salt, 100000, KEY_LENGTH, "sha256").toString("hex");
+    try {
+      return crypto.timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(hash, "hex"));
+    } catch {
+      return false;
+    }
   }
 
   return false;

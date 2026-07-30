@@ -19,6 +19,7 @@ import { BookingProgress } from "@/components/booking/booking-progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { WaitlistSheet } from "@/components/booking/waitlist-sheet";
+import { ServiceDetail } from "@/components/booking/service-detail";
 import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
@@ -49,6 +50,14 @@ export default function BookContent() {
     return () => clearInterval(interval);
   }, [refreshBookings]);
 
+  // Refs for guard against duplicate submits across re-renders.
+  const verifiedUserRef = useRef<{ id: string } | null>(null);
+  const isSendingOtpRef = useRef(false);
+  const isVerifyingOtpRef = useRef(false);
+  const isRegisteringRef = useRef(false);
+  const isSubmittingRef = useRef(false);
+
+  // Form state
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
@@ -64,8 +73,6 @@ export default function BookContent() {
   const [spamError, setSpamError] = useState("");
   const [showWaitlist, setShowWaitlist] = useState(false);
 
-  // No auto-dismiss for spam errors — critical messages persist until user acts
-
   // Auth state
   const [authPhone, setAuthPhone] = useState("");
   const [authName, setAuthName] = useState("");
@@ -73,13 +80,29 @@ export default function BookContent() {
   const [authError, setAuthError] = useState("");
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isBookingLoading, setIsBookingLoading] = useState(false);
-  const verifiedUserRef = useRef<{ id: string } | null>(null);
-  const isSendingOtpRef = useRef(false);
-  const isVerifyingOtpRef = useRef(false);
-  const isRegisteringRef = useRef(false);
 
-  // Determine initial step based on service addons
+  // Sorted service selection
   const selectedService = services.find((s) => s.id === selectedServiceId);
+
+  // Popular-stat cutoff captured once at mount so the value is stable per session.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  const [popularCutoff, setPopularCutoff] = useState<number | null>(null);
+  useEffect(() => {
+    setPopularCutoff(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+  const popularLast30Days = useMemo(() => {
+    if (!selectedService || popularCutoff === null) return 0;
+    let count = 0;
+    for (const b of bookings) {
+      if (b.service_id !== selectedService.id) continue;
+      if (b.status === "cancelled" || b.status === "pending") continue;
+      const ts = new Date(b.created_at).getTime();
+      if (Number.isFinite(ts) && ts >= popularCutoff) count += 1;
+    }
+    return count;
+  }, [bookings, selectedService, popularCutoff]);
+
   const activeAddons = useMemo(() => {
     return selectedService
       ? addons.filter((a) => selectedService.addon_ids.includes(a.id) && a.is_active)
@@ -284,7 +307,7 @@ export default function BookContent() {
     setAuthPhone(normalized);
 
     try {
-      const result = await sendOtp(normalized, "customer");
+      const result = await sendOtp(normalized);
       if (result.success) {
         setAuthStep("otp");
       } else {
@@ -305,7 +328,7 @@ export default function BookContent() {
     setAuthError("");
 
     try {
-      const result = await verifyOtp(normalizeDigits(authPhone), code, { roleContext: "customer" });
+      const result = await verifyOtp(normalizeDigits(authPhone), code);
       if (result.success && result.user) {
         verifiedUserRef.current = result.user;
         if (!result.user.name) {
@@ -359,8 +382,6 @@ export default function BookContent() {
   }, [authName]);
 
   // ─── Confirm booking ───
-
-  const isSubmittingRef = useRef(false);
 
   const handleConfirmBooking = useCallback(async () => {
     if (!selectedDate || !selectedService || !selectedTime) return;
@@ -455,9 +476,16 @@ export default function BookContent() {
 
       <div className="mx-auto max-w-lg px-4 pt-4 pb-28 space-y-4">
 
-        {/* ─── Step 1: Addons ─── */}
+        {/* ─── Step 1: Service Detail + Addons ─── */}
         {step === "addons" && (
           <div key={step} className="space-y-4 step-animate">
+            {selectedService ? (
+              <ServiceDetail
+                service={selectedService}
+                popularLast30Days={popularLast30Days}
+              />
+            ) : null}
+
             {hasAddons ? (
               <>
                 <p className="text-[13px] text-muted-foreground text-center">
@@ -616,7 +644,7 @@ export default function BookContent() {
                   <AuthError error={authError} />
                   <ResendOtpButton
                     onResend={async () => {
-                      const result = await sendOtp(normalizeDigits(authPhone), "customer");
+                      const result = await sendOtp(normalizeDigits(authPhone));
                       if (!result.success) {
                         setAuthError(result.error || "خطا در ارسال مجدد کد");
                       }

@@ -3,19 +3,16 @@ import { sql } from "@vercel/postgres";
 import crypto from "crypto";
 import { verifyOtp } from "@/lib/otp-service";
 import { signCustomerSession } from "@/lib/customer-auth";
-import { signOwnerSession } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
 import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-config";
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone, code, roleContext = "customer" } = await request.json();
+    const { phone, code } = await request.json();
 
-    // Help diagnose production configuration without exposing secrets.
     console.log("[verify-otp] env check:", {
       customerSecretSet: Boolean(process.env.CUSTOMER_SESSION_SECRET),
-      ownerSecretSet: Boolean(process.env.OWNER_SESSION_SECRET),
       nodeEnv: process.env.NODE_ENV,
     });
 
@@ -28,70 +25,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "شماره موبایل معتبر نیست" }, { status: 400 });
     }
 
-    // For owner logins, verify the number is actually an owner before consuming the OTP.
-    let user: { id: string; phone: string; name: string; role: string } | null = null;
-    if (roleContext === "owner") {
-      user = await getUserByPhone(normalized);
-      if (!user || user.role !== "owner") {
-        return NextResponse.json({ error: "شماره یا کد نامعتبر است" }, { status: 401 });
-      }
-    }
-
     const otpResult = await verifyOtp(normalized, String(code).trim());
     if (!otpResult.valid) {
       return NextResponse.json({ error: otpResult.error || "کد نامعتبر است" }, { status: otpResult.locked ? 423 : 401 });
     }
 
-    if (!user) {
-      user = await getUserByPhone(normalized);
-    }
+    let user = await getUserByPhone(normalized);
 
-    if (roleContext === "owner") {
-      if (!user) {
-        return NextResponse.json({ error: "شماره یا کد نامعتبر است" }, { status: 401 });
-      }
-      await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
-
-      void logActivity({
-        eventType: "owner_login",
-        entityType: "user",
-        entityId: user.id,
-        description: `مدیر "${user.name || user.phone}" وارد شد`,
-        metadata: { userId: user.id, phone: user.phone, name: user.name },
-      });
-
-      let ownerSessionToken: string;
-      try {
-        ownerSessionToken = signOwnerSession(user.id);
-      } catch (err) {
-        console.error("[verify-otp] signOwnerSession failed:", err);
-        return NextResponse.json({ error: "خطای پیکربندی نشست" }, { status: 500 });
-      }
-
-      const response = NextResponse.json({
-        success: true,
-        user: { id: user.id, phone: user.phone, name: user.name, role: "owner" },
-      });
-      response.cookies.set("owner_session", ownerSessionToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: SESSION_MAX_AGE_SECONDS,
-        path: "/",
-      });
-      return response;
-    }
-
-    // Customer flow
     if (!user) {
       const userId = crypto.randomUUID();
       // ON CONFLICT guards against a rare race where two concurrent verify
       // requests both try to create the same new user.
-      const { rows: inserted } = await sql<{ id: string; phone: string; name: string; role: string }>`
-        INSERT INTO users (id, phone, pin, name, role)
-        VALUES (${userId}, ${normalized}, '', '', 'customer')
+      const { rows: inserted } = await sql<{ id: string; phone: string; name: string; role: string; roles: string[] }>`
+        INSERT INTO users (id, phone, pin, name, role, roles)
+        VALUES (${userId}, ${normalized}, '', '', 'customer', ARRAY['customer']::TEXT[])
         ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
-        RETURNING id, phone, name, role
+        RETURNING id, phone, name, role, roles
       `;
       user = inserted[0];
 
@@ -111,7 +60,7 @@ export async function POST(request: NextRequest) {
       entityType: "user",
       entityId: user.id,
       description: `کاربر "${user.name || user.phone}" وارد شد`,
-      metadata: { userId: user.id, phone: user.phone, name: user.name },
+      metadata: { userId: user.id, phone: user.phone, name: user.name, roles: user.roles },
     });
 
     let sessionToken: string;
@@ -122,9 +71,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "خطای پیکربندی نشست" }, { status: 500 });
     }
 
+    // Single auth cookie for both customer and owner. Owner dashboard is gated
+    // by middleware checking 'owner' in DB roles array.
     const response = NextResponse.json({
       success: true,
-      user: { id: user.id, phone: user.phone, name: user.name, role: user.role },
+      user: {
+        id: user.id,
+        phone: user.phone,
+        name: user.name,
+        role: Array.isArray(user.roles) && user.roles.includes("owner") ? "owner" : (user.role ?? "customer"),
+        roles: Array.isArray(user.roles) && user.roles.length > 0 ? user.roles : ["customer"],
+      },
     });
     response.cookies.set("session", sessionToken, {
       httpOnly: true,
@@ -140,7 +97,28 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function getUserByPhone(phone: string): Promise<{ id: string; phone: string; name: string; role: string } | null> {
-  const { rows } = await sql<{ id: string; phone: string; name: string; role: string }>`SELECT id, phone, name, role FROM users WHERE phone = ${phone} LIMIT 1`;
-  return rows[0] || null;
+async function getUserByPhone(phone: string): Promise<{ id: string; phone: string; name: string; role: string; roles: string[] } | null> {
+  const { rows } = await sql<{ id: string; phone: string; name: string; role: string; roles: string[] }>`
+    SELECT id, phone, name, role, roles FROM users WHERE phone = ${phone} LIMIT 1
+  `;
+  return normalizeUserRoles(rows[0]) || null;
+}
+
+function normalizeUserRoles<T extends { roles: string[] | string | null }>(row: T | null): T | null {
+  if (!row) return row;
+  // Postgres returns TEXT[] as JS arrays, but if the column was added/exists, sometimes as text.
+  const raw = row.roles as unknown;
+  if (Array.isArray(raw)) return row;
+  if (typeof raw === "string") {
+    try {
+      const parsed = (raw as string).replace(/^\{|\}$/g, "").split(",").map((s) => s.replace(/"/g, "").trim()).filter(Boolean);
+      (row as { roles: string[] }).roles = parsed;
+    } catch {
+      (row as { roles: string[] }).roles = ["customer"];
+    }
+  }
+  if (!row.roles || (Array.isArray(row.roles) && row.roles.length === 0)) {
+    (row as { roles: string[] }).roles = ["customer"];
+  }
+  return row;
 }

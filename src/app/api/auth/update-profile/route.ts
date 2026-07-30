@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyOwnerSession } from "@/lib/owner-auth";
 import { verifyCustomerSession } from "@/lib/customer-auth";
 import { logActivity } from "@/lib/db/activity-log";
 
@@ -11,10 +10,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "شناسه کاربر الزامی است" }, { status: 400 });
     }
 
-    // Verify the caller is the owner or the user themselves
-    const ownerUserId = verifyOwnerSession(request.cookies.get("owner_session")?.value);
-    const customerUserId = verifyCustomerSession(request.cookies.get("session")?.value);
-    if (ownerUserId !== userId && customerUserId !== userId) {
+    // Unified session: customer and owner share the same cookie. Must match the supplied userId.
+    const sessionUserId = verifyCustomerSession(request.cookies.get("session")?.value);
+    if (sessionUserId !== userId) {
       return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
     }
 

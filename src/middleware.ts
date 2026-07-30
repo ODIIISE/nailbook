@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const SECRET = process.env.OWNER_SESSION_SECRET;
+const SECRET = process.env.CUSTOMER_SESSION_SECRET;
 
 async function verifySessionSignature(cookieValue: string): Promise<boolean> {
   if (!SECRET || !cookieValue) return false;
@@ -47,7 +47,6 @@ function checkCsrf(request: NextRequest): boolean {
   // Skip CSRF for GET, HEAD, OPTIONS
   if (["GET", "HEAD", "OPTIONS"].includes(request.method)) return true;
 
-  // Check Origin header
   const origin = request.headers.get("origin");
   const host = request.headers.get("host");
 
@@ -60,7 +59,6 @@ function checkCsrf(request: NextRequest): boolean {
     }
   }
 
-  // Check Referer as fallback
   const referer = request.headers.get("referer");
   if (referer && !origin) {
     try {
@@ -82,9 +80,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.json({ error: "درخواست نامعتبر" }, { status: 403 });
   }
 
+  // Unified session cookie - same one for customer and owner.
+  const session = request.cookies.get("session")?.value;
+
   // Protect /owner/* pages (not /owner/login)
   if (pathname.startsWith("/owner") && pathname !== "/owner/login") {
-    const session = request.cookies.get("owner_session")?.value;
     if (!session) {
       return NextResponse.redirect(new URL("/owner/login", request.url));
     }
@@ -94,14 +94,18 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect /api/owner/* and /api/update-salon, /api/upload-* endpoints
-  if (
-    pathname.startsWith("/api/owner") ||
-    pathname === "/api/update-salon" ||
-    pathname.startsWith("/api/upload") ||
-    pathname === "/api/owner-logout"
-  ) {
-    const session = request.cookies.get("owner_session")?.value;
+  // Protect owner-scoped APIs (salon config, image upload, owner logout, etc.).
+  // The page-level or endpoint-level handler still does the roles[] DB check.
+  const ownerApiPaths = [
+    "/api/owner",
+    "/api/update-salon",
+    "/api/upload",
+    "/api/manual-reserve",
+  ];
+  const isOwnerApi =
+    ownerApiPaths.some((p) => pathname === p || pathname.startsWith(p + "/")) ||
+    pathname === "/api/owner-logout";
+  if (isOwnerApi) {
     if (!session && pathname !== "/api/owner-logout") {
       return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
     }
@@ -113,7 +117,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect customer auth mutation routes (not public OTP or auth/me)
   if (
     pathname.startsWith("/api/auth/") &&
     pathname !== "/api/auth/send-otp" &&
@@ -135,6 +138,7 @@ export const config = {
     "/api/owner/:path*",
     "/api/update-salon",
     "/api/upload/:path*",
+    "/api/manual-reserve",
     "/api/owner-logout",
     "/api/:path*",
   ],

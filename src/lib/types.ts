@@ -1,3 +1,11 @@
+export interface User {
+  id: string;
+  phone: string;
+  name: string;
+  role: "customer" | "owner";
+  roles: string[];
+}
+
 export interface SalonInfo {
   id: string;
   name: string;
@@ -32,6 +40,7 @@ export interface Addon {
   duration_minutes: number;
   is_active: boolean;
   sort_order: number;
+  hint?: string;
 }
 
 export interface Service {
@@ -44,7 +53,8 @@ export interface Service {
   sort_order: number;
   addon_ids: string[];
   priority_score: number;
-  image_url?: string;
+  image_url?: string | null;
+  best_for: string[];
 }
 
 export interface Booking {

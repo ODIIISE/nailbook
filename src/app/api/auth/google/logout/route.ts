@@ -1,13 +1,7 @@
 import { NextResponse } from "next/server";
 
+// Google OAuth removed.
+
 export async function POST() {
-  const response = NextResponse.json({ success: true });
-  response.cookies.set("google_session", "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 0,
-    path: "/",
-  });
-  return response;
+  return new NextResponse("Google login has been removed.", { status: 410 });
 }

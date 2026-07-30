@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { getGoogleAuthUrl } from "@/lib/google-auth";
+
+// Google OAuth removed. Use OTP login instead.
+// See docs/auth.md for the OTP flow.
 
 export async function GET() {
-  const url = getGoogleAuthUrl();
-  return NextResponse.redirect(url);
+  return new NextResponse("Google login has been removed.", { status: 410 });
+}
+
+export async function POST() {
+  return new NextResponse("Google login has been removed.", { status: 410 });
 }

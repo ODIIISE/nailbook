@@ -2,19 +2,22 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 
-interface User {
+export interface AuthUser {
   id: string;
   phone: string;
   name: string;
   role: "customer" | "owner";
+  roles: string[];
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   isLoading: boolean;
-  sendOtp: (phone: string, roleContext?: "customer" | "owner") => Promise<{ success: boolean; error?: string }>;
-  verifyOtp: (phone: string, code: string, options?: { roleContext?: "customer" | "owner" }) => Promise<{ success: boolean; error?: string; user?: User }>;
+  sendOtp: (phone: string) => Promise<{ success: boolean; error?: string }>;
+  verifyOtp: (phone: string, code: string) => Promise<{ success: boolean; error?: string; user?: AuthUser }>;
   logout: () => void;
+  isOwner: boolean;
+  hasRole: (role: "customer" | "owner") => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -22,7 +25,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 const STORAGE_KEY = "nailbook_user";
 
 /** Synchronously read user from localStorage (avoids flash, validated server-side below) */
-function getInitialUser(): User | null {
+function getInitialUser(): AuthUser | null {
   if (typeof window === "undefined") return null;
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -34,7 +37,7 @@ function getInitialUser(): User | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   // Initialize synchronously from localStorage — no flash
-  const [user, setUser] = useState<User | null>(getInitialUser);
+  const [user, setUser] = useState<AuthUser | null>(getInitialUser);
   const [isLoading, setIsLoading] = useState(true);
   const validatedRef = useRef(false);
 
@@ -83,12 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  const sendOtp = useCallback(async (phone: string, roleContext: "customer" | "owner" = "customer") => {
+  const sendOtp = useCallback(async (phone: string) => {
     try {
       const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, roleContext }),
+        body: JSON.stringify({ phone }),
       });
       const data = await res.json();
       if (res.ok) return { success: true };
@@ -98,16 +101,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const verifyOtp = useCallback(async (phone: string, code: string, options: { roleContext?: "customer" | "owner" } = {}) => {
+  const verifyOtp = useCallback(async (phone: string, code: string) => {
     try {
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone,
-          code,
-          roleContext: options.roleContext || "customer",
-        }),
+        body: JSON.stringify({ phone, code }),
       });
       const data = await res.json();
 
@@ -130,8 +129,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch { /* ignore */ }
   }, []);
 
+  const isOwner = Boolean(user?.roles?.includes("owner"));
+  const hasRole = useCallback((role: "customer" | "owner") => Boolean(user?.roles?.includes(role)), [user]);
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, sendOtp, verifyOtp, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, sendOtp, verifyOtp, logout, isOwner, hasRole }}>
       {children}
     </AuthContext.Provider>
   );

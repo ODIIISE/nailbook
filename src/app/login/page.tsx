@@ -40,7 +40,7 @@ export default function LoginPage() {
     setError("");
     setPhone(normalized);
 
-    const result = await sendOtp(normalized, "customer");
+    const result = await sendOtp(normalized);
     setIsLoading(false);
 
     if (result.success) {
@@ -55,7 +55,7 @@ export default function LoginPage() {
   const handleOtpSubmit = useCallback(async (enteredCode: string) => {
     setIsLoading(true);
     setError("");
-    const result = await verifyOtp(phone, enteredCode, { roleContext: "customer" });
+    const result = await verifyOtp(phone, enteredCode);
     setIsLoading(false);
 
     if (result.success && result.user) {
@@ -160,14 +160,13 @@ export default function LoginPage() {
                   </p>
                 </div>
                 <PinInput length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
-                <AuthError error={error} />
-                <ResendOtpButton
-                  onResend={async () => {
-                    const result = await sendOtp(normalizeDigits(phone), "customer");
-                    if (!result.success) {
-                      setError(result.error || "خطا در ارسال مجدد کد");
-                    }
-                  }}
+                <AuthError error={error} />                  <ResendOtpButton
+                    onResend={async () => {
+                      const result = await sendOtp(normalizeDigits(phone));
+                      if (!result.success) {
+                        setError(result.error || "خطا در ارسال مجدد کد");
+                      }
+                    }}
                   disabled={isLoading}
                 />
                 <Button

@@ -1,39 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PinInput } from "@/components/booking/pin-input";
-import { Shield, Loader2 } from "lucide-react";
+import { Shield, Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [step, setStep] = useState<"phone" | "pin">("phone");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const handlePhoneSubmit = () => {
+  async function handleSubmit(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (isLoading) return;
     if (phone.length < 10) {
       setError("شماره موبایل معتبر نیست");
       return;
     }
-    setError("");
-    setStep("pin");
-  };
-
-  const handlePinComplete = async (pin: string) => {
+    if (password.length < 4) {
+      setError("رمز عبور الزامی است");
+      return;
+    }
     setIsLoading(true);
     setError("");
     try {
       const res = await fetch("/api/super-admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, pin }),
+        body: JSON.stringify({ phone, pin: password }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -47,11 +49,11 @@ export default function AdminLoginPage() {
       setError("خطای سرور");
       setIsLoading(false);
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-background">
-      <div className="w-full max-w-sm">
+      <form ref={formRef} onSubmit={handleSubmit} className="w-full max-w-sm">
         <Card className="glass p-6">
           <div className="text-center mb-6">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
@@ -59,63 +61,69 @@ export default function AdminLoginPage() {
             </div>
             <h1 className="text-h1 text-foreground">ورود مدیر کل</h1>
             <p className="text-[13px] text-muted-foreground mt-1">
-              شماره موبایل و رمز ۴ رقمی خود را وارد کنید
+              شماره موبایل و رمز عبور خود را وارد کنید
             </p>
           </div>
 
-          {step === "phone" && (
-            <div className="space-y-4">
-              <div>
-                <Label className="text-[13px]">شماره موبایل</Label>
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="mt-1"
-                  dir="ltr"
-                  placeholder="09121234567"
-                  autoFocus
-                />
-              </div>
-              {error && (
-                <p className="text-[13px] text-destructive text-center">{error}</p>
-              )}
-              <Button
-                size="xl"
-                className="w-full bg-foreground text-background hover:bg-foreground/90"
-                onClick={handlePhoneSubmit}
-                disabled={phone.length < 10}
-              >
-                ادامه
-              </Button>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-[13px]">شماره موبایل</Label>
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="mt-1 h-12 text-left"
+                dir="ltr"
+                placeholder="09121234567"
+                autoFocus
+                autoComplete="username"
+              />
             </div>
-          )}
 
-          {step === "pin" && (
-            <div className="space-y-4">
-              <p className="text-[13px] text-muted-foreground text-center">
-                رمز ۴ رقمی خود را وارد کنید
-              </p>
-              <PinInput onComplete={handlePinComplete} disabled={isLoading} />
-              {isLoading && (
-                <div className="flex justify-center">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              )}
-              {error && (
-                <p className="text-[13px] text-destructive text-center">{error}</p>
-              )}
-              <Button
-                variant="ghost"
-                className="w-full"
-                onClick={() => setStep("phone")}
-                disabled={isLoading}
-              >
-                تغییر شماره
-              </Button>
+            <div>
+              <Label className="text-[13px]">رمز عبور</Label>
+              <div className="relative mt-1">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="h-12 pe-10 text-left"
+                  dir="ltr"
+                  placeholder="••••••••••"
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? "پنهان‌کردن رمز" : "نمایش رمز"}
+                  className="absolute inset-y-0 left-0 flex items-center px-3 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
-          )}
+
+            {error && (
+              <p className="text-[13px] text-destructive text-center">{error}</p>
+            )}
+
+            <Button
+              type="submit"
+              size="xl"
+              className="w-full bg-foreground text-background hover:bg-foreground/90"
+              disabled={isLoading || phone.length < 10 || password.length < 4}
+            >
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  در حال ورود...
+                </span>
+              ) : (
+                "ورود"
+              )}
+            </Button>
+          </div>
         </Card>
-      </div>
+      </form>
     </div>
   );
 }
