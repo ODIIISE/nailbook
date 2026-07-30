@@ -26,37 +26,69 @@ export function verifyOwnerSession(cookieValue: string | undefined): string | nu
 }
 
 /**
+ * Returns true if the error is the standard Postgres "column does not exist".
+ * Used to gracefully fall back to legacy schemas where migration 014 (which
+ * adds the `roles` TEXT[] column) hasn't run yet.
+ */
+function isColumnMissing(err: unknown, column: string): boolean {
+  const msg = String((err as { message?: string })?.message ?? "");
+  return new RegExp(`column "${column}" does not exist|42703`, "i").test(msg);
+}
+
+/**
  * Look up the roles array for a user. The cookie itself only carries the
  * userId; the actual role gating happens here.
  *
- * - Returns `null` if the user row no longer exists (stale-cookie case;
- *   callers should treat this as a normal "re-auth" response, not a 500).
+ * - Returns `null` if the user row no longer exists (stale-cookie case).
  * - Throws if the DB itself errors (so transient outages surface clearly).
+ *
+ * Schema-aware: handles three flavours of the `users` table —
+ *   1. Migration 014+ ran: `roles TEXT[]` populated with array OR with
+ *      stringified "{customer,owner}" literal from `@vercel/postgres`.
+ *   2. Migration 014 ran but `roles` is empty/null: synthesise from
+ *      legacy `"role"` column.
+ *   3. Migration 014 dropped on a fresh DB where the new column is
+ *      missing entirely: fall back to legacy `"role"` column.
  */
 async function getUserRoles(userId: string): Promise<string[] | null> {
-  const { rows } = await sql`
-    SELECT role, roles FROM users WHERE id = ${userId} LIMIT 1
-  `;
-  if (rows.length === 0) return null;
-  const raw = rows[0].roles;
-  if (Array.isArray(raw) && raw.length > 0) {
-    return raw.filter((r): r is string => typeof r === "string");
+  // Try the new schema first. Note: "role" is a Postgres reserved keyword and
+  // MUST be double-quoted; an unquoted reference inside a SELECT list throws
+  // "syntax error at or near 'role'" on stricter PG versions.
+  let rows;
+  try {
+    ({ rows } = await sql`
+      SELECT "role", roles FROM users WHERE id = ${userId} LIMIT 1
+    `);
+  } catch (err) {
+    if (!isColumnMissing(err, "roles")) throw err;
+    // Legacy schema: only the "role" column exists. Migration 014 has not run
+    // on this DB yet — keep the deployment functional until the admin runs it.
+    ({ rows } = await sql`SELECT "role" FROM users WHERE id = ${userId} LIMIT 1`);
+    if (rows.length === 0) return null;
+    return rows[0].role === "owner" ? ["customer", "owner"] : ["customer"];
   }
-  // @vercel/postgres can return TEXT[] as a stringified Postgres literal like
-  // "{customer,owner}" instead of a native JS array. Parse it so existing owners
-  // keep their privilege after migration 014.
-  if (typeof raw === "string" && raw.length > 0) {
-    const parsed = raw
+  if (rows.length === 0) return null;
+  const rawRoles = rows[0].roles;
+  const legacyRole: string = rows[0].role;
+
+  // Path 1: native JS array from @vercel/postgres.
+  if (Array.isArray(rawRoles) && rawRoles.length > 0) {
+    return rawRoles.filter((r): r is string => typeof r === "string");
+  }
+  // Path 2: stringified "{customer,owner}" literal — same regex+split the
+  // verify-otp `normalizeUserRoles` helper uses on the login path.
+  if (typeof rawRoles === "string" && rawRoles.length > 0) {
+    const parsed = rawRoles
       .replace(/^\{|\}$/g, "")
       .split(",")
       .map((s) => s.replace(/"/g, "").trim())
       .filter(Boolean);
     if (parsed.length > 0) return parsed;
   }
-  // Both `roles` paths failed to yield anything. Synthesise from legacy `role`
-  // so existing schemas still work (this branch is also the only sensible
-  // outcome if migration 014 hasn't run on prod yet).
-  return rows[0].role === "owner" ? ["customer", "owner"] : ["customer"];
+  // Path 3: `roles` empty/null after a successful migration. Use legacy
+  // `"role"` to decide, so an existing owner isn't locked out by a partial
+  // migration drift.
+  return legacyRole === "owner" ? ["customer", "owner"] : ["customer"];
 }
 
 /**

@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const { rows } = await sql`SELECT id, phone, name, role, locked_until, created_at FROM users ORDER BY created_at DESC`;
+    const { rows } = await sql`SELECT id, phone, name, "role", locked_until, created_at FROM users ORDER BY created_at DESC`;
     return NextResponse.json(rows);
   } catch (error) {
     console.error("Failed to fetch users:", error);
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const validRole = role === "owner" ? "owner" : "customer";
     const userId = crypto.randomUUID();
     await sql`
-      INSERT INTO users (id, phone, pin, name, role)
+      INSERT INTO users (id, phone, pin, name, "role")
       VALUES (${userId}, ${normalized}, '', ${name.trim()}, ${validRole})
     `;
 
@@ -68,7 +68,7 @@ export async function PUT(request: NextRequest) {
 
     // Prevent changing other owners' roles (no owner-to-owner demotion)
     if (body.role !== undefined && userId !== owner.id) {
-      const { rows: targetRows } = await sql`SELECT role FROM users WHERE id = ${userId}`;
+      const { rows: targetRows } = await sql`SELECT "role" FROM users WHERE id = ${userId}`;
       if (targetRows[0]?.role === "owner" && body.role !== "owner") {
         return NextResponse.json({ error: "تغییر نقش مدیر دیگر مجاز نیست" }, { status: 403 });
       }
@@ -93,7 +93,7 @@ export async function PUT(request: NextRequest) {
       if (!validRoles.includes(body.role)) {
         return NextResponse.json({ error: "نقش نامعتبر است" }, { status: 400 });
       }
-      await sql`UPDATE users SET role = ${body.role} WHERE id = ${userId}`;
+      await sql`UPDATE users SET "role" = ${body.role} WHERE id = ${userId}`;
     }
     if (typeof body.locked === "boolean") {
       if (body.locked) {
@@ -136,7 +136,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Check if user is an owner
-    const { rows: targetUser } = await sql`SELECT role FROM users WHERE id = ${userId}`;
+    const { rows: targetUser } = await sql`SELECT "role" FROM users WHERE id = ${userId}`;
     if (targetUser[0]?.role === "owner") {
       return NextResponse.json({ error: "حذف مدیر مجاز نیست" }, { status: 400 });
     }

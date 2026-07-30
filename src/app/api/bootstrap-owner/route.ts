@@ -40,14 +40,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Upsert by phone: append 'owner' to existing roles or create new.
+    // Note: "role" is a Postgres reserved keyword and must be double-quoted
+    // in SELECT / INSERT column lists / UPDATE assignments.
     const { rows } = await sql`
-      INSERT INTO users (phone, pin, name, role, roles)
+      INSERT INTO users (phone, pin, name, "role", roles)
       VALUES (${normalizedPhone}, '', ${name || "مدیر"}, 'owner', ARRAY['customer','owner']::TEXT[])
       ON CONFLICT (phone) DO UPDATE
         SET roles = ARRAY(SELECT DISTINCT unnest(users.roles || ARRAY['owner']::TEXT[])),
             name = COALESCE(EXCLUDED.name, users.name),
-            role = CASE WHEN 'owner' = ANY(users.roles) THEN users.role ELSE 'owner' END
-      RETURNING id, phone, name, role, roles
+            "role" = CASE WHEN 'owner' = ANY(users.roles) THEN users."role" ELSE 'owner' END
+      RETURNING id, phone, name, "role", roles
     `;
     const userId = rows[0].id;
 

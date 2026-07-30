@@ -98,8 +98,9 @@ export async function POST(request: NextRequest) {
 }
 
 async function getUserByPhone(phone: string): Promise<{ id: string; phone: string; name: string; role: string; roles: string[] } | null> {
+  // "role" is a Postgres reserved keyword — must be double-quoted in SELECT.
   const { rows } = await sql<{ id: string; phone: string; name: string; role: string; roles: string[] }>`
-    SELECT id, phone, name, role, roles FROM users WHERE phone = ${phone} LIMIT 1
+    SELECT id, phone, name, "role", roles FROM users WHERE phone = ${phone} LIMIT 1
   `;
   return normalizeUserRoles(rows[0]) || null;
 }
