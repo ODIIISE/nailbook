@@ -34,11 +34,29 @@ export function verifyOwnerSession(cookieValue: string | undefined): string | nu
  * - Throws if the DB itself errors (so transient outages surface clearly).
  */
 async function getUserRoles(userId: string): Promise<string[] | null> {
-  const { rows } = await sql`SELECT roles FROM users WHERE id = ${userId} LIMIT 1`;
+  const { rows } = await sql`
+    SELECT role, roles FROM users WHERE id = ${userId} LIMIT 1
+  `;
   if (rows.length === 0) return null;
   const raw = rows[0].roles;
-  if (Array.isArray(raw)) return raw as string[];
-  return ["customer"];
+  if (Array.isArray(raw) && raw.length > 0) {
+    return raw.filter((r): r is string => typeof r === "string");
+  }
+  // @vercel/postgres can return TEXT[] as a stringified Postgres literal like
+  // "{customer,owner}" instead of a native JS array. Parse it so existing owners
+  // keep their privilege after migration 014.
+  if (typeof raw === "string" && raw.length > 0) {
+    const parsed = raw
+      .replace(/^\{|\}$/g, "")
+      .split(",")
+      .map((s) => s.replace(/"/g, "").trim())
+      .filter(Boolean);
+    if (parsed.length > 0) return parsed;
+  }
+  // Both `roles` paths failed to yield anything. Synthesise from legacy `role`
+  // so existing schemas still work (this branch is also the only sensible
+  // outcome if migration 014 hasn't run on prod yet).
+  return rows[0].role === "owner" ? ["customer", "owner"] : ["customer"];
 }
 
 /**
