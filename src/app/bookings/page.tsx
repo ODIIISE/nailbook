@@ -14,7 +14,9 @@ import { Clock, Calendar, User, ArrowLeft } from "lucide-react";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
 import { formatPrice, gregorianToJalali, toPersianDigits, formatJalaliTime } from "@/lib/jalali";
+import { parseGregorianDateKey } from "@/lib/time";
 import type { Booking } from "@/lib/types";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
@@ -54,8 +56,8 @@ export default function BookingsPage() {
     return bookings
       .filter((b) => b.user_id === user.id || b.customer_phone === user.phone)
       .sort((a, b) => {
-        const dateA = new Date(a.date_gregorian).getTime();
-        const dateB = new Date(b.date_gregorian).getTime();
+        const dateA = parseGregorianDateKey(a.date_gregorian).getTime();
+        const dateB = parseGregorianDateKey(b.date_gregorian).getTime();
         if (dateA !== dateB) return dateB - dateA;
         return b.start_time.localeCompare(a.start_time);
       });
@@ -80,7 +82,7 @@ export default function BookingsPage() {
     for (const b of myBookings) {
       const key = b.date_gregorian;
       if (!map.has(key)) {
-        const jalali = gregorianToJalali(new Date(key));
+        const jalali = gregorianToJalali(parseGregorianDateKey(key));
         const jalaliStr = `${toPersianDigits(jalali.jd)} ${JALALI_MONTHS[jalali.jm]} ${toPersianDigits(jalali.jy)}`;
         groups.push({ date: key, jalaliStr, bookings: [] });
         map.set(key, groups[groups.length - 1].bookings);
@@ -200,9 +202,14 @@ export default function BookingsPage() {
         <BookingDetailModal
           booking={selectedBooking}
           onClose={() => setSelectedBooking(null)}
-          onCancel={(id) => {
-            cancelBooking(id);
-            setSelectedBooking(null);
+          onCancel={async (id) => {
+            try {
+              await cancelBooking(id);
+              toast.success("نوبت لغو شد");
+              setSelectedBooking(null);
+            } catch (error) {
+              toast.error(error instanceof Error ? error.message : "خطا در لغو نوبت");
+            }
           }}
           getServiceName={getServiceName}
           getAddonNames={getAddonNames}
@@ -232,7 +239,7 @@ function BookingDetailModal({
   getServicePrice: (id: string) => number | null;
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
-  const jalali = gregorianToJalali(new Date(booking.date_gregorian));
+  const jalali = gregorianToJalali(parseGregorianDateKey(booking.date_gregorian));
   const status = STATUS_MAP[booking.status] || STATUS_MAP.pending;
   const time = booking.start_time.slice(0, 5);
   const endTime = booking.end_time.slice(0, 5);

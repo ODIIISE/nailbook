@@ -1,4 +1,5 @@
 import type { Booking, Service, Addon } from "./types";
+import { parseGregorianDateKey } from "./time";
 
 export function calculateBookingPrice(
   booking: Booking,
@@ -25,7 +26,7 @@ export function calculateEarnings(
 ) {
   const filtered = bookings.filter((b) => {
     if (b.status === "cancelled") return false;
-    const d = new Date(b.date_gregorian.split("T")[0]);
+    const d = parseGregorianDateKey(b.date_gregorian.split("T")[0]);
     return d >= startDate && d <= endDate;
   });
 

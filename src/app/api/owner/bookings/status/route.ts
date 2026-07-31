@@ -49,7 +49,10 @@ export async function POST(request: NextRequest) {
 
     // Get current booking status after the date lock.
     const { rows: current } = await client.query(
-      `SELECT status, customer_name, customer_phone, date_gregorian, start_time, end_time FROM bookings WHERE id = $1 FOR UPDATE`,
+      `SELECT status, customer_name, customer_phone, date_gregorian,
+              TO_CHAR(start_time, 'HH24:MI') AS start_time,
+              TO_CHAR(end_time, 'HH24:MI') AS end_time
+       FROM bookings WHERE id = $1 FOR UPDATE`,
       [bookingId]
     );
     const oldStatus = current[0]?.status || "unknown";
@@ -77,6 +80,19 @@ export async function POST(request: NextRequest) {
       if (conflicts.length > 0) {
         await client.query("ROLLBACK");
         return NextResponse.json({ error: "این زمان قبلاً رزرو شده است" }, { status: 409 });
+      }
+
+      const { rows: blocked } = await client.query(
+        `SELECT id FROM blocked_times
+         WHERE date_gregorian = $1::date
+         AND start_time < ($2 || ':00')::time
+         AND end_time > ($3 || ':00')::time
+         LIMIT 1`,
+        [booking.date_gregorian, booking.end_time, booking.start_time]
+      );
+      if (blocked.length > 0) {
+        await client.query("ROLLBACK");
+        return NextResponse.json({ error: "این زمان مسدود شده است" }, { status: 409 });
       }
     }
 

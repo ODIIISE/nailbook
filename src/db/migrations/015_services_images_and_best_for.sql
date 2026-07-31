@@ -3,6 +3,9 @@
 -- and an owner-editable "best for" tag list. Both can be replaced later
 -- via the existing /owner/service-manager UI.
 
+-- `image_url` was introduced by the service manager after the initial schema.
+-- Add it here before the backfill so a fresh database can run this migration.
+ALTER TABLE services ADD COLUMN IF NOT EXISTS image_url TEXT;
 ALTER TABLE services ADD COLUMN IF NOT EXISTS best_for TEXT[] NOT NULL DEFAULT '{}';
 
 -- Per-category default images (Unsplash CDN; size-adjusted: ?w=800&q=80).

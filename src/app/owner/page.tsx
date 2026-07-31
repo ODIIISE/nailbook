@@ -17,7 +17,7 @@ import { SalonGuard } from "@/components/ui/salon-guard";
 import { ChevronLeft } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
-import { getTehranDateKey } from "@/lib/time";
+import { getTehranDateKey, parseGregorianDateKey } from "@/lib/time";
 import { calculateEarnings, calculateBookingPrice } from "@/lib/pricing";
 import { toast } from "sonner";
 
@@ -105,7 +105,7 @@ function OwnerDashboardContent() {
   }, [currentDate, blockedTimes]);
 
   const accounting = useMemo(() => {
-    const today = new Date(getTehranDateKey(currentDate));
+    const today = parseGregorianDateKey(getTehranDateKey(currentDate));
     const endOfToday = new Date(today);
     endOfToday.setHours(23, 59, 59, 999);
     return calculateEarnings(bookings, services, addons, today, endOfToday);
@@ -130,7 +130,14 @@ function OwnerDashboardContent() {
   };
 
   const handleRemoveBlock = (index: number) => {
-    updateBlockedTimes(blockedTimes.filter((_, i) => i !== index));
+    // Timeline indexes only the blocks for the selected day, while the
+    // persisted array contains every day. Remove the exact object instead
+    // of accidentally deleting another day's block at the same index.
+    const target = dayBlockedTimes[index];
+    if (!target) return;
+    const globalIndex = blockedTimes.indexOf(target);
+    if (globalIndex < 0) return;
+    updateBlockedTimes(blockedTimes.filter((_, i) => i !== globalIndex));
   };
 
   const handleManualReserve = async (data: {

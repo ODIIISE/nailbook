@@ -3,6 +3,8 @@ import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { normalizeDigits } from "@/lib/digits";
 import { logActivity } from "@/lib/db/activity-log";
+import { gregorianToJalali } from "@/lib/jalali";
+import { parseGregorianDateKey } from "@/lib/time";
 
 /**
  * POST /api/owner/bookings
@@ -22,10 +24,27 @@ export async function POST(request: NextRequest) {
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const body = await request.json();
-    const { customer_name, customer_phone, service_id, date, date_gregorian, start_time, end_time, selected_addons } = body;
+    const {
+      customer_name,
+      customer_phone,
+      service_id,
+      date_gregorian,
+      start_time,
+      end_time,
+      selected_addons,
+    } = body;
 
     if (!customer_phone || !service_id || !date_gregorian || !start_time || !end_time) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
+    }
+
+    const isValidDate =
+      typeof date_gregorian === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(date_gregorian) &&
+      parseGregorianDateKey(date_gregorian).toISOString().slice(0, 10) === date_gregorian;
+    const timePattern = /^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/;
+    if (!isValidDate || typeof start_time !== "string" || typeof end_time !== "string" || !timePattern.test(start_time) || !timePattern.test(end_time)) {
+      return NextResponse.json({ error: "تاریخ یا ساعت نامعتبر است" }, { status: 400 });
     }
 
     const phone = normalizeDigits(String(customer_phone).trim());
@@ -35,19 +54,52 @@ export async function POST(request: NextRequest) {
 
     const normStart = start_time.slice(0, 5);
     const normEnd = end_time.slice(0, 5);
-
     if (normEnd <= normStart) {
       return NextResponse.json({ error: "ساعت پایان باید بعد از ساعت شروع باشد" }, { status: 400 });
     }
 
-    // Validate service exists
-    const { rows: svcRows } = await sql`SELECT id FROM services WHERE id = ${service_id} AND is_active = true`;
+    if (selected_addons !== undefined && (!Array.isArray(selected_addons) || !selected_addons.every((id: unknown) => typeof id === "string"))) {
+      return NextResponse.json({ error: "آپشن نامعتبر است" }, { status: 400 });
+    }
+    const requestedAddons = (selected_addons as string[] | undefined) || [];
+
+    // Validate service exists and only accept add-ons assigned to it.
+    const { rows: svcRows } = await sql`SELECT id, addon_ids FROM services WHERE id = ${service_id} AND is_active = true`;
     if (svcRows.length === 0) {
       return NextResponse.json({ error: "سرویس یافت نشد" }, { status: 400 });
     }
 
+    const rawAllowedAddonIds = svcRows[0].addon_ids;
+    const allowedAddonIds: string[] = Array.isArray(rawAllowedAddonIds)
+      ? rawAllowedAddonIds.filter((id: unknown): id is string => typeof id === "string")
+      : typeof rawAllowedAddonIds === "string"
+        ? rawAllowedAddonIds
+            .replace(/^\{|\}$/g, "")
+            .split(",")
+            .map((id: string) => id.replace(/^"|"$/g, "").trim())
+            .filter(Boolean)
+        : [];
+    if (requestedAddons.some((id) => !allowedAddonIds.includes(id))) {
+      return NextResponse.json({ error: "آپشن نامعتبر است" }, { status: 400 });
+    }
+
     client = await sql.connect();
     await client.query("BEGIN");
+
+    // Match the customer flow: every selected add-on must still exist and be
+    // active. Checking only the service assignment would allow an owner to
+    // persist deleted/inactive add-ons into a new booking.
+    if (requestedAddons.length > 0) {
+      const { rows: addonRows } = await client.query(
+        `SELECT id FROM addons WHERE id = ANY($1) AND is_active = true`,
+        [requestedAddons]
+      );
+      const uniqueRequestedAddons = new Set(requestedAddons);
+      if (uniqueRequestedAddons.size !== requestedAddons.length || addonRows.length !== uniqueRequestedAddons.size) {
+        await client.query("ROLLBACK");
+        return NextResponse.json({ error: "آپشن نامعتبر است" }, { status: 400 });
+      }
+    }
 
     // Serialize every booking mutation for this date. The public booking
     // service uses the same lock, so manual and customer bookings cannot race
@@ -100,8 +152,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "این زمان مسدود شده", conflict: true }, { status: 409 });
     }
 
-    // Insert the booking
-    const jalaliDate = date || date_gregorian;
+    // Always derive the Jalali display date server-side from the canonical
+    // Gregorian date. This prevents malformed/missing client display dates.
+    const parsedDate = parseGregorianDateKey(date_gregorian);
+    const jalali = gregorianToJalali(parsedDate);
+    const jalaliDate = `${jalali.jy}/${String(jalali.jm).padStart(2, "0")}/${String(jalali.jd).padStart(2, "0")}`;
     const { rows: inserted } = await client.query(
       `INSERT INTO bookings (
         user_id, customer_phone, customer_name, service_id,
@@ -114,7 +169,7 @@ export async function POST(request: NextRequest) {
         phone,
         customer_name || "",
         service_id,
-        JSON.stringify(selected_addons || []),
+        requestedAddons,
         jalaliDate,
         date_gregorian,
         normStart,
@@ -125,7 +180,6 @@ export async function POST(request: NextRequest) {
     await client.query("COMMIT");
 
     const booking = inserted[0];
-
     logActivity({
       eventType: "booking_created",
       entityType: "booking",

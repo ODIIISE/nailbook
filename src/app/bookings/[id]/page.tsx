@@ -8,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { CalendarDays, Clock, MapPin, Phone, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatPrice, gregorianToJalali, toPersianDigits, formatJalaliDate } from "@/lib/jalali";
+import { parseGregorianDateKey } from "@/lib/time";
 
 export const metadata = {
   title: "تأیید نوبت",
@@ -54,7 +55,7 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
   }
 
   const booking = rows[0];
-  const jalali = gregorianToJalali(new Date(booking.date_gregorian));
+  const jalali = gregorianToJalali(parseGregorianDateKey(String(booking.date_gregorian).slice(0, 10)));
   const displayId = String(booking.id).slice(-6).toUpperCase();
 
   const statusKey = String(booking.status || "pending");

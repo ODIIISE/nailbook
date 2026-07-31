@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
+import { parseGregorianDateKey } from "@/lib/time";
 
 interface BlockedTimeItem {
   date_gregorian: string;
@@ -28,6 +29,24 @@ export async function PUT(request: NextRequest) {
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const { blockedTimes }: { blockedTimes: BlockedTimeItem[] } = await request.json();
+    if (!Array.isArray(blockedTimes)) {
+      return NextResponse.json({ error: "داده نامعتبر است" }, { status: 400 });
+    }
+
+    const timePattern = /^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/;
+    for (const block of blockedTimes) {
+      const parsedDate = parseGregorianDateKey(block.date_gregorian);
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(block.date_gregorian) ||
+        !Number.isFinite(parsedDate.getTime()) ||
+        parsedDate.toISOString().slice(0, 10) !== block.date_gregorian ||
+        !timePattern.test(block.start_time) ||
+        !timePattern.test(block.end_time) ||
+        block.end_time.slice(0, 5) <= block.start_time.slice(0, 5)
+      ) {
+        return NextResponse.json({ error: "تاریخ یا ساعت مسدودی نامعتبر است" }, { status: 400 });
+      }
+    }
 
     // Validate no overlapping blocks within the same day
     if (blockedTimes && blockedTimes.length > 1) {
@@ -48,9 +67,40 @@ export async function PUT(request: NextRequest) {
 
     client = await sql.connect();
     await client.query("BEGIN");
+
+    // Serialize block changes with booking creation/status changes and reject
+    // a block that would hide an already active appointment. Lock dates that
+    // are being removed too; otherwise a booking could race a snapshot update
+    // for a date omitted from the incoming list.
+    const { rows: existingDates } = await client.query(
+      `SELECT DISTINCT date_gregorian::text AS date_gregorian FROM blocked_times`
+    );
+    const dates = new Set([
+      ...existingDates.map((row: { date_gregorian: string }) => row.date_gregorian),
+      ...blockedTimes.map((block) => block.date_gregorian),
+    ]);
+    for (const date of dates) {
+      await client.query(`SELECT pg_advisory_xact_lock(hashtext($1))`, [date]);
+    }
+    for (const block of blockedTimes) {
+      const { rows: conflicts } = await client.query(
+        `SELECT id FROM bookings
+         WHERE date_gregorian = $1::date
+         AND status IN ('reserved', 'confirmed', 'in_progress')
+         AND start_time < ($2 || ':00')::time
+         AND end_time > ($3 || ':00')::time
+         LIMIT 1`,
+        [block.date_gregorian, block.end_time.slice(0, 5), block.start_time.slice(0, 5)]
+      );
+      if (conflicts.length > 0) {
+        await client.query("ROLLBACK");
+        return NextResponse.json({ error: "این زمان با یک نوبت فعال تداخل دارد" }, { status: 409 });
+      }
+    }
+
     await client.query("DELETE FROM blocked_times");
 
-    if (blockedTimes && blockedTimes.length > 0) {
+    if (blockedTimes.length > 0) {
       for (const b of blockedTimes) {
         await client.query(
           "INSERT INTO blocked_times (date_gregorian, start_time, end_time) VALUES ($1, $2, $3)",

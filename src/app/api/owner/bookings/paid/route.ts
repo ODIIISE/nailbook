@@ -15,6 +15,9 @@ export async function POST(request: NextRequest) {
 
     // Get booking info for logging
     const { rows: booking } = await sql`SELECT customer_name, customer_phone FROM bookings WHERE id = ${bookingId}`;
+    if (booking.length === 0) {
+      return NextResponse.json({ error: "نوبت یافت نشد" }, { status: 404 });
+    }
 
     await sql`UPDATE bookings SET paid = ${paid} WHERE id = ${bookingId}`;
 

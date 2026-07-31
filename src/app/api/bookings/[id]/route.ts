@@ -31,11 +31,25 @@ export async function PATCH(
       }
     }
 
+    // Customers may only cancel an upcoming booking. Owners can still
+    // cancel from the dashboard, including historical records.
+    const customerCanCancel = ["pending", "reserved", "confirmed"].includes(booking.status);
+    if (!owner && !customerCanCancel) {
+      return NextResponse.json({ error: "این نوبت دیگر قابل لغو نیست" }, { status: 400 });
+    }
     if (booking.status === "cancelled") {
       return NextResponse.json({ error: "نوبت قبلاً لغو شده" }, { status: 400 });
     }
 
-    await sql`UPDATE bookings SET status = 'cancelled' WHERE id = ${id}`;
+    // Keep the status guard in the write as well as the read above. This
+    // prevents two near-simultaneous customer cancellation requests from
+    // racing a status transition and makes the operation idempotent.
+    const update = owner
+      ? await sql`UPDATE bookings SET status = 'cancelled' WHERE id = ${id} AND status <> 'cancelled' RETURNING id`
+      : await sql`UPDATE bookings SET status = 'cancelled' WHERE id = ${id} AND status IN ('pending', 'reserved', 'confirmed') RETURNING id`;
+    if (update.rows.length === 0) {
+      return NextResponse.json({ error: "این نوبت دیگر قابل لغو نیست" }, { status: 409 });
+    }
 
     // Log the cancellation
     logActivity({

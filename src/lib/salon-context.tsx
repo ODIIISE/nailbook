@@ -117,6 +117,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   // Refs to avoid stale closures in callbacks
   const servicesRef = useRef(services);
   const addonsRef = useRef(addons);
+  const bookingsRef = useRef(bookings);
   const salonRef = useRef(salon);
   const highlightsRef = useRef(highlights);
   const workingHoursRef = useRef(workingHours);
@@ -126,11 +127,13 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     servicesRef.current = services;
     addonsRef.current = addons;
+    bookingsRef.current = bookings;
     salonRef.current = salon;
     highlightsRef.current = highlights;
     workingHoursRef.current = workingHours;
     specificDaysOffRef.current = specificDaysOff;
-  }, [services, addons, salon, highlights, workingHours, specificDaysOff]);
+  },    [services, addons, bookings, salon, highlights, workingHours, specificDaysOff]);
+
 
   useEffect(() => {
     const controller = new AbortController();
@@ -293,19 +296,19 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleCancelBooking = useCallback(async (bookingId: string): Promise<boolean> => {
-    // Capture original status before optimistic update
-    let originalStatus: string | undefined;
-    setBookings((prev) => {
-      const booking = prev.find((b) => b.id === bookingId);
-      originalStatus = booking?.status;
-      return prev.map((b) => b.id === bookingId ? { ...b, status: "cancelled" } : b);
-    });
+    // Read the snapshot from a ref before the optimistic write. A state
+    // updater may run later (or more than once) under concurrent rendering,
+    // so capturing the value inside it can lose the rollback status.
+    const originalStatus = bookingsRef.current.find((b) => b.id === bookingId)?.status;
+    setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: "cancelled" } : b));
     try {
       await cancelBookingApi(bookingId);
       return true;
     } catch (e) {
       devLog("Failed to cancel booking:", e);
-      setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: (originalStatus as Booking["status"]) || "reserved" } : b));
+      if (originalStatus) {
+        setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: originalStatus } : b));
+      }
       return false;
     }
   }, []);
@@ -439,12 +442,8 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleUpdateBookingStatus = useCallback(async (bookingId: string, status: string) => {
-    let originalStatus: string | undefined;
-    setBookings((prev) => {
-      const booking = prev.find((b) => b.id === bookingId);
-      originalStatus = booking?.status;
-      return prev.map((b) => (b.id === bookingId ? { ...b, status: status as Booking["status"] } : b));
-    });
+    const originalStatus = bookingsRef.current.find((b) => b.id === bookingId)?.status;
+    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: status as Booking["status"] } : b)));
     try {
       const res = await fetch("/api/owner/bookings/status", {
         method: "POST",

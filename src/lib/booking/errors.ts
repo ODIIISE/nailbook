@@ -8,6 +8,7 @@
 export type BookingErrorCode =
   | "UNAUTHORIZED"
   | "INVALID_PHONE"
+  | "INVALID_DATE"
   | "MISSING_FIELDS"
   | "TIME_INVALID"
   | "TIME_RANGE_INVALID"
@@ -54,6 +55,7 @@ export function createBookingError(code: BookingErrorCode, messageOverride?: str
   const definitions: Record<BookingErrorCode, Omit<BookingErrorPayload, "code">> = {
     UNAUTHORIZED: { message: "غیرمجاز", status: 401 },
     INVALID_PHONE: { message: "شماره موبایل نامعتبر است", status: 400 },
+    INVALID_DATE: { message: "تاریخ نامعتبر است", status: 400 },
     MISSING_FIELDS: { message: "اطلاعات ناقص است", status: 400 },
     TIME_INVALID: { message: "ساعت پایان نامعتبر است", status: 400 },
     TIME_RANGE_INVALID: { message: "ساعت پایان باید بعد از ساعت شروع باشد", status: 400 },

@@ -3,16 +3,6 @@ import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 
-// Escape a single element for a Postgres TEXT[] literal. Backslash first, then
-// quotes, then closing-brace. Persian tags never exercise the weirder escapes
-// but this shields against owner-typed tags containing special chars.
-function escapePgArrayElement(text: string): string {
-  return text
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/}/g, "\\}");
-}
-
 export async function PUT(request: NextRequest) {
   try {
     const owner = await verifyOwner(request);
@@ -42,6 +32,14 @@ export async function PUT(request: NextRequest) {
 
     const incomingIds = services.map((s) => s.id);
     const { rows: currentRows } = await sql`SELECT id FROM services`;
+    const { rows: optionalColumns } = await sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'services'
+        AND column_name IN ('image_url', 'best_for')
+    `;
+    const hasRichServiceColumns = optionalColumns.length === 2;
     const currentIds = currentRows.map((r) => r.id);
     const deletedIds = currentIds.filter((id) => !incomingIds.includes(id));
 
@@ -59,46 +57,66 @@ export async function PUT(request: NextRequest) {
       }
 
       for (const [i, s] of services.entries()) {
+        const addonIds = Array.isArray(s.addon_ids) ? s.addon_ids : [];
         const bestFor = Array.isArray(s.best_for) ? s.best_for : [];
-        const imageUrl = typeof s.image_url === "string" && s.image_url.length > 0 ? s.image_url : null;
-        // Postgres TEXT[] literal format to shield from driver-array-binding drift.
-        const bestForPg = `{${bestFor
-          .filter((t: unknown): t is string => typeof t === "string" && t.length > 0)
-          .map(escapePgArrayElement)
-          .join(",")}}`;
+        const commonValues = [
+          s.id,
+          s.name,
+          s.description || "",
+          s.duration_minutes,
+          s.price,
+          s.is_active !== false,
+          s.sort_order || i + 1,
+          addonIds,
+          s.priority_score || 5,
+        ];
 
-        await client.query(
-          `INSERT INTO services (
-             id, name, description, duration_minutes, price,
-             is_active, sort_order, addon_ids, priority_score,
-             image_url, best_for
-           )
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::text[])
-           ON CONFLICT (id) DO UPDATE SET
-             name = $2,
-             description = $3,
-             duration_minutes = $4,
-             price = $5,
-             is_active = $6,
-             sort_order = $7,
-             addon_ids = $8,
-             priority_score = $9,
-             image_url = $10,
-             best_for = $11::text[]`,
-          [
-            s.id,
-            s.name,
-            s.description || "",
-            s.duration_minutes,
-            s.price,
-            s.is_active !== false,
-            s.sort_order || i + 1,
-            JSON.stringify(s.addon_ids || []),
-            s.priority_score || 5,
-            imageUrl,
-            bestForPg,
-          ]
-        );
+        if (hasRichServiceColumns) {
+          const imageUrl = typeof s.image_url === "string" && s.image_url.length > 0 ? s.image_url : null;
+          const normalizedBestFor = bestFor.filter((t: unknown): t is string => typeof t === "string" && t.length > 0);
+
+          await client.query(
+            `INSERT INTO services (
+               id, name, description, duration_minutes, price,
+               is_active, sort_order, addon_ids, priority_score,
+               image_url, best_for
+             )
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+             ON CONFLICT (id) DO UPDATE SET
+               name = $2,
+               description = $3,
+               duration_minutes = $4,
+               price = $5,
+               is_active = $6,
+               sort_order = $7,
+               addon_ids = $8,
+               priority_score = $9,
+               image_url = $10,
+               best_for = $11`,
+            [...commonValues, imageUrl, normalizedBestFor]
+          );
+        } else {
+          // Migration 015 may be applied after this deployment. Keep the core
+          // service editor usable on the base schema instead of failing every
+          // save because optional presentation columns are absent.
+          await client.query(
+            `INSERT INTO services (
+               id, name, description, duration_minutes, price,
+               is_active, sort_order, addon_ids, priority_score
+             )
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             ON CONFLICT (id) DO UPDATE SET
+               name = $2,
+               description = $3,
+               duration_minutes = $4,
+               price = $5,
+               is_active = $6,
+               sort_order = $7,
+               addon_ids = $8,
+               priority_score = $9`,
+            commonValues
+          );
+        }
       }
 
       await client.query("COMMIT");

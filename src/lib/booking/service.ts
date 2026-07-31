@@ -2,6 +2,8 @@ import { sql, VercelPoolClient } from "@vercel/postgres";
 import { logActivity } from "@/lib/db/activity-log";
 import { checkAntiSpam } from "@/lib/anti-spam";
 import { BookingError, createBookingError } from "./errors";
+import { gregorianToJalali } from "@/lib/jalali";
+import { parseGregorianDateKey } from "@/lib/time";
 import type { BookingRequestInput } from "./schema";
 
 export interface CreateBookingResult {
@@ -38,26 +40,38 @@ function getIranDay(dateString: string): string {
   const [y, m, d] = dateString.split("-").map(Number);
   const jsDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
   const jsDay = jsDate.getDay();
+  // JS: 0=Sun ... 6=Sat. The booking engine's working-hours keys
+  // start on Saturday, so use the same mapping as slots.ts.
   const dayMap = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-  return dayMap[jsDay === 6 ? 0 : jsDay + 1];
+  return dayMap[jsDay];
 }
 
-async function fetchServiceDuration(client: VercelPoolClient, serviceId: string): Promise<number> {
+async function fetchService(client: VercelPoolClient, serviceId: string): Promise<{ durationMinutes: number; addonIds: string[] }> {
   const { rows } = await client.query(
-    `SELECT duration_minutes FROM services WHERE id = $1`,
+    `SELECT duration_minutes, addon_ids FROM services WHERE id = $1 AND is_active = true`,
     [serviceId]
   );
   if (rows.length === 0) {
     throw createBookingError("SERVICE_NOT_FOUND");
   }
-  return Number(rows[0].duration_minutes);
+  const rawAddonIds = rows[0].addon_ids;
+  const addonIds = Array.isArray(rawAddonIds)
+    ? rawAddonIds.filter((id: unknown): id is string => typeof id === "string")
+    : typeof rawAddonIds === "string"
+      ? rawAddonIds.replace(/^\{|\}$/g, "").split(",").map((id: string) => id.replace(/^"|"$/g, "").trim()).filter(Boolean)
+      : [];
+  return { durationMinutes: Number(rows[0].duration_minutes), addonIds };
 }
 
 async function fetchAddonsDuration(
   client: VercelPoolClient,
-  selectedAddons: string[]
+  selectedAddons: string[],
+  allowedAddonIds: string[]
 ): Promise<number> {
   if (selectedAddons.length === 0) return 0;
+  if (selectedAddons.some((id) => !allowedAddonIds.includes(id))) {
+    throw createBookingError("INVALID_ADDONS");
+  }
 
   const { rows: addonRows } = await client.query(
     `SELECT id, duration_minutes FROM addons WHERE id = ANY($1) AND is_active = true`,
@@ -192,7 +206,9 @@ async function insertBooking(
   normStart: string,
   normEnd: string
 ): Promise<CreateBookingResult> {
-  const jalaliDate = input.date || input.date_gregorian;
+  const parsedDate = parseGregorianDateKey(input.date_gregorian);
+  const jalali = gregorianToJalali(parsedDate);
+  const jalaliDate = `${jalali.jy}/${String(jalali.jm).padStart(2, "0")}/${String(jalali.jd).padStart(2, "0")}`;
 
   const result = await client.query(
     `INSERT INTO bookings (
@@ -209,7 +225,7 @@ async function insertBooking(
       phone,
       input.customer_name || "",
       input.service_id,
-      JSON.stringify(input.selected_addons || []),
+      input.selected_addons || [],
       jalaliDate,
       input.date_gregorian,
       normStart,
@@ -234,6 +250,10 @@ export async function createBooking(
   phone: string
 ): Promise<CreateBookingResult> {
   const { normStart, normEnd } = normalizeTimes(input);
+  const parsedDate = parseGregorianDateKey(input.date_gregorian);
+  if (!Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== input.date_gregorian) {
+    throw createBookingError("INVALID_DATE");
+  }
 
   if (normEnd >= "24:00") {
     throw createBookingError("TIME_INVALID");
@@ -253,16 +273,16 @@ export async function createBooking(
   try {
     await client.query("BEGIN");
 
-    const [serviceDuration, addonsDuration, salonInfo] = await Promise.all([
-      fetchServiceDuration(client, input.service_id),
-      fetchAddonsDuration(client, input.selected_addons),
+    const service = await fetchService(client, input.service_id);
+    const [addonsDuration, salonInfo] = await Promise.all([
+      fetchAddonsDuration(client, input.selected_addons, service.addonIds),
       fetchSalonInfo(client),
     ]);
 
     validateEndTimeMatchesService(
       normStart,
       normEnd,
-      serviceDuration,
+      service.durationMinutes,
       addonsDuration,
       salonInfo
     );
