@@ -33,7 +33,21 @@ export async function POST(request: NextRequest) {
     client = await sql.connect();
     await client.query("BEGIN");
 
-    // Get current booking status
+    // Read the date without locking first, then take the same per-date
+    // advisory lock used by booking creation before locking the row. Keeping
+    // this order consistent prevents a customer booking and a status change
+    // from deadlocking while both touch the same date.
+    const { rows: dateRows } = await client.query(
+      `SELECT date_gregorian FROM bookings WHERE id = $1`,
+      [bookingId]
+    );
+    if (dateRows.length === 0) {
+      await client.query("ROLLBACK");
+      return NextResponse.json({ error: "نوبت یافت نشد" }, { status: 404 });
+    }
+    await client.query(`SELECT pg_advisory_xact_lock(hashtext($1))`, [dateRows[0].date_gregorian]);
+
+    // Get current booking status after the date lock.
     const { rows: current } = await client.query(
       `SELECT status, customer_name, customer_phone, date_gregorian, start_time, end_time FROM bookings WHERE id = $1 FOR UPDATE`,
       [bookingId]

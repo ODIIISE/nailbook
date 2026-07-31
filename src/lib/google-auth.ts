@@ -82,8 +82,10 @@ export function verifyGoogleSession(cookieValue: string | undefined): { email: s
     return null;
   }
 
-  const age = Date.now() - parseInt(timestamp);
-  if (age > SESSION_MAX_AGE_MS) return null;
+  const timestampMs = Number(timestamp);
+  if (!Number.isSafeInteger(timestampMs) || timestampMs <= 0) return null;
+  const age = Date.now() - timestampMs;
+  if (age < 0 || age > SESSION_MAX_AGE_MS) return null;
 
   if (!isAllowedEmail(email)) return null;
 

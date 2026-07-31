@@ -17,7 +17,7 @@ export async function GET(
     let query;
     if (search) {
       query = sql`
-        SELECT id, phone, name, role, failed_attempts, locked_until, created_at
+        SELECT id, phone, name, "role", failed_attempts, locked_until, created_at
         FROM users
         WHERE salon_id = ${id}
         AND (name ILIKE ${`%${search}%`} OR phone ILIKE ${`%${search}%`})
@@ -26,7 +26,7 @@ export async function GET(
       `;
     } else {
       query = sql`
-        SELECT id, phone, name, role, failed_attempts, locked_until, created_at
+        SELECT id, phone, name, "role", failed_attempts, locked_until, created_at
         FROM users
         WHERE salon_id = ${id}
         ORDER BY created_at DESC

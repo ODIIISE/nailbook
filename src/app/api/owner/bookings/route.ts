@@ -49,6 +49,11 @@ export async function POST(request: NextRequest) {
     client = await sql.connect();
     await client.query("BEGIN");
 
+    // Serialize every booking mutation for this date. The public booking
+    // service uses the same lock, so manual and customer bookings cannot race
+    // past the overlap check and double-book the salon.
+    await client.query(`SELECT pg_advisory_xact_lock(hashtext($1))`, [date_gregorian]);
+
     // Ensure user exists (create placeholder if not)
     let userId: string | null = null;
     const { rows: existingUser } = await client.query(

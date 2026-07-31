@@ -1,20 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { verifySuperAdmin } from "@/lib/super-admin-auth";
 
 /**
- * POST /api/admin/run-migrations — Run all pending SQL migrations from src/db/migrations/.
- * Owner only. Reads migration files, checks which have been run, executes new ones.
+ * POST /api/admin/run-migrations — Track pending SQL migrations from src/db/migrations/.
+ * Super-admin only. The checked-in SQL is applied through the deployment/database
+ * migration workflow; this endpoint records operator-confirmed runs.
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify owner
-    const { verifyOwner } = await import("@/lib/owner-auth");
-    const owner = await verifyOwner(request);
-    if (!owner) {
+    const admin = await verifySuperAdmin(request);
+    if (!admin) {
       return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
     }
 
-    // Create migrations table if not exists
     await sql`
       CREATE TABLE IF NOT EXISTS _migrations (
         id SERIAL PRIMARY KEY,
@@ -23,11 +22,8 @@ export async function POST(request: NextRequest) {
       )
     `;
 
-    // Get already-applied migrations
     const { rows: applied } = await sql`SELECT filename FROM _migrations ORDER BY id`;
     const appliedSet = new Set(applied.map((r) => r.filename));
-
-    // Migration files to check (in order)
     const migrations = [
       "001_initial_schema.sql",
       "002_atomic_booking.sql",
@@ -41,29 +37,30 @@ export async function POST(request: NextRequest) {
       "010_otp_schema.sql",
       "011_add_splash_fields.sql",
       "012_waitlist_and_portfolio.sql",
+      "013_fix_users_pin_null.sql",
+      "014_multi_role_users.sql",
+      "015_services_images_and_best_for.sql",
+      "016_patch_legacy_role_owner.sql",
     ];
 
-    const results: string[] = [];
-
+    const results: Array<{ name: string; success: boolean; error?: string }> = [];
     for (const filename of migrations) {
-      if (appliedSet.has(filename)) {
-        continue;
-      }
-
-      // For now, we'll mark them as applied. The actual SQL content is in the migration files.
-      // In production, you'd read and execute the SQL content.
-      // Since our migrations have already been applied manually, we just track them.
+      if (appliedSet.has(filename)) continue;
       try {
         await sql`INSERT INTO _migrations (filename) VALUES (${filename}) ON CONFLICT (filename) DO NOTHING`;
-        results.push(`✅ ${filename} — tracked`);
-      } catch (e) {
-        results.push(`❌ ${filename} — ${e instanceof Error ? e.message : "error"}`);
+        results.push({ name: filename, success: true });
+      } catch (error) {
+        results.push({
+          name: filename,
+          success: false,
+          error: error instanceof Error ? error.message : "error",
+        });
       }
     }
 
     return NextResponse.json({
-      success: true,
-      applied: results,
+      success: results.every((result) => result.success),
+      results,
       total: migrations.length,
       skipped: appliedSet.size,
     });

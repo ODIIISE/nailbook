@@ -59,8 +59,12 @@ export function verifyCustomerSession(cookieValue: string | undefined): string |
     return null;
   }
 
-  const age = Date.now() - parseInt(timestamp);
-  if (age > SESSION_MAX_AGE_MS) return null;
+  const timestampMs = Number(timestamp);
+  // Reject malformed, zero, and future-issued tokens. Without the finite/future
+  // checks, NaN and negative ages bypass the expiry comparison.
+  if (!Number.isSafeInteger(timestampMs) || timestampMs <= 0) return null;
+  const age = Date.now() - timestampMs;
+  if (age < 0 || age > SESSION_MAX_AGE_MS) return null;
 
   return userId;
 }

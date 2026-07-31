@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const { rows: conflicts } = await sql`
       SELECT id FROM bookings
       WHERE date_gregorian = ${date_gregorian}::date
-      AND status IN ('reserved', 'confirmed')
+      AND status IN ('reserved', 'confirmed', 'in_progress')
       AND start_time < (${normEnd} || ':00')::time
       AND end_time > (${normStart} || ':00')::time
     `;

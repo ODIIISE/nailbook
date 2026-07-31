@@ -8,11 +8,11 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS roles TEXT[] NOT NULL DEFAULT ARRAY['
 -- Backfill: copy legacy role into roles. Owners are granted BOTH customer + owner.
 UPDATE users
 SET roles = ARRAY['customer']
-WHERE roles = ARRAY['customer']::TEXT[] AND role = 'customer';
+WHERE roles = ARRAY['customer']::TEXT[] AND "role" = 'customer';
 
 UPDATE users
 SET roles = ARRAY['customer', 'owner']
-WHERE role = 'owner';
+WHERE "role" = 'owner';
 
 -- Sanity: every user must always have at least 'customer'.
 UPDATE users
@@ -20,19 +20,21 @@ SET roles = ARRAY(SELECT DISTINCT unnest(roles || ARRAY['customer']::TEXT[]))
 WHERE NOT ('customer' = ANY(roles));
 
 -- Specific row: upsert owner=mehrdad for phone 09357149901.
-INSERT INTO users (id, phone, pin, name, roles)
+INSERT INTO users (id, phone, pin, name, "role", roles)
 VALUES (
   COALESCE(
     (SELECT id FROM users WHERE phone = '09357149901' LIMIT 1),
-    gen_random_uuid()::text
+    gen_random_uuid()
   ),
   '09357149901',
   '',
   'mehrdad',
+  'owner',
   ARRAY['customer','owner']::TEXT[]
 )
 ON CONFLICT (phone) DO UPDATE
-SET roles = ARRAY['customer','owner']::TEXT[],
+SET "role" = 'owner',
+    roles = ARRAY['customer','owner']::TEXT[],
     name = 'mehrdad';
 
 -- Helpful index for owner lookups.

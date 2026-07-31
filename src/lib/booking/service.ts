@@ -143,17 +143,38 @@ function validateWithinWorkingHours(
   }
 }
 
-async function assertSlotNotBlocked(
+async function assertSlotAvailable(
   client: VercelPoolClient,
   dateGregorian: string,
   normStart: string,
   normEnd: string
 ): Promise<void> {
+  // The unique index protects only identical start/end pairs. Serialize all
+  // bookings for this date and explicitly reject partial overlaps as well,
+  // otherwise 10:00–11:00 and 10:30–11:30 could both be accepted.
+  await client.query(`SELECT pg_advisory_xact_lock(hashtext($1))`, [dateGregorian]);
+
+  const bookedCheck = await client.query(
+    `SELECT id FROM bookings
+     WHERE date_gregorian = $1::date
+     AND status IN ('reserved', 'confirmed', 'in_progress')
+     AND start_time < ($2 || ':00')::time
+     AND end_time > ($3 || ':00')::time
+     LIMIT 1
+     FOR UPDATE`,
+    [dateGregorian, normEnd, normStart]
+  );
+
+  if (bookedCheck.rows.length > 0) {
+    throw createBookingError("SLOT_TAKEN");
+  }
+
   const blockedCheck = await client.query(
     `SELECT id FROM blocked_times
      WHERE date_gregorian = $1::date
      AND start_time < ($2 || ':00')::time
      AND end_time > ($3 || ':00')::time
+     LIMIT 1
      FOR UPDATE`,
     [dateGregorian, normEnd, normStart]
   );
@@ -248,7 +269,7 @@ export async function createBooking(
 
     validateWithinWorkingHours(normStart, normEnd, input.date_gregorian, salonInfo);
 
-    await assertSlotNotBlocked(client, input.date_gregorian, normStart, normEnd);
+    await assertSlotAvailable(client, input.date_gregorian, normStart, normEnd);
 
     const booking = await insertBooking(
       client,

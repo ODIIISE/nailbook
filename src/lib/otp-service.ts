@@ -29,7 +29,8 @@ export async function upsertOtp(phone: string, code: string, expiresAt: string):
     ON CONFLICT (phone) DO UPDATE
     SET code = EXCLUDED.code,
         expires_at = EXCLUDED.expires_at,
-        attempts = 0
+        attempts = 0,
+        created_at = NOW()
     RETURNING id, phone, code, expires_at, attempts, created_at
   `;
   return rows[0] as OtpRecord;
@@ -44,7 +45,17 @@ export async function incrementOtpAttempts(phone: string): Promise<void> {
   await sql`UPDATE otps SET attempts = attempts + 1 WHERE phone = ${phone}`;
 }
 
-export async function deleteOtp(phone: string): Promise<void> {
+export async function deleteOtp(phone: string, otpId?: string, code?: string): Promise<void> {
+  if (otpId && code) {
+    // The row id is stable across ON CONFLICT updates, so also match the
+    // generated code or a newer concurrent OTP could be deleted.
+    await sql`DELETE FROM otps WHERE id = ${otpId} AND phone = ${phone} AND code = ${code}`;
+    return;
+  }
+  if (otpId) {
+    await sql`DELETE FROM otps WHERE id = ${otpId} AND phone = ${phone}`;
+    return;
+  }
   await sql`DELETE FROM otps WHERE phone = ${phone}`;
 }
 
@@ -88,7 +99,9 @@ export async function sendOtp(phone: string): Promise<{ success: boolean; code?:
     const smsResult = await provider.sendOTP(phone, code);
     if (!smsResult.success) {
       // Rollback the OTP record so the cooldown doesn't block retries
-      await deleteOtp(phone).catch(() => {});
+      // Delete only the record created by this send attempt. A concurrent
+      // request may already have replaced it with a newer valid OTP.
+      await deleteOtp(phone, otpRecord.id, otpRecord.code).catch(() => {});
       return { success: false, error: smsResult.error || "خطا در ارسال پیامک" };
     }
     return { success: true, code };
