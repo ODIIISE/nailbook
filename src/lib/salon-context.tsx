@@ -43,7 +43,7 @@ interface SalonContextType {
   updateServices: (services: Service[]) => Promise<string | null>;
   updateAddons: (addons: Addon[]) => Promise<string | null>;
   updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
-  updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => void;
+  updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => Promise<boolean>;
   addBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   addOwnerBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   cancelBooking: (bookingId: string) => Promise<boolean>;
@@ -87,7 +87,7 @@ const EMPTY_SALON_CONTEXT: SalonContextType = {
   updateServices: async () => null,
   updateAddons: async () => null,
   updateSalon: async () => {},
-  updateBlockedTimes: () => {},
+  updateBlockedTimes: async () => false,
   addBooking: async () => ({ success: false }),
   addOwnerBooking: async () => ({ success: false }),
   cancelBooking: async () => false,
@@ -239,7 +239,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const handleUpdateBlockedTimes = useCallback(async (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => {
+  const handleUpdateBlockedTimes = useCallback(async (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>): Promise<boolean> => {
     // Capture previous state from functional update to avoid stale closure
     let prevBlocks: typeof blockedTimes = [];
     setBlockedTimes((prev) => {
@@ -255,10 +255,13 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       if (!res.ok) {
         devLog("Failed to save blocked times");
         setBlockedTimes(prevBlocks);
+        return false;
       }
+      return true;
     } catch (e) {
       devLog("Failed to save blocked times:", e);
       setBlockedTimes(prevBlocks);
+      return false;
     }
   }, []);
 

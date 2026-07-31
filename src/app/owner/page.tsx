@@ -14,7 +14,7 @@ const EarningsModal = dynamic(() => import("@/components/owner/earnings-modal").
 const ManualReserveModal = dynamic(() => import("@/components/owner/manual-reserve-modal").then(m => ({ default: m.ManualReserveModal })));
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { SalonGuard } from "@/components/ui/salon-guard";
-import { ChevronLeft } from "lucide-react";
+import { Ban, ChevronLeft, Plus } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey, parseGregorianDateKey } from "@/lib/time";
@@ -123,13 +123,27 @@ function OwnerDashboardContent() {
     return { count: todayBookings.length, revenue: totalRevenue, unpaidCount, nextBooking };
   }, [currentDate, bookings, services, addons]);
 
-  const handleBlockTime = (startTime: string, endTime: string) => {
+  const handleBlockTime = async (startTime: string, endTime: string, reason: string) => {
+    // The blocked-time schema currently stores only the interval. Keep the
+    // existing reason field in the modal until the database supports it.
+    void reason;
     const dateStr = getTehranDateKey(currentDate);
-    updateBlockedTimes([...blockedTimes, { date_gregorian: dateStr, start_time: startTime, end_time: endTime }]);
-    setShowBlockTime(false);
+    const saved = await updateBlockedTimes([
+      ...blockedTimes,
+      { date_gregorian: dateStr, start_time: startTime, end_time: endTime },
+    ]);
+
+    if (saved) {
+      toast.success("زمان استراحت اضافه شد");
+      setShowBlockTime(false);
+    } else {
+      toast.error("زمان استراحت ذخیره نشد", {
+        description: "ممکن است با یک نوبت موجود تداخل داشته باشد",
+      });
+    }
   };
 
-  const handleRemoveBlock = (index: number) => {
+  const handleRemoveBlock = async (index: number) => {
     // Timeline indexes only the blocks for the selected day, while the
     // persisted array contains every day. Remove the exact object instead
     // of accidentally deleting another day's block at the same index.
@@ -137,7 +151,12 @@ function OwnerDashboardContent() {
     if (!target) return;
     const globalIndex = blockedTimes.indexOf(target);
     if (globalIndex < 0) return;
-    updateBlockedTimes(blockedTimes.filter((_, i) => i !== globalIndex));
+    const saved = await updateBlockedTimes(blockedTimes.filter((_, i) => i !== globalIndex));
+    if (saved) {
+      toast.success("زمان استراحت حذف شد");
+    } else {
+      toast.error("حذف زمان استراحت انجام نشد");
+    }
   };
 
   const handleManualReserve = async (data: {
@@ -272,6 +291,31 @@ function OwnerDashboardContent() {
             </div>
           </div>
         </Card>
+
+        {/* Primary timeline actions. Keep these close to the schedule so the
+            owner can add a booking or protect time without hunting in a menu. */}
+        <div className="grid grid-cols-2 gap-2" role="group" aria-label="اقدامات برنامه روزانه">
+          <Button
+            type="button"
+            variant="default"
+            size="lg"
+            className="h-12 w-full rounded-xl gap-2"
+            onClick={() => setShowManualReserve(true)}
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            <span>رزرو دستی</span>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className="h-12 w-full rounded-xl gap-2 border-border bg-card hover:bg-muted"
+            onClick={() => setShowBlockTime(true)}
+          >
+            <Ban className="h-4 w-4" aria-hidden="true" />
+            <span>افزودن زمان استراحت</span>
+          </Button>
+        </div>
 
         <Timeline
           bookings={dayBookings}

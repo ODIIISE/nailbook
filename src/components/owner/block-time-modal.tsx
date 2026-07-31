@@ -42,12 +42,17 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
   const [startTime, setStartTime] = useState(defaultTimes.start);
   const [endTime, setEndTime] = useState(defaultTimes.end);
   const [reason, setReason] = useState("");
+  const [timeError, setTimeError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (startTime && endTime) {
-      onBlock(startTime, endTime, reason);
+    if (!startTime || !endTime) return;
+    if (endTime <= startTime) {
+      setTimeError("ساعت پایان باید بعد از ساعت شروع باشد");
+      return;
     }
+    setTimeError("");
+    onBlock(startTime, endTime, reason);
   };
 
   return (
@@ -71,12 +76,17 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
               id="block-end"
               type="time"
               value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
+              onChange={(e) => {
+                setEndTime(e.target.value);
+                setTimeError("");
+              }}
               className="mt-1 text-center"
               dir="ltr"
+              aria-invalid={Boolean(timeError)}
             />
           </div>
         </div>
+        {timeError && <p className="text-[12px] text-destructive" role="alert">{timeError}</p>}
         <div>
           <Label htmlFor="block-reason" className="text-sm">دلیل (اختیاری)</Label>
           <Input
