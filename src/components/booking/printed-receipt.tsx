@@ -34,10 +34,6 @@ interface PrintedReceiptProps {
   className?: string;
 }
 
-function formatDateTime(dateLabel: string, time: string) {
-  return `${dateLabel} · ${toPersianDigits(time)}`;
-}
-
 /* ── Animation variants ── */
 
 const containerVariants: Variants = {
@@ -425,8 +421,8 @@ export function PrintedReceipt({
           {/* Date / time row */}
           <motion.div className="relative z-10 mt-4 flex items-center justify-between rounded-lg border border-border/60 bg-card px-3 py-2.5" variants={sectionVariants}>
             <span className="text-xs font-medium text-muted-foreground">تاریخ و ساعت</span>
-            <span className="text-xs font-bold tabular-nums text-foreground" dir="ltr">
-              {formatDateTime(dateLabel, startTime)} - {toPersianDigits(endTime)}
+            <span className="text-xs font-bold tabular-nums text-foreground" dir="rtl">
+              <bdi dir="rtl">{dateLabel}</bdi> · <bdi dir="ltr">{toPersianDigits(startTime)} - {toPersianDigits(endTime)}</bdi>
             </span>
           </motion.div>
 
