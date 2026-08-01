@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react";
+import { useAuth } from "@/lib/auth-context";
 import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "@/lib/types";
 import type { WorkingHours } from "@/lib/slots";
 
@@ -47,7 +48,7 @@ interface SalonContextType {
   addBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   addOwnerBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   cancelBooking: (bookingId: string) => Promise<boolean>;
-  refreshBookings: () => Promise<void>;
+  refreshBookings: (scope?: "owner" | "default") => Promise<void>;
   refreshSalonData: () => Promise<void>;
   addHighlight: (highlight: Highlight) => Promise<void>;
   updateHighlight: (highlight: Highlight) => Promise<void>;
@@ -104,6 +105,7 @@ const EMPTY_SALON_CONTEXT: SalonContextType = {
 };
 
 export function SalonProvider({ children }: { children: ReactNode }) {
+  const { user: authUser, isLoading: authLoading } = useAuth();
   const [salon, setSalon] = useState<SalonInfo | null>(null);
   const [workingHours, setWorkingHours] = useState<WorkingHours>(DEFAULT_WORKING_HOURS);
   const [specificDaysOff, setSpecificDaysOff] = useState<string[]>([]);
@@ -122,6 +124,8 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   const highlightsRef = useRef(highlights);
   const workingHoursRef = useRef(workingHours);
   const specificDaysOffRef = useRef(specificDaysOff);
+  const authSyncKeyRef = useRef<string | null>(null);
+  const bookingsRequestRef = useRef(0);
 
   // Sync refs with state after render to avoid mutating them during render
   useEffect(() => {
@@ -140,11 +144,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     async function load() {
       try {
         const signal = controller.signal;
-        const [salonData, servicesData, addonsData, bookingsData, hoursData, highlightsData, blockedData] = await Promise.all([
+        const [salonData, servicesData, addonsData, hoursData, highlightsData, blockedData] = await Promise.all([
           fetchSalonInfo(),
           fetchServices(),
           fetchAddons(),
-          fetchBookings(),
           fetchWorkingHours(),
           fetchHighlights(),
           fetch("/api/read/blocked-times", { signal }).then((r) => r.json()).catch(() => ({ blockedTimes: [] })),
@@ -153,7 +156,6 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         if (salonData) setSalon(salonData);
         if (servicesData.length) setServices(servicesData);
         if (addonsData.length) setAddons(addonsData);
-        setBookings(bookingsData);
         if (highlightsData.length) setHighlights(highlightsData);
         if (hoursData) {
           setWorkingHours(hoursData.working_hours);
@@ -316,10 +318,32 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const refreshBookings = useCallback(async () => {
-    const data = await fetchBookings();
-    setBookings(data);
+  const refreshBookings = useCallback(async (scope: "owner" | "default" = "default") => {
+    const requestId = ++bookingsRequestRef.current;
+    const data = await fetchBookings(scope);
+    // Ignore a slower response from an older scope/request. Without this guard,
+    // the initial guest availability request can finish after the owner refresh
+    // and silently replace the full timeline with partial data.
+    if (requestId !== bookingsRequestRef.current) return;
+    // Keep the last known-good bookings during a transient network/API error.
+    // Replacing the timeline with [] makes a live app look empty and can hide
+    // occupied slots while the next poll is still pending.
+    if (data !== null) setBookings(data);
   }, []);
+
+  // The provider mounts before OTP/session validation finishes. Refresh once
+  // when auth settles (and again when the user changes) so a newly signed-in
+  // customer gets their own history, while an owner upgrades to the full
+  // owner-scoped timeline instead of keeping the guest availability payload.
+  useEffect(() => {
+    if (!loaded || authLoading) return;
+    const authKey = authUser
+      ? `${authUser.id}:${[...(authUser.roles ?? [])].sort().join(",")}`
+      : null;
+    if (authSyncKeyRef.current === authKey) return;
+    authSyncKeyRef.current = authKey;
+    void refreshBookings(authUser?.roles?.includes("owner") ? "owner" : "default");
+  }, [loaded, authLoading, authUser, refreshBookings]);
 
   const refreshSalonData = useCallback(async () => {
     try {

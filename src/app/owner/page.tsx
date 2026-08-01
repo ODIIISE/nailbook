@@ -76,18 +76,19 @@ function OwnerDashboardContent() {
 
   // Refresh bookings: 10s polling + instant refresh on tab focus
   useEffect(() => {
-    const id = setInterval(refreshBookings, 10000);
+    const refreshOwnerBookings = () => { void refreshBookings("owner"); };
+    const id = window.setInterval(refreshOwnerBookings, 10000);
 
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") refreshBookings();
+      if (document.visibilityState === "visible") refreshOwnerBookings();
     };
-    const handleFocus = () => refreshBookings();
+    const handleFocus = () => refreshOwnerBookings();
 
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("focus", handleFocus);
 
     return () => {
-      clearInterval(id);
+      window.clearInterval(id);
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("focus", handleFocus);
     };

@@ -37,16 +37,20 @@ export default function BookingsPage() {
 
   // Refresh bookings: 10s polling + instant refresh on tab focus
   useEffect(() => {
-    const id = setInterval(refreshBookings, 10000);
+    // Event listeners pass their event object; keep the scoped data-loader
+    // signature separate so a browser event can never be interpreted as a
+    // booking-read scope.
+    const refresh = () => { void refreshBookings(); };
+    const id = window.setInterval(refresh, 10000);
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") refreshBookings();
+      if (document.visibilityState === "visible") refresh();
     };
     document.addEventListener("visibilitychange", handleVisibility);
-    window.addEventListener("focus", refreshBookings);
+    window.addEventListener("focus", refresh);
     return () => {
-      clearInterval(id);
+      window.clearInterval(id);
       document.removeEventListener("visibilitychange", handleVisibility);
-      window.removeEventListener("focus", refreshBookings);
+      window.removeEventListener("focus", refresh);
     };
   }, [refreshBookings]);
 

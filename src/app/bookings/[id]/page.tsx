@@ -55,7 +55,14 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
   }
 
   const booking = rows[0];
-  const jalali = gregorianToJalali(parseGregorianDateKey(String(booking.date_gregorian).slice(0, 10)));
+  const dateKey = String(booking.date_gregorian ?? "").slice(0, 10);
+  const parsedDate = parseGregorianDateKey(dateKey);
+  // A malformed legacy row must produce a normal not-found page rather than
+  // throwing during Jalali conversion and taking down the whole route tree.
+  if (Number.isNaN(parsedDate.getTime())) {
+    notFound();
+  }
+  const jalali = gregorianToJalali(parsedDate);
   const displayId = String(booking.id).slice(-6).toUpperCase();
 
   const statusKey = String(booking.status || "pending");
