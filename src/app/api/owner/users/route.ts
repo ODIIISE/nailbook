@@ -4,14 +4,37 @@ import { verifyOwner } from "@/lib/owner-auth";
 
 import crypto from "crypto";
 import { logActivity } from "@/lib/db/activity-log";
-import { normalizeDigits } from "@/lib/digits";
+import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
+
+async function hasRolesColumn(): Promise<boolean> {
+  const { rows } = await sql`
+    SELECT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'roles'
+    ) AS exists
+  `;
+  return Boolean(rows[0]?.exists);
+}
+
+function normalizeRoles(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((role): role is string => typeof role === "string");
+  if (typeof value !== "string") return [];
+  return value
+    .replace(/^\{|\}$/g, "")
+    .split(",")
+    .map((role) => role.replace(/"/g, "").trim())
+    .filter(Boolean);
+}
 
 export async function GET(request: NextRequest) {
   try {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const { rows } = await sql`SELECT id, phone, name, "role", locked_until, created_at FROM users ORDER BY created_at DESC`;
+    const rolesColumn = await hasRolesColumn();
+    const { rows } = rolesColumn
+      ? await sql`SELECT id, phone, name, "role", roles, locked_until, created_at FROM users ORDER BY created_at DESC`
+      : await sql`SELECT id, phone, name, "role", locked_until, created_at FROM users ORDER BY created_at DESC`;
     return NextResponse.json(rows);
   } catch (error) {
     console.error("Failed to fetch users:", error);
@@ -26,21 +49,30 @@ export async function POST(request: NextRequest) {
 
     const { phone, name, role } = await request.json();
     if (!phone) return NextResponse.json({ error: "شماره الزامی است" }, { status: 400 });
-    if (!name || !name.trim()) return NextResponse.json({ error: "نام الزامی است" }, { status: 400 });
+    if (typeof name !== "string" || !name.trim()) return NextResponse.json({ error: "نام الزامی است" }, { status: 400 });
 
     const normalized = normalizeDigits(String(phone).trim());
+    if (!isValidIranianPhone(normalized)) return NextResponse.json({ error: "شماره موبایل نامعتبر است" }, { status: 400 });
 
     const validRole = role === "owner" ? "owner" : "customer";
     const userId = crypto.randomUUID();
+    const rolesColumn = await hasRolesColumn();
     // Keep legacy `"role"` and the new `roles` TEXT[] array in sync so
     // owner-auth.ts's getUserRoles doesn't have to fall back to legacy
     // synthesis. The literal is cast to TEXT[] so PG accepts the string
     // placeholder value.
     const rolesLiteral = validRole === "owner" ? "{customer,owner}" : "{customer}";
-    await sql`
-      INSERT INTO users (id, phone, pin, name, "role", roles)
-      VALUES (${userId}, ${normalized}, '', ${name.trim()}, ${validRole}, ${rolesLiteral}::TEXT[])
-    `;
+    if (rolesColumn) {
+      await sql`
+        INSERT INTO users (id, phone, pin, name, "role", roles)
+        VALUES (${userId}, ${normalized}, '', ${name.trim()}, ${validRole}, ${rolesLiteral}::TEXT[])
+      `;
+    } else {
+      await sql`
+        INSERT INTO users (id, phone, pin, name, "role")
+        VALUES (${userId}, ${normalized}, '', ${name.trim()}, ${validRole})
+      `;
+    }
 
     logActivity({
       eventType: "user_registered",
@@ -73,8 +105,12 @@ export async function PUT(request: NextRequest) {
 
     // Prevent changing other owners' roles (no owner-to-owner demotion)
     if (body.role !== undefined && userId !== owner.id) {
-      const { rows: targetRows } = await sql`SELECT "role" FROM users WHERE id = ${userId}`;
-      if (targetRows[0]?.role === "owner" && body.role !== "owner") {
+        const targetRows = (await (await hasRolesColumn()
+        ? sql`SELECT "role", roles FROM users WHERE id = ${userId}`
+        : sql`SELECT "role" FROM users WHERE id = ${userId}`)).rows;
+      const targetRoles = normalizeRoles(targetRows[0]?.roles);
+      const targetIsOwner = targetRows[0]?.role === "owner" || targetRoles.includes("owner");
+      if (targetIsOwner && body.role !== "owner") {
         return NextResponse.json({ error: "تغییر نقش مدیر دیگر مجاز نیست" }, { status: 403 });
       }
     }
@@ -98,11 +134,12 @@ export async function PUT(request: NextRequest) {
       if (!validRoles.includes(body.role)) {
         return NextResponse.json({ error: "نقش نامعتبر است" }, { status: 400 });
       }
-      // Keep the legacy "role" column AND the new "roles" TEXT[] array
-      // in sync — owner-auth.ts relies on both, and we don't want to
-      // rely on the legacy-only fallback path forever.
       const rolesLiteral = body.role === "owner" ? "{customer,owner}" : "{customer}";
-      await sql`UPDATE users SET "role" = ${body.role}, roles = ${rolesLiteral}::TEXT[] WHERE id = ${userId}`;
+      if (await hasRolesColumn()) {
+        await sql`UPDATE users SET "role" = ${body.role}, roles = ${rolesLiteral}::TEXT[] WHERE id = ${userId}`;
+      } else {
+        await sql`UPDATE users SET "role" = ${body.role} WHERE id = ${userId}`;
+      }
     }
     if (typeof body.locked === "boolean") {
       if (body.locked) {
@@ -145,8 +182,12 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Check if user is an owner
-    const { rows: targetUser } = await sql`SELECT "role" FROM users WHERE id = ${userId}`;
-    if (targetUser[0]?.role === "owner") {
+    const targetUser = (await (await hasRolesColumn()
+      ? sql`SELECT "role", roles FROM users WHERE id = ${userId}`
+      : sql`SELECT "role" FROM users WHERE id = ${userId}`)).rows;
+    const targetRoles = normalizeRoles(targetUser[0]?.roles);
+    const targetIsOwner = targetUser[0]?.role === "owner" || targetRoles.includes("owner");
+    if (targetIsOwner) {
       return NextResponse.json({ error: "حذف مدیر مجاز نیست" }, { status: 400 });
     }
 

@@ -84,6 +84,7 @@
 }
 
 :root {
+  color-scheme: light;
   /* ── Clean Slate: Light Mode ── */
   --background: #FFFFFF;
   --foreground: #0A0A0A;
@@ -132,6 +133,7 @@
 
 /* ── Clean Slate: Dark Mode ── */
 .dark {
+  color-scheme: dark;
   --background: #000000;
   --foreground: #FAFAFA;
   --card: #0F0F10;

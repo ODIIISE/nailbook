@@ -12,6 +12,7 @@ export default function BootstrapPage() {
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
+  const [setupSecret, setSetupSecret] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -29,7 +30,7 @@ export default function BootstrapPage() {
       const res = await fetch("/api/bootstrap-owner", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: normalized, name: name || "مدیر" }),
+        body: JSON.stringify({ phone: normalized, name: name || "مدیر", setupSecret: setupSecret || undefined }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -48,7 +49,7 @@ export default function BootstrapPage() {
     <div className="min-h-[100dvh] flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm glass rounded-3xl p-6 animate-scale">
         <div className="text-center mb-6">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/50">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <Sparkles className="h-6 w-6 text-foreground" />
           </div>
           <h1 className="text-h1 text-foreground">ایجاد اکانت مدیر</h1>
@@ -78,6 +79,22 @@ export default function BootstrapPage() {
               className="mt-1"
               placeholder="مدیر"
             />
+          </div>
+          <div>
+            <Label className="text-[13px]">کلید راه‌اندازی</Label>
+            <Input
+              value={setupSecret}
+              onChange={(e) => setSetupSecret(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              className="mt-1"
+              type="password"
+              dir="ltr"
+              placeholder="فقط برای راه‌اندازی اولیه در محیط تولید"
+              autoComplete="off"
+            />
+            <p className="text-[11px] text-muted-foreground mt-1">
+              کلید BOOTSTRAP_OWNER_SECRET در تنظیمات Vercel
+            </p>
           </div>
           {error && (
             <p className="text-[13px] text-destructive text-center">{error}</p>

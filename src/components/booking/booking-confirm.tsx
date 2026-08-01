@@ -183,7 +183,7 @@ export function BookingConfirm({
           <CalendarDays className="h-4 w-4 ml-2" />
           تقویم گوگل
         </Button>
-        <Button size="xl" variant="outline" className="w-full bg-white" onClick={handleShare}>
+        <Button size="xl" variant="outline" className="w-full bg-background" onClick={handleShare}>
           <Share2 className="h-4 w-4 ml-2" />
           اشتراک‌گذاری
         </Button>

@@ -104,8 +104,11 @@ function validateEndTimeMatchesService(
   addonsDuration: number,
   salonInfo: SalonInfo
 ): void {
-  const buffer = Number(salonInfo.slot_buffer_minutes || 0);
-  const resolution = Number(salonInfo.slot_interval_minutes || 15);
+  const buffer = Math.max(0, Number(salonInfo.slot_buffer_minutes) || 0);
+  const configuredResolution = Number(salonInfo.slot_interval_minutes);
+  const resolution = Number.isFinite(configuredResolution) && configuredResolution >= 5 && configuredResolution <= 60
+    ? configuredResolution
+    : 15;
 
   const rawDuration = serviceDuration + addonsDuration;
   const expectedMinutes =

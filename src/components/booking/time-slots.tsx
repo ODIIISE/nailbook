@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Ban, Sparkles, ChevronLeft } from "lucide-react";
+import { Clock, Sparkles, ChevronLeft, Zap, CalendarX2, CalendarOff } from "lucide-react";
 import { toPersianDigits } from "@/lib/jalali";
 import { haptic } from "@/lib/haptics";
 import type { TimeSlot } from "@/lib/slots";
@@ -11,10 +11,9 @@ interface TimeSlotsProps {
   selectedSlot: string | null;
   onSelectSlot: (time: string) => void;
   onGoToNextDay?: () => void;
-  onJoinWaitlist?: () => void;
 }
 
-export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextDay, onJoinWaitlist }: TimeSlotsProps) {
+export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextDay }: TimeSlotsProps) {
   if (!date) {
     return (
       <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center">
@@ -30,30 +29,33 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
 
   if (slots.length === 0) {
     return (
-      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center">
-        <div className="w-14 h-14 rounded-full bg-muted mx-auto flex items-center justify-center mb-3">
-          <Ban className="h-6 w-6 text-muted-foreground/50" />
-        </div>
-        <p className="text-[15px] font-bold text-foreground mb-1">ساعتی برای این روز موجود نیست</p>
-        <p className="text-[13px] text-muted-foreground mb-4">لطفاً تاریخ دیگری انتخاب کنید</p>
-
-        <div className="flex flex-col gap-2">
+      <div className="mx-auto max-w-lg">
+        <div className="glass rounded-3xl overflow-hidden shadow-card">
+          <div className="px-6 pt-9 pb-7 text-center">
+            <div className="relative mx-auto mb-5 h-20 w-20">
+              <div className="absolute inset-0 rounded-full bg-muted/70" />
+              <div className="absolute inset-3 rounded-full bg-card flex items-center justify-center shadow-card">
+                <CalendarOff className="h-8 w-8 text-muted-foreground/70" />
+              </div>
+            </div>
+            <h3 className="text-h3 font-bold text-foreground">ساعتی برای این روز نیست</h3>
+            <p className="text-[13px] text-muted-foreground mt-2 leading-6">
+              این روز ساعات کاری ندارد — روز بعد را امتحان کنید
+            </p>
+          </div>
           {onGoToNextDay && (
-            <button
-              onClick={onGoToNextDay}
-              className="w-full h-11 rounded-full bg-foreground text-background text-[13px] font-bold hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-foreground/30"
-            >
-              برو به روز بعد
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-          )}
-          {onJoinWaitlist && (
-            <button
-              onClick={onJoinWaitlist}
-              className="w-full h-11 rounded-full bg-primary/10 text-primary text-[13px] font-bold hover:bg-primary/15 transition-colors flex items-center justify-center gap-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/30"
-            >
-              به من اطلاع بده
-            </button>
+            <div className="px-6 pb-6">
+              <button
+                onClick={() => {
+                  haptic.tap();
+                  onGoToNextDay();
+                }}
+                className="w-full h-12 rounded-full bg-foreground text-background text-[14px] font-bold hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
+              >
+                برو به روز بعد
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -65,21 +67,84 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
   const nextAvailable = availableSlots.length > 0 ? availableSlots[0] : null;
   const remainingSlots = availableSlots.length;
 
-  // All slots booked — show waitlist CTA
-  if (availableSlots.length === 0 && slots.length > 0 && onJoinWaitlist) {
+  // All slots booked — beautiful "day is full" empty state
+  if (availableSlots.length === 0 && slots.length > 0) {
+    const chipTimes = bookedSlots.slice(0, 6).map((s) => s.time);
     return (
-      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center">
-        <div className="w-14 h-14 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-3">
-          <Ban className="h-6 w-6 text-primary/50" />
+      <div className="mx-auto max-w-lg">
+        <div className="glass rounded-3xl overflow-hidden shadow-card">
+          {/* Hatched accent band — everything is taken */}
+          <div
+            className="h-1.5"
+            style={{
+              background:
+                "repeating-linear-gradient(-45deg, var(--muted-foreground) 0 2px, transparent 2px 6px)",
+              opacity: 0.3,
+            }}
+          />
+          <div className="px-6 pt-8 pb-5 text-center">
+            <div className="relative mx-auto mb-5 h-20 w-20">
+              <div className="absolute inset-0 rounded-full bg-primary/5" />
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  border: "1.5px dashed color-mix(in oklab, var(--primary) 35%, transparent)",
+                }}
+              />
+              <div className="absolute inset-3 rounded-full bg-card flex items-center justify-center shadow-card">
+                <CalendarX2 className="h-8 w-8 text-primary" />
+              </div>
+            </div>
+            <h3 className="text-h3 font-bold text-foreground">این روز کاملاً پر شده</h3>
+            <p className="text-[13px] text-muted-foreground mt-2 max-w-xs mx-auto leading-6">
+              همه ساعت‌ها رزرو شده‌اند — فردا را امتحان کنید
+            </p>
+          </div>
+
+          {/* Mini hatched chips — visual proof the day is packed */}
+          {chipTimes.length > 0 && (
+            <div className="px-8 pb-5">
+              <div className="grid grid-cols-3 gap-2">
+                {chipTimes.map((t) => (
+                  <div
+                    key={t}
+                    className="relative h-9 rounded-lg border border-border overflow-hidden flex items-center justify-center"
+                  >
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          "repeating-linear-gradient(-45deg, transparent, transparent 2px, var(--muted-foreground) 2px, var(--muted-foreground) 4px)",
+                        opacity: 0.15,
+                      }}
+                    />
+                    <span className="relative z-10 text-[11px] font-bold tabular-nums text-muted-foreground">
+                      {toPersianDigits(t.slice(0, 5))}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="px-6 pb-6 space-y-2">
+            {onGoToNextDay && (
+              <button
+                onClick={() => {
+                  haptic.tap();
+                  onGoToNextDay();
+                }}
+                className="w-full h-12 rounded-full bg-foreground text-background text-[14px] font-bold hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
+              >
+                برو به فردا
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            )}
+            <p className="text-[11px] text-muted-foreground/70 text-center">
+              یا تاریخ دیگری از تقویم انتخاب کنید
+            </p>
+          </div>
         </div>
-        <p className="text-[15px] font-bold text-foreground mb-1">همه ساعت‌ها رزرو شده</p>
-        <p className="text-[13px] text-muted-foreground mb-4">اگر نوبت خالی شد، به شما اطلاع می‌دهیم</p>
-        <button
-          onClick={() => { haptic.tap(); onJoinWaitlist(); }}
-          className="w-full h-11 rounded-full bg-primary/10 text-primary text-[13px] font-bold hover:bg-primary/15 transition-colors flex items-center justify-center gap-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/30"
-        >
-          به من اطلاع بده
-        </button>
       </div>
     );
   }
@@ -105,26 +170,28 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
 
       {nextAvailable && (
         <div
-          className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/10 cursor-pointer active:scale-[0.99] transition-transform"
-          role="button"
-          tabIndex={0}
-          onClick={() => {
-            haptic.tap();
-            onSelectSlot(nextAvailable.time);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              haptic.tap();
-              onSelectSlot(nextAvailable.time);
-            }
-          }}
+          className="relative overflow-hidden rounded-xl border border-primary/15 bg-primary/5 p-3.5 flex items-center gap-3"
+          role="note"
         >
-          <div>
-            <p className="text-[12px] font-bold text-primary">نزدیک‌ترین ساعت آزاد</p>
-            <p className="text-[11px] text-muted-foreground">برای رزرو سریع کلیک کنید</p>
+          {/* Soft glow accent */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(120px 60px at 12% 50%, color-mix(in oklab, var(--primary) 10%, transparent), transparent 70%)",
+            }}
+          />
+          <div className="relative shrink-0 h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+            <Zap className="h-4 w-4 text-primary" />
+            <span className="absolute inset-0 rounded-full animate-ping bg-primary/10 motion-reduce:animate-none" />
           </div>
-          <span className="text-[15px] font-extrabold text-foreground">
+          <div className="relative flex-1 min-w-0">
+            <p className="text-[12px] font-bold text-primary">نزدیک‌ترین ساعت آزاد</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              اولین زمان موجود — ساعت {toPersianDigits(nextAvailable.time)} را از پایین انتخاب کنید
+            </p>
+          </div>
+          <span className="relative shrink-0 text-[16px] font-extrabold tabular-nums text-foreground">
             {toPersianDigits(nextAvailable.time)}
           </span>
         </div>

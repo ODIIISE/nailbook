@@ -21,6 +21,7 @@ import {
 import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "./menu-context";
 import { haptic } from "@/lib/haptics";
+import { ThemeToggle, ThemeModeMenu } from "@/components/ui/theme-toggle";
 
 interface MenuItem {
   icon: ReactNode;
@@ -125,6 +126,7 @@ export function AppHeader({
             )}
           </div>
           <div className="flex items-center gap-1">
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="icon-sm"
@@ -178,6 +180,12 @@ export function AppHeader({
                     </button>
                   </div>
                 ))}
+
+                <Separator className="my-2" />
+
+                <div className="mb-2">
+                  <ThemeModeMenu onSelect={closeMenu} />
+                </div>
 
                 <Separator className="my-2" />
 

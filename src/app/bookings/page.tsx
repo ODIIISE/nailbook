@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { Drawer, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle } from "@/components/ui/drawer";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
-import { Clock, Calendar, User, ArrowLeft } from "lucide-react";
+import { Clock, Calendar, User, ArrowLeft, ChevronLeft, Sparkles } from "lucide-react";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
@@ -19,12 +19,12 @@ import { formatPrice, gregorianToJalali, toPersianDigits, formatJalaliTime } fro
 import { parseGregorianDateKey } from "@/lib/time";
 import type { Booking } from "@/lib/types";
 
-const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
-  reserved: { label: "ثبت شده", variant: "secondary" },
-  confirmed: { label: "تایید شده", variant: "default" },
-  pending: { label: "در انتظار", variant: "secondary" },
-  completed: { label: "انجام شده", variant: "secondary" },
-  cancelled: { label: "لغو شده", variant: "destructive" },
+const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive"; accent: string }> = {
+  reserved: { label: "ثبت شده", variant: "secondary", accent: "#2563EB" },
+  confirmed: { label: "تایید شده", variant: "default", accent: "#16A34A" },
+  pending: { label: "در انتظار", variant: "secondary", accent: "#F59E0B" },
+  completed: { label: "انجام شده", variant: "secondary", accent: "#9CA3AF" },
+  cancelled: { label: "لغو شده", variant: "destructive", accent: "#DC2626" },
 };
 
 const JALALI_MONTHS = ["", "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
@@ -154,38 +154,95 @@ export default function BookingsPage() {
                 <p className="text-[13px] font-bold text-muted-foreground mb-2 px-1">
                   {group.jalaliStr}
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {group.bookings.map((booking) => {
                     const status = STATUS_MAP[booking.status] || STATUS_MAP.pending;
                     const time = booking.start_time.slice(0, 5);
+                    const endTime = booking.end_time.slice(0, 5);
+                    const startM = parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
+                    const endM = parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
+                    const duration = endM >= startM ? endM - startM : endM + 24 * 60 - startM;
+                    const addonNames = getAddonNames(booking.selected_addons || []);
+                    const shortId = booking.id.slice(-4).toUpperCase();
+                    const price = getServicePrice(booking.service_id);
 
                     return (
                       <Card
                         key={booking.id}
-                        className="glass p-4 shadow-card cursor-pointer active:scale-[0.98] transition-all duration-150"
+                        className="w-full glass shadow-card cursor-pointer active:scale-[0.98] transition-all duration-150 overflow-hidden"
                         onClick={() => setSelectedBooking(booking)}
                       >
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="font-bold text-foreground">
-                              {getServiceName(booking.service_id)}
-                            </h3>
-                            <p className="text-sm text-muted-foreground mt-0.5">
-                              {booking.customer_name}
-                            </p>
+                        <div className="flex items-stretch">
+                          {/* Status accent bar */}
+                          <div
+                            className="w-[4px] shrink-0"
+                            style={{ backgroundColor: status.accent }}
+                            aria-hidden="true"
+                          />
+                          <div className="flex-1 p-4 min-w-0">
+                            {/* Header: service + customer + badge */}
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                                  <Sparkles className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                                <div className="min-w-0">
+                                  <h3 className="font-bold text-foreground truncate">
+                                    {getServiceName(booking.service_id)}
+                                  </h3>
+                                  <p className="text-[12px] text-muted-foreground mt-0.5 truncate">
+                                    {booking.customer_name}
+                                  </p>
+                                </div>
+                              </div>
+                              <Badge variant={status.variant} className="shrink-0">
+                                {status.label}
+                              </Badge>
+                            </div>
+
+                            {/* Time + duration */}
+                            <div className="flex items-center justify-between mt-3">
+                              <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+                                <Clock className="h-3.5 w-3.5" />
+                                <span className="font-semibold text-foreground">
+                                  {formatJalaliTime(time)}
+                                </span>
+                                <span className="text-muted-foreground/70">
+                                  تا {formatJalaliTime(endTime)}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-muted-foreground">
+                                {toPersianDigits(duration)} دقیقه
+                              </span>
+                            </div>
+
+                            {/* Addon chips */}
+                            {addonNames.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mt-2.5">
+                                {addonNames.map((name) => (
+                                  <span
+                                    key={name}
+                                    className="px-2 py-0.5 rounded-full bg-muted text-[10px] font-semibold text-muted-foreground"
+                                  >
+                                    {name}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Footer: price + tracking + chevron */}
+                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/40">
+                              <span className="font-bold text-foreground">
+                                {price !== null ? `${formatPrice(price)} تومان` : "نامعلوم"}
+                              </span>
+                              <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                                <span className="font-mono tabular-nums" dir="ltr">
+                                  #{shortId}
+                                </span>
+                                <ChevronLeft className="h-3.5 w-3.5" />
+                              </div>
+                            </div>
                           </div>
-                          <Badge variant={status.variant}>{status.label}</Badge>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5" />
-                            <span>{formatJalaliTime(time)}</span>
-                          </div>
-                          <span className="font-bold text-foreground">
-                            {getServicePrice(booking.service_id) !== null
-                              ? `${formatPrice(getServicePrice(booking.service_id)!)} تومان`
-                              : "نامعلوم"}
-                          </span>
                         </div>
                       </Card>
                     );

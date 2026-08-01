@@ -44,7 +44,7 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var dark=window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",dark);}catch(e){}})();`,
+            __html: `(function(){try{var t=null;try{t=localStorage.getItem("nailbook-theme");}catch(e){}var dark;if(t==="dark"){dark=true}else if(t==="light"){dark=false}else{dark=window.matchMedia("(prefers-color-scheme: dark)").matches}document.documentElement.classList.toggle("dark",dark);}catch(e){}})();`,
           }}
         />
       </head>

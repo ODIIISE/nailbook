@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyCustomerSession } from "@/lib/customer-auth";
+import { verifyCustomerSessionWithVersion } from "@/lib/customer-auth";
 import { logActivity } from "@/lib/db/activity-log";
 
 export async function POST(request: NextRequest) {
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Unified session: customer and owner share the same cookie. Must match the supplied userId.
-    const sessionUserId = verifyCustomerSession(request.cookies.get("session")?.value);
+    const sessionUserId = await verifyCustomerSessionWithVersion(request.cookies.get("session")?.value);
     if (sessionUserId !== userId) {
       return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
     }
@@ -20,8 +20,14 @@ export async function POST(request: NextRequest) {
     const { rows: current } = await sql`SELECT name FROM users WHERE id = ${userId}`;
     const oldName = current[0]?.name || "";
 
-    // Validate name
-    const sanitizedName = (name || "").slice(0, 100);
+    // Validate and normalize the display name before persisting it.
+    if (typeof name !== "string") {
+      return NextResponse.json({ error: "نام نامعتبر است" }, { status: 400 });
+    }
+    const sanitizedName = name.trim().slice(0, 100);
+    if (!sanitizedName) {
+      return NextResponse.json({ error: "نام الزامی است" }, { status: 400 });
+    }
 
     await sql`UPDATE users SET name = ${sanitizedName} WHERE id = ${userId}`;
 

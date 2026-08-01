@@ -22,14 +22,14 @@ function Switch({ checked, onCheckedChange, disabled, className }: SwitchProps) 
         "relative inline-flex h-[30px] w-[50px] shrink-0 cursor-pointer items-center rounded-full p-[3px] transition-all duration-200 outline-none border",
         checked
           ? "bg-foreground border-foreground/20"
-          : "bg-gray-200 border-gray-300",
+          : "bg-secondary border-border",
         disabled && "cursor-not-allowed opacity-50",
         className
       )}
     >
       <span
         className={cn(
-          "block h-[24px] w-[24px] rounded-full bg-white shadow-sm transition-transform duration-200",
+          "block h-[24px] w-[24px] rounded-full bg-card shadow-sm transition-transform duration-200",
           checked ? "translate-x-[20px]" : "translate-x-0"
         )}
       />

@@ -26,6 +26,17 @@ interface ManualReserveModalProps {
   onClose: () => void;
 }
 
+function calculateEndTime(startTime: string, durationMinutes: number): string {
+  const match = /^(\d{2}):(\d{2})$/.exec(startTime);
+  if (!match) return "";
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours > 23 || minutes > 59) return "";
+  const endMinutes = hours * 60 + minutes + Math.max(0, Number(durationMinutes) || 0);
+  if (endMinutes >= 24 * 60) return "";
+  return `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
+}
+
 export function ManualReserveModal({
   date,
   services,
@@ -35,9 +46,9 @@ export function ManualReserveModal({
 }: ManualReserveModalProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [serviceId, setServiceId] = useState(services[0]?.id || "");
+  const [serviceId, setServiceId] = useState(() => services.find((service) => service.is_active)?.id || "");
 
-  const selectedService = services.find((s) => s.id === serviceId);
+  const selectedService = services.find((s) => s.id === serviceId && s.is_active);
 
   // Derive default start time from working hours
   const defaultStartTime = useMemo(() => {
@@ -49,42 +60,33 @@ export function ManualReserveModal({
   const [startTime, setStartTime] = useState(defaultStartTime);
 
   // Auto-calculate end time from start time + service duration
-  const computedEndTime = useMemo(() => {
-    if (!selectedService) return startTime;
-    const [h, m] = startTime.split(":").map(Number);
-    const startMin = h * 60 + m + selectedService.duration_minutes;
-    const endH = Math.floor(startMin / 60);
-    const endM = startMin % 60;
-    return `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
-  }, [startTime, selectedService]);
-
-  const [endTime, setEndTime] = useState(computedEndTime);
+  const [endTime, setEndTime] = useState(() =>
+    selectedService ? calculateEndTime(startTime, selectedService.duration_minutes) : ""
+  );
 
   // Update end time when service or start time changes
   const handleServiceChange = (id: string) => {
     setServiceId(id);
-    const svc = services.find((s) => s.id === id);
+    const svc = services.find((s) => s.id === id && s.is_active);
     if (svc) {
-      const [h, m] = startTime.split(":").map(Number);
-      const startMin = h * 60 + m + svc.duration_minutes;
-      const endH = Math.floor(startMin / 60);
-      const endM = startMin % 60;
-      setEndTime(`${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`);
+      setEndTime(calculateEndTime(startTime, svc.duration_minutes));
     }
   };
 
   const handleStartTimeChange = (time: string) => {
     setStartTime(time);
     if (selectedService) {
-      const [h, m] = time.split(":").map(Number);
-      const startMin = h * 60 + m + selectedService.duration_minutes;
-      const endH = Math.floor(startMin / 60);
-      const endM = startMin % 60;
-      setEndTime(`${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`);
+      setEndTime(calculateEndTime(time, selectedService.duration_minutes));
     }
   };
 
-  const isValid = phone && serviceId && startTime && endTime && endTime > startTime;
+  const isValid = Boolean(
+    phone && selectedService &&
+    /^(09|۰۹)[۰-۹0-9]{9}$/.test(normalizeDigits(phone)) &&
+    /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(startTime) &&
+    /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(endTime) &&
+    endTime > startTime
+  );
 
   const handleSubmit = () => {
     if (!isValid) return;
@@ -163,7 +165,7 @@ export function ManualReserveModal({
           </div>
         </div>
 
-        {endTime <= startTime && (
+        {endTime && startTime && endTime <= startTime && (
           <p className="text-[12px] text-destructive text-center">ساعت پایان باید بعد از ساعت شروع باشد</p>
         )}
       </div>

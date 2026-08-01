@@ -232,7 +232,19 @@ export function generateTimeSlots(
   } = {},
   specificDaysOff: string[] = []
 ): TimeSlot[] {
-  const resolution = slotIntervalMinutes;
+  // Treat malformed database/config values defensively. A zero or negative
+  // resolution would make the candidate loop never advance and can freeze the
+  // booking page; the owner settings API normally enforces 5–60 minutes.
+  const configuredResolution = Number(slotIntervalMinutes);
+  const resolution = Number.isFinite(configuredResolution) && configuredResolution >= 5 && configuredResolution <= 60
+    ? Math.floor(configuredResolution)
+    : 15;
+  const configuredServiceDuration = Number(serviceDurationMinutes);
+  const configuredAddonDuration = Number(addonsDurationMinutes);
+  if (!Number.isFinite(configuredServiceDuration) || configuredServiceDuration < 0 ||
+      !Number.isFinite(configuredAddonDuration) || configuredAddonDuration < 0) {
+    return [];
+  }
   const proximityMinutes = (config.proximity_window_hours ?? 2) * 60;
   const cfg: EngineConfig = {
     resolution,
@@ -255,8 +267,8 @@ export function generateTimeSlots(
 
   // Calculate effective duration
   const effectiveDuration = computeEffectiveDuration(
-    serviceDurationMinutes,
-    addonsDurationMinutes,
+    configuredServiceDuration,
+    configuredAddonDuration,
     cfg.buffer,
     cfg.resolution
   );
@@ -272,17 +284,18 @@ export function generateTimeSlots(
   }
 
   // Convert bookings and blocks to minutes
-  const bookings: TimeBlock[] = existingBookings.map((b) => ({
-    start: parseTime(b.start_time),
-    end: parseTime(b.end_time),
-  }));
+  const bookings: TimeBlock[] = existingBookings
+    .map((b) => ({ start: parseTime(b.start_time), end: parseTime(b.end_time) }))
+    .filter((b) => Number.isFinite(b.start) && Number.isFinite(b.end) && b.end > b.start);
 
   const blocks: TimeBlock[] = activeLocks
-    .filter((l) => !l.expires_at || new Date(l.expires_at) >= new Date())
-    .map((l) => ({
-      start: parseTime(l.start_time),
-      end: l.end_time ? parseTime(l.end_time) : parseTime(l.start_time) + effectiveDuration,
-    }));
+    .filter((l) => !l.expires_at || new Date(l.expires_at).getTime() >= Date.now())
+    .map((l) => {
+      const start = parseTime(l.start_time);
+      const end = l.end_time ? parseTime(l.end_time) : start + effectiveDuration;
+      return { start, end };
+    })
+    .filter((b) => Number.isFinite(b.start) && Number.isFinite(b.end) && b.end > b.start);
 
   const occupied = mergeBlocks([...bookings, ...blocks]);
 

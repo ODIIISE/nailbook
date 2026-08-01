@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
-import { verifyCustomerSession } from "@/lib/customer-auth";
+import { verifyCustomerSessionWithVersion } from "@/lib/customer-auth";
 import { logActivity } from "@/lib/db/activity-log";
 
 // PATCH: Cancel a booking (owner or the booking's user)
@@ -25,7 +25,7 @@ export async function PATCH(
 
     // If not owner, verify the customer owns this booking
     if (!owner) {
-      const customerUserId = verifyCustomerSession(request.cookies.get("session")?.value);
+      const customerUserId = await verifyCustomerSessionWithVersion(request.cookies.get("session")?.value);
       if (!customerUserId || booking.user_id !== customerUserId) {
         return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
       }

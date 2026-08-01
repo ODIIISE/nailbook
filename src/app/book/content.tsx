@@ -18,7 +18,6 @@ import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { BookingProgress } from "@/components/booking/booking-progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SalonGuard } from "@/components/ui/salon-guard";
-import { WaitlistSheet } from "@/components/booking/waitlist-sheet";
 import { ServiceDetail } from "@/components/booking/service-detail";
 import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
@@ -71,7 +70,6 @@ export default function BookContent() {
   const [bookingId, setBookingId] = useState<string>("");
   const [bookingIdRaw, setBookingIdRaw] = useState<string>("");
   const [spamError, setSpamError] = useState("");
-  const [showWaitlist, setShowWaitlist] = useState(false);
 
   // Auth state
   const [authPhone, setAuthPhone] = useState("");
@@ -585,7 +583,6 @@ export default function BookContent() {
               selectedSlot={selectedTime}
               onSelectSlot={handleSelectTime}
               onGoToNextDay={handleGoToNextDay}
-              onJoinWaitlist={() => setShowWaitlist(true)}
             />
           </div>
         )}
@@ -798,24 +795,6 @@ export default function BookContent() {
               {hasAddons ? "انتخاب زمان" : "ادامه"}
               <ChevronLeft className="h-5 w-5 mr-2" />
             </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Waitlist Bottom Sheet */}
-      {showWaitlist && selectedDate && (
-        <div className="fixed inset-0 z-[100] bg-black/40 flex items-end justify-center" onClick={() => setShowWaitlist(false)}>
-          <div
-            className="w-full max-w-lg bg-background rounded-t-3xl animate-slideUp"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
-            </div>
-            <WaitlistSheet
-              date={getTehranDateKey(selectedDate)}
-              onClose={() => setShowWaitlist(false)}
-            />
           </div>
         </div>
       )}

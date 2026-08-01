@@ -17,23 +17,48 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
   const [dragOffset, setDragOffset] = useState(0);
   const touchStartY = useRef(0);
   const onCloseRef = useRef(onClose);
+  const closeTimerRef = useRef<number | null>(null);
+  const visibilityTimerRef = useRef<number | null>(null);
+  const previousOverflowRef = useRef("");
 
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
 
   useEffect(() => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    if (visibilityTimerRef.current !== null) {
+      window.clearTimeout(visibilityTimerRef.current);
+      visibilityTimerRef.current = null;
+    }
+
     if (open) {
+      previousOverflowRef.current = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       // Sub-tick haptic on sheet open — listener gets a tactile anchor that
       // the sheet has actually materialised behind the dimmed backdrop.
       haptic.select();
-      requestAnimationFrame(() => setIsVisible(true));
+      visibilityTimerRef.current = window.setTimeout(() => {
+        visibilityTimerRef.current = null;
+        setIsVisible(true);
+      }, 16);
     } else {
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflowRef.current;
+      visibilityTimerRef.current = window.setTimeout(() => {
+        visibilityTimerRef.current = null;
+        setIsVisible(false);
+      }, 0);
     }
+
     return () => {
-      document.body.style.overflow = "";
+      if (visibilityTimerRef.current !== null) {
+        window.clearTimeout(visibilityTimerRef.current);
+        visibilityTimerRef.current = null;
+      }
+      document.body.style.overflow = previousOverflowRef.current;
     };
   }, [open]);
 
@@ -41,7 +66,24 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
     haptic.tap();
     setIsVisible(false);
     setDragOffset(0);
-    setTimeout(() => onCloseRef.current(), 200);
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+    }
+    closeTimerRef.current = window.setTimeout(() => {
+      closeTimerRef.current = null;
+      onCloseRef.current();
+    }, 200);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+      if (visibilityTimerRef.current !== null) {
+        window.clearTimeout(visibilityTimerRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {

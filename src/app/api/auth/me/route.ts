@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyCustomerSessionWithVersion } from "@/lib/customer-auth";
 
+type AuthUserRow = {
+  id: string;
+  phone: string;
+  name: string;
+  role: string | null;
+  roles: unknown;
+};
+
 export async function GET(request: NextRequest) {
   try {
     const cookieValue = request.cookies.get("session")?.value;
@@ -12,10 +20,26 @@ export async function GET(request: NextRequest) {
     }
 
     // "role" is a Postgres reserved keyword — must be doubly-quoted even
-    // in a SELECT list.
-    const { rows } = await sql`
-      SELECT id, phone, name, "role", roles FROM users WHERE id = ${userId} LIMIT 1
-    `;
+    // in a SELECT list. Keep a legacy fallback while the roles migration is
+    // being rolled out; a missing optional column must not log everyone out.
+    let rows: AuthUserRow[];
+    try {
+      const result = await sql<AuthUserRow>`
+        SELECT id, phone, name, "role", roles FROM users WHERE id = ${userId} LIMIT 1
+      `;
+      rows = result.rows as AuthUserRow[];
+    } catch (error) {
+      const code = (error as { code?: string })?.code;
+      const message = String((error as { message?: string })?.message || "");
+      if (code !== "42703" && !/column .*roles.*does not exist/i.test(message)) throw error;
+      const result = await sql<Omit<AuthUserRow, "roles"> & { roles?: never }>`
+        SELECT id, phone, name, "role" FROM users WHERE id = ${userId} LIMIT 1
+      `;
+      rows = result.rows.map((row) => ({
+        ...row,
+        roles: row.role === "owner" ? ["customer", "owner"] : ["customer"],
+      })) as AuthUserRow[];
+    }
 
     if (rows.length === 0) {
       return NextResponse.json({ authenticated: false }, { status: 401 });

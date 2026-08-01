@@ -11,7 +11,18 @@ import dynamic from "next/dynamic";
 const BlockTimeModal = dynamic(() => import("@/components/owner/block-time-modal").then(m => ({ default: m.BlockTimeModal })));
 const BookingModal = dynamic(() => import("@/components/owner/booking-modal").then(m => ({ default: m.BookingModal })));
 const EarningsModal = dynamic(() => import("@/components/owner/earnings-modal").then(m => ({ default: m.EarningsModal })));
-const ManualReserveModal = dynamic(() => import("@/components/owner/manual-reserve-modal").then(m => ({ default: m.ManualReserveModal })));
+const ManualReserveModal = dynamic(
+  () => import("@/components/owner/manual-reserve-modal").then((m) => ({ default: m.ManualReserveModal })),
+  {
+    loading: () => (
+      <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" aria-label="در حال بارگذاری رزرو دستی">
+        <div className="w-full max-w-lg rounded-t-2xl bg-card p-6 text-center text-sm text-muted-foreground">
+          در حال آماده‌سازی فرم رزرو...
+        </div>
+      </div>
+    ),
+  }
+);
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { Ban, ChevronLeft, Plus } from "lucide-react";
@@ -25,7 +36,7 @@ function OwnerDashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, isLoading: authLoading, hasRole } = useAuth();
-  const { bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addOwnerBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
+  const { loaded, bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addOwnerBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
@@ -301,9 +312,11 @@ function OwnerDashboardContent() {
             size="lg"
             className="h-12 w-full rounded-xl gap-2"
             onClick={() => setShowManualReserve(true)}
+            disabled={!loaded}
+            aria-busy={!loaded}
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
-            <span>رزرو دستی</span>
+            <span>{loaded ? "رزرو دستی" : "در حال بارگذاری..."}</span>
           </Button>
           <Button
             type="button"

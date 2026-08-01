@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { SESSION_CLOCK_SKEW_MS } from "@/lib/session-config";
 
 const SECRET = process.env.CUSTOMER_SESSION_SECRET;
 
@@ -37,7 +38,7 @@ async function verifySessionSignature(cookieValue: string): Promise<boolean> {
     if (!Number.isSafeInteger(timestamp) || timestamp <= 0) return false;
     const SESSION_MAX_AGE_MS = 60 * 60 * 24 * 30 * 1000; // 30 days, matches session-config.ts
     const age = Date.now() - timestamp;
-    if (age < 0 || age > SESSION_MAX_AGE_MS) return false;
+    if (age < -SESSION_CLOCK_SKEW_MS || age > SESSION_MAX_AGE_MS) return false;
 
     return true;
   } catch {

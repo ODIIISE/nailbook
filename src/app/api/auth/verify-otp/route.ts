@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: otpResult.error || "کد نامعتبر است" }, { status: otpResult.locked ? 423 : 401 });
     }
 
-    type OtpUser = { id: string; phone: string; name: string; role: string; roles: string[] };
+    type OtpUser = { id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number };
     let user: OtpUser | null = await getUserByPhone(normalized);
 
     // Owner-flow gate: refuse to auto-create a row when /owner/login is
@@ -66,12 +66,40 @@ export async function POST(request: NextRequest) {
         const userId = crypto.randomUUID();
         // ON CONFLICT guards against a rare race where two concurrent verify
         // requests both try to create the same new user.
-        const { rows: inserted } = await sql<{ id: string; phone: string; name: string; role: string; roles: string[] }>`
-          INSERT INTO users (id, phone, pin, name, "role", roles)
-          VALUES (${userId}, ${normalized}, '', '', 'customer', ARRAY['customer']::TEXT[])
-          ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
-          RETURNING id, phone, name, "role", roles
-        `;
+        let inserted: Array<{ id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number }>;
+        try {
+          const result = await sql<{ id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number }>`
+            INSERT INTO users (id, phone, pin, name, "role", roles)
+            VALUES (${userId}, ${normalized}, '', '', 'customer', ARRAY['customer']::TEXT[])
+            ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
+            RETURNING id, phone, name, "role", roles, session_version
+          `;
+          inserted = result.rows;
+        } catch (error) {
+          const code = (error as { code?: string })?.code;
+          const message = String((error as { message?: string })?.message || "");
+          if (code !== "42703" && !/column .* does not exist/i.test(message)) throw error;
+          try {
+            const result = await sql<{ id: string; phone: string; name: string; role: string; roles: string[] }>`
+              INSERT INTO users (id, phone, pin, name, "role", roles)
+              VALUES (${userId}, ${normalized}, '', '', 'customer', ARRAY['customer']::TEXT[])
+              ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
+              RETURNING id, phone, name, "role", roles
+            `;
+            inserted = result.rows.map((row) => ({ ...row, session_version: 0 }));
+          } catch (rolesError) {
+            const rolesCode = (rolesError as { code?: string })?.code;
+            const rolesMessage = String((rolesError as { message?: string })?.message || "");
+            if (rolesCode !== "42703" && !/column .*roles.*does not exist/i.test(rolesMessage)) throw rolesError;
+            const result = await sql<{ id: string; phone: string; name: string; role: string }>`
+              INSERT INTO users (id, phone, pin, name, "role")
+              VALUES (${userId}, ${normalized}, '', '', 'customer')
+              ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
+              RETURNING id, phone, name, "role"
+            `;
+            inserted = result.rows.map((row) => ({ ...row, roles: ["customer"], session_version: 0 }));
+          }
+        }
         const created = inserted[0];
         if (!created) {
           return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
@@ -102,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     let sessionToken: string;
     try {
-      sessionToken = signCustomerSession(signedInUser.id);
+      sessionToken = signCustomerSession(signedInUser.id, Number(signedInUser.session_version) || 0);
     } catch (err) {
       console.error("[verify-otp] signCustomerSession failed:", err);
       return NextResponse.json({ error: "خطای پیکربندی نشست" }, { status: 500 });
@@ -134,12 +162,37 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function getUserByPhone(phone: string): Promise<{ id: string; phone: string; name: string; role: string; roles: string[] } | null> {
+async function getUserByPhone(phone: string): Promise<{ id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number } | null> {
   // "role" is a Postgres reserved keyword — must be double-quoted in SELECT.
-  const { rows } = await sql<{ id: string; phone: string; name: string; role: string; roles: string[] }>`
-    SELECT id, phone, name, "role", roles FROM users WHERE phone = ${phone} LIMIT 1
-  `;
-  return normalizeUserRoles(rows[0]) || null;
+  // Keep a legacy-schema fallback for databases that have not applied the
+  // multi-role/session migrations yet.
+  try {
+    const { rows } = await sql<{ id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number }>`
+      SELECT id, phone, name, "role", roles, session_version FROM users WHERE phone = ${phone} LIMIT 1
+    `;
+    return normalizeUserRoles(rows[0]) || null;
+  } catch (error) {
+    const code = (error as { code?: string })?.code;
+    const message = String((error as { message?: string })?.message || "");
+    if (code !== "42703" && !/column .* does not exist/i.test(message)) throw error;
+
+    // Rolling deployments can have roles but not session_version. Preserve
+    // multi-role owner access in that intermediate schema.
+    try {
+      const { rows } = await sql<{ id: string; phone: string; name: string; role: string; roles: string[] }>`
+        SELECT id, phone, name, "role", roles FROM users WHERE phone = ${phone} LIMIT 1
+      `;
+      return normalizeUserRoles({ ...rows[0], session_version: 0 }) || null;
+    } catch (rolesError) {
+      const rolesCode = (rolesError as { code?: string })?.code;
+      const rolesMessage = String((rolesError as { message?: string })?.message || "");
+      if (rolesCode !== "42703" && !/column .*roles.*does not exist/i.test(rolesMessage)) throw rolesError;
+      const { rows } = await sql<{ id: string; phone: string; name: string; role: string }>`
+        SELECT id, phone, name, "role" FROM users WHERE phone = ${phone} LIMIT 1
+      `;
+      return normalizeUserRoles({ ...rows[0], roles: rows[0]?.role === "owner" ? ["customer", "owner"] : ["customer"], session_version: 0 }) || null;
+    }
+  }
 }
 
 function normalizeUserRoles<T extends { roles: string[] | string | null }>(row: T | null): T | null {

@@ -1,5 +1,5 @@
 import { sql } from "@vercel/postgres";
-import { verifyCustomerSession, signCustomerSession } from "./customer-auth";
+import { verifyCustomerSession, verifyCustomerSessionWithVersion, signCustomerSession } from "./customer-auth";
 
 /**
  * Unified owner auth: customer and owner share the same "session" cookie.
@@ -127,7 +127,7 @@ export async function verifyOwner(
   request: { cookies: { get: (name: string) => { value: string } | undefined } }
 ): Promise<{ id: string; roles: string[] } | null> {
   const sessionValue = request.cookies.get("session")?.value;
-  const userId = verifyCustomerSession(sessionValue);
+  const userId = await verifyCustomerSessionWithVersion(sessionValue);
   if (!userId) return null;
 
   const roles = await getUserRoles(userId);
@@ -141,7 +141,7 @@ export async function verifyOwner(
  * Same as verifyOwner but without the cookie context object.
  */
 export async function verifyOwnerFromCookie(cookieValue: string | undefined) {
-  const userId = verifyCustomerSession(cookieValue);
+  const userId = await verifyCustomerSessionWithVersion(cookieValue);
   if (!userId) return null;
   const roles = await getUserRoles(userId);
   if (roles === null) return null;

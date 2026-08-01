@@ -90,7 +90,7 @@ export default function ProfilePage() {
           <Card className="glass p-4 shadow-card">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/50">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-muted">
                   <User className="h-4 w-4 text-foreground" />
                 </div>
                 <div className="flex-1">
@@ -122,7 +122,7 @@ export default function ProfilePage() {
                 )}
               </div>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/50">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-muted">
                   <Phone className="h-4 w-4 text-foreground" />
                 </div>
                 <div>

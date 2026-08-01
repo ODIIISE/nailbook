@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { sql } from "@vercel/postgres";
-import { SESSION_MAX_AGE_MS } from "./session-config";
+import { SESSION_CLOCK_SKEW_MS, SESSION_MAX_AGE_MS } from "./session-config";
 
 function getSecretKey(): string {
   const secret = process.env.CUSTOMER_SESSION_SECRET;
@@ -64,7 +64,7 @@ export function verifyCustomerSession(cookieValue: string | undefined): string |
   // checks, NaN and negative ages bypass the expiry comparison.
   if (!Number.isSafeInteger(timestampMs) || timestampMs <= 0) return null;
   const age = Date.now() - timestampMs;
-  if (age < 0 || age > SESSION_MAX_AGE_MS) return null;
+  if (age < -SESSION_CLOCK_SKEW_MS || age > SESSION_MAX_AGE_MS) return null;
 
   return userId;
 }
@@ -85,17 +85,36 @@ export async function verifyCustomerSessionWithVersion(cookieValue: string | und
     if (rows.length === 0) return null;
     const dbVersion = rows[0].session_version || 0;
     if (sessionVersion !== dbVersion) return null;
-  } catch {
+  } catch (error) {
+    // Keep compatibility with databases that have not applied migration 006
+    // yet. A signed token with version 0 is still valid there; real database
+    // failures remain fail-closed.
+    const code = (error as { code?: string })?.code;
+    const message = String((error as { message?: string })?.message || "");
+    if (code === "42703" || /column .*session_version.*does not exist/i.test(message)) {
+      return userId;
+    }
     return null;
   }
 
   return userId;
 }
 
-export async function incrementSessionVersion(userId: string): Promise<void> {
+export async function incrementSessionVersion(userId: string): Promise<boolean> {
   try {
-    await sql`UPDATE users SET session_version = COALESCE(session_version, 0) + 1 WHERE id = ${userId}`;
+    const result = await sql`UPDATE users SET session_version = COALESCE(session_version, 0) + 1 WHERE id = ${userId}`;
+    return (result.rowCount ?? 0) > 0;
   } catch (error) {
+    const code = (error as { code?: string })?.code;
+    const message = String((error as { message?: string })?.message || "");
+    // Legacy databases may not have migration 006 yet. The cookie is still
+    // cleared by the caller, but version-based revocation is unavailable until
+    // that migration is applied. Treat that expected compatibility case as a
+    // successful logout; fail closed for real database outages.
+    if (code === "42703" || /column .*session_version.*does not exist/i.test(message)) {
+      return true;
+    }
     console.error("Failed to increment session version:", error);
+    return false;
   }
 }
