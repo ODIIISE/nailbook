@@ -421,8 +421,14 @@ export function PrintedReceipt({
           {/* Date / time row */}
           <motion.div className="relative z-10 mt-4 flex items-center justify-between rounded-lg border border-border/60 bg-card px-3 py-2.5" variants={sectionVariants}>
             <span className="text-xs font-medium text-muted-foreground">تاریخ و ساعت</span>
-            <span className="text-xs font-bold tabular-nums text-foreground" dir="rtl">
-              <bdi dir="rtl">{dateLabel}</bdi> · <bdi dir="ltr">{toPersianDigits(startTime)} - {toPersianDigits(endTime)}</bdi>
+            <span
+              className="text-xs font-bold tabular-nums text-foreground"
+              dir="ltr"
+              aria-label={`تاریخ ${dateLabel}، ساعت ${toPersianDigits(startTime)} تا ${toPersianDigits(endTime)}`}
+            >
+              <bdi dir="ltr">{dateLabel}</bdi>
+              <span aria-hidden="true"> · </span>
+              <bdi dir="ltr">{toPersianDigits(startTime)} - {toPersianDigits(endTime)}</bdi>
             </span>
           </motion.div>
 
