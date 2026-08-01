@@ -23,7 +23,11 @@ interface PrintedReceiptProps {
   serviceName: string;
   servicePrice: number;
   addons: AddonItem[];
-  dateLabel: string;
+  dateParts: {
+    day: number;
+    month: string;
+    year: number;
+  };
   startTime: string;
   endTime: string;
   totalDuration: number;
@@ -209,7 +213,7 @@ export function PrintedReceipt({
   serviceName,
   servicePrice,
   addons,
-  dateLabel,
+  dateParts,
   startTime,
   endTime,
   totalDuration,
@@ -238,6 +242,11 @@ export function PrintedReceipt({
   addons.forEach((addon) => {
     items.push({ name: addon.name, qty: 1, price: addon.price });
   });
+
+  const dateDay = toPersianDigits(dateParts.day);
+  const dateMonth = dateParts.month;
+  const dateYear = toPersianDigits(dateParts.year);
+  const accessibleDateTime = `تاریخ ${dateDay} ${dateMonth} ${dateYear}، ساعت ${toPersianDigits(startTime)} تا ${toPersianDigits(endTime)}`;
 
   const transition = shouldReduceMotion
     ? { duration: 0 }
@@ -421,14 +430,24 @@ export function PrintedReceipt({
           {/* Date / time row */}
           <motion.div className="relative z-10 mt-4 flex items-center justify-between rounded-lg border border-border/60 bg-card px-3 py-2.5" variants={sectionVariants}>
             <span className="text-xs font-medium text-muted-foreground">تاریخ و ساعت</span>
+            <span className="sr-only">{accessibleDateTime}</span>
             <span
-              className="text-xs font-bold tabular-nums text-foreground"
-              dir="ltr"
-              aria-label={`تاریخ ${dateLabel}، ساعت ${toPersianDigits(startTime)} تا ${toPersianDigits(endTime)}`}
+              className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-x-1 gap-y-0.5 text-xs font-bold tabular-nums text-foreground"
+              dir="rtl"
+              aria-hidden="true"
             >
-              <bdi dir="ltr">{dateLabel}</bdi>
-              <span aria-hidden="true"> · </span>
-              <bdi dir="ltr">{toPersianDigits(startTime)} - {toPersianDigits(endTime)}</bdi>
+              {/* Persian reading order is right-to-left: the day is the first
+                  token on the right, followed by month and year. Each numeric
+                  run is isolated so browser bidi heuristics cannot reorder it. */}
+              <span className="inline-flex shrink-0 items-center gap-1" dir="rtl">
+                <bdi dir="ltr">{dateDay}</bdi>
+                <span>{dateMonth}</span>
+                <bdi dir="ltr">{dateYear}</bdi>
+              </span>
+              <span aria-hidden="true">·</span>
+              <bdi className="shrink-0" dir="ltr">
+                {toPersianDigits(startTime)} - {toPersianDigits(endTime)}
+              </bdi>
             </span>
           </motion.div>
 

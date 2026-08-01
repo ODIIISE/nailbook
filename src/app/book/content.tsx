@@ -22,7 +22,7 @@ import { ServiceDetail } from "@/components/booking/service-detail";
 import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
-import { formatPrice, toPersianDigits, gregorianToJalali, jalaliToGregorian, formatJalaliDate, DAYS_IN_MONTH, isJalaliLeapYear } from "@/lib/jalali";
+import { formatPrice, toPersianDigits, gregorianToJalali, jalaliToGregorian, formatJalaliDate, DAYS_IN_MONTH, isJalaliLeapYear, PERSIAN_MONTHS } from "@/lib/jalali";
 import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
 import { getTehranDateKey } from "@/lib/time";
 import type { Booking } from "@/lib/types";
@@ -154,11 +154,11 @@ export default function BookContent() {
     return Number(selectedService.price) + addonsPrice;
   }, [selectedService, selectedAddons, addons]);
 
-  // Computed date/time display for confirm step
-  const selectedFullDate = useMemo(() => {
-    if (!selectedDate) return "";
+  // Keep receipt date tokens structured so visual order never depends on
+  // browser bidi heuristics for a mixed Persian/number string.
+  const selectedDateParts = useMemo(() => {
     const j = gregorianToJalali(selectedDate);
-    return formatJalaliDate(j.jy, j.jm, j.jd);
+    return { day: j.jd, month: PERSIAN_MONTHS[j.jm - 1], year: j.jy };
   }, [selectedDate]);
 
   const selectedAddonItems = useMemo(() => {
@@ -717,7 +717,7 @@ export default function BookContent() {
                   serviceName={selectedService.name}
                   servicePrice={Number(selectedService.price)}
                   addons={selectedAddonItems.map((a) => ({ name: a.name, price: Number(a.price) }))}
-                  dateLabel={selectedFullDate}
+                  dateParts={selectedDateParts}
                   startTime={selectedTime}
                   endTime={selectedEndTime}
                   totalDuration={totalDuration}

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CalendarDays, Share2, MessageCircle, Copy, Repeat, Image as ImageIcon, Loader2 } from "lucide-react";
-import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
+import { formatPrice, toPersianDigits, gregorianToJalali, PERSIAN_MONTHS } from "@/lib/jalali";
 import { getTehranDateKey } from "@/lib/time";
 import { haptic } from "@/lib/haptics";
 import { PrintedReceipt } from "./printed-receipt";
@@ -46,7 +46,14 @@ export function BookingConfirm({
 }: BookingConfirmProps) {
   const router = useRouter();
   const jalali = gregorianToJalali(date);
-  const fullDate = formatJalaliDate(jalali.jy, jalali.jm, jalali.jd);
+  const dateParts = useMemo(
+    () => ({
+      day: jalali.jd,
+      month: PERSIAN_MONTHS[jalali.jm - 1],
+      year: jalali.jy,
+    }),
+    [jalali.jd, jalali.jm, jalali.jy]
+  );
   const shortId = bookingId.slice(-4).toUpperCase();
 
   const [h, m] = time.split(":").map(Number);
@@ -77,8 +84,8 @@ export function BookingConfirm({
 
   const shareText = useMemo(
     () =>
-      `رزرو ناخن ثبت شد!\n${serviceName}\n${fullDate} - ساعت ${toPersianDigits(time)} تا ${toPersianDigits(endTime)}\n${salonName}${salonAddress ? `\n${salonAddress}` : ""}`,
-    [serviceName, fullDate, time, endTime, salonName, salonAddress]
+      `رزرو ناخن ثبت شد!\n${serviceName}\n${toPersianDigits(dateParts.day)} ${dateParts.month} ${toPersianDigits(dateParts.year)} - ساعت ${toPersianDigits(time)} تا ${toPersianDigits(endTime)}\n${salonName}${salonAddress ? `\n${salonAddress}` : ""}`,
+    [serviceName, dateParts.day, dateParts.month, dateParts.year, time, endTime, salonName, salonAddress]
   );
 
   const handleShare = async () => {
@@ -167,7 +174,7 @@ export function BookingConfirm({
           serviceName={serviceName}
           servicePrice={servicePrice !== undefined ? servicePrice : price}
           addons={addons.map((a) => ({ name: a.name, price: Number(a.price) }))}
-          dateLabel={fullDate}
+          dateParts={dateParts}
           startTime={time}
           endTime={endTime}
           totalDuration={duration}
