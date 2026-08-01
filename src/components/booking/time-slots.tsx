@@ -27,37 +27,87 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
   const bookedSlots = slots.filter((s) => !s.available && (s.booked || s.locked));
   const unavailableSlots = slots.filter((s) => !s.available && !s.booked && !s.locked);
 
-  if (slots.length === 0) {
+  const hasBookedSlots = bookedSlots.length > 0;
+  const hasNoAvailability = availableSlots.length === 0;
+  const emptyState = slots.length === 0
+    ? "closed"
+    : hasBookedSlots
+      ? "full"
+      : "unsuitable";
+
+  // Every day with no selectable time uses an intentional empty state. The copy
+  // changes based on whether the salon is closed, full, or has no suitable gap.
+  if (hasNoAvailability) {
     return (
-      <div className="mx-auto max-w-lg">
-        <div className="glass rounded-3xl overflow-hidden shadow-card">
-          <div className="px-6 pt-9 pb-7 text-center">
-            <div className="relative mx-auto mb-5 h-20 w-20">
-              <div className="absolute inset-0 rounded-full bg-muted/70" />
-              <div className="absolute inset-3 rounded-full bg-card flex items-center justify-center shadow-card">
-                <CalendarOff className="h-8 w-8 text-muted-foreground/70" />
-              </div>
+      <div className="mx-auto max-w-lg animate-fade">
+        <section
+          className="glass overflow-hidden rounded-[24px] shadow-card"
+          aria-label={
+            emptyState === "full"
+              ? "ظرفیت این روز تکمیل است"
+              : emptyState === "closed"
+                ? "این روز ساعت کاری ندارد"
+                : "برای این خدمت ساعت مناسبی نیست"
+          }
+        >
+          <div className="flex items-center justify-between border-b border-border/70 px-5 py-4">
+            <div role="status" aria-live="polite" className="flex items-center gap-2 text-[12px] font-medium text-muted-foreground">
+              <span className="h-2 w-2 rounded-full bg-muted-foreground/60" aria-hidden="true" />
+              {emptyState === "full"
+                ? "ظرفیت این روز تکمیل است"
+                : emptyState === "closed"
+                  ? "ساعتی برای رزرو نیست"
+                  : "ساعت قابل رزرو نیست"}
             </div>
-            <h3 className="text-h3 font-bold text-foreground">ساعتی برای این روز نیست</h3>
-            <p className="text-[13px] text-muted-foreground mt-2 leading-6">
-              این روز ساعات کاری ندارد — روز بعد را امتحان کنید
+            <span className="tabular-nums text-[12px] text-muted-foreground">
+              {emptyState === "full" ? `${toPersianDigits(0)} ساعت خالی` : emptyState === "closed" ? "روز تعطیل" : "۰ قابل رزرو"}
+            </span>
+          </div>
+
+          <div className="px-6 py-9 text-center sm:px-10">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[18px] border border-border bg-muted/45 text-foreground shadow-xs animate-scale">
+              {emptyState === "full" ? (
+                <CalendarX2 className="h-7 w-7" strokeWidth={1.7} aria-hidden="true" />
+              ) : emptyState === "closed" ? (
+                <CalendarOff className="h-7 w-7" strokeWidth={1.7} aria-hidden="true" />
+              ) : (
+                <Clock className="h-7 w-7" strokeWidth={1.7} aria-hidden="true" />
+              )}
+            </div>
+            <h3 className="text-h3 font-bold text-foreground">
+              {emptyState === "full"
+                ? "این روز کاملاً پر شده"
+                : emptyState === "closed"
+                  ? "برای این روز ساعت کاری نداریم"
+                  : "زمان قابل رزرو پیدا نشد"}
+            </h3>
+            <p className="mx-auto mt-3 max-w-[280px] text-[13px] leading-6 text-muted-foreground">
+              {emptyState === "full"
+                ? "همه زمان‌های مناسب برای این خدمت گرفته شده‌اند."
+                : emptyState === "closed"
+                  ? "برای این روز زمان قابل رزرو نداریم؛ روز دیگری را انتخاب کنید."
+                  : "در این روز زمان قابل رزرو برای این خدمت پیدا نشد؛ روز دیگری را امتحان کنید."}
             </p>
           </div>
+
           {onGoToNextDay && (
-            <div className="px-6 pb-6">
+            <div className="border-t border-border/70 px-5 pb-5 pt-4">
               <button
                 onClick={() => {
                   haptic.tap();
                   onGoToNextDay();
                 }}
-                className="w-full h-12 rounded-full bg-foreground text-background text-[14px] font-bold hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
+                className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-[14px] font-bold text-background transition-colors hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
               >
-                برو به روز بعد
-                <ChevronLeft className="h-4 w-4" />
+                {emptyState === "full" ? "برنامه فردا را ببینید" : "روز بعد را بررسی کنید"}
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
               </button>
+              <p className="mt-3 text-center text-[11px] text-muted-foreground/75">
+                یا تاریخ دیگری را از تقویم انتخاب کنید
+              </p>
             </div>
           )}
-        </div>
+        </section>
       </div>
     );
   }
@@ -66,88 +116,6 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
   const otherSlots = availableSlots.filter((s) => !s.suggested);
   const nextAvailable = availableSlots.length > 0 ? availableSlots[0] : null;
   const remainingSlots = availableSlots.length;
-
-  // All slots booked — beautiful "day is full" empty state
-  if (availableSlots.length === 0 && slots.length > 0) {
-    const chipTimes = bookedSlots.slice(0, 6).map((s) => s.time);
-    return (
-      <div className="mx-auto max-w-lg">
-        <div className="glass rounded-3xl overflow-hidden shadow-card">
-          {/* Hatched accent band — everything is taken */}
-          <div
-            className="h-1.5"
-            style={{
-              background:
-                "repeating-linear-gradient(-45deg, var(--muted-foreground) 0 2px, transparent 2px 6px)",
-              opacity: 0.3,
-            }}
-          />
-          <div className="px-6 pt-8 pb-5 text-center">
-            <div className="relative mx-auto mb-5 h-20 w-20">
-              <div className="absolute inset-0 rounded-full bg-primary/5" />
-              <div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  border: "1.5px dashed color-mix(in oklab, var(--primary) 35%, transparent)",
-                }}
-              />
-              <div className="absolute inset-3 rounded-full bg-card flex items-center justify-center shadow-card">
-                <CalendarX2 className="h-8 w-8 text-primary" />
-              </div>
-            </div>
-            <h3 className="text-h3 font-bold text-foreground">این روز کاملاً پر شده</h3>
-            <p className="text-[13px] text-muted-foreground mt-2 max-w-xs mx-auto leading-6">
-              همه ساعت‌ها رزرو شده‌اند — فردا را امتحان کنید
-            </p>
-          </div>
-
-          {/* Mini hatched chips — visual proof the day is packed */}
-          {chipTimes.length > 0 && (
-            <div className="px-8 pb-5">
-              <div className="grid grid-cols-3 gap-2">
-                {chipTimes.map((t) => (
-                  <div
-                    key={t}
-                    className="relative h-9 rounded-lg border border-border overflow-hidden flex items-center justify-center"
-                  >
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        background:
-                          "repeating-linear-gradient(-45deg, transparent, transparent 2px, var(--muted-foreground) 2px, var(--muted-foreground) 4px)",
-                        opacity: 0.15,
-                      }}
-                    />
-                    <span className="relative z-10 text-[11px] font-bold tabular-nums text-muted-foreground">
-                      {toPersianDigits(t.slice(0, 5))}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="px-6 pb-6 space-y-2">
-            {onGoToNextDay && (
-              <button
-                onClick={() => {
-                  haptic.tap();
-                  onGoToNextDay();
-                }}
-                className="w-full h-12 rounded-full bg-foreground text-background text-[14px] font-bold hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
-              >
-                برو به فردا
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-            )}
-            <p className="text-[11px] text-muted-foreground/70 text-center">
-              یا تاریخ دیگری از تقویم انتخاب کنید
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="mx-auto max-w-lg space-y-4">
@@ -169,31 +137,14 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
       </div>
 
       {nextAvailable && (
-        <div
-          className="relative overflow-hidden rounded-xl border border-primary/15 bg-primary/5 p-3.5 flex items-center gap-3"
-          role="note"
-        >
-          {/* Soft glow accent */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(120px 60px at 12% 50%, color-mix(in oklab, var(--primary) 10%, transparent), transparent 70%)",
-            }}
-          />
-          <div className="relative shrink-0 h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
-            <Zap className="h-4 w-4 text-primary" />
-            <span className="absolute inset-0 rounded-full animate-ping bg-primary/10 motion-reduce:animate-none" />
-          </div>
-          <div className="relative flex-1 min-w-0">
-            <p className="text-[12px] font-bold text-primary">نزدیک‌ترین ساعت آزاد</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              اولین زمان موجود — ساعت {toPersianDigits(nextAvailable.time)} را از پایین انتخاب کنید
-            </p>
-          </div>
-          <span className="relative shrink-0 text-[16px] font-extrabold tabular-nums text-foreground">
-            {toPersianDigits(nextAvailable.time)}
-          </span>
+        <div className="flex items-center justify-center gap-1.5" role="note">
+          <Zap className="h-3 w-3 text-primary" />
+          <p className="text-[12px] text-muted-foreground">
+            نزدیک‌ترین ساعت آزاد:{" "}
+            <span className="font-bold tabular-nums text-foreground">
+              {toPersianDigits(nextAvailable.time.slice(0, 5))}
+            </span>
+          </p>
         </div>
       )}
 
