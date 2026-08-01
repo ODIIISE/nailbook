@@ -18,12 +18,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isSpecialPage = pathname === "/admin/bootstrap" || pathname === "/admin/migrate" || pathname === "/admin/login";
   const [isLoading, setIsLoading] = useState(!isSpecialPage);
 
-  // Add dark class to html element
-  useEffect(() => {
-    document.documentElement.classList.add("dark");
-    return () => document.documentElement.classList.remove("dark");
-  }, []);
-
   useEffect(() => {
     if (isSpecialPage) {
       return;

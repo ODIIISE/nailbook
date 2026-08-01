@@ -1,22 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 type Theme = "light" | "dark";
-
-function getSystemTheme(): Theme {
-  if (typeof window === "undefined") return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
-function getStoredTheme(): Theme | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return localStorage.getItem("nailbook-theme") as Theme | null;
-  } catch {
-    return null;
-  }
-}
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
@@ -28,65 +14,36 @@ function applyTheme(theme: Theme) {
 }
 
 export function useTheme() {
-  // Initialize lazily from storage/system to avoid a synchronous setState in an effect.
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "light";
-    const stored = getStoredTheme();
-    return stored || getSystemTheme();
-  });
+  // The device preference is the single source of truth. Keep the server and
+  // first client render identical; the pre-hydration script handles the CSS
+  // class before paint, then this effect synchronizes React state.
+  const [theme, setThemeState] = useState<Theme>("light");
   const [resolved, setResolved] = useState(false);
 
-  // Apply the current theme whenever it changes.
+  // Resolve the device preference after hydration and follow live system changes.
+  // The pre-hydration script applies the initial class before the first paint.
   useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const syncWithDevice = (isDark: boolean) => {
+      const nextTheme: Theme = isDark ? "dark" : "light";
+      setThemeState(nextTheme);
+      applyTheme(nextTheme);
+    };
 
-  // Mark as resolved and listen for system theme changes once on mount.
-  useEffect(() => {
-    // This is a one-time hydration guard; suppressing the strict hook rule.
+    syncWithDevice(mq.matches);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setResolved(true);
 
-    // Listen for system theme changes
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = (e: MediaQueryListEvent) => {
-      const stored = getStoredTheme();
-      if (!stored) {
-        const newTheme = e.matches ? "dark" : "light";
-        setThemeState(newTheme);
-        applyTheme(newTheme);
-      }
-    };
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  const setTheme = useCallback((newTheme: Theme) => {
-    // Use View Transitions API for smooth transition if supported
-    if (typeof document !== "undefined" && "startViewTransition" in document) {
-      const doc = document as Document & {
-        startViewTransition?: (callback: () => void) => void;
-      };
-      doc.startViewTransition?.(() => {
-        setThemeState(newTheme);
-        applyTheme(newTheme);
-        try {
-          localStorage.setItem("nailbook-theme", newTheme);
-        } catch {}
-      });
-    } else {
-      // Fallback: just apply directly
-      setThemeState(newTheme);
-      applyTheme(newTheme);
-      try {
-        localStorage.setItem("nailbook-theme", newTheme);
-      } catch {}
+    const handler = (event: MediaQueryListEvent) => syncWithDevice(event.matches);
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", handler);
+      return () => mq.removeEventListener("change", handler);
     }
+
+    // Safari 13 and older expose the legacy MediaQueryList listener API.
+    mq.addListener(handler);
+    return () => mq.removeListener(handler);
   }, []);
 
-  const toggleTheme = useCallback(() => {
-    setTheme(theme === "light" ? "dark" : "light");
-  }, [theme, setTheme]);
-
-  return { theme, setTheme, toggleTheme, resolved };
+  return { theme, resolved };
 }

@@ -4,7 +4,6 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { toPersianDigits } from "@/lib/jalali";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -18,12 +17,9 @@ import {
   LogIn,
   LogOut,
   User,
-  Sun,
-  Moon,
 } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "./menu-context";
-import { useTheme } from "@/lib/hooks/use-theme";
 import { haptic } from "@/lib/haptics";
 
 interface MenuItem {
@@ -129,7 +125,6 @@ export function AppHeader({
             )}
           </div>
           <div className="flex items-center gap-1">
-            <ThemeToggle />
             <Button
               variant="ghost"
               size="icon-sm"
@@ -186,11 +181,6 @@ export function AppHeader({
 
                 <Separator className="my-2" />
 
-                {/* Theme Toggle in Menu */}
-                <ThemeToggleMenuItem onClose={closeMenu} />
-
-                <Separator className="my-2" />
-
                 {menuFooter ?? (
                   <>
                     <a
@@ -234,23 +224,5 @@ export function AppHeader({
         </div>
       )}
     </>
-  );
-}
-
-function ThemeToggleMenuItem({ onClose }: { onClose: () => void }) {
-  const { theme, toggleTheme } = useTheme();
-
-  return (
-    <button
-      onClick={() => { toggleTheme(); onClose(); }}
-      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors duration-150"
-    >
-      <span className="text-muted-foreground">
-        {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      </span>
-      <span className="text-[14px]">
-        {theme === "dark" ? "حالت روشن" : "حالت تاریک"}
-      </span>
-    </button>
   );
 }
