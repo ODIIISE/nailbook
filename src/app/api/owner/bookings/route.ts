@@ -5,6 +5,7 @@ import { normalizeDigits } from "@/lib/digits";
 import { logActivity } from "@/lib/db/activity-log";
 import { gregorianToJalali } from "@/lib/jalali";
 import { parseGregorianDateKey } from "@/lib/time";
+import { manualBookingRequestSchema } from "@/lib/booking/schema";
 
 /**
  * POST /api/owner/bookings
@@ -23,7 +24,18 @@ export async function POST(request: NextRequest) {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const body = await request.json();
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "درخواست نامعتبر است" }, { status: 400 });
+    }
+
+    const parsed = manualBookingRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "اطلاعات ناقص یا نامعتبر است" }, { status: 400 });
+    }
+
     const {
       customer_name,
       customer_phone,
@@ -32,22 +44,15 @@ export async function POST(request: NextRequest) {
       start_time,
       end_time,
       selected_addons,
-    } = body;
+    } = parsed.data;
 
-    if (!customer_phone || !service_id || !date_gregorian || !start_time || !end_time) {
-      return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
+    const parsedDate = parseGregorianDateKey(date_gregorian);
+    const isValidDate = !Number.isNaN(parsedDate.getTime()) && parsedDate.toISOString().slice(0, 10) === date_gregorian;
+    if (!isValidDate) {
+      return NextResponse.json({ error: "تاریخ نامعتبر است" }, { status: 400 });
     }
 
-    const isValidDate =
-      typeof date_gregorian === "string" &&
-      /^\d{4}-\d{2}-\d{2}$/.test(date_gregorian) &&
-      parseGregorianDateKey(date_gregorian).toISOString().slice(0, 10) === date_gregorian;
-    const timePattern = /^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/;
-    if (!isValidDate || typeof start_time !== "string" || typeof end_time !== "string" || !timePattern.test(start_time) || !timePattern.test(end_time)) {
-      return NextResponse.json({ error: "تاریخ یا ساعت نامعتبر است" }, { status: 400 });
-    }
-
-    const phone = normalizeDigits(String(customer_phone).trim());
+    const phone = normalizeDigits(customer_phone.trim());
     if (!/^09\d{9}$/.test(phone)) {
       return NextResponse.json({ error: "شماره موبایل نامعتبر است" }, { status: 400 });
     }
@@ -154,7 +159,6 @@ export async function POST(request: NextRequest) {
 
     // Always derive the Jalali display date server-side from the canonical
     // Gregorian date. This prevents malformed/missing client display dates.
-    const parsedDate = parseGregorianDateKey(date_gregorian);
     const jalali = gregorianToJalali(parsedDate);
     const jalaliDate = `${jalali.jy}/${String(jalali.jm).padStart(2, "0")}/${String(jalali.jd).padStart(2, "0")}`;
     const { rows: inserted } = await client.query(

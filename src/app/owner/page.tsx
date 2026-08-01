@@ -179,7 +179,13 @@ function OwnerDashboardContent() {
     end_time: string;
   }) => {
     const dateStr = getTehranDateKey(currentDate);
-    const service = services.find((s) => s.id === data.service_id);
+    const service = services.find((s) => s.id === data.service_id && s.is_active);
+    if (!service) {
+      toast.error("خدمت انتخاب‌شده دیگر فعال نیست", {
+        description: "لطفاً فرم را ببندید و دوباره باز کنید",
+      });
+      return;
+    }
     const j = gregorianToJalali(currentDate);
 
     const result = await addOwnerBooking({
@@ -200,6 +206,9 @@ function OwnerDashboardContent() {
     });
 
     if (result.success) {
+      // Reconcile the optimistic row with the server response immediately so
+      // a polling request cannot leave a stale/nameless booking in the timeline.
+      await refreshBookings("owner");
       toast.success("نوبت با موفقیت ثبت شد");
       setShowManualReserve(false);
     } else {

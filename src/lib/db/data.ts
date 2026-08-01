@@ -295,11 +295,20 @@ export async function insertOwnerBooking(booking: Booking): Promise<{ id: string
       selected_addons: booking.selected_addons,
     }),
   });
-  const body = await res.json();
+  const body = await res.json().catch(() => null);
   if (!res.ok) {
-    throw new Error(body.error || "Failed to save booking");
+    throw new Error(isRecord(body) && typeof body.error === "string" ? body.error : "Failed to save booking");
   }
-  return { id: body.booking_id, start_time: body.start_time, end_time: body.end_time };
+  const responseTimePattern = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
+  if (
+    !isRecord(body) ||
+    typeof body.booking_id !== "string" ||
+    !responseTimePattern.test(body.start_time as string) ||
+    !responseTimePattern.test(body.end_time as string)
+  ) {
+    throw new Error("پاسخ نامعتبر از سرور رزرو");
+  }
+  return { id: body.booking_id, start_time: body.start_time as string, end_time: body.end_time as string };
 }
 
 export async function cancelBooking(bookingId: string) {
