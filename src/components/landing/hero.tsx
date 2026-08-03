@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Phone, Clock, ChevronLeft } from "lucide-react";
+import { MapPin, Phone, Clock, ChevronLeft, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { toPersianDigits } from "@/lib/jalali";
@@ -53,13 +53,26 @@ export function Hero({ salon, onBookNow }: HeroProps) {
         </div>
 
         {onBookNow && (
-          <Button
-            className="w-full h-14 text-[16px] mt-5 bg-foreground text-background hover:bg-foreground/90"
-            onClick={onBookNow}
-          >
-            رزرو کن
-            <ChevronLeft className="h-5 w-5 ms-1" />
-          </Button>
+          <div className="mt-5 rounded-[24px] border border-border/80 bg-card p-3.5 text-right shadow-card">
+            <div className="flex items-start justify-between gap-3 px-1">
+              <div className="min-w-0">
+                <p className="text-h3 text-foreground">وقتت را برای زیبایی رزرو کن</p>
+                <p className="mt-1 text-caption text-muted-foreground">
+                  خدمت را انتخاب کن و زمان‌های آزاد را ببین.
+                </p>
+              </div>
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-muted text-foreground">
+                <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+              </div>
+            </div>
+            <Button
+              className="mt-4 h-14 w-full rounded-2xl bg-foreground text-[16px] font-bold text-background shadow-sm transition-transform hover:bg-foreground/90 active:scale-[0.99]"
+              onClick={onBookNow}
+            >
+              رزرو نوبت
+              <ChevronLeft className="h-5 w-5 ms-1" aria-hidden="true" />
+            </Button>
+          </div>
         )}
       </div>
     </div>

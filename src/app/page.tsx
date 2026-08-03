@@ -115,9 +115,9 @@ function SalonBooking() {
           <SocialProofPulse totalBookings={bookings.filter((b) => b.status !== "cancelled").length} />
         </div>
         <Hero salon={salon} />
+        <BookingCta services={services} isLoading={!loaded} />
         <TrustSignals totalBookings={bookings.length} recentBookings={bookings.filter((b) => b.status !== "cancelled").slice(0, 3)} />
         <ContactButtons phone={salon.phone} />
-        <BookingCta services={services} isLoading={!loaded} />
 
         <footer className="px-4 py-6 text-center pb-20">
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
