@@ -11,7 +11,7 @@ import { Highlights } from "@/components/landing/highlights";
 import { HighlightViewer } from "@/components/landing/highlight-viewer";
 import { ServiceCardGrid } from "@/components/landing/service-card-grid";
 import { SalonGuard } from "@/components/ui/salon-guard";
-import { Heart, Store, Users, Calendar } from "lucide-react";
+import { Heart, Store, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -121,21 +121,12 @@ function SalonBooking() {
         <AppHeader />
         <Highlights highlights={highlights} onSelect={setViewingHighlight} />
         <Hero salon={salon} onBookNow={scrollToServices} />
+        <TrustSignals totalBookings={bookings.length} recentBookings={bookings.filter((b) => b.status !== "cancelled").slice(0, 3)} />
+        <ContactButtons phone={salon.phone} />
         <div id="services">
           <ServiceCardGrid services={services} isLoading={!loaded} />
         </div>
-        <TrustSignals totalBookings={bookings.length} recentBookings={bookings.filter((b) => b.status !== "cancelled").slice(0, 3)} />
-        <ContactButtons phone={salon.phone} />
 
-        {/* Sticky Book-Now FAB on mobile */}
-        <button
-          onClick={scrollToServices}
-          className="fixed bottom-20 right-4 z-40 md:hidden h-12 px-4 rounded-full bg-foreground text-background shadow-lg flex items-center gap-2 text-sm font-bold active:scale-95 transition-transform focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2"
-          aria-label="رزرو نوبت"
-        >
-          <Calendar className="h-4 w-4" />
-          <span>رزرو نوبت</span>
-        </button>
         <footer className="px-4 py-6 text-center pb-20">
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
             ساخته شده با <Heart className="h-3 w-3 text-destructive fill-destructive" /> برای {salon.name}
