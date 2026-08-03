@@ -185,7 +185,7 @@ export default function AdminDashboard() {
           >
             {t.label}
             {t.badge !== undefined && t.badge > 0 && (
-              <span className="h-5 w-5 rounded-full bg-destructive text-white text-[10px] flex items-center justify-center">
+              <span className="h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
                 {t.badge}
               </span>
             )}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
+import { getSalonId } from "@/lib/multi-tenant";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,10 +14,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "داده ناقص" }, { status: 400 });
     }
 
-    // Get booking info for logging
-    const { rows: booking } = await sql`SELECT customer_name, customer_phone FROM bookings WHERE id = ${bookingId}`;
+    const salonId = getSalonId();
+    const bookingResult = salonId
+      ? await sql.query("SELECT customer_name, customer_phone FROM bookings WHERE id = $1 AND salon_id = $2", [bookingId, salonId])
+      : await sql`SELECT customer_name, customer_phone FROM bookings WHERE id = ${bookingId}`;
+    const booking = bookingResult.rows;
+    if (!booking[0]) return NextResponse.json({ error: "نوبت یافت نشد" }, { status: 404 });
 
-    await sql`UPDATE bookings SET paid = ${paid} WHERE id = ${bookingId}`;
+    if (salonId) {
+      await sql.query("UPDATE bookings SET paid = $1 WHERE id = $2 AND salon_id = $3", [paid, bookingId, salonId]);
+    } else {
+      await sql`UPDATE bookings SET paid = ${paid} WHERE id = ${bookingId}`;
+    }
 
     logActivity({
       eventType: paid ? "payment_received" : "payment_reverted",

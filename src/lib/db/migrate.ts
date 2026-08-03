@@ -62,29 +62,40 @@ export async function runMigrations(): Promise<MigrationResult[]> {
     const filePath = join(MIGRATIONS_DIR, file);
     const sqlContent = await readFile(filePath, "utf-8");
 
+    let client;
     try {
-      // Split by semicolons and execute each statement
-      // Filter out empty statements and comments
+      client = await sql.connect();
+      await client.query("BEGIN");
+
+      // Remove line comments before splitting so a comment immediately before
+      // a statement does not accidentally cause that whole statement to be skipped.
       const statements = sqlContent
+        .replace(/^\s*--.*$/gm, "")
         .split(";")
         .map((s) => s.trim())
-        .filter((s) => s.length > 0 && !s.startsWith("--"));
+        .filter((s) => s.length > 0);
 
       for (const statement of statements) {
-        await sql.query(statement);
+        await client.query(statement);
       }
 
-      // Record migration as applied
-      await sql`INSERT INTO schema_migrations (name) VALUES (${file})`;
+      // Record migration in the same transaction as its schema changes.
+      await client.query("INSERT INTO schema_migrations (name) VALUES ($1)", [file]);
+      await client.query("COMMIT");
 
       results.push({ name: file, success: true });
     } catch (error) {
+      if (client) {
+        try { await client.query("ROLLBACK"); } catch {}
+      }
       const message = error instanceof Error ? error.message : String(error);
       results.push({ name: file, success: false, error: message });
       console.error(`Migration ${file} failed:`, message);
 
-      // Stop on first failure to prevent partial migrations
+      // Stop on first failure to prevent later migrations from running.
       break;
+    } finally {
+      if (client) client.release();
     }
   }
 

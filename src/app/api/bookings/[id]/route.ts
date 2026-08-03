@@ -3,6 +3,7 @@ import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { verifyCustomerSession } from "@/lib/customer-auth";
 import { logActivity } from "@/lib/db/activity-log";
+import { getSalonId } from "@/lib/multi-tenant";
 
 // PATCH: Cancel a booking (owner or the booking's user)
 export async function PATCH(
@@ -15,8 +16,12 @@ export async function PATCH(
     // Check if owner
     const owner = await verifyOwner(request);
 
-    // Get the booking
-    const { rows } = await sql`SELECT id, user_id, customer_phone, status FROM bookings WHERE id = ${id}`;
+    // Get the booking within the current salon deployment when multi-tenant mode is enabled.
+    const salonId = getSalonId();
+    const bookingResult = salonId
+      ? await sql.query("SELECT id, user_id, customer_phone, status FROM bookings WHERE id = $1 AND salon_id = $2", [id, salonId])
+      : await sql`SELECT id, user_id, customer_phone, status FROM bookings WHERE id = ${id}`;
+    const rows = bookingResult.rows;
     if (!rows[0]) {
       return NextResponse.json({ error: "نوبت یافت نشد" }, { status: 404 });
     }
@@ -35,7 +40,11 @@ export async function PATCH(
       return NextResponse.json({ error: "نوبت قبلاً لغو شده" }, { status: 400 });
     }
 
-    await sql`UPDATE bookings SET status = 'cancelled' WHERE id = ${id}`;
+    if (salonId) {
+      await sql.query("UPDATE bookings SET status = 'cancelled' WHERE id = $1 AND salon_id = $2", [id, salonId]);
+    } else {
+      await sql`UPDATE bookings SET status = 'cancelled' WHERE id = ${id}`;
+    }
 
     // Log the cancellation
     logActivity({
@@ -66,12 +75,20 @@ export async function DELETE(
 
     const { id } = await params;
 
-    const { rows } = await sql`SELECT id, customer_phone, customer_name FROM bookings WHERE id = ${id}`;
+    const salonId = getSalonId();
+    const bookingResult = salonId
+      ? await sql.query("SELECT id, customer_phone, customer_name FROM bookings WHERE id = $1 AND salon_id = $2", [id, salonId])
+      : await sql`SELECT id, customer_phone, customer_name FROM bookings WHERE id = ${id}`;
+    const rows = bookingResult.rows;
     if (!rows[0]) {
       return NextResponse.json({ error: "نوبت یافت نشد" }, { status: 404 });
     }
 
-    await sql`DELETE FROM bookings WHERE id = ${id}`;
+    if (salonId) {
+      await sql.query("DELETE FROM bookings WHERE id = $1 AND salon_id = $2", [id, salonId]);
+    } else {
+      await sql`DELETE FROM bookings WHERE id = ${id}`;
+    }
 
     logActivity({
       eventType: "booking_deleted",

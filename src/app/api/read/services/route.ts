@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { getSalonId } from "@/lib/multi-tenant";
 
 export async function GET() {
   try {
-    const { rows } = await sql`
-      SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score
-      FROM services ORDER BY sort_order
-    `;
+    const salonId = getSalonId();
+    const { rows } = salonId
+      ? await sql.query(
+          `SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score
+           FROM services WHERE salon_id = $1 ORDER BY sort_order`,
+          [salonId]
+        )
+      : await sql`
+          SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score
+          FROM services ORDER BY sort_order
+        `;
     return NextResponse.json(rows.map((s) => ({
       id: s.id,
       name: s.name,

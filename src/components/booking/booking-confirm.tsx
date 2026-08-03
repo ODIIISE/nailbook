@@ -138,7 +138,7 @@ export function BookingConfirm({
               className="w-8 h-8 rounded-full bg-success flex items-center justify-center shrink-0"
               style={{ boxShadow: "0 2px 8px rgba(34,197,94,0.2)" }}
             >
-              <Check className="h-4 w-4 text-white" strokeWidth={2.5} />
+              <Check className="h-4 w-4 text-primary-foreground" strokeWidth={2.5} />
             </div>
             <div className="text-[14px] font-bold text-foreground">رزرو ثبت شد</div>
           </div>
@@ -156,22 +156,22 @@ export function BookingConfirm({
             </div>
           </div>
 
-          <div className="h-px bg-black/[0.04] mb-2 relative z-[2]" />
+          <div className="h-px bg-border/50 mb-2 relative z-[2]" />
 
           <div className="relative z-[2]">
             <div className="flex justify-between items-center py-[7px]">
               <span className="text-[12px] text-muted-foreground">تاریخ</span>
               <span className="text-[12px] font-semibold text-foreground">{fullDate}</span>
             </div>
-            <div className="flex justify-between items-center py-[7px] border-t border-dashed border-black/[0.05]">
+            <div className="flex justify-between items-center py-[7px] border-t border-dashed border-foreground/5">
               <span className="text-[12px] text-muted-foreground">ساعت</span>
               <span className="text-[12px] font-semibold text-foreground">{formattedTime} تا {formattedEndTime}</span>
             </div>
-            <div className="flex justify-between items-center py-[7px] border-t border-dashed border-black/[0.05]">
+            <div className="flex justify-between items-center py-[7px] border-t border-dashed border-foreground/5">
               <span className="text-[12px] text-muted-foreground">مدت</span>
               <span className="text-[12px] font-semibold text-foreground">{toPersianDigits(duration)} دقیقه</span>
             </div>
-            <div className="flex justify-between items-center pt-2.5 pb-0.5 border-t border-dashed border-black/[0.05]">
+            <div className="flex justify-between items-center pt-2.5 pb-0.5 border-t border-dashed border-foreground/5">
               <span className="text-[12px] font-medium text-muted-foreground">هزینه کل</span>
               <span className="text-[16px] font-extrabold text-foreground">{formatPrice(Number(price))} تومان</span>
             </div>
@@ -194,7 +194,7 @@ export function BookingConfirm({
           <CalendarDays className="h-4 w-4 ml-2" />
           تقویم گوگل
         </Button>
-        <Button size="xl" variant="outline" className="w-full bg-white" onClick={handleShare}>
+        <Button size="xl" variant="outline" className="w-full bg-background" onClick={handleShare}>
           <Share2 className="h-4 w-4 ml-2" />
           اشتراک‌گذاری
         </Button>

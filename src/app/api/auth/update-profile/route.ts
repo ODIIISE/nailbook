@@ -3,6 +3,7 @@ import { sql } from "@vercel/postgres";
 import { verifyOwnerSession } from "@/lib/owner-auth";
 import { verifyCustomerSession } from "@/lib/customer-auth";
 import { logActivity } from "@/lib/db/activity-log";
+import { getSalonId } from "@/lib/multi-tenant";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,14 +19,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
     }
 
-    // Get current name for logging
-    const { rows: current } = await sql`SELECT name FROM users WHERE id = ${userId}`;
-    const oldName = current[0]?.name || "";
+    const salonId = getSalonId();
+    const currentResult = salonId
+      ? await sql.query("SELECT name FROM users WHERE id = $1 AND salon_id = $2", [userId, salonId])
+      : await sql`SELECT name FROM users WHERE id = ${userId}`;
+    const current = currentResult.rows;
+    if (!current[0]) return NextResponse.json({ error: "کاربر یافت نشد" }, { status: 404 });
+    const oldName = current[0].name || "";
 
     // Validate name
-    const sanitizedName = (name || "").slice(0, 100);
+    const sanitizedName = typeof name === "string" ? name.trim().slice(0, 100) : "";
 
-    await sql`UPDATE users SET name = ${sanitizedName} WHERE id = ${userId}`;
+    if (salonId) {
+      await sql.query("UPDATE users SET name = $1 WHERE id = $2 AND salon_id = $3", [sanitizedName, userId, salonId]);
+    } else {
+      await sql`UPDATE users SET name = ${sanitizedName} WHERE id = ${userId}`;
+    }
 
     logActivity({
       eventType: "user_updated",

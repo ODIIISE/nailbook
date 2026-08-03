@@ -1,4 +1,5 @@
 import { sql } from "@vercel/postgres";
+import { getSalonId } from "@/lib/multi-tenant";
 
 export type EventType =
   | "booking_created"
@@ -64,6 +65,7 @@ async function ensureTable(): Promise<void> {
         created_at TIMESTAMPTZ DEFAULT NOW()
       )
     `;
+    await sql`ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS salon_id UUID`;
     await sql`CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs (created_at DESC)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_activity_logs_event_type ON activity_logs (event_type)`;
   } catch (error) {
@@ -84,10 +86,18 @@ export async function logActivity(params: LogEventParams): Promise<void> {
       tableEnsured = true;
     }
 
-    await sql`
-      INSERT INTO activity_logs (event_type, entity_type, entity_id, description, metadata)
-      VALUES (${params.eventType}, ${params.entityType}, ${params.entityId || null}, ${params.description}, ${JSON.stringify(params.metadata || {})})
-    `;
+    const salonId = getSalonId();
+    if (salonId) {
+      await sql`
+        INSERT INTO activity_logs (event_type, entity_type, entity_id, description, metadata, salon_id)
+        VALUES (${params.eventType}, ${params.entityType}, ${params.entityId || null}, ${params.description}, ${JSON.stringify(params.metadata || {})}, ${salonId})
+      `;
+    } else {
+      await sql`
+        INSERT INTO activity_logs (event_type, entity_type, entity_id, description, metadata)
+        VALUES (${params.eventType}, ${params.entityType}, ${params.entityId || null}, ${params.description}, ${JSON.stringify(params.metadata || {})})
+      `;
+    }
   } catch (error) {
     console.error("Failed to log activity:", error);
   }
@@ -101,21 +111,21 @@ export async function fetchActivityLogs(
   eventType?: string
 ): Promise<ActivityLog[]> {
   try {
-    if (eventType && eventType !== "all") {
-      const { rows } = await sql`
-        SELECT * FROM activity_logs
-        WHERE event_type = ${eventType}
-        ORDER BY created_at DESC
-        LIMIT 200
-      `;
-      return rows as ActivityLog[];
-    }
-
-    const { rows } = await sql`
-      SELECT * FROM activity_logs
-      ORDER BY created_at DESC
-      LIMIT 200
-    `;
+    const salonId = getSalonId();
+    const where = salonId
+      ? eventType && eventType !== "all"
+        ? "salon_id = $1 AND event_type = $2"
+        : "salon_id = $1"
+      : eventType && eventType !== "all"
+        ? "event_type = $1"
+        : "TRUE";
+    const values = salonId
+      ? eventType && eventType !== "all" ? [salonId, eventType] : [salonId]
+      : eventType && eventType !== "all" ? [eventType] : [];
+    const { rows } = await sql.query(
+      `SELECT * FROM activity_logs WHERE ${where} ORDER BY created_at DESC LIMIT 200`,
+      values
+    );
     return rows as ActivityLog[];
   } catch (error) {
     console.error("Failed to fetch activity logs:", error);
@@ -128,11 +138,11 @@ export async function fetchActivityLogs(
  */
 export async function getActivityCounts(): Promise<Record<string, number>> {
   try {
-    const { rows } = await sql`
-      SELECT event_type, COUNT(*) as count
-      FROM activity_logs
-      GROUP BY event_type
-    `;
+    const salonId = getSalonId();
+    const result = salonId
+      ? await sql.query("SELECT event_type, COUNT(*) as count FROM activity_logs WHERE salon_id = $1 GROUP BY event_type", [salonId])
+      : await sql`SELECT event_type, COUNT(*) as count FROM activity_logs GROUP BY event_type`;
+    const { rows } = result;
 
     const counts: Record<string, number> = { all: 0 };
     for (const row of rows) {

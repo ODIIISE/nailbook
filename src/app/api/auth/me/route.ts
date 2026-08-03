@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyCustomerSessionWithVersion } from "@/lib/customer-auth";
+import { getSalonId } from "@/lib/multi-tenant";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,9 +12,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }
 
-    const { rows } = await sql`
-      SELECT id, phone, name, role FROM users WHERE id = ${userId} LIMIT 1
-    `;
+    const salonId = getSalonId();
+    const result = salonId
+      ? await sql.query(
+          "SELECT id, phone, name, role FROM users WHERE id = $1 AND salon_id = $2 LIMIT 1",
+          [userId, salonId]
+        )
+      : await sql`SELECT id, phone, name, role FROM users WHERE id = ${userId} LIMIT 1`;
+    const { rows } = result;
 
     if (rows.length === 0) {
       return NextResponse.json({ authenticated: false }, { status: 401 });

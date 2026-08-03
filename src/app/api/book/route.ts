@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyCustomerSession } from "@/lib/customer-auth";
+import { verifyCustomerSessionWithVersion } from "@/lib/customer-auth";
 import { normalizeDigits } from "@/lib/digits";
 import { bookingRequestSchema } from "@/lib/booking/schema";
 import { createBooking } from "@/lib/booking/service";
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   try {
     const sessionCookie = request.cookies.get("session")?.value;
     if (sessionCookie) {
-      verifiedUserId = verifyCustomerSession(sessionCookie);
+      verifiedUserId = await verifyCustomerSessionWithVersion(sessionCookie);
     }
   } catch {
     verifiedUserId = null;

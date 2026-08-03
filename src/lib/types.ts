@@ -20,6 +20,9 @@ export interface SalonInfo {
   proximity_window_hours: number;
   allow_overflow: boolean;
   overflow_minutes: number;
+  optimization_mode: "hybrid" | "legacy";
+  suggestion_limit: number;
+  min_useful_gap_minutes: number;
 }
 
 export interface Addon {

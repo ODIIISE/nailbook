@@ -8,7 +8,6 @@ import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-config";
 const loginAttempts = new Map<string, { count: number; blockedUntil: number }>();
 const MAX_ATTEMPTS = 5;
 const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
-const WINDOW_MS = 5 * 60 * 1000; // 5-minute window
 
 function checkRateLimit(key: string): { allowed: boolean; retryAfter?: number } {
   const now = Date.now();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,8 @@ interface ManualReserveModalProps {
   date: Date;
   services: Service[];
   workingHours: WorkingHours;
+  slotIntervalMinutes?: number;
+  slotBufferMinutes?: number;
   onReserve: (data: {
     customer_name: string;
     customer_phone: string;
@@ -30,6 +32,8 @@ export function ManualReserveModal({
   date,
   services,
   workingHours,
+  slotIntervalMinutes = 15,
+  slotBufferMinutes = 0,
   onReserve,
   onClose,
 }: ManualReserveModalProps) {
@@ -48,15 +52,20 @@ export function ManualReserveModal({
 
   const [startTime, setStartTime] = useState(defaultStartTime);
 
-  // Auto-calculate end time from start time + service duration
+  const getEffectiveDuration = useCallback((duration: number) =>
+    Math.ceil((duration + slotBufferMinutes) / Math.max(1, slotIntervalMinutes)) * Math.max(1, slotIntervalMinutes),
+    [slotBufferMinutes, slotIntervalMinutes]
+  );
+
+  // Auto-calculate end time from the service duration plus salon buffer/grid.
   const computedEndTime = useMemo(() => {
     if (!selectedService) return startTime;
     const [h, m] = startTime.split(":").map(Number);
-    const startMin = h * 60 + m + selectedService.duration_minutes;
+    const startMin = h * 60 + m + getEffectiveDuration(selectedService.duration_minutes);
     const endH = Math.floor(startMin / 60);
     const endM = startMin % 60;
     return `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
-  }, [startTime, selectedService]);
+  }, [startTime, selectedService, slotIntervalMinutes, slotBufferMinutes]);
 
   const [endTime, setEndTime] = useState(computedEndTime);
 
@@ -66,7 +75,7 @@ export function ManualReserveModal({
     const svc = services.find((s) => s.id === id);
     if (svc) {
       const [h, m] = startTime.split(":").map(Number);
-      const startMin = h * 60 + m + svc.duration_minutes;
+      const startMin = h * 60 + m + getEffectiveDuration(svc.duration_minutes);
       const endH = Math.floor(startMin / 60);
       const endM = startMin % 60;
       setEndTime(`${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`);
@@ -77,7 +86,7 @@ export function ManualReserveModal({
     setStartTime(time);
     if (selectedService) {
       const [h, m] = time.split(":").map(Number);
-      const startMin = h * 60 + m + selectedService.duration_minutes;
+      const startMin = h * 60 + m + getEffectiveDuration(selectedService.duration_minutes);
       const endH = Math.floor(startMin / 60);
       const endM = startMin % 60;
       setEndTime(`${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`);

@@ -48,6 +48,9 @@ export async function POST(request: NextRequest) {
         proximity_window_hours INTEGER DEFAULT 2,
         allow_overflow BOOLEAN DEFAULT false,
         overflow_minutes INTEGER DEFAULT 0,
+        optimization_mode TEXT DEFAULT 'hybrid',
+        suggestion_limit INTEGER DEFAULT 3,
+        min_useful_gap_minutes INTEGER DEFAULT 30,
         is_active BOOLEAN DEFAULT true,
         created_at TIMESTAMPTZ DEFAULT NOW()
       )

@@ -1,10 +1,13 @@
 /**
- * Booking Engine v7 — Gap-Minimization Rewrite
+ * Booking Engine v8 — Hybrid Gap Optimizer
  *
- * 3-level proximity model:
- * - Level 1 (0 bookings): all valid slots A→B
- * - Level 2 (1 booking): ±P around existing booking
- * - Level 3 (2+ bookings): fill gaps → earliest edge → latest edge
+ * Availability remains deterministic and backward-compatible, while the
+ * recommendation layer combines the salon's 3-level proximity model with
+ * bounded, explainable scoring inspired by the generic scheduling spec.
+ *
+ * - Level 1 (0 bookings): all valid slots, with a few low-friction suggestions
+ * - Level 2 (1 booking): keep the proximity window, rank adjacent slots first
+ * - Level 3 (2+ bookings): keep all valid slots, rank gap-filling slots first
  *
  * All config from database, all times in Asia/Tehran.
  */
@@ -24,6 +27,10 @@ export interface TimeSlot {
   booked: boolean;
   locked: boolean;
   suggested: boolean;
+  /** Bounded recommendation score for diagnostics and future ranking UIs. */
+  score?: number;
+  /** Short, human-readable reason for a recommended slot. */
+  recommendation?: string;
 }
 
 interface TimeBlock {
@@ -165,50 +172,162 @@ function filterByProximity(
 
 // ─── Level 3: Gap Fill + Edge Attach ───
 
-function classifyLevel3(
+interface RankedSlot {
+  block: TimeBlock;
+  score: number;
+  recommendation: string;
+}
+
+interface RecommendationConfig {
+  mode: "hybrid" | "legacy";
+  suggestionLimit: number;
+  minUsefulGapMinutes: number;
+}
+
+function distanceToOccupiedEdge(slot: TimeBlock, block: TimeBlock): number {
+  if (slot.end <= block.start) return block.start - slot.end;
+  if (slot.start >= block.end) return slot.start - block.end;
+  return 0;
+}
+
+function getContainingGap(slot: TimeBlock, sortedOccupied: TimeBlock[]): TimeBlock | null {
+  for (let i = 0; i < sortedOccupied.length - 1; i++) {
+    const gapStart = sortedOccupied[i].end;
+    const gapEnd = sortedOccupied[i + 1].start;
+    if (gapEnd - gapStart >= slot.end - slot.start && slot.start >= gapStart && slot.end <= gapEnd) {
+      return { start: gapStart, end: gapEnd };
+    }
+  }
+  return null;
+}
+
+/**
+ * Rank already-valid slots. This deliberately never changes hard availability;
+ * it only decides which available choices deserve the suggested treatment.
+ */
+function rankAvailableSlots(
+  slots: TimeBlock[],
+  occupied: TimeBlock[],
+  bookingsCount: number,
+  shiftStart: number,
+  shiftEnd: number,
+  resolution: number,
+  proximityMinutes: number,
+  config: RecommendationConfig
+): RankedSlot[] {
+  const sortedOccupied = [...occupied].sort((a, b) => a.start - b.start);
+
+  return slots.map((slot) => {
+    let score = 0;
+    const reasons: string[] = [];
+    const gap = getContainingGap(slot, sortedOccupied);
+
+    if (gap) {
+      score += 55;
+      reasons.push("پر کردن فاصله بین نوبت‌ها");
+      if (slot.start === gap.start && slot.end === gap.end) {
+        score += 35;
+        reasons.unshift("پر کردن کامل یک فاصله");
+      } else {
+        const edgeDistance = Math.min(slot.start - gap.start, gap.end - slot.end);
+        score += Math.max(0, 20 - edgeDistance / resolution);
+      }
+    }
+
+    const nearestEdge = sortedOccupied.length === 0
+      ? Infinity
+      : Math.min(...sortedOccupied.map((block) => distanceToOccupiedEdge(slot, block)));
+    if (nearestEdge <= resolution) {
+      score += 35;
+      reasons.push("چسبیده به نوبت موجود");
+    } else if (nearestEdge < Infinity && bookingsCount === 1) {
+      score += Math.max(0, 25 - (nearestEdge / Math.max(proximityMinutes, resolution)) * 25);
+    }
+
+    if (slot.start === shiftStart) {
+      score += 10;
+      reasons.push("شروع منظم روز کاری");
+    }
+    if (slot.end === shiftEnd) {
+      score += 10;
+      reasons.push("پایان منظم روز کاری");
+    }
+
+    // Penalize tiny residual gaps. A finite penalty avoids the generic spec's
+    // dangerous use of -Infinity and keeps all valid choices visible.
+    const previous = [...sortedOccupied].reverse().find((block) => block.end <= slot.start);
+    const next = sortedOccupied.find((block) => block.start >= slot.end);
+    const beforeGap = previous ? slot.start - previous.end : slot.start - shiftStart;
+    const afterGap = next ? next.start - slot.end : shiftEnd - slot.end;
+    if (beforeGap > 0 && beforeGap < config.minUsefulGapMinutes) score -= 25;
+    if (afterGap > 0 && afterGap < config.minUsefulGapMinutes) score -= 25;
+
+    return {
+      block: slot,
+      score: Math.max(-100, Math.min(100, Number(score.toFixed(2)))),
+      recommendation: reasons[0] || "زمان مناسب برای رزرو",
+    };
+  }).sort((a, b) => b.score - a.score || a.block.start - b.block.start);
+}
+
+function classifyLegacySuggestions(
   allValidSlots: TimeBlock[],
   occupied: TimeBlock[],
   effectiveDuration: number,
   resolution: number
-): { suggested: TimeBlock[]; other: TimeBlock[] } {
-  const suggested: TimeBlock[] = [];
-  const other: TimeBlock[] = [];
-
+): TimeBlock[] {
   const sorted = [...occupied].sort((a, b) => a.start - b.start);
-
-  for (const slot of allValidSlots) {
-    let isSuggested = false;
-
-    // Check 1: Does this slot fill a gap between two bookings?
+  return allValidSlots.filter((slot) => {
     for (let i = 0; i < sorted.length - 1; i++) {
       const gapStart = sorted[i].end;
       const gapEnd = sorted[i + 1].start;
-      const gapSize = gapEnd - gapStart;
-      if (gapSize >= effectiveDuration && slot.start >= gapStart && slot.end <= gapEnd) {
-        isSuggested = true;
-        break;
+      if (
+        gapEnd - gapStart >= effectiveDuration &&
+        slot.start >= gapStart &&
+        slot.end <= gapEnd
+      ) {
+        return true;
       }
     }
 
-    // Check 2: Is this slot adjacent to any booking edge?
-    if (!isSuggested) {
-      for (const block of sorted) {
-        if (Math.abs(slot.end - block.start) < resolution) {
-          isSuggested = true;
-          break;
-        }
-        if (Math.abs(slot.start - block.end) < resolution) {
-          isSuggested = true;
-          break;
-        }
-      }
-    }
+    return sorted.some(
+      (block) =>
+        Math.abs(slot.end - block.start) < resolution ||
+        Math.abs(slot.start - block.end) < resolution
+    );
+  });
+}
 
-    if (isSuggested) suggested.push(slot);
-    else other.push(slot);
+function selectRecommendations(
+  ranked: RankedSlot[],
+  bookingsCount: number,
+  shiftStart: number,
+  shiftEnd: number,
+  resolution: number,
+  config: RecommendationConfig
+): RankedSlot[] {
+  if (config.mode === "legacy" || ranked.length === 0) return [];
+
+  const limit = Math.min(Math.max(1, config.suggestionLimit), ranked.length);
+  if (bookingsCount > 0 || limit === 1) return ranked.slice(0, limit);
+
+  // On an empty day, do not present arbitrary neighboring slots. Spread the
+  // shortlist across the day so the customer can choose early, middle, or late
+  // without hiding any other valid choice. This also honors limits above 3.
+  const byStart = [...ranked].sort((a, b) => a.block.start - b.block.start);
+  const serviceDuration = byStart[0].block.end - byStart[0].block.start;
+  const lastStart = shiftEnd - serviceDuration;
+  const selected: RankedSlot[] = [];
+  for (let index = 0; index < limit; index++) {
+    const fraction = limit === 1 ? 0 : index / (limit - 1);
+    const target = shiftStart + Math.round(((lastStart - shiftStart) * fraction) / resolution) * resolution;
+    const candidate = byStart.find((item) => item.block.start === target)
+      ?? byStart.reduce((closest, item) =>
+        Math.abs(item.block.start - target) < Math.abs(closest.block.start - target) ? item : closest
+      );
+    if (!selected.some((item) => item.block.start === candidate.block.start)) selected.push(candidate);
   }
-
-  return { suggested, other };
+  return selected;
 }
 
 // ─── Main: Generate Time Slots ───
@@ -229,6 +348,9 @@ export function generateTimeSlots(
     expand_threshold?: number;
     allow_overflow?: boolean;
     overflow_minutes?: number;
+    optimization_mode?: "hybrid" | "legacy";
+    suggestion_limit?: number;
+    min_useful_gap_minutes?: number;
   } = {},
   specificDaysOff: string[] = []
 ): TimeSlot[] {
@@ -244,7 +366,6 @@ export function generateTimeSlots(
     allowOverflow: config.allow_overflow ?? false,
     overflowMinutes: config.overflow_minutes ?? 0,
   };
-
   // Get working hours for this day
   const dayKey = getIranWeekDay(date);
   const dayHours = workingHours[dayKey];
@@ -260,6 +381,11 @@ export function generateTimeSlots(
     cfg.buffer,
     cfg.resolution
   );
+  const recommendationConfig: RecommendationConfig = {
+    mode: config.optimization_mode ?? "hybrid",
+    suggestionLimit: config.suggestion_limit ?? 3,
+    minUsefulGapMinutes: config.min_useful_gap_minutes ?? Math.max(30, effectiveDuration),
+  };
 
   // Raw shift boundaries
   const rawShiftStart = parseTime(dayHours.open);
@@ -346,17 +472,36 @@ export function generateTimeSlots(
     filtered = available;
   }
 
-  // Classify suggested vs other
-  let suggestedSlots: TimeBlock[];
-
-  if (bookings.length >= 2) {
-    const classified = classifyLevel3(filtered, occupied, effectiveDuration, cfg.resolution);
-    suggestedSlots = classified.suggested;
-  } else if (bookings.length === 1) {
-    suggestedSlots = filtered;
-  } else {
-    suggestedSlots = [];
-  }
+  // Rank only valid choices. Hard availability is still determined above and
+  // never depends on the recommendation score.
+  const ranked = rankAvailableSlots(
+    filtered,
+    occupied,
+    bookings.length,
+    shiftStart,
+    shiftEnd,
+    cfg.resolution,
+    cfg.proximityWindow,
+    recommendationConfig
+  );
+  const recommendations = selectRecommendations(
+    ranked,
+    bookings.length,
+    shiftStart,
+    shiftEnd,
+    cfg.resolution,
+    recommendationConfig
+  );
+  const rankedByStart = new Map(ranked.map((item) => [item.block.start, item]));
+  const recommendedStarts = recommendationConfig.mode === "legacy"
+    ? new Set(
+        bookings.length === 0
+          ? []
+          : bookings.length === 1
+            ? filtered.map((slot) => slot.start)
+            : classifyLegacySuggestions(filtered, occupied, effectiveDuration, cfg.resolution).map((slot) => slot.start)
+      )
+    : new Set(recommendations.map((item) => item.block.start));
 
   // Build result — show ALL slots for display (use expanded shiftEnd)
   const result: TimeSlot[] = [];
@@ -367,7 +512,9 @@ export function generateTimeSlots(
     const isBooked = bookings.some((b) => overlaps(slot, b));
     const isBlocked = blocks.some((b) => overlaps(slot, b));
     const isAvailable = filtered.some((s) => s.start === m);
-    const isSuggested = suggestedSlots.some((s) => s.start === m);
+    const rankedSlot = rankedByStart.get(m);
+    const isSuggested = isAvailable && recommendedStarts.has(m);
+    const diagnosticsEnabled = recommendationConfig.mode === "hybrid";
 
     result.push({
       time: formatTime(m),
@@ -375,6 +522,10 @@ export function generateTimeSlots(
       booked: isBooked,
       locked: isBlocked,
       suggested: isSuggested,
+      ...(diagnosticsEnabled && rankedSlot ? {
+        score: rankedSlot.score,
+        recommendation: rankedSlot.recommendation,
+      } : {}),
     });
   }
 
@@ -398,6 +549,9 @@ export function getNearestAvailableSlot(
     expand_threshold?: number;
     allow_overflow?: boolean;
     overflow_minutes?: number;
+    optimization_mode?: "hybrid" | "legacy";
+    suggestion_limit?: number;
+    min_useful_gap_minutes?: number;
   } = {},
   specificDaysOff: string[] = []
 ): { date: Date; time: string } | null {
@@ -434,7 +588,15 @@ export function getNearestAvailableSlot(
       slotIntervalMinutes, bufferMinutes, dayBookings, dayLocks, config, specificDaysOff
     );
 
-    const best = slots.find((s) => s.available);
+    // In hybrid mode, choose the highest-scored recommendation rather than
+    // merely the first chronological suggestion. Keep a safe availability
+    // fallback if no recommendation exists.
+    const best = config.optimization_mode === "legacy"
+      ? slots.find((s) => s.available)
+      : slots
+          .filter((s) => s.available && s.suggested)
+          .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0]
+        ?? slots.find((s) => s.available);
     if (best) return { date: checkDate, time: best.time };
   }
   return null;

@@ -149,7 +149,7 @@ export default function BookContent() {
     const dayBookings = bookings
       .filter((b) => {
         const bookingDate = b.date_gregorian.split("T")[0];
-        return bookingDate === dateStr && (b.status === "reserved" || b.status === "confirmed");
+        return bookingDate === dateStr && (b.status === undefined || b.status === "reserved" || b.status === "confirmed" || b.status === "in_progress");
       })
       .map((b) => ({ start_time: b.start_time, end_time: b.end_time }));
     const dayBlocked = blockedTimes.filter((b) => {
@@ -178,6 +178,9 @@ export default function BookContent() {
         expand_threshold: salon.expand_threshold,
         allow_overflow: salon.allow_overflow,
         overflow_minutes: salon.overflow_minutes,
+        optimization_mode: salon.optimization_mode,
+        suggestion_limit: salon.suggestion_limit,
+        min_useful_gap_minutes: salon.min_useful_gap_minutes,
       },
       specificDaysOff
     );
@@ -443,7 +446,7 @@ export default function BookContent() {
                       >
                         <div className="flex items-center gap-3">
                           <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${isSelected ? "border-primary bg-primary" : "border-muted-foreground/40"}`}>
-                            {isSelected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+                            {isSelected && <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} />}
                           </div>
                           <div>
                             <span className="text-sm font-medium">{addon.name}</span>
@@ -490,6 +493,9 @@ export default function BookContent() {
                 expand_threshold: salon.expand_threshold,
                 allow_overflow: salon.allow_overflow,
                 overflow_minutes: salon.overflow_minutes,
+                optimization_mode: salon.optimization_mode,
+                suggestion_limit: salon.suggestion_limit,
+                min_useful_gap_minutes: salon.min_useful_gap_minutes,
               }}
               workingHours={workingHours}
               bookings={bookings.filter((b) => b.status === "reserved" || b.status === "confirmed")}

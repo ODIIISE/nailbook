@@ -21,6 +21,9 @@ interface JalaliCalendarProps {
     expand_threshold?: number;
     allow_overflow?: boolean;
     overflow_minutes?: number;
+    optimization_mode?: "hybrid" | "legacy";
+    suggestion_limit?: number;
+    min_useful_gap_minutes?: number;
   };
   workingHours?: WorkingHours;
   bookings?: Array<{ date_gregorian: string; start_time: string; end_time: string; status?: string }>;
@@ -103,7 +106,7 @@ export function JalaliCalendar({
         const dayBookings = bookings
           .filter((b) => {
             const bookingDate = b.date_gregorian.split("T")[0];
-            return bookingDate === dateStr && (b.status === "reserved" || b.status === "confirmed");
+            return bookingDate === dateStr && (b.status === undefined || b.status === "reserved" || b.status === "confirmed" || b.status === "in_progress");
           })
           .map((b) => ({ start_time: b.start_time, end_time: b.end_time }));
         const dayBlocked = blockedTimes.filter((b) => {

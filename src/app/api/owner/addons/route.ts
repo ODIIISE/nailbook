@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
+import { getSalonId } from "@/lib/multi-tenant";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -30,8 +31,21 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    const salonId = getSalonId();
     const incomingIds = addons.map((a) => a.id);
-    const { rows: currentRows } = await sql`SELECT id FROM addons`;
+    if (salonId && incomingIds.length > 0) {
+      const foreignIds = await sql.query(
+        "SELECT id FROM addons WHERE id = ANY($1) AND (salon_id IS NULL OR salon_id <> $2)",
+        [incomingIds, salonId]
+      );
+      if (foreignIds.rows.length > 0) {
+        return NextResponse.json({ error: "شناسه آپشن متعلق به این سالن نیست" }, { status: 400 });
+      }
+    }
+    const currentResult = salonId
+      ? await sql.query("SELECT id FROM addons WHERE salon_id = $1", [salonId])
+      : await sql`SELECT id FROM addons`;
+    const currentRows = currentResult.rows;
     const currentIds = currentRows.map((r) => r.id);
     const deletedIds = currentIds.filter((id) => !incomingIds.includes(id));
 
@@ -42,26 +56,45 @@ export async function PUT(request: NextRequest) {
       await client.query("BEGIN");
 
       if (deletedIds.length > 0) {
-        const { rows: services } = await sql`SELECT id, addon_ids FROM services`;
+        const servicesResult = salonId
+          ? await client.query("SELECT id, addon_ids FROM services WHERE salon_id = $1", [salonId])
+          : await client.query("SELECT id, addon_ids FROM services");
+        const services = servicesResult.rows;
         for (const svc of services) {
           const currentAddonIds: string[] = svc.addon_ids || [];
           const cleanedIds = currentAddonIds.filter((aid) => !deletedIds.includes(aid));
           if (cleanedIds.length !== currentAddonIds.length) {
-            await client.query("UPDATE services SET addon_ids = $1 WHERE id = $2", [JSON.stringify(cleanedIds), svc.id]);
+            await client.query(
+              salonId
+                ? "UPDATE services SET addon_ids = $1 WHERE id = $2 AND salon_id = $3"
+                : "UPDATE services SET addon_ids = $1 WHERE id = $2",
+              salonId ? [JSON.stringify(cleanedIds), svc.id, salonId] : [JSON.stringify(cleanedIds), svc.id]
+            );
           }
         }
         for (const id of deletedIds) {
-          await client.query("DELETE FROM addons WHERE id = $1", [id]);
+          await client.query(
+            salonId ? "DELETE FROM addons WHERE id = $1 AND salon_id = $2" : "DELETE FROM addons WHERE id = $1",
+            salonId ? [id, salonId] : [id]
+          );
         }
       }
 
       for (const [i, a] of addons.entries()) {
         await client.query(
-          `INSERT INTO addons (id, name, price, duration_minutes, is_active, sort_order)
-           VALUES ($1, $2, $3, $4, $5, $6)
-           ON CONFLICT (id) DO UPDATE SET
-             name = $2, price = $3, duration_minutes = $4, is_active = $5, sort_order = $6`,
-          [a.id, a.name, a.price, a.duration_minutes, a.is_active !== false, a.sort_order || i + 1]
+          salonId
+            ? `INSERT INTO addons (id, salon_id, name, price, duration_minutes, is_active, sort_order)
+               VALUES ($1, $2, $3, $4, $5, $6, $7)
+               ON CONFLICT (id) DO UPDATE SET
+                 name = $3, price = $4, duration_minutes = $5, is_active = $6, sort_order = $7
+               WHERE addons.salon_id = EXCLUDED.salon_id`
+            : `INSERT INTO addons (id, name, price, duration_minutes, is_active, sort_order)
+               VALUES ($1, $2, $3, $4, $5, $6)
+               ON CONFLICT (id) DO UPDATE SET
+                 name = $2, price = $3, duration_minutes = $4, is_active = $5, sort_order = $6`,
+          salonId
+            ? [a.id, salonId, a.name, a.price, a.duration_minutes, a.is_active !== false, a.sort_order || i + 1]
+            : [a.id, a.name, a.price, a.duration_minutes, a.is_active !== false, a.sort_order || i + 1]
         );
       }
 

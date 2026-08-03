@@ -198,7 +198,7 @@ function ServicesTab({
     <div className="space-y-4 mt-4">
       {!isAdding && !editingId && (
         <Button
-          className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
           onClick={() => setIsAdding(true)}
         >
           <Plus className="h-4 w-4 ml-1" />
@@ -284,7 +284,7 @@ function ServicesTab({
                         onClick={() => handleToggleAddon(service.id, addon.id)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                           assigned
-                            ? "bg-primary text-white"
+                            ? "bg-primary text-primary-foreground"
                             : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                         }`}
                       >
@@ -430,7 +430,7 @@ function AddonsTab({
     <div className="space-y-4 mt-4">
       {!isAdding && !editingId && (
         <Button
-          className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
           onClick={() => setIsAdding(true)}
         >
           <Plus className="h-4 w-4 ml-1" />
@@ -644,8 +644,7 @@ function ServiceForm({
           />
         </div>
       </div>
-      <div className="flex gap-2">
-        <Button size="sm" onClick={onSave} className="bg-primary hover:bg-primary/90 text-white rounded-xl">
+      <div className="flex gap-2">          <Button size="sm" onClick={onSave} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl">
           ذخیره
         </Button>
         <Button size="sm" variant="outline" onClick={onCancel}>
@@ -706,8 +705,7 @@ function AddonForm({
           />
         </div>
       </div>
-      <div className="flex gap-2">
-        <Button size="sm" onClick={onSave} className="bg-primary hover:bg-primary/90 text-white rounded-xl">
+      <div className="flex gap-2">          <Button size="sm" onClick={onSave} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl">
           ذخیره
         </Button>
         <Button size="sm" variant="outline" onClick={onCancel}>
@@ -742,7 +740,7 @@ function SaveBar({
         <Button
           onClick={onSave}
           disabled={isSaving}
-          className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl h-12"
+          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12"
         >
           {isSaving ? "در حال ذخیره..." : "ذخیره تغییرات"}
         </Button>

@@ -49,6 +49,9 @@ export async function POST(request: NextRequest) {
       { name: "proximity_window_hours", type: "INTEGER DEFAULT 2" },
       { name: "allow_overflow", type: "BOOLEAN DEFAULT false" },
       { name: "overflow_minutes", type: "INTEGER DEFAULT 0" },
+      { name: "optimization_mode", type: "TEXT DEFAULT 'hybrid'" },
+      { name: "suggestion_limit", type: "INTEGER DEFAULT 3" },
+      { name: "min_useful_gap_minutes", type: "INTEGER DEFAULT 30" },
     ];
 
     for (const col of salonColumns) {
@@ -93,7 +96,8 @@ export async function POST(request: NextRequest) {
           hero_image_url, logo_url, working_hours, working_hours_text,
           specific_days_off, slot_buffer_minutes, slot_interval_minutes,
           early_extra_hours, late_extra_hours, expand_threshold,
-          proximity_window_hours, allow_overflow, overflow_minutes
+          proximity_window_hours, allow_overflow, overflow_minutes,
+          optimization_mode, suggestion_limit, min_useful_gap_minutes
         ) VALUES (
           ${name}, ${salonSlug},
           ${info.phone || null}, ${info.address || null},
@@ -104,7 +108,10 @@ export async function POST(request: NextRequest) {
           ${info.slot_buffer_minutes || 0}, ${info.slot_interval_minutes || 15},
           ${info.early_extra_hours || 0}, ${info.late_extra_hours || 0},
           ${info.expand_threshold || 80}, ${info.proximity_window_hours || 2},
-          ${info.allow_overflow || false}, ${info.overflow_minutes || 0}
+          ${info.allow_overflow || false}, ${info.overflow_minutes || 0},
+          ${info.optimization_mode === "legacy" ? "legacy" : "hybrid"},
+          ${Math.min(10, Math.max(1, Number(info.suggestion_limit) || 3))},
+          ${Math.min(180, Math.max(0, Number(info.min_useful_gap_minutes) || 30))}
         )
         RETURNING id, name, slug
       `;

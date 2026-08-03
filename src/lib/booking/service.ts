@@ -3,6 +3,7 @@ import { logActivity } from "@/lib/db/activity-log";
 import { checkAntiSpam } from "@/lib/anti-spam";
 import { BookingError, createBookingError } from "./errors";
 import type { BookingRequestInput } from "./schema";
+import { getSalonId } from "@/lib/multi-tenant";
 
 export interface CreateBookingResult {
   id: string;
@@ -42,11 +43,11 @@ function getIranDay(dateString: string): string {
   return dayMap[jsDay === 6 ? 0 : jsDay + 1];
 }
 
-async function fetchServiceDuration(client: VercelPoolClient, serviceId: string): Promise<number> {
-  const { rows } = await client.query(
-    `SELECT duration_minutes FROM services WHERE id = $1`,
-    [serviceId]
-  );
+async function fetchServiceDuration(client: VercelPoolClient, serviceId: string, salonId: string | null): Promise<number> {
+  const result = salonId
+    ? await client.query(`SELECT duration_minutes FROM services WHERE id = $1 AND salon_id = $2`, [serviceId, salonId])
+    : await client.query(`SELECT duration_minutes FROM services WHERE id = $1`, [serviceId]);
+  const { rows } = result;
   if (rows.length === 0) {
     throw createBookingError("SERVICE_NOT_FOUND");
   }
@@ -55,14 +56,21 @@ async function fetchServiceDuration(client: VercelPoolClient, serviceId: string)
 
 async function fetchAddonsDuration(
   client: VercelPoolClient,
-  selectedAddons: string[]
+  selectedAddons: string[],
+  salonId: string | null
 ): Promise<number> {
   if (selectedAddons.length === 0) return 0;
 
-  const { rows: addonRows } = await client.query(
-    `SELECT id, duration_minutes FROM addons WHERE id = ANY($1) AND is_active = true`,
-    [selectedAddons]
-  );
+  const addonResult = salonId
+    ? await client.query(
+        `SELECT id, duration_minutes FROM addons WHERE id = ANY($1) AND salon_id = $2 AND is_active = true`,
+        [selectedAddons, salonId]
+      )
+    : await client.query(
+        `SELECT id, duration_minutes FROM addons WHERE id = ANY($1) AND is_active = true`,
+        [selectedAddons]
+      );
+  const { rows: addonRows } = addonResult;
 
   if (addonRows.length !== selectedAddons.length) {
     throw createBookingError("INVALID_ADDONS");
@@ -76,11 +84,18 @@ async function fetchAddonsDuration(
 }
 
 async function fetchSalonInfo(client: VercelPoolClient): Promise<SalonInfo> {
-  const { rows } = await client.query(
-    `SELECT working_hours, specific_days_off, allow_overflow, overflow_minutes, slot_buffer_minutes, slot_interval_minutes
-     FROM salon_info LIMIT 1`
-  );
-  return (rows[0] as SalonInfo) || {};
+  const salonId = getSalonId();
+  const result = salonId
+    ? await client.query(
+        `SELECT working_hours, specific_days_off, allow_overflow, overflow_minutes, slot_buffer_minutes, slot_interval_minutes
+         FROM salons WHERE id = $1 LIMIT 1`,
+        [salonId]
+      )
+    : await client.query(
+        `SELECT working_hours, specific_days_off, allow_overflow, overflow_minutes, slot_buffer_minutes, slot_interval_minutes
+         FROM salon_info LIMIT 1`
+      );
+  return (result.rows[0] as SalonInfo) || {};
 }
 
 function validateEndTimeMatchesService(
@@ -143,19 +158,66 @@ function validateWithinWorkingHours(
   }
 }
 
+async function assertSlotNotOverlapping(
+  client: VercelPoolClient,
+  dateGregorian: string,
+  normStart: string,
+  normEnd: string,
+  salonId: string | null
+): Promise<void> {
+  // Serialize booking attempts for the same tenant/day before checking
+  // intervals. The unique index protects exact duplicates; this lock also
+  // closes the race for partially overlapping intervals.
+  await client.query(
+    "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+    [`${salonId ?? "legacy"}:${dateGregorian}`]
+  );
+
+  const conflictResult = await client.query(
+    salonId
+      ? `SELECT id FROM bookings
+         WHERE salon_id = $1 AND date_gregorian = $2::date
+         AND status IN ('reserved', 'confirmed', 'in_progress')
+         AND start_time < ($3 || ':00')::time
+         AND end_time > ($4 || ':00')::time
+         FOR UPDATE`
+      : `SELECT id FROM bookings
+         WHERE date_gregorian = $1::date
+         AND status IN ('reserved', 'confirmed', 'in_progress')
+         AND start_time < ($2 || ':00')::time
+         AND end_time > ($3 || ':00')::time
+         FOR UPDATE`,
+    salonId
+      ? [salonId, dateGregorian, normEnd, normStart]
+      : [dateGregorian, normEnd, normStart]
+  );
+  if (conflictResult.rows.length > 0) {
+    throw createBookingError("SLOT_TAKEN");
+  }
+}
+
 async function assertSlotNotBlocked(
   client: VercelPoolClient,
   dateGregorian: string,
   normStart: string,
-  normEnd: string
+  normEnd: string,
+  salonId: string | null
 ): Promise<void> {
   const blockedCheck = await client.query(
-    `SELECT id FROM blocked_times
-     WHERE date_gregorian = $1::date
-     AND start_time < ($2 || ':00')::time
-     AND end_time > ($3 || ':00')::time
-     FOR UPDATE`,
-    [dateGregorian, normEnd, normStart]
+    salonId
+      ? `SELECT id FROM blocked_times
+         WHERE salon_id = $1 AND date_gregorian = $2::date
+         AND start_time < ($3 || ':00')::time
+         AND end_time > ($4 || ':00')::time
+         FOR UPDATE`
+      : `SELECT id FROM blocked_times
+         WHERE date_gregorian = $1::date
+         AND start_time < ($2 || ':00')::time
+         AND end_time > ($3 || ':00')::time
+         FOR UPDATE`,
+    salonId
+      ? [salonId, dateGregorian, normEnd, normStart]
+      : [dateGregorian, normEnd, normStart]
   );
 
   if (blockedCheck.rows.length > 0) {
@@ -169,31 +231,29 @@ async function insertBooking(
   userId: string | null,
   phone: string,
   normStart: string,
-  normEnd: string
+  normEnd: string,
+  salonId: string | null
 ): Promise<CreateBookingResult> {
   const jalaliDate = input.date || input.date_gregorian;
 
+  const insertSql = salonId
+    ? `INSERT INTO bookings (
+        user_id, salon_id, customer_phone, customer_name, service_id,
+        selected_addons, date, date_gregorian, start_time, end_time,
+        status, phone_verified, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::date, ($9 || ':00')::time, ($10 || ':00')::time, 'reserved', true, NOW())`
+    : `INSERT INTO bookings (
+        user_id, customer_phone, customer_name, service_id,
+        selected_addons, date, date_gregorian, start_time, end_time,
+        status, phone_verified, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, ($8 || ':00')::time, ($9 || ':00')::time, 'reserved', true, NOW())`;
   const result = await client.query(
-    `INSERT INTO bookings (
-      user_id, customer_phone, customer_name, service_id,
-      selected_addons, date, date_gregorian, start_time, end_time,
-      status, phone_verified, created_at
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, ($8 || ':00')::time, ($9 || ':00')::time, 'reserved', true, NOW())
-    ON CONFLICT (date_gregorian, start_time, end_time)
-    WHERE status IN ('reserved', 'confirmed')
-    DO NOTHING
-    RETURNING id, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time`,
-    [
-      userId,
-      phone,
-      input.customer_name || "",
-      input.service_id,
-      JSON.stringify(input.selected_addons || []),
-      jalaliDate,
-      input.date_gregorian,
-      normStart,
-      normEnd,
-    ]
+    `${insertSql}
+     ON CONFLICT DO NOTHING
+     RETURNING id, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time`,
+    salonId
+      ? [userId, salonId, phone, input.customer_name || "", input.service_id, JSON.stringify(input.selected_addons || []), jalaliDate, input.date_gregorian, normStart, normEnd]
+      : [userId, phone, input.customer_name || "", input.service_id, JSON.stringify(input.selected_addons || []), jalaliDate, input.date_gregorian, normStart, normEnd]
   );
 
   if (result.rows.length === 0) {
@@ -232,9 +292,10 @@ export async function createBooking(
   try {
     await client.query("BEGIN");
 
+    const salonId = getSalonId();
     const [serviceDuration, addonsDuration, salonInfo] = await Promise.all([
-      fetchServiceDuration(client, input.service_id),
-      fetchAddonsDuration(client, input.selected_addons),
+      fetchServiceDuration(client, input.service_id, salonId),
+      fetchAddonsDuration(client, input.selected_addons, salonId),
       fetchSalonInfo(client),
     ]);
 
@@ -248,7 +309,8 @@ export async function createBooking(
 
     validateWithinWorkingHours(normStart, normEnd, input.date_gregorian, salonInfo);
 
-    await assertSlotNotBlocked(client, input.date_gregorian, normStart, normEnd);
+    await assertSlotNotOverlapping(client, input.date_gregorian, normStart, normEnd, salonId);
+    await assertSlotNotBlocked(client, input.date_gregorian, normStart, normEnd, salonId);
 
     const booking = await insertBooking(
       client,
@@ -256,7 +318,8 @@ export async function createBooking(
       verifiedUserId,
       phone,
       normStart,
-      normEnd
+      normEnd,
+      salonId
     );
 
     await client.query("COMMIT");

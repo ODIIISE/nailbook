@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
+import { getSalonId } from "@/lib/multi-tenant";
 
 // Valid state transitions
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -34,11 +35,19 @@ export async function POST(request: NextRequest) {
     await client.query("BEGIN");
 
     // Get current booking status
-    const { rows: current } = await client.query(
-      `SELECT status, customer_name, customer_phone, date_gregorian, start_time, end_time FROM bookings WHERE id = $1 FOR UPDATE`,
-      [bookingId]
+    const salonId = getSalonId();
+    const currentResult = await client.query(
+      salonId
+        ? `SELECT status, customer_name, customer_phone, date_gregorian, start_time, end_time FROM bookings WHERE id = $1 AND salon_id = $2 FOR UPDATE`
+        : `SELECT status, customer_name, customer_phone, date_gregorian, start_time, end_time FROM bookings WHERE id = $1 FOR UPDATE`,
+      salonId ? [bookingId, salonId] : [bookingId]
     );
-    const oldStatus = current[0]?.status || "unknown";
+    const current = currentResult.rows;
+    if (!current[0]) {
+      await client.query("ROLLBACK");
+      return NextResponse.json({ error: "نوبت یافت نشد" }, { status: 404 });
+    }
+    const oldStatus = current[0].status;
 
     // Validate state transition
     const allowed = VALID_TRANSITIONS[oldStatus] || [];
@@ -51,13 +60,22 @@ export async function POST(request: NextRequest) {
       if (oldStatus === "cancelled" && (status === "reserved" || status === "confirmed")) {
       const booking = current[0];
       const { rows: conflicts } = await client.query(
-        `SELECT id FROM bookings
-         WHERE date_gregorian = $1::date
-         AND status IN ('reserved', 'confirmed', 'in_progress')
-         AND id != $2
-         AND start_time < ($3 || ':00')::time
-         AND end_time > ($4 || ':00')::time`,
-        [booking.date_gregorian, bookingId, booking.end_time, booking.start_time]
+        salonId
+          ? `SELECT id FROM bookings
+             WHERE salon_id = $1 AND date_gregorian = $2::date
+             AND status IN ('reserved', 'confirmed', 'in_progress')
+             AND id != $3
+             AND start_time < ($4 || ':00')::time
+             AND end_time > ($5 || ':00')::time`
+          : `SELECT id FROM bookings
+             WHERE date_gregorian = $1::date
+             AND status IN ('reserved', 'confirmed', 'in_progress')
+             AND id != $2
+             AND start_time < ($3 || ':00')::time
+             AND end_time > ($4 || ':00')::time`,
+        salonId
+          ? [salonId, booking.date_gregorian, bookingId, booking.end_time, booking.start_time]
+          : [booking.date_gregorian, bookingId, booking.end_time, booking.start_time]
       );
 
       if (conflicts.length > 0) {
@@ -67,8 +85,10 @@ export async function POST(request: NextRequest) {
     }
 
     await client.query(
-      `UPDATE bookings SET status = $1 WHERE id = $2`,
-      [status, bookingId]
+      salonId
+        ? `UPDATE bookings SET status = $1 WHERE id = $2 AND salon_id = $3`
+        : `UPDATE bookings SET status = $1 WHERE id = $2`,
+      salonId ? [status, bookingId, salonId] : [status, bookingId]
     );
 
     await client.query("COMMIT");

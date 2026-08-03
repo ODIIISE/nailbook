@@ -50,7 +50,7 @@ export function PinInput({ length = 4, onComplete, disabled }: PinInputProps) {
   };
 
   return (
-    <div className="flex justify-center gap-2 sm:gap-3" dir="ltr">
+    <div className="flex justify-center gap-1.5 sm:gap-2.5" dir="ltr">
       {digits.map((digit, i) => (
         <input
           key={i}
@@ -64,7 +64,7 @@ export function PinInput({ length = 4, onComplete, disabled }: PinInputProps) {
           onPaste={handlePaste}
           disabled={disabled}
           className={cn(
-            "h-14 w-14 sm:h-16 sm:w-16 rounded-2xl text-center text-2xl font-bold transition-all duration-200",
+            "h-11 w-11 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl text-center text-xl sm:text-2xl font-bold transition-all duration-200",
             "bg-background border-2 outline-none",
             "focus:border-primary focus:ring-4 focus:ring-primary/10",
             digit

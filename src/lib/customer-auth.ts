@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { sql } from "@vercel/postgres";
 import { SESSION_MAX_AGE_MS } from "./session-config";
+import { getSalonId } from "./multi-tenant";
 
 function getSecretKey(): string {
   const secret = process.env.CUSTOMER_SESSION_SECRET;
@@ -77,7 +78,11 @@ export async function verifyCustomerSessionWithVersion(cookieValue: string | und
   const sessionVersion = parts.length === 4 ? (parseInt(parts[2]) || 0) : 0;
 
   try {
-    const { rows } = await sql`SELECT session_version FROM users WHERE id = ${userId}`;
+    const salonId = getSalonId();
+    const result = salonId
+      ? await sql.query("SELECT session_version FROM users WHERE id = $1 AND salon_id = $2", [userId, salonId])
+      : await sql`SELECT session_version FROM users WHERE id = ${userId}`;
+    const { rows } = result;
     if (rows.length === 0) return null;
     const dbVersion = rows[0].session_version || 0;
     if (sessionVersion !== dbVersion) return null;

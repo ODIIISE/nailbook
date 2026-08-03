@@ -48,7 +48,12 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
     );
   }
 
-  const suggestedSlots = availableSlots.filter((s) => s.suggested);
+  // The engine returns slots chronologically for calendar consistency. For the
+  // recommendation group, surface the highest-scored choices first so the
+  // hybrid optimizer is visible in the actual customer flow.
+  const suggestedSlots = availableSlots
+    .filter((s) => s.suggested)
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || a.time.localeCompare(b.time));
   const otherSlots = availableSlots.filter((s) => !s.suggested);
   const nextAvailable = availableSlots.length > 0 ? availableSlots[0] : null;
   const remainingSlots = availableSlots.length;
@@ -101,6 +106,7 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
                 slot={slot}
                 isSelected={selectedSlot === slot.time}
                 onSelect={() => onSelectSlot(slot.time)}
+                recommendation={slot.recommendation}
               />
             ))}
           </div>
@@ -127,6 +133,7 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
                 slot={slot}
                 isSelected={selectedSlot === slot.time}
                 onSelect={() => onSelectSlot(slot.time)}
+                recommendation={slot.recommendation}
               />
             ))}
           </div>
@@ -178,10 +185,12 @@ function SlotButton({
   slot,
   isSelected,
   onSelect,
+  recommendation,
 }: {
   slot: TimeSlot;
   isSelected: boolean;
   onSelect: () => void;
+  recommendation?: string;
 }) {
   const formattedTime = slot.time.split(":").map((p) => toPersianDigits(p)).join(":");
   const isBooked = slot.booked || slot.locked;
@@ -191,7 +200,8 @@ function SlotButton({
     <button
       disabled={!slot.available}
       onClick={onSelect}
-      aria-label={`${formattedTime} ${slot.available ? "موجود" : slot.booked ? "رزرو شده" : slot.locked ? "مسدود" : "غیرقابل رزرو"}`}
+      aria-label={`${formattedTime} ${slot.available ? "موجود" : slot.booked ? "رزرو شده" : slot.locked ? "مسدود" : "غیرقابل رزرو"}${recommendation ? ` — ${recommendation}` : ""}`}
+      title={recommendation}
       className="h-[48px] min-h-[44px] rounded-xl text-[13px] font-bold transition-all duration-200 select-none relative overflow-hidden focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
       style={{
         background: isSelected

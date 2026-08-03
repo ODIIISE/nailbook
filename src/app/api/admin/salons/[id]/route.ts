@@ -18,6 +18,7 @@ export async function GET(
              specific_days_off, slot_buffer_minutes, slot_interval_minutes,
              early_extra_hours, late_extra_hours, expand_threshold,
              proximity_window_hours, allow_overflow, overflow_minutes,
+             optimization_mode, suggestion_limit, min_useful_gap_minutes,
              is_active, created_at,
         (SELECT COUNT(*) FROM users WHERE salon_id = ${id}) as user_count,
         (SELECT COUNT(*) FROM bookings WHERE salon_id = ${id}) as booking_count,
@@ -53,13 +54,15 @@ export async function PUT(
       "slot_buffer_minutes", "slot_interval_minutes",
       "early_extra_hours", "late_extra_hours",
       "expand_threshold", "proximity_window_hours",
-      "allow_overflow", "overflow_minutes",
+      "allow_overflow", "overflow_minutes", "optimization_mode", "suggestion_limit", "min_useful_gap_minutes",
     ];
 
     for (const key of Object.keys(body)) {
-      if (allowedFields.includes(key)) {
-        await sql.query(`UPDATE salons SET ${key} = $1 WHERE id = $2`, [body[key], id]);
-      }
+      if (!allowedFields.includes(key)) continue;
+      if (key === "optimization_mode" && body[key] !== "hybrid" && body[key] !== "legacy") continue;
+      if (key === "suggestion_limit" && (!Number.isInteger(Number(body[key])) || Number(body[key]) < 1 || Number(body[key]) > 10)) continue;
+      if (key === "min_useful_gap_minutes" && (!Number.isInteger(Number(body[key])) || Number(body[key]) < 0 || Number(body[key]) > 180)) continue;
+      await sql.query(`UPDATE salons SET ${key} = $1 WHERE id = $2`, [body[key], id]);
     }
 
     return NextResponse.json({ success: true });

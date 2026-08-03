@@ -11,7 +11,7 @@ import { Highlights } from "@/components/landing/highlights";
 import { HighlightViewer } from "@/components/landing/highlight-viewer";
 import { ServiceCardGrid } from "@/components/landing/service-card-grid";
 import { SalonGuard } from "@/components/ui/salon-guard";
-import { Heart, Store, Users } from "lucide-react";
+import { Heart, Store, Users, Calendar } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -20,12 +20,6 @@ import { toast } from "sonner";
 import type { Highlight } from "@/lib/types";
 
 function AdminLanding() {
-
-  useEffect(() => {
-    document.documentElement.classList.add("dark");
-    return () => document.documentElement.classList.remove("dark");
-  }, []);
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <nav className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
@@ -40,7 +34,7 @@ function AdminLanding() {
             variant="ghost"
             size="sm"
             className="rounded px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-bold uppercase text-xs tracking-widest"
-            onClick={() => window.location.href = "/api/auth/google"}
+            onClick={() => window.location.href = "/admin/login"}
           >
             ورود
           </Button>
@@ -58,9 +52,9 @@ function AdminLanding() {
           <Button
             size="lg"
             className="rounded px-8 py-4 bg-primary text-primary-foreground hover:bg-primary/90 font-bold uppercase text-sm tracking-widest"
-            onClick={() => window.location.href = "/api/auth/google"}
+            onClick={() => window.location.href = "/admin/login"}
           >
-            ورود با Google
+            ورود به پنل
           </Button>
         </div>
       </section>

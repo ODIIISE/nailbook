@@ -1,23 +1,26 @@
 ---
 name: NailBook
-description: Persian-first nail salon booking app with paper texture aesthetic
+description: Persian-first nail salon booking app with a clean, high-contrast aesthetic
 colors:
-  primary: "#2888d0"
+  background: "#FFFFFF"
+  foreground: "#0A0A0A"
+  card: "#FFFFFF"
+  card-foreground: "#0A0A0A"
+  popover: "#FFFFFF"
+  popover-foreground: "#0A0A0A"
+  primary: "#0A0A0A"
   primary-foreground: "#FFFFFF"
-  accent: "#5bb3e4"
+  secondary: "#F5F5F5"
+  secondary-foreground: "#0A0A0A"
+  muted: "#F5F5F5"
+  muted-foreground: "#737373"
+  accent: "#0A0A0A"
   accent-foreground: "#FFFFFF"
-  secondary: "#e2dfdb"
-  secondary-foreground: "#2a2a2a"
-  background: "#e5e2dd"
-  foreground: "#2a2a2a"
-  muted: "#e2dfdb"
-  muted-foreground: "#6a6a6a"
-  destructive: "#DC3545"
-  success: "#28A745"
-  rose: "#B87070"
-  gold: "#C49A5C"
-  warm-white: "#F8F6F4"
-  navy: "#2C2424"
+  destructive: "#DC2626"
+  success: "#16A34A"
+  border: "#E5E5E5"
+  input: "#F5F5F5"
+  ring: "#0A0A0A"
 typography:
   display:
     fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
@@ -60,24 +63,25 @@ spacing:
   xl: "32px"
 components:
   button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.primary-foreground}"
-    rounded: "{rounded.lg}"
+    backgroundColor: "var(--foreground)"
+    textColor: "var(--background)"
+    rounded: "18px"
     padding: "12px 24px"
   button-ghost:
     backgroundColor: "transparent"
-    textColor: "{colors.foreground}"
-    rounded: "{rounded.lg}"
+    textColor: "var(--foreground)"
+    rounded: "18px"
     padding: "12px 24px"
   card:
-    backgroundColor: "rgba(255, 255, 255, 0.55)"
-    textColor: "{colors.foreground}"
-    rounded: "{rounded.lg}"
+    backgroundColor: "var(--card)"
+    textColor: "var(--card-foreground)"
+    rounded: "18px"
     padding: "16px"
+    border: "1px solid var(--border)"
   input:
-    backgroundColor: "rgba(44, 36, 36, 0.04)"
-    textColor: "{colors.foreground}"
-    rounded: "{rounded.md}"
+    backgroundColor: "var(--input)"
+    textColor: "var(--foreground)"
+    rounded: "14px"
     padding: "10px 14px"
 ---
 
@@ -85,132 +89,103 @@ components:
 
 ## Overview
 
-**Creative North Star: "The Paper Atelier"**
-
-NailBook's design language draws from the tactile warmth of craft paper and the precision of a nail artist's workspace. The aesthetic is soft, feminine, and intentionally understated — letting content breathe rather than competing for attention. Every surface feels like premium stationery: matte, warm-toned, with subtle depth created through layered shadows rather than gradients or glass effects.
-
-The paper theme replaces the default glassmorphism with a grounded, paper-like texture that feels premium without being flashy. Blue accents (#2888d0) provide clear action signals against the warm neutral canvas. Typography is exclusively Vazirmatn — a Persian-optimized variable font that reads beautifully in RTL at every weight.
+NailBook uses a **Clean Slate** visual language: a minimal, high-contrast black-and-white system that keeps attention on the content. It is intentionally neutral so that salon photos, service images, and status colors stand out.
 
 **Key Characteristics:**
-- Paper texture backgrounds (warm gray #e5e2dd base, #f2f0ec surfaces)
-- Warm-tinted multi-layer shadows instead of hard drop shadows
-- Blue accent system for primary actions (CTA buttons, active states)
-- Generous rounded corners (10-32px) on all interactive elements
-- RTL-first layout with natural Persian text flow
-- Subtle staggered entrance animations (fade, scale, slide-up)
+- Pure white background in light mode, pure black in dark mode.
+- Near-black/white foregrounds for maximum readability.
+- Subtle elevation through light shadows and borders.
+- RTL-first Persian layout.
+- Generous rounded corners and comfortable touch targets.
 
 ## Colors
 
-The palette is warm-neutral with a single blue accent. Rose and gold appear as decorative accents in gradient blobs, never as functional UI colors.
-
-### Primary
-- **Sky Blue** (#2888d0): Primary action buttons, focus rings, active navigation states, CTA gradients. The single trust signal color.
-- **Light Blue** (#5bb3e4): Accent hover states, secondary emphasis, gradient endpoints. Lighter companion to primary.
+The palette is intentionally small. Almost everything derives from the CSS variables in `globals.css`.
 
 ### Neutral
-- **Paper Background** (#e5e2dd): Page background. Warm gray with slight pink undertone.
-- **Paper Surface** (#f2f0ec): Card, popover, and elevated surface background. One step lighter than background.
-- **Muted** (#e2dfdb): Borders, dividers, secondary backgrounds, disabled states.
-- **Foreground** (#2a2a2a): Primary text color. Near-black with warm tint — never pure #000.
-- **Muted Foreground** (#6a6a6a): Secondary text, labels, captions. Warm gray, never cold.
+- **Background** (`#FFFFFF` light / `#000000` dark): Page background.
+- **Foreground** (`#0A0A0A` light / `#FAFAFA` dark): Primary text, icons, primary buttons.
+- **Card** (`#FFFFFF` light / `#0A0A0A` dark): Card and elevated surface backgrounds.
+- **Muted** (`#F5F5F5` light / `#171717` dark): Secondary backgrounds, disabled states.
+- **Muted Foreground** (`#737373` light / `#A3A3A3` dark): Secondary text, captions, placeholders.
+- **Border** (`#E5E5E5` light / `#262626` dark): Dividers, input borders, card borders.
 
-### Decorative (gradient blobs only)
-- **Rose** (#B87070): Background gradient blob accent. Not used in UI components.
-- **Gold** (#C49A5C): Background gradient blob accent. Not used in UI components.
+### Semantic
+- **Primary / Foreground**: Main actions, focus rings, active nav items.
+- **Destructive** (`#DC2626` / `#EF4444`): Errors, cancellations, delete actions.
+- **Success** (`#16A34A` / `#22C55E`): Confirmations, paid status, success toasts.
 
 ### Named Rules
-**The Blue-Only Action Rule.** Blue (#2888d0) is the only color used for interactive primary actions. Rose and gold exist solely as ambient background decoration. Never use them for buttons, links, or active states.
+**The Variable-First Rule.** Always use `bg-foreground`, `text-background`, `border-border`, etc. Never hardcode `bg-white`, `text-white`, `bg-black`, or `text-black`.
 
-**The Warm-Tint Rule.** All neutrals carry a warm (pink/amber) undertone. Pure gray, pure white, and pure black are never used. This preserves the paper-craft atmosphere.
+**The Contrast Rule.** Foreground and background maintain high contrast in both modes. Decorative gradients should not reduce readability.
 
 ## Typography
 
-**Display Font:** Vazirmatn (with system fallback stack)
-**Body Font:** Vazirmatn (same family, lighter weights)
-
-**Character:** Vazirmatn is a variable Persian font designed for screen readability. It handles RTL text with natural letterforms and generous x-height. The weight range (400-800) covers the full hierarchy from body to display.
+**Font:** Vazirmatn (with system fallback stack)
 
 ### Hierarchy
-- **Display** (800, 34px, 1.08): Hero headlines on landing page. Tight tracking (-0.025em).
-- **Headline** (700, 24px, 1.2): Section titles, page headers. Slight negative tracking.
-- **Title** (700, 20px, 1.25): Card titles, modal headers.
-- **Body** (400, 15px, 1.55): Primary reading text. Comfortable line height for RTL.
-- **Caption** (500, 13px, 1.4): Labels, metadata, timestamps. Medium weight for visibility at small size.
-
-### Named Rules
-**The Single-Family Rule.** Vazirmatn is the only font family in the system. No secondary fonts for headings, code, or display. This keeps the Persian-first identity consistent.
+- **Display** (800, 34px): Hero headlines.
+- **Headline** (700, 24px): Page/section titles.
+- **Title** (700, 20px): Card titles, modal headers.
+- **Body** (400, 15px): Primary reading text.
+- **Caption** (500, 13px): Labels, metadata.
 
 ## Layout
 
-Mobile-first, single-column layout constrained to max-width 512px (max-w-lg). Content centers on wider screens. Generous vertical rhythm: 16px between related elements, 24-32px between sections.
-
-The bottom navigation bar (AppNavbar) is fixed to the viewport bottom on mobile. The header (AppHeader) is sticky at top. Content scrolls between them with 20px bottom padding to prevent overlap.
-
-RTL is set at the HTML level (dir="rtl"). All padding/margin utilities use logical properties (ps/pe instead of pl/pr) for automatic RTL mirroring.
+Mobile-first, single-column layout constrained to `max-w-lg` (512 px). Content centers on wider screens. RTL is set at the HTML level (`dir="rtl"`). Use logical CSS utilities (`ps/pe`, `ms/me`) for automatic mirroring.
 
 ## Elevation & Depth
 
-Depth is conveyed through warm-tinted multi-layer box-shadows with very low opacity. No hard drop shadows. No colored shadows. The shadow system has three levels:
+Elevation is conveyed through subtle shadows and 1 px borders, not heavy drop shadows. The scale has three levels:
 
-### Shadow Vocabulary
-- **Card** (4 layers, max opacity 0.06): Subtle lift for cards, list items. Used on most surfaces at rest.
-- **Elevated** (4 layers, max opacity 0.07): Modals, dropdowns, popovers. Medium lift for elements above the base layer.
-- **Floating** (4 layers, max opacity 0.08): Toast notifications, full-screen overlays. Maximum lift.
-
-### Named Rules
-**The Warm Shadow Rule.** All shadows use rgba(80,70,60,...) or rgba(60,50,40,...) tinting — never pure black. This preserves the paper warmth even in depth.
+- **Card**: `0 1px 2px rgba(0,0,0,0.04)`
+- **Elevated**: `0 4px 12px rgba(0,0,0,0.08)`
+- **Floating**: `0 8px 24px rgba(0,0,0,0.12)`
 
 ## Shapes
 
-Generous, consistent rounding across all interactive elements. The radius scale is intentionally larger than typical web apps (starting at 10px, not 4-6px) to reinforce the soft, approachable character.
+Generous, consistent rounding:
 
-- **Small** (10px): Input fields, small badges, chips
-- **Medium** (14px): Buttons, tags, form elements
-- **Large** (18px): Cards, containers, modals (default --radius)
-- **XL** (24px): Hero cards, large feature blocks
-- **3XL** (32px): Avatar containers, circular feature elements
-
-No sharp corners exist anywhere in the system. No borders on cards (shadows define edges instead).
+- **Small** (10px): badges, chips
+- **Medium** (14px): inputs, buttons
+- **Large** (18px): cards (default)
+- **XL** (24px): modals, hero cards
+- **3XL** (32px): avatars, circular elements
 
 ## Components
 
 ### Buttons
-- **Shape:** Gently curved (18px radius, matching --radius)
-- **Primary:** Sky Blue (#2888d0) background, white text. Blue gradient variant for hero CTAs (linear-gradient 135deg from #5bb3e4 to #2888d0) with triple-layer blue box-shadow.
-- **Hover / Focus:** Shadow intensifies on hover (blue-tinted). Focus ring uses primary blue with 2px offset.
-- **Ghost:** Transparent background, foreground text. Used for secondary actions and navigation.
+- Primary CTA: `bg-foreground text-background` with full rounding.
+- Secondary actions: `variant="outline"` or `variant="ghost"`.
+- Destructive actions: red-tinted.
 
-### Cards / Containers
-- **Corner Style:** Large rounding (18px)
-- **Background:** Paper Surface (#f2f0ec) — matte, no backdrop-filter in paper mode
-- **Shadow Strategy:** Card-level warm shadows at rest, Elevated on hover/focus
-- **Border:** None — shadow defines the edge. Subtle 1px top highlight line for paper effect.
-- **Internal Padding:** 16px (4-unit)
+### Cards
+- Background: `var(--card)`
+- Border: `1px solid var(--border)`
+- Shadow: `var(--shadow-card)`
+- Border radius: `18px`
 
-### Inputs / Fields
-- **Style:** Warm-tinted background (rgba(44,36,36,0.04)), 14px radius, no visible border at rest
-- **Focus:** 2px blue outline with 2px offset
-- **Error:** Red destructive color for border/label
+### Inputs
+- Background: `var(--input)`
+- Border: `1px solid var(--border)`
+- Focus ring: `var(--ring)`
 
-### Navigation
-- **Bottom Bar:** Fixed, 4-5 icon tabs, paper surface background, subtle top border. Active state uses primary blue.
-- **Side Menu:** Drawer from right (RTL), paper surface background, icon + label items.
+## Dark Mode
 
-### Skeleton Loader
-- **Style:** Rose-tinted gradient shimmer (rgba(212,160,160,0.08) to 0.15), 12px radius, 1.8s animation cycle
+Dark mode is controlled by the `dark` class on `<html>`. Components should use CSS variables or Tailwind `dark:` variants. For JavaScript that depends on the current mode, use `useIsDark()`.
 
 ## Do's and Don'ts
 
-### Do:
-- **Do** use blue (#2888d0) for all primary actions — it's the only action color.
-- **Do** use warm-tinted shadows for depth — never pure black shadows.
-- **Do** keep surfaces matte and paper-like — no glassmorphism in paper mode.
-- **Do** use Vazirmatn at every weight and size — no other fonts.
-- **Do** respect RTL layout — use logical CSS properties (ps/pe, ms/me).
+### Do
+- Use CSS variables and `dark:` variants for theme-aware colors.
+- Keep touch targets at least 44 × 44 px.
+- Use Vazirmatn for all text.
+- Respect RTL with logical properties.
+- Test both light and dark modes.
 
-### Don't:
-- **Don't** use rose or gold for interactive elements — they're decorative background accents only.
-- **Don't** use pure white (#FFFFFF) or pure black (#000000) — always warm-tinted.
-- **Don't** add borders to cards — shadows define the edges.
-- **Don't** use sharp corners (below 10px radius) — the system is intentionally rounded.
-- **Don't** nest cards inside cards — use elevation levels instead.
+### Don't
+- Use hardcoded `bg-white`, `text-white`, `bg-black`, or `text-black`.
+- Read `document.documentElement.classList.contains("dark")` directly without reactivity.
+- Use colored shadows or heavy drop shadows in dark mode.
+- Introduce new accent colors without updating the design tokens.

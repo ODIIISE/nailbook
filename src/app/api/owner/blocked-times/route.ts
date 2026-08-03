@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
+import { getSalonId } from "@/lib/multi-tenant";
 
 interface BlockedTimeItem {
   date_gregorian: string;
@@ -14,7 +15,11 @@ export async function GET(request: NextRequest) {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const { rows } = await sql`SELECT date_gregorian, start_time, end_time FROM blocked_times ORDER BY date_gregorian`;
+    const salonId = getSalonId();
+    const result = salonId
+      ? await sql.query("SELECT date_gregorian, start_time, end_time FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian", [salonId])
+      : await sql`SELECT date_gregorian, start_time, end_time FROM blocked_times ORDER BY date_gregorian`;
+    const rows = result.rows;
     return NextResponse.json({ blockedTimes: rows });
   } catch {
     return NextResponse.json({ error: "خطا" }, { status: 500 });
@@ -46,15 +51,23 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    const salonId = getSalonId();
     client = await sql.connect();
     await client.query("BEGIN");
-    await client.query("DELETE FROM blocked_times");
+    await client.query(
+      salonId ? "DELETE FROM blocked_times WHERE salon_id = $1" : "DELETE FROM blocked_times",
+      salonId ? [salonId] : []
+    );
 
     if (blockedTimes && blockedTimes.length > 0) {
       for (const b of blockedTimes) {
         await client.query(
-          "INSERT INTO blocked_times (date_gregorian, start_time, end_time) VALUES ($1, $2, $3)",
-          [b.date_gregorian, b.start_time, b.end_time]
+          salonId
+            ? "INSERT INTO blocked_times (salon_id, date_gregorian, start_time, end_time) VALUES ($1, $2, $3, $4)"
+            : "INSERT INTO blocked_times (date_gregorian, start_time, end_time) VALUES ($1, $2, $3)",
+          salonId
+            ? [salonId, b.date_gregorian, b.start_time, b.end_time]
+            : [b.date_gregorian, b.start_time, b.end_time]
         );
       }
     }

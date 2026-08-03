@@ -7,6 +7,7 @@ import { signOwnerSession } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
 import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-config";
+import { getSalonId } from "@/lib/multi-tenant";
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,10 +71,18 @@ export async function POST(request: NextRequest) {
     // Customer flow
     if (!user) {
       const userId = crypto.randomUUID();
-      await sql`
-        INSERT INTO users (id, phone, name, role)
-        VALUES (${userId}, ${normalized}, '', 'customer')
-      `;
+      const salonId = getSalonId();
+      if (salonId) {
+        await sql.query(
+          "INSERT INTO users (id, phone, name, role, salon_id) VALUES ($1, $2, '', 'customer', $3)",
+          [userId, normalized, salonId]
+        );
+      } else {
+        await sql`
+          INSERT INTO users (id, phone, name, role)
+          VALUES (${userId}, ${normalized}, '', 'customer')
+        `;
+      }
       user = { id: userId, phone: normalized, name: "", role: "customer" };
 
       await logActivity({
@@ -114,6 +123,13 @@ export async function POST(request: NextRequest) {
 }
 
 async function getUserByPhone(phone: string): Promise<{ id: string; phone: string; name: string; role: string } | null> {
-  const { rows } = await sql<{ id: string; phone: string; name: string; role: string }>`SELECT id, phone, name, role FROM users WHERE phone = ${phone} LIMIT 1`;
+  const salonId = getSalonId();
+  const result = salonId
+    ? await sql.query<{ id: string; phone: string; name: string; role: string }>(
+        "SELECT id, phone, name, role FROM users WHERE phone = $1 AND salon_id = $2 LIMIT 1",
+        [phone, salonId]
+      )
+    : await sql<{ id: string; phone: string; name: string; role: string }>`SELECT id, phone, name, role FROM users WHERE phone = ${phone} LIMIT 1`;
+  const rows = result.rows;
   return rows[0] || null;
 }

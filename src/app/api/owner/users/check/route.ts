@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
+import { getSalonId } from "@/lib/multi-tenant";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +19,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "شماره موبایل معتبر نیست" }, { status: 400 });
     }
 
-    const { rows } = await sql`SELECT id FROM users WHERE phone = ${normalized} LIMIT 1`;
+    const salonId = getSalonId();
+    const result = salonId
+      ? await sql.query("SELECT id FROM users WHERE phone = $1 AND salon_id = $2 LIMIT 1", [normalized, salonId])
+      : await sql`SELECT id FROM users WHERE phone = ${normalized} LIMIT 1`;
+    const { rows } = result;
     return NextResponse.json({ exists: rows.length > 0 });
   } catch (error) {
     console.error("Owner user check error:", error);

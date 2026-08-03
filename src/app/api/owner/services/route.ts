@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
+import { getSalonId } from "@/lib/multi-tenant";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -30,8 +31,21 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    const salonId = getSalonId();
     const incomingIds = services.map((s) => s.id);
-    const { rows: currentRows } = await sql`SELECT id FROM services`;
+    if (salonId && incomingIds.length > 0) {
+      const foreignIds = await sql.query(
+        "SELECT id FROM services WHERE id = ANY($1) AND (salon_id IS NULL OR salon_id <> $2)",
+        [incomingIds, salonId]
+      );
+      if (foreignIds.rows.length > 0) {
+        return NextResponse.json({ error: "شناسه خدمت متعلق به این سالن نیست" }, { status: 400 });
+      }
+    }
+    const currentResult = salonId
+      ? await sql.query("SELECT id FROM services WHERE salon_id = $1", [salonId])
+      : await sql`SELECT id FROM services`;
+    const currentRows = currentResult.rows;
     const currentIds = currentRows.map((r) => r.id);
     const deletedIds = currentIds.filter((id) => !incomingIds.includes(id));
 
@@ -43,19 +57,38 @@ export async function PUT(request: NextRequest) {
 
       if (deletedIds.length > 0) {
         for (const id of deletedIds) {
-          await client.query("UPDATE bookings SET service_id = NULL WHERE service_id = $1", [id]);
-          await client.query("DELETE FROM services WHERE id = $1", [id]);
+          await client.query(
+            salonId
+              ? "UPDATE bookings SET service_id = NULL WHERE service_id = $1 AND salon_id = $2"
+              : "UPDATE bookings SET service_id = NULL WHERE service_id = $1",
+            salonId ? [id, salonId] : [id]
+          );
+          await client.query(
+            salonId
+              ? "DELETE FROM services WHERE id = $1 AND salon_id = $2"
+              : "DELETE FROM services WHERE id = $1",
+            salonId ? [id, salonId] : [id]
+          );
         }
       }
 
       for (const [i, s] of services.entries()) {
         await client.query(
-          `INSERT INTO services (id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-           ON CONFLICT (id) DO UPDATE SET
-             name = $2, description = $3, duration_minutes = $4, price = $5,
-             is_active = $6, sort_order = $7, addon_ids = $8, priority_score = $9`,
-          [s.id, s.name, s.description || "", s.duration_minutes, s.price, s.is_active !== false, s.sort_order || i + 1, JSON.stringify(s.addon_ids || []), s.priority_score || 5]
+          salonId
+            ? `INSERT INTO services (id, salon_id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+               ON CONFLICT (id) DO UPDATE SET
+                 name = $3, description = $4, duration_minutes = $5, price = $6,
+                 is_active = $7, sort_order = $8, addon_ids = $9, priority_score = $10
+               WHERE services.salon_id = EXCLUDED.salon_id`
+            : `INSERT INTO services (id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+               ON CONFLICT (id) DO UPDATE SET
+                 name = $2, description = $3, duration_minutes = $4, price = $5,
+                 is_active = $6, sort_order = $7, addon_ids = $8, priority_score = $9`,
+          salonId
+            ? [s.id, salonId, s.name, s.description || "", s.duration_minutes, s.price, s.is_active !== false, s.sort_order || i + 1, JSON.stringify(s.addon_ids || []), s.priority_score || 5]
+            : [s.id, s.name, s.description || "", s.duration_minutes, s.price, s.is_active !== false, s.sort_order || i + 1, JSON.stringify(s.addon_ids || []), s.priority_score || 5]
         );
       }
 

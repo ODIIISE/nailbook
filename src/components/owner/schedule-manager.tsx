@@ -34,6 +34,9 @@ interface ScheduleManagerProps {
   overflowMinutes: number;
   slotIntervalMinutes: number;
   slotBufferMinutes: number;
+  optimizationMode: "hybrid" | "legacy";
+  suggestionLimit: number;
+  minUsefulGapMinutes: number;
   onSave: (
     hours: WorkingHours,
     daysOff: string[],
@@ -46,8 +49,11 @@ interface ScheduleManagerProps {
       overflow_minutes: number;
       slot_interval_minutes: number;
       slot_buffer_minutes: number;
+      optimization_mode: "hybrid" | "legacy";
+      suggestion_limit: number;
+      min_useful_gap_minutes: number;
     }
-  ) => void;
+  ) => void | Promise<void>;
 }
 
 const IRAN_WEEK_DAYS = [
@@ -124,7 +130,10 @@ function NumberInput({
         min={min}
         max={max}
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) => {
+          const next = Number(e.target.value);
+          if (Number.isFinite(next)) onChange(next);
+        }}
         className="w-20 text-center text-sm"
         dir="ltr"
       />
@@ -181,7 +190,7 @@ function JalaliMonthGrid({
               className={`
                 h-8 rounded-lg text-xs font-medium transition-all
                 ${isOff
-                  ? "bg-destructive text-white"
+                  ? "bg-destructive text-destructive-foreground"
                   : isToday
                     ? "bg-primary/10 text-primary ring-1 ring-primary/30"
                     : "bg-secondary hover:bg-primary/10 text-foreground"
@@ -210,6 +219,9 @@ export function ScheduleManager({
   overflowMinutes: initialOverflowMinutes,
   slotIntervalMinutes: initialInterval,
   slotBufferMinutes: initialBuffer,
+  optimizationMode: initialOptimizationMode,
+  suggestionLimit: initialSuggestionLimit,
+  minUsefulGapMinutes: initialMinUsefulGapMinutes,
   onSave,
 }: ScheduleManagerProps) {
   const [hours, setHours] = useState<WorkingHours>({ ...workingHours });
@@ -222,7 +234,11 @@ export function ScheduleManager({
   const [overflowMinutes, setOverflowMinutes] = useState(initialOverflowMinutes);
   const [slotInterval, setSlotInterval] = useState(initialInterval);
   const [slotBuffer, setSlotBuffer] = useState(initialBuffer);
+  const [optimizationMode, setOptimizationMode] = useState<"hybrid" | "legacy">(initialOptimizationMode);
+  const [suggestionLimit, setSuggestionLimit] = useState(initialSuggestionLimit);
+  const [minUsefulGapMinutes, setMinUsefulGapMinutes] = useState(initialMinUsefulGapMinutes);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     // Sync local form state with fresh prop data when the parent re-fetches.
@@ -237,8 +253,11 @@ export function ScheduleManager({
     setOverflowMinutes(initialOverflowMinutes);
     setSlotInterval(initialInterval);
     setSlotBuffer(initialBuffer);
+    setOptimizationMode(initialOptimizationMode);
+    setSuggestionLimit(initialSuggestionLimit);
+    setMinUsefulGapMinutes(initialMinUsefulGapMinutes);
     setHasChanges(false);
-  }, [workingHours, specificDaysOff, initialEarly, initialLate, initialThreshold, initialProximity, initialOverflow, initialOverflowMinutes, initialInterval, initialBuffer]);
+  }, [workingHours, specificDaysOff, initialEarly, initialLate, initialThreshold, initialProximity, initialOverflow, initialOverflowMinutes, initialInterval, initialBuffer, initialOptimizationMode, initialSuggestionLimit, initialMinUsefulGapMinutes]);
 
   const markChanged = () => setHasChanges(true);
 
@@ -292,18 +311,27 @@ export function ScheduleManager({
     markChanged();
   };
 
-  const handleSave = () => {
-    onSave(hours, daysOff, {
-      early_extra_hours: earlyExtraHours,
-      late_extra_hours: lateExtraHours,
-      expand_threshold: expandThreshold,
-      proximity_window_hours: proximityWindowHours,
-      allow_overflow: allowOverflow,
-      overflow_minutes: overflowMinutes,
-      slot_interval_minutes: slotInterval,
-      slot_buffer_minutes: slotBuffer,
-    });
-    setHasChanges(false);
+  const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      await onSave(hours, daysOff, {
+        early_extra_hours: earlyExtraHours,
+        late_extra_hours: lateExtraHours,
+        expand_threshold: expandThreshold,
+        proximity_window_hours: proximityWindowHours,
+        allow_overflow: allowOverflow,
+        overflow_minutes: overflowMinutes,
+        slot_interval_minutes: slotInterval,
+        slot_buffer_minutes: slotBuffer,
+        optimization_mode: optimizationMode,
+        suggestion_limit: suggestionLimit,
+        min_useful_gap_minutes: minUsefulGapMinutes,
+      });
+      setHasChanges(false);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const now = new Date();
@@ -323,9 +351,9 @@ export function ScheduleManager({
             روزهای فعال و ساعت‌ها را تنظیم کنید
           </p>
         </div>
-        <Button size="sm" onClick={handleSave} disabled={!hasChanges} className="bg-foreground text-background hover:bg-foreground/90">
-          <Save className="h-4 w-4 ml-1" />
-          ذخیره
+        <Button size="sm" onClick={handleSave} disabled={!hasChanges || isSaving} className="bg-foreground text-background hover:bg-foreground/90">
+          <Save className={`h-4 w-4 ml-1 ${isSaving ? "animate-pulse" : ""}`} />
+          {isSaving ? "در حال ذخیره..." : "ذخیره"}
         </Button>
       </div>
 
@@ -501,6 +529,59 @@ export function ScheduleManager({
         </p>
         <div className="space-y-5">
           <SettingRow
+            label="روش پیشنهاد ساعت‌ها"
+            help="حالت هوشمند، بهترین چند ساعت را با توجه به فاصله‌های خالی و چسبیدن به رزروهای موجود پیشنهاد می‌دهد. حالت قدیمی فقط منطق قبلی را حفظ می‌کند."
+            description={optimizationMode === "hybrid" ? "پیشنهادها محدود، مرتب‌شده و همراه با دلیل هستند" : "منطق پیشنهاددهی قبلی بدون امتیازدهی استفاده می‌شود"}
+          >
+            <div className="grid grid-cols-2 gap-2">
+              {(["hybrid", "legacy"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => { setOptimizationMode(mode); markChanged(); }}
+                  className={`h-10 rounded-xl text-[12px] font-medium transition-all ${optimizationMode === mode ? "bg-foreground text-background" : "bg-secondary text-foreground hover:bg-secondary/80"}`}
+                >
+                  {mode === "hybrid" ? "هوشمند (پیشنهادی)" : "قدیمی"}
+                </button>
+              ))}
+            </div>
+          </SettingRow>
+
+          <div className="border-t border-border/30" />
+
+          <SettingRow
+            label="تعداد ساعت‌های پیشنهادی"
+            help="تعداد گزینه‌هایی که در بخش ساعت‌های پیشنهادی به مشتری نشان داده می‌شود. همه ساعت‌های معتبر همچنان قابل انتخاب هستند."
+            description={`در حالت هوشمند ${toPersianDigits(suggestionLimit)} گزینه برجسته می‌شود`}
+          >
+            <NumberInput
+              value={suggestionLimit}
+              onChange={(v) => { setSuggestionLimit(v); markChanged(); }}
+              min={1}
+              max={10}
+              unit="گزینه"
+            />
+          </SettingRow>
+
+          <div className="border-t border-border/30" />
+
+          <SettingRow
+            label="حداقل فاصله مفید"
+            help="فاصله‌های کوچک‌تر از این مقدار امتیاز کمتری می‌گیرند تا برنامه روزانه تکه‌تکه نشود."
+            description={`فاصله‌های کمتر از ${toPersianDigits(minUsefulGapMinutes)} دقیقه کمتر پیشنهاد می‌شوند`}
+          >
+            <NumberInput
+              value={minUsefulGapMinutes}
+              onChange={(v) => { setMinUsefulGapMinutes(v); markChanged(); }}
+              min={0}
+              max={180}
+              unit="دقیقه"
+            />
+          </SettingRow>
+
+          <div className="border-t border-border/30" />
+
+          <SettingRow
             label="فاصله نزدیکی"
             help="وقتی مشتری ساعت ۱۰ را رزرو می‌کند، ساعت‌های بعدی فقط در بازه ±۲ ساعت از ۱۰ نمایش داده می‌شوند."
             description={
@@ -542,10 +623,13 @@ export function ScheduleManager({
                 <Input
                   type="number"
                   min={0}
-                  max={180}
+                  max={120}
                   step={15}
                   value={overflowMinutes}
-                  onChange={(e) => { setOverflowMinutes(Number(e.target.value)); markChanged(); }}
+                  onChange={(e) => {
+                    const next = Number(e.target.value);
+                    if (Number.isFinite(next)) { setOverflowMinutes(next); markChanged(); }
+                  }}
                   className="w-20 text-center text-sm"
                   dir="ltr"
                 />
@@ -584,7 +668,7 @@ export function ScheduleManager({
               {toPersianDigits(daysOff.length)} روز تعطیل انتخاب شده
             </p>
             <div className="flex flex-wrap gap-1">
-              {daysOff.sort().slice(0, 10).map((d) => (
+              {[...daysOff].sort().slice(0, 10).map((d) => (
                 <button
                   key={d}
                   onClick={() => toggleSpecificDayOff(d)}

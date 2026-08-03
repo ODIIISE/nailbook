@@ -18,11 +18,10 @@ import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey } from "@/lib/time";
 import { calculateEarnings, calculateBookingPrice } from "@/lib/pricing";
 import { toast } from "sonner";
-import type { Booking } from "@/lib/types";
 
 export default function OwnerDashboard() {
   const searchParams = useSearchParams();
-  const { bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addOwnerBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
+  const { salon, bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addOwnerBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
@@ -307,6 +306,8 @@ export default function OwnerDashboard() {
           date={currentDate}
           services={services}
           workingHours={workingHours}
+          slotIntervalMinutes={salon.slot_interval_minutes}
+          slotBufferMinutes={salon.slot_buffer_minutes}
           onReserve={handleManualReserve}
           onClose={() => setShowManualReserve(false)}
         />

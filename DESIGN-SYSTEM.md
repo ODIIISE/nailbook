@@ -1,17 +1,16 @@
 # Forehand Nail Studio — Design System
 
-> Paper Theme — Samsung-inspired, warm, tactile design system.
+> Clean Slate — a minimal, high-contrast, black-and-white design system.
 
 ---
 
 ## 1. Philosophy
 
-- **Paper texture** — subtle canvas-generated grain on all surfaces
-- **Warm shadows** — multi-layered with brown tints, not gray
-- **Blue gradient CTAs** — consistent `#5bb3e4` → `#2888d0`
-- **Mobile-first** — 375px+, thumb-friendly
-- **RTL** — full Persian right-to-left layout
-- **Accessible** — 44pt+ touch targets, focus-visible
+- **Minimal and focused** — content-first, low visual noise.
+- **High contrast** — pure black on white in light mode, near-white on black in dark mode.
+- **Mobile-first** — 375 px+, thumb-friendly touch targets.
+- **RTL** — full Persian right-to-left layout.
+- **Accessible** — 44 pt+ touch targets, visible focus rings, reduced-motion support.
 
 ---
 
@@ -23,71 +22,65 @@
 | Components | shadcn/ui (Base UI primitives) |
 | Styling | Tailwind CSS v4, CSS variables |
 | Font | Vazirmatn (Persian, CDN, weights 400-900) |
-| Icons | Heroicons (outline default, solid active) + Lucide (supplementary) |
+| Icons | Heroicons + Lucide |
 | Notifications | Sonner (toast) |
 
 ---
 
 ## 3. Color Tokens
 
-### Background & Surfaces
+### Primitive variables
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--paper-bg` | `#e5e2dd` | Page background (warm gray) |
-| `--paper-surface` | `#f2f0ec` | Cards, buttons, surfaces |
-| `--paper-tile` | canvas-generated | Subtle fiber texture |
+| Token | Light | Dark | Usage |
+|-------|-------|------|-------|
+| `--background` | `#FFFFFF` | `#000000` | Page background |
+| `--foreground` | `#0A0A0A` | `#FAFAFA` | Primary text, icons |
+| `--card` | `#FFFFFF` | `#0A0A0A` | Cards, elevated surfaces |
+| `--card-foreground` | `#0A0A0A` | `#FAFAFA` | Text on cards |
+| `--popover` | `#FFFFFF` | `#0A0A0A` | Popovers, dropdowns |
+| `--popover-foreground` | `#0A0A0A` | `#FAFAFA` | Text on popovers |
+| `--primary` | `#0A0A0A` | `#FAFAFA` | Primary buttons, active states |
+| `--primary-foreground` | `#FFFFFF` | `#000000` | Text/icons on primary |
+| `--secondary` | `#F5F5F5` | `#171717` | Secondary backgrounds |
+| `--secondary-foreground` | `#0A0A0A` | `#FAFAFA` | Text on secondary |
+| `--muted` | `#F5F5F5` | `#171717` | Muted surfaces |
+| `--muted-foreground` | `#737373` | `#A3A3A3` | Secondary text |
+| `--accent` | `#0A0A0A` | `#FAFAFA` | Accent (same as primary) |
+| `--accent-foreground` | `#FFFFFF` | `#000000` | Text on accent |
+| `--destructive` | `#DC2626` | `#EF4444` | Errors, delete |
+| `--success` | `#16A34A` | `#22C55E` | Confirmations, paid |
+| `--border` | `#E5E5E5` | `#262626` | Borders, dividers |
+| `--input` | `#F5F5F5` | `#171717` | Input backgrounds |
+| `--ring` | `#0A0A0A` | `#FAFAFA` | Focus rings |
 
-### Primary (Blue Gradient)
+### Shadow tokens
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--primary` | `#2888d0` | Primary blue |
-| `--primary-foreground` | `#FFFFFF` | Text on primary |
-| `--accent` | `#5bb3e4` | Light blue accent |
-| `--ring` | `#2888d0` | Focus rings |
+```css
+--shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
+--shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.08);
+--shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.12);
+```
 
-### Text
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--foreground` | `#2a2a2a` | Primary text |
-| `--muted-foreground` | `#6a6a6a` | Secondary text |
-| `--card-foreground` | `#2a2a2a` | Card text |
-
-### Semantic
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--destructive` | `#DC3545` | Errors, delete |
-| `--success` | `#28A745` | Confirmations |
-| `--rose` | `#B87070` | Calendar highlights (legacy) |
-| `--gold` | `#C49A5C` | Secondary accent (legacy) |
+Shadows are deliberately subtle; in dark mode the lower ambient brightness makes them read as depth rather than hard shadows.
 
 ---
 
-## 4. CTA Button (Paper Variant)
+## 4. CTA Button
+
+Primary CTA uses the inverted foreground color:
 
 ```tsx
-<Button variant="paper">Action</Button>
+<Button size="xl" className="w-full bg-foreground text-background hover:bg-foreground/90">
+  رزرو
+</Button>
 ```
 
 ```css
-background: linear-gradient(135deg, #5bb3e4 0%, #2888d0 100%);
-color: white;
-border: none;
-box-shadow:
-  0 2px 4px rgba(40,136,208,0.12),
-  0 4px 12px rgba(40,136,208,0.18),
-  0 8px 24px rgba(40,136,208,0.12);
-
-/* Hover */
-transform: translateY(-0.5px);
-box-shadow:
-  0 3px 6px rgba(40,136,208,0.15),
-  0 6px 18px rgba(40,136,208,0.22),
-  0 12px 32px rgba(40,136,208,0.15);
+background: var(--foreground);
+color: var(--background);
 ```
+
+Hover reduces opacity to `0.9`. Avoid hardcoded `bg-black`/`text-white`; use `bg-foreground`/`text-background` or `bg-primary`/`text-primary-foreground`.
 
 ---
 
@@ -96,146 +89,101 @@ box-shadow:
 | Token | Value | Use |
 |-------|-------|-----|
 | `--radius-sm` | 10px | Small elements |
-| `--radius-md` | 14px | Cards, inputs |
-| `--radius-lg` | 18px | Default radius |
-| `--radius-xl` | 24px | Modals, sheets |
-| `--radius-3xl` | 32px | Large containers |
+| `--radius-md` | 14px | Inputs, chips |
+| `--radius-lg` | 18px | Cards (default) |
+| `--radius-xl` | 24px | Modals, large containers |
+| `--radius-3xl` | 32px | Circular avatars, hero elements |
 
 ---
 
-## 6. Shadows (Paper Theme)
-
-Warm-tinted multi-layer system. Uses brown/amber tints instead of pure gray.
-
-### Card Shadow
-
-```css
---shadow-card:
-  0 0.5px 1px rgba(80,70,60,0.06),
-  0 1px 3px rgba(60,50,40,0.05),
-  0 2px 6px rgba(50,40,30,0.04),
-  0 4px 12px rgba(50,40,30,0.03);
-```
-
-### Elevated Shadow
-
-```css
---shadow-elevated:
-  0 1px 2px rgba(80,70,60,0.07),
-  0 3px 8px rgba(60,50,40,0.06),
-  0 6px 16px rgba(50,40,30,0.04),
-  0 12px 28px rgba(50,40,30,0.03);
-```
-
-### Floating Shadow
-
-```css
---shadow-floating:
-  0 2px 4px rgba(80,70,60,0.07),
-  0 6px 16px rgba(60,50,40,0.06),
-  0 16px 32px rgba(50,40,30,0.04),
-  0 32px 64px rgba(50,40,30,0.03);
-```
-
----
-
-## 7. Paper Texture
-
-Canvas-generated 200x200px tile with subtle fiber grain.
-
-- Base color: `#f2f0ec` (rgb 242, 240, 236)
-- Noise range: ±2 brightness
-- Applied via CSS custom property: `var(--paper-tile)`
-- Background-size: 200px 200px, repeat
-
----
-
-## 8. Components
+## 6. Components
 
 ### Card
 
 ```tsx
-<Card className="p-4">
-  {/* Content */}
-</Card>
+<Card className="p-4">...</Card>
 ```
 
-- Paper surface background with texture
-- Multi-layer warm shadow
-- Top-edge highlight (light catch)
+- Background: `var(--card)`
+- Border: `1px solid var(--border)`
+- Border radius: `var(--radius-lg)`
+- Shadow: `var(--shadow-card)`
 
 ### Button
 
 | Variant | Style |
 |---------|-------|
-| `default` | Primary blue fill |
-| `paper` | Blue gradient with shadow |
-| `outline` | Border only, white fill |
-| `ghost` | Transparent, hover effect |
-| `secondary` | Muted background |
-| `destructive` | Red tint |
+| `default` | `bg-primary text-primary-foreground` |
+| `outline` | border only, transparent bg |
+| `ghost` | transparent, hover bg |
+| `secondary` | muted bg |
+| `destructive` | red-tinted |
+| `paper` | inverted CTA (`bg-foreground text-background`) |
 
 ### Input
 
-- Height: 48px (`--field-xl`)
-- Border radius: 14px
-- RTL-aware with `dir="ltr"` for numbers/times
+- Height: `48px` (`--field-xl`)
+- Background: `var(--input)`
+- Border radius: `var(--radius-md)`
+- Focus ring: `var(--ring)`
 
 ---
 
-## 9. Navigation
+## 7. Dark Mode
 
-### Bottom Nav
+Dark mode is toggled by adding/removing the `dark` class on `<html>`. All components must use the CSS variables above or Tailwind `dark:` variants, not hardcoded `bg-white`, `text-white`, `bg-black`, or `text-black`.
 
-- Height: 56px
-- Paper surface background with texture
-- Top-edge highlight
-- Active: blue gradient indicator
-
-### Side Menu
-
-- Paper surface background
-- Auth-aware: shows login/logout
-- Owner menu: no login option (middleware enforces)
+Use the reactive `useIsDark()` hook when JavaScript needs to know the current mode (e.g., canvas or decorative colors).
 
 ---
 
-## 10. Calendar
+## 8. Typography
 
-### Date Strip
+**Font:** Vazirmatn across the app.
 
-- Selected: blue gradient + shadow
-- Today: blue outline border
-- Fully booked: muted, 60% opacity
-
-### Date Display
-
-```css
-background: rgba(40,136,208,0.05);
-border: 1px solid rgba(40,136,208,0.1);
-```
+| Class | Size | Weight | Usage |
+|-------|------|--------|-------|
+| `text-display` | 34px | 800 | Hero headlines |
+| `text-h1` | 24px | 700 | Page titles |
+| `text-h2` | 20px | 700 | Card titles |
+| `text-h3` | 17px | 600 | Sub-headings |
+| `text-body-lg` | 17px | 400 | Large body |
+| `text-body` | 15px | 400 | Body text |
+| `text-caption` | 13px | 500 | Labels, captions |
+| `text-small` | 12px | 400 | Metadata |
 
 ---
 
-## 11. Animations
+## 9. Animations
 
 | Class | Duration | Effect |
 |-------|----------|--------|
-| `animate-fade` | 200ms | Opacity 0→1 |
-| `animate-scale` | 180ms | Scale 0.92→1 + fade |
-| `animate-slideUp` | 220ms | TranslateY 10px→0 + fade |
+| `animate-fade` | 200ms | opacity 0→1 |
+| `animate-scale` | 180ms | scale + fade |
+| `animate-slideUp` | 220ms | translate + fade |
+| `step-animate` | 250ms | step slide-in |
 
 ---
 
-## 12. Loading States
+## 10. Do's and Don'ts
 
-All loading states use shadcn `<Skeleton>` component (rounded-[12px], shimmer animation).
+### Do
+
+- Use CSS variables for colors and elevation.
+- Use `text-foreground`, `bg-background`, `border-border`, etc.
+- Test both light and dark modes before shipping UI changes.
+- Use logical properties (`ps/pe`, `ms/me`) for RTL.
+- Use the `dark:` Tailwind variant or `useIsDark()` for JS logic.
+
+### Don't
+
+- Use hardcoded `bg-white`, `text-white`, `bg-black`, or `text-black`.
+- Use `document.documentElement.classList.contains("dark")` directly in render without reactivity.
+- Rely on browser default colors that ignore the theme.
+- Use pure-black shadows on dark surfaces.
 
 ---
 
-## 13. Revert Guide
+## 11. Theme Switching
 
-To switch back to original theme:
-
-1. Set `USE_PAPER_THEME = false` in `layout.tsx`
-2. All original variables are preserved in `:root`
+The `useTheme()` hook in `src/lib/hooks/use-theme.ts` persists the user's choice in `localStorage` and falls back to the system preference. The `ThemeToggle` component can be placed in headers or menus. `useIsDark()` should be used in components that need to react to theme changes outside of CSS.

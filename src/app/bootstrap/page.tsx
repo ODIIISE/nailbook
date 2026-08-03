@@ -48,7 +48,7 @@ export default function BootstrapPage() {
     <div className="min-h-[100dvh] flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm glass rounded-3xl p-6 animate-scale">
         <div className="text-center mb-6">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/50">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-background/50">
             <Sparkles className="h-6 w-6 text-foreground" />
           </div>
           <h1 className="text-h1 text-foreground">ایجاد اکانت مدیر</h1>

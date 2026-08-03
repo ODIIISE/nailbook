@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { sendOtp } from "@/lib/otp-service";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
+import { getSalonId } from "@/lib/multi-tenant";
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,7 +32,11 @@ export async function POST(request: NextRequest) {
     // Returning an explicit error keeps the user from being trapped on the OTP step
     // waiting for an SMS that will never arrive.
     if (roleContext === "owner") {
-      const { rows } = await sql`SELECT id, role FROM users WHERE phone = ${normalized} AND role = 'owner' LIMIT 1`;
+      const salonId = getSalonId();
+      const result = salonId
+        ? await sql.query("SELECT id, role FROM users WHERE phone = $1 AND role = 'owner' AND salon_id = $2 LIMIT 1", [normalized, salonId])
+        : await sql`SELECT id, role FROM users WHERE phone = ${normalized} AND role = 'owner' LIMIT 1`;
+      const rows = result.rows;
       if (rows.length === 0) {
         return NextResponse.json({ error: "شماره موبایل مدیر یافت نشد" }, { status: 404 });
       }

@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { sql } from "@vercel/postgres";
 import { SESSION_MAX_AGE_MS } from "./session-config";
+import { getSalonId } from "./multi-tenant";
 
 const SECRET = process.env.OWNER_SESSION_SECRET;
 
@@ -73,6 +74,12 @@ export async function verifyOwner(request: { cookies: { get: (name: string) => {
   const userId = verifyOwnerSession(cookieValue);
   if (!userId) return null;
 
-  const { rows } = await sql`SELECT id FROM users WHERE id = ${userId} AND role = 'owner'`;
+  const salonId = getSalonId();
+  const { rows } = salonId
+    ? await sql.query(
+        "SELECT id FROM users WHERE id = $1 AND role = 'owner' AND salon_id = $2",
+        [userId, salonId]
+      )
+    : await sql`SELECT id FROM users WHERE id = ${userId} AND role = 'owner'`;
   return rows[0] || null;
 }

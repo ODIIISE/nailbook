@@ -340,10 +340,14 @@
 }
 
 /* ── Shadows ── */
-
-.shadow-card { box-shadow: none; }
-.shadow-elevated { box-shadow: none; }
-.shadow-floating { box-shadow: none; }
+/*
+  These utility classes map to the CSS variables above.
+  Do not override them to `none`; components rely on the
+  shadow tokens for elevation.
+*/
+.shadow-card { box-shadow: var(--shadow-card); }
+.shadow-elevated { box-shadow: var(--shadow-elevated); }
+.shadow-floating { box-shadow: var(--shadow-floating); }
 
 /* ── Scrollbar ── */
 
