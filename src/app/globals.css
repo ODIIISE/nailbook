@@ -67,6 +67,13 @@
   --radius-xl: 24px;
   --radius-3xl: 32px;
 
+  /* ── Booking surface tokens ── */
+  --radius-booking-cta: 14px;
+  --radius-booking-item: 10px;
+  --radius-booking-icon: 8px;
+  --radius-sheet: 14px;
+  --radius-sheet-handle: 999px;
+
   /* ── Form Field Heights ── */
   --field-xs: 32px;
   --field-sm: 36px;
@@ -113,6 +120,12 @@
   --navy: #0A0A0A;
   --radius: 14px;
 
+  /* ── Booking surface tokens (semantic aliases) ── */
+  --booking-cta-bg: var(--card);
+  --booking-cta-border: var(--border);
+  --booking-cta-fg: var(--foreground);
+  --booking-sheet-scrim: rgba(0, 0, 0, 0.42);
+
   /* ── Elevation (working, multi-layer, monochromatic) ── */
   --shadow-xs: 0 1px 2px rgba(10, 10, 10, 0.04);
   --shadow-card: 0 1px 2px rgba(10, 10, 10, 0.04), 0 2px 8px rgba(10, 10, 10, 0.04);
@@ -158,6 +171,12 @@
   --gold: #FAFAFA;
   --warm-white: #FAFAFA;
   --navy: #000000;
+
+  /* ── Booking surface tokens (semantic aliases) ── */
+  --booking-cta-bg: var(--card);
+  --booking-cta-border: var(--border);
+  --booking-cta-fg: var(--foreground);
+  --booking-sheet-scrim: rgba(0, 0, 0, 0.56);
 
   /* Dark-mode elevation relies on an inner glow (top high-light) plus soft black halo */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);

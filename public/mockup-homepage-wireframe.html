@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f4f4f4" />
+  <title>وایرفریم کم‌جزئیات — صفحه اصلی فورهند</title>
+  <style>
+    :root {
+      --paper: #f4f4f4;
+      --surface: #fff;
+      --ink: #262626;
+      --muted: #707070;
+      --line: #bdbdbd;
+      --soft-line: #dedede;
+      --block: #e7e7e7;
+      --dark-block: #303030;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--paper); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Tahoma, Arial, sans-serif;
+      line-height: 1.7;
+    }
+    button, a { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+    .workspace {
+      width: min(1160px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 72px;
+    }
+    .workspace-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+    .workspace-header h1 {
+      margin: 8px 0 4px;
+      font-size: clamp(23px, 4vw, 36px);
+      line-height: 1.25;
+      letter-spacing: -.04em;
+    }
+    .workspace-header p {
+      max-width: 620px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+    .note {
+      flex: 0 0 auto;
+      max-width: 220px;
+      padding: 12px 14px;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.8;
+      background: color-mix(in srgb, var(--surface) 65%, transparent);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr);
+      align-items: start;
+      gap: 28px;
+    }
+    .annotation-column { display: grid; gap: 14px; }
+    .annotation {
+      position: relative;
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 11px;
+      padding: 15px;
+      border: 1px solid var(--soft-line);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+    .annotation-number {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .annotation h2 { margin: 0 0 4px; font-size: 14px; line-height: 1.5; }
+    .annotation p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.8; }
+    .annotation code { color: var(--ink); font-size: 10px; }
+
+    .device-wrap { display: flex; justify-content: center; }
+    .device {
+      width: min(100%, 390px);
+      overflow: hidden;
+      border: 2px solid var(--ink);
+      border-radius: 30px;
+      background: var(--surface);
+      box-shadow: 12px 12px 0 #d7d7d7;
+    }
+    .device-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 30px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--soft-line);
+      color: var(--muted);
+      font-size: 9px;
+    }
+    .device-screen { padding: 13px 14px 26px; }
+    .appbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 42px;
+      margin-bottom: 16px;
+    }
+    .top-story-rail {
+      display: flex;
+      align-items: center;
+      direction: rtl;
+      padding-inline-start: 4px;
+    }
+    .top-story {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      margin-inline-start: -8px;
+      border: 2px solid var(--surface);
+      border-radius: 50%;
+      outline: 1px solid var(--line);
+      background: var(--block);
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 700;
+    }
+    .top-story:first-child {
+      margin-inline-start: 0;
+      border-color: var(--ink);
+      background: var(--surface);
+      color: var(--ink);
+    }
+    .top-story-more {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      margin-inline-start: -8px;
+      border: 2px solid var(--surface);
+      border-radius: 50%;
+      outline: 1px solid var(--line);
+      background: var(--dark-block);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+    }
+    .app-actions { display: flex; gap: 7px; }
+    .icon-button {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .hero {
+      padding: 18px 14px 17px;
+      border: 1px solid var(--ink);
+      border-radius: 20px;
+      text-align: center;
+    }
+    .hero-media {
+      display: grid;
+      place-items: center;
+      width: 94px;
+      height: 94px;
+      margin: 0 auto 14px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--block);
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .hero h2 { margin: 0; font-size: 22px; line-height: 1.35; }
+    .hero-subtitle { margin: 5px 0 5px; font-size: 13px; font-weight: 700; }
+    .hero-copy { margin: 0 auto 14px; color: var(--muted); font-size: 10px; line-height: 1.8; }
+    .status-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink); }
+
+    .social-row {
+      display: flex;
+      justify-content: center;
+      gap: 9px;
+      margin: 13px 0 19px;
+    }
+    .social {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .booking-card {
+      margin-top: 18px;
+      padding: 15px;
+      border: 1px solid var(--ink);
+      border-radius: 16px;
+      background: var(--surface);
+    }
+    .booking-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .booking-card h3 { margin: 0; font-size: 15px; line-height: 1.45; }
+    .booking-card p { margin: 3px 0 0; color: var(--muted); font-size: 10px; line-height: 1.65; }
+    .booking-mark {
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--dark-block);
+      color: #fff;
+      font-size: 15px;
+    }
+    .booking-button {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      min-height: 45px;
+      padding: 0 13px;
+      border: 1px solid var(--dark-block);
+      border-radius: 12px;
+      background: var(--dark-block);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .booking-button span:last-child { font-size: 18px; line-height: 1; }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 20px 1px 9px;
+    }
+    .section-heading h3 { margin: 0; font-size: 14px; }
+    .section-heading a { color: var(--muted); font-size: 10px; text-decoration: none; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend i { display: inline-block; width: 10px; height: 10px; border: 1px solid var(--ink); border-radius: 3px; }
+    .legend i.filled { background: var(--dark-block); }
+    .legend i.image { background: var(--block); }
+
+    @media (max-width: 800px) {
+      .workspace-header { display: block; }
+      .note { max-width: none; margin-top: 14px; }
+      .board { grid-template-columns: 1fr; }
+      .device-wrap { order: -1; }
+      .annotation-column { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 540px) {
+      .workspace { width: min(100% - 24px, 390px); padding-top: 22px; }
+      .workspace-header h1 { font-size: 25px; }
+      .annotation-column { grid-template-columns: 1fr; }
+      .device { box-shadow: 7px 7px 0 #d7d7d7; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="workspace">
+    <header class="workspace-header">
+      <div>
+        <div class="eyebrow">وایرفریم کم‌جزئیات صفحه اصلی فورهند</div>
+        <h1>از دیدن سبک سالن تا رزرو نوبت</h1>
+        <p>این نسخه فقط برای تصمیم‌گیری درباره‌ی ساختار صفحه است؛ تصویرها، رنگ نهایی، متن دقیق و داده‌های واقعی بعداً جایگزین می‌شوند.</p>
+      </div>
+      <div class="note"><strong>هدف این مرحله</strong><br />اول ترتیب محتوا و مسیر کاربر را تأیید کنیم، بعد وارد طراحی بصری و کدنویسی شویم.</div>
+    </header>
+
+    <section class="board" aria-label="وایرفریم صفحه اصلی">
+      <div class="device-wrap">
+        <div class="device">
+          <div class="device-status"><span>۹:۴۱</span><span>◯ ◯ ◯</span></div>
+          <div class="device-screen">
+            <header class="appbar">
+              <div class="top-story-rail" aria-label="استوری‌های فورهند">
+                <button class="top-story" type="button" aria-label="استوری‌های فورهند">فورهند</button>
+                <button class="top-story" type="button" aria-label="نمونه‌کارهای جدید">نمونه</button>
+                <button class="top-story" type="button" aria-label="طراحی فرنچ">فرنچ</button>
+                <button class="top-story-more" type="button" aria-label="مشاهده همه استوری‌ها">+۳</button>
+              </div>
+              <div class="app-actions">
+                <button class="icon-button" type="button" aria-label="تغییر حالت نمایش">☼</button>
+                <button class="icon-button" type="button" aria-label="منو">⋯</button>
+              </div>
+            </header>
+
+            <section class="hero">
+              <div class="hero-media">تصویر اصلی سالن<br />یا لوگو</div>
+              <h2>Forehand Nail Studio</h2>
+              <p class="hero-subtitle">زیبایی، با دقت و سلیقه</p>
+              <p class="hero-copy">استودیو تخصصی طراحی و مراقبت ناخن</p>
+              <div class="status-row"><span class="status-dot"></span><span>امروز باز است · تا ساعت ۱۸</span></div>
+            </section>
+
+            <nav class="social-row" aria-label="راه‌های ارتباطی">
+              <button class="social" type="button" aria-label="تماس با سالن">تماس</button>
+              <button class="social" type="button" aria-label="ارسال پیامک">پیامک</button>
+              <button class="social" type="button" aria-label="واتساپ سالن">واتساپ</button>
+              <button class="social" type="button" aria-label="اینستاگرام سالن">اینستا</button>
+            </nav>
+
+            <section class="booking-card" id="booking" aria-label="رزرو نوبت">
+              <div class="booking-card-head">
+                <div>
+                  <h3>وقتت را برای زیبایی رزرو کن</h3>
+                  <p>خدمتت را انتخاب کن و زمان‌های آزاد را ببین.</p>
+                </div>
+                <span class="booking-mark" aria-hidden="true">↗</span>
+              </div>
+              <button class="booking-button" type="button"><span>رزرو نوبت</span><span>←</span></button>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <aside class="annotation-column" aria-label="توضیح بخش‌ها">
+        <article class="annotation"><span class="annotation-number">۱</span><div><h2>استوری‌ها در جایگاه لوگو</h2><p>به‌جای یک لوگوی تنها، چند دایره‌ی فشرده در گوشه‌ی بالای راست قرار می‌گیرند؛ آخرین استوری در جلو و دکمه‌ی +۳ برای بقیه.</p><code>Top-right story rail</code></div></article>
+        <article class="annotation"><span class="annotation-number">۲</span><div><h2>هویت سالن داخل محتوای اصلی</h2><p>نام، تصویر اصلی و توضیح سالن در کارت معرفی باقی می‌مانند؛ بنابراین حذف لوگوی بالایی، هویت صفحه را از بین نمی‌برد.</p><code>Hero identity</code></div></article>
+        <article class="annotation"><span class="annotation-number">۳</span><div><h2>تماس و شبکه‌های اجتماعی</h2><p>اکشن‌های ارتباطی به‌صورت آیکن/دکمه‌های گرد و فشرده باقی می‌مانند تا قبل از اقدام اصلی در دسترس باشند.</p><code>Contact actions</code></div></article>
+        <article class="annotation"><span class="annotation-number">۴</span><div><h2>رزرو نوبت در یک مستطیل واضح</h2><p>کارت رزرو بلافاصله زیر تماس‌ها می‌آید؛ توضیح کوتاه و یک CTA واحد دارد. مسیر اصلی کاربر دیگر در انتهای صفحه پنهان نیست.</p><code>Booking rectangle</code></div></article>
+        <div class="legend" aria-label="راهنمای وایرفریم"><span><i class="image"></i> جای تصویر</span><span><i></i> ساختار/محتوا</span><span><i class="filled"></i> اقدام اصلی</span></div>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,241 +1,195 @@
 # Forehand Nail Studio — Design System
 
-> Paper Theme — Samsung-inspired, warm, tactile design system.
+> Clean Slate — a monochrome, mobile-first, Persian-first booking system with compact geometry and native-feeling surfaces.
+
+This document describes the implementation source of truth in `src/app/globals.css`, `src/lib/design-tokens.ts`, and the shared UI primitives. It intentionally supersedes the older paper-blue exploration.
 
 ---
 
-## 1. Philosophy
+## 1. Product and visual principles
 
-- **Paper texture** — subtle canvas-generated grain on all surfaces
-- **Warm shadows** — multi-layered with brown tints, not gray
-- **Blue gradient CTAs** — consistent `#5bb3e4` → `#2888d0`
-- **Mobile-first** — 375px+, thumb-friendly
-- **RTL** — full Persian right-to-left layout
-- **Accessible** — 44pt+ touch targets, focus-visible
-
----
-
-## 2. Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 16 (App Router, React 19) |
-| Components | shadcn/ui (Base UI primitives) |
-| Styling | Tailwind CSS v4, CSS variables |
-| Font | Vazirmatn (Persian, CDN, weights 400-900) |
-| Icons | Heroicons (outline default, solid active) + Lucide (supplementary) |
-| Notifications | Sonner (toast) |
+- **Persian-first:** natural RTL composition, Persian copy, Jalali dates, and Persian/Arabic digit support.
+- **Clean Slate:** near-black and cool-neutral surfaces create a calm, editorial salon feel.
+- **One primary action:** booking is the dominant action; contact and navigation stay subordinate.
+- **Content over chrome:** real salon imagery, services, and availability carry the experience.
+- **Native-feeling interaction:** compact sheets, predictable back/close behavior, tactile feedback, and purposeful motion.
+- **Accessible by default:** visible focus, semantic labels, minimum 44px interactive targets, reduced-motion support, and AA contrast targets.
+- **Mobile first:** the customer journey is designed around narrow portrait screens, then scales to larger widths.
 
 ---
 
-## 3. Color Tokens
+## 2. Source of truth
 
-### Background & Surfaces
+| Layer | Source |
+|---|---|
+| Primitive and semantic CSS tokens | `src/app/globals.css` |
+| Service/timeline palette helpers | `src/lib/design-tokens.ts` |
+| Shared button/card/sheet behavior | `src/components/ui/` |
+| Customer homepage composition | `src/app/page.tsx` and `src/components/landing/` |
+| Booking flow | `src/app/book/content.tsx` and `src/components/booking/` |
+| Persian product and interaction guidance | `PRODUCT.md` and `AGENTS.md` |
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--paper-bg` | `#e5e2dd` | Page background (warm gray) |
-| `--paper-surface` | `#f2f0ec` | Cards, buttons, surfaces |
-| `--paper-tile` | canvas-generated | Subtle fiber texture |
-
-### Primary (Blue Gradient)
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--primary` | `#2888d0` | Primary blue |
-| `--primary-foreground` | `#FFFFFF` | Text on primary |
-| `--accent` | `#5bb3e4` | Light blue accent |
-| `--ring` | `#2888d0` | Focus rings |
-
-### Text
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--foreground` | `#2a2a2a` | Primary text |
-| `--muted-foreground` | `#6a6a6a` | Secondary text |
-| `--card-foreground` | `#2a2a2a` | Card text |
-
-### Semantic
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--destructive` | `#DC3545` | Errors, delete |
-| `--success` | `#28A745` | Confirmations |
-| `--rose` | `#B87070` | Calendar highlights (legacy) |
-| `--gold` | `#C49A5C` | Secondary accent (legacy) |
+Do not add raw color or radius values to new components when an existing semantic or component token is available.
 
 ---
 
-## 4. CTA Button (Paper Variant)
+## 3. Typography
 
-```tsx
-<Button variant="paper">Action</Button>
-```
+- **Family:** Vazirmatn, with system fallbacks.
+- **Display:** `.text-display` — 34px, 800, 1.08 line-height.
+- **H1:** `.text-h1` — 24px, 700, 1.2 line-height.
+- **H2:** `.text-h2` — 20px, 700, 1.25 line-height.
+- **H3:** `.text-h3` — 17px, 600, 1.3 line-height.
+- **Body:** `.text-body` — 15px, 1.55 line-height.
+- **Caption:** `.text-caption` — 13px, 500, 1.4 line-height.
 
-```css
-background: linear-gradient(135deg, #5bb3e4 0%, #2888d0 100%);
-color: white;
-border: none;
-box-shadow:
-  0 2px 4px rgba(40,136,208,0.12),
-  0 4px 12px rgba(40,136,208,0.18),
-  0 8px 24px rgba(40,136,208,0.12);
-
-/* Hover */
-transform: translateY(-0.5px);
-box-shadow:
-  0 3px 6px rgba(40,136,208,0.15),
-  0 6px 18px rgba(40,136,208,0.22),
-  0 12px 32px rgba(40,136,208,0.15);
-```
+Keep body copy readable, wrap Persian text naturally, and use `dir="ltr"` for phone numbers, times, and other directional numeric values.
 
 ---
 
-## 5. Border Radius
+## 4. Color tokens
+
+### Light theme
+
+| Token | Value | Purpose |
+|---|---|---|
+| `--background` | `#FFFFFF` | Page canvas |
+| `--foreground` | `#0A0A0A` | Primary text and primary action |
+| `--card` | `#FFFFFF` | Elevated content surfaces |
+| `--secondary` / `--muted` | `#F5F5F5` | Quiet surfaces and secondary controls |
+| `--muted-foreground` | `#525252` | Secondary text with AA contrast |
+| `--border` | `#E5E5E5` | Dividers and control boundaries |
+| `--success` | `#16A34A` | Positive status |
+| `--destructive` | `#DC2626` | Error and destructive actions |
+
+### Dark theme
+
+| Token | Value | Purpose |
+|---|---|---|
+| `--background` | `#000000` | Page canvas |
+| `--foreground` | `#FAFAFA` | Primary text and primary action |
+| `--card` | `#0F0F10` | Elevated content surfaces |
+| `--secondary` / `--muted` | `#171717` | Quiet surfaces and secondary controls |
+| `--muted-foreground` | `#B5B5B5` | Secondary text with strong contrast |
+| `--border` | `#262626` | Dividers and control boundaries |
+| `--success` | `#34D399` | Positive status |
+| `--destructive` | `#F87171` | Error and destructive actions |
+
+Use `var(--primary)` / `var(--foreground)` for the main action rather than introducing unrelated accent colors. Functional status colors must be paired with text or icon meaning, not color alone.
+
+---
+
+## 5. Radius and geometry
+
+The global scale stays compatible with the existing application. New booking surfaces use their own tighter component tokens so this refinement does not unexpectedly reshape owner screens, authentication, or the calendar.
 
 | Token | Value | Use |
-|-------|-------|-----|
-| `--radius-sm` | 10px | Small elements |
-| `--radius-md` | 14px | Cards, inputs |
-| `--radius-lg` | 18px | Default radius |
-| `--radius-xl` | 24px | Modals, sheets |
+|---|---:|---|
+| `--radius-sm` | 10px | Small controls and compact elements |
+| `--radius-md` | 14px | Cards, inputs, and standard grouped surfaces |
+| `--radius-lg` | 18px | Larger grouped surfaces |
+| `--radius-xl` | 24px | Modals and large surfaces |
 | `--radius-3xl` | 32px | Large containers |
 
----
+### Booking component tokens
 
-## 6. Shadows (Paper Theme)
+| Token | Value | Use |
+|---|---:|---|
+| `--radius-booking-cta` | 14px | Homepage booking surface |
+| `--radius-booking-item` | 10px | Service option and booking button |
+| `--radius-booking-icon` | 8px | Thumbnail and icon tile |
+| `--radius-sheet` | 14px | Service-selection sheet top corners |
+| `--radius-sheet-handle` | 999px | Sheet drag handle |
+| `--booking-sheet-scrim` | 42% black light / 56% black dark | Sheet backdrop |
 
-Warm-tinted multi-layer system. Uses brown/amber tints instead of pure gray.
-
-### Card Shadow
-
-```css
---shadow-card:
-  0 0.5px 1px rgba(80,70,60,0.06),
-  0 1px 3px rgba(60,50,40,0.05),
-  0 2px 6px rgba(50,40,30,0.04),
-  0 4px 12px rgba(50,40,30,0.03);
-```
-
-### Elevated Shadow
-
-```css
---shadow-elevated:
-  0 1px 2px rgba(80,70,60,0.07),
-  0 3px 8px rgba(60,50,40,0.06),
-  0 6px 16px rgba(50,40,30,0.04),
-  0 12px 28px rgba(50,40,30,0.03);
-```
-
-### Floating Shadow
-
-```css
---shadow-floating:
-  0 2px 4px rgba(80,70,60,0.07),
-  0 6px 16px rgba(60,50,40,0.06),
-  0 16px 32px rgba(50,40,30,0.04),
-  0 32px 64px rgba(50,40,30,0.03);
-```
+Prefer these semantic tokens over one-off `rounded-[...]` values in booking UI.
 
 ---
 
-## 7. Paper Texture
+## 6. Elevation and motion
 
-Canvas-generated 200x200px tile with subtle fiber grain.
+- `--shadow-xs`: subtle button/control lift.
+- `--shadow-card`: resting cards and booking surfaces.
+- `--shadow-elevated`: active or layered surfaces.
+- `--shadow-floating`: sheets, menus, and fixed navigation.
+- `--dur-fast`: 140ms for press feedback.
+- `--dur-base`: 200ms for normal transitions.
+- `--dur-slow`: 320ms for larger transitions.
+- `--ease-spring-decay`: sheet entrance and spatially continuous movement.
 
-- Base color: `#f2f0ec` (rgb 242, 240, 236)
-- Noise range: ±2 brightness
-- Applied via CSS custom property: `var(--paper-tile)`
-- Background-size: 200px 200px, repeat
-
----
-
-## 8. Components
-
-### Card
-
-```tsx
-<Card className="p-4">
-  {/* Content */}
-</Card>
-```
-
-- Paper surface background with texture
-- Multi-layer warm shadow
-- Top-edge highlight (light catch)
-
-### Button
-
-| Variant | Style |
-|---------|-------|
-| `default` | Primary blue fill |
-| `paper` | Blue gradient with shadow |
-| `outline` | Border only, white fill |
-| `ghost` | Transparent, hover effect |
-| `secondary` | Muted background |
-| `destructive` | Red tint |
-
-### Input
-
-- Height: 48px (`--field-xl`)
-- Border radius: 14px
-- RTL-aware with `dir="ltr"` for numbers/times
+Motion should communicate cause and effect. Sheets enter from the bottom, close faster than they enter, and disable motion under `prefers-reduced-motion`.
 
 ---
 
-## 9. Navigation
+## 7. Homepage booking CTA and service sheet
 
-### Bottom Nav
+The customer homepage presents the salon identity, highlights, trust/contact information, then one clear booking surface. The CTA does not dump the customer into a long service list immediately.
 
-- Height: 56px
-- Paper surface background with texture
-- Top-edge highlight
-- Active: blue gradient indicator
+### Booking CTA
 
-### Side Menu
+- Outer radius: `--radius-booking-cta`.
+- One concise explanation and one primary `رزرو نوبت` action.
+- Located directly after contact actions in the homepage flow.
+- Uses the shared foreground/background action contrast in both themes.
+- Opens the service picker as a bottom sheet with `aria-haspopup="dialog"` and `aria-expanded` state.
 
-- Paper surface background
-- Auth-aware: shows login/logout
-- Owner menu: no login option (middleware enforces)
+### Service-selection sheet
 
----
+- Shows only active services in owner-defined `sort_order`.
+- Includes service image when available, service name, duration, and price.
+- Uses compact 10px service-row geometry and 8px thumbnail geometry.
+- Shows a skeleton while salon services load and an explicit empty state when none are active.
+- Selecting a service closes the sheet, then routes to `/book?service={id}` after the close transition completes.
+- Supports backdrop click, Escape, swipe-down from the drag handle, close control, focus trapping, body-scroll locking, and focus return to the trigger.
+- Uses `max-height: min(88dvh, 680px)` so long service lists remain scrollable without trapping the page.
 
-## 10. Calendar
+### Interaction states
 
-### Date Strip
-
-- Selected: blue gradient + shadow
-- Today: blue outline border
-- Fully booked: muted, 60% opacity
-
-### Date Display
-
-```css
-background: rgba(40,136,208,0.05);
-border: 1px solid rgba(40,136,208,0.1);
-```
-
----
-
-## 11. Animations
-
-| Class | Duration | Effect |
-|-------|----------|--------|
-| `animate-fade` | 200ms | Opacity 0→1 |
-| `animate-scale` | 180ms | Scale 0.92→1 + fade |
-| `animate-slideUp` | 220ms | TranslateY 10px→0 + fade |
+| State | Treatment |
+|---|---|
+| Rest | Card surface, border, subtle card shadow |
+| Hover | Slight border/surface emphasis on pointer devices |
+| Pressed | Small transform feedback without layout shift |
+| Loading | Reserved skeleton rows |
+| Empty | Helpful message and recovery guidance |
+| Focused | Visible ring with semantic ring token |
+| Disabled | Reduced opacity and no pointer interaction |
 
 ---
 
-## 12. Loading States
+## 8. Shared components
 
-All loading states use shadcn `<Skeleton>` component (rounded-[12px], shimmer animation).
+### Buttons
+
+The shared `Button` primitive supports default, outline, secondary, ghost, link, destructive, and paper-compatible variants. Booking CTA buttons use compact geometry and semantic foreground/background tokens when the surface requires a rectangular editorial treatment.
+
+### Cards
+
+Cards use `bg-card`, `border-border`, and the shadow scale. Avoid nesting cards without a clear hierarchy. Use a border or a shadow intentionally; do not layer several competing elevation treatments.
+
+### Bottom sheets
+
+Use `BottomSheet` for focused mobile tasks that benefit from preserving page context, such as service selection, manual booking, or block-time entry. Every sheet needs a visible title, close route, Escape handling, backdrop dismissal, and a clear scroll boundary.
 
 ---
 
-## 13. Revert Guide
+## 9. Navigation and safe areas
 
-To switch back to original theme:
+- Customer bottom navigation has no more than five top-level destinations and includes text labels.
+- Fixed navigation reserves safe-area space with `env(safe-area-inset-bottom)`.
+- Sticky headers reserve top safe-area space.
+- Back behavior must preserve the booking state and use the same spatial direction across the flow.
 
-1. Set `USE_PAPER_THEME = false` in `layout.tsx`
-2. All original variables are preserved in `:root`
+---
+
+## 10. Quality checklist
+
+Before shipping a visual change:
+
+- Check 375px, 390px, and desktop widths.
+- Check light and dark themes independently.
+- Check Persian wrapping and LTR phone/time values.
+- Confirm all primary targets are at least 44px tall/wide.
+- Confirm keyboard focus and Escape behavior for sheets.
+- Confirm reduced motion removes non-essential animation.
+- Run lint, TypeScript, tests, production build, and the Impeccable detector for changed UI files.

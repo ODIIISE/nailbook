@@ -8,9 +8,9 @@ import { Hero } from "@/components/landing/hero";
 import { TrustSignals } from "@/components/landing/trust-signals";
 import { SocialProofPulse } from "@/components/landing/social-proof-pulse";
 import { ContactButtons } from "@/components/landing/contact-buttons";
+import { BookingCta } from "@/components/landing/booking-cta";
 import { Highlights } from "@/components/landing/highlights";
 import { HighlightViewer } from "@/components/landing/highlight-viewer";
-import { ServiceCardGrid } from "@/components/landing/service-card-grid";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { Heart, Store, Users, Calendar } from "lucide-react";
 
@@ -105,10 +105,6 @@ function SalonBooking() {
     }
   }, [searchParams]);
 
-  const scrollToServices = () => {
-    document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });
-  };
-
   return (
     <SalonGuard>
     <div className="relative min-h-screen">
@@ -118,12 +114,10 @@ function SalonBooking() {
         <div className="px-4 pt-2">
           <SocialProofPulse totalBookings={bookings.filter((b) => b.status !== "cancelled").length} />
         </div>
-        <Hero salon={salon} onBookNow={scrollToServices} />
-        <div id="services">
-          <ServiceCardGrid services={services} isLoading={!loaded} />
-        </div>
+        <Hero salon={salon} />
         <TrustSignals totalBookings={bookings.length} recentBookings={bookings.filter((b) => b.status !== "cancelled").slice(0, 3)} />
         <ContactButtons phone={salon.phone} />
+        <BookingCta services={services} isLoading={!loaded} />
 
         <footer className="px-4 py-6 text-center pb-20">
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
