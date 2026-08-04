@@ -718,6 +718,20 @@
   .surface-lift {
     transition: box-shadow var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
   }
+
+  .booking-cta-action,
+  .booking-cta-arrow {
+    transition-duration: var(--dur-base);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .surface-lift,
+    .booking-cta-action,
+    .booking-cta-arrow {
+      transition: none !important;
+      transform: none !important;
+    }
+  }
   @media (hover: hover) and (pointer: fine) {
     .surface-lift:hover {
       box-shadow: var(--shadow-elevated);
