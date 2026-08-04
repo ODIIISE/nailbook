@@ -1,8 +1,8 @@
 "use client";
 
-import { MapPin, Phone, Clock, ChevronLeft, ArrowLeft } from "lucide-react";
+import { useState } from "react";
+import { Clock3, MapPin, Phone, Sparkles } from "lucide-react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { toPersianDigits } from "@/lib/jalali";
 import type { SalonInfo } from "@/lib/types";
 
@@ -12,80 +12,102 @@ interface HeroProps {
 }
 
 function getWorkingHoursText(text: string): string {
-  return text || "شنبه تا پنج شنبه . ۱۰ تا ۱۸";
+  return text || "شنبه تا پنج شنبه · ۱۰ تا ۱۸";
 }
 
-export function Hero({ salon, onBookNow }: HeroProps) {
+export function Hero({ salon }: HeroProps) {
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
+  const hasHeroImage = Boolean(salon.hero_image_url) && failedImageUrl !== salon.hero_image_url;
+
   return (
-    <div className="px-4 pt-6 pb-4">
-      <div className="mx-auto max-w-lg text-center animate-stagger">
-        <div className="relative mx-auto mb-4 flex h-[72px] w-[72px] items-center justify-center rounded-2xl bg-muted overflow-hidden">
-          {salon.logo_url ? (
+    <section className="px-4 pb-3 pt-5" aria-labelledby="salon-hero-title">
+      <div className="mx-auto max-w-lg">
+        <div className="home-hero-stage relative min-h-[246px] overflow-hidden rounded-[28px]" dir="ltr">
+          {hasHeroImage ? (
             <Image
-              src={salon.logo_url}
-              alt={salon.name}
+              src={salon.hero_image_url!}
+              alt=""
               fill
+              priority
               unoptimized
+              sizes="(max-width: 512px) calc(100vw - 32px), 480px"
               className="object-cover"
+              onError={() => setFailedImageUrl(salon.hero_image_url)}
             />
           ) : (
-            <Image src="/logo-placeholder.svg" alt="" width={40} height={40} className="opacity-60" unoptimized />
+            <>
+              <div className="absolute -left-16 -top-24 h-64 w-64 rounded-full bg-[color:var(--home-blush)]/70" />
+              <div className="absolute -bottom-32 -right-10 h-72 w-72 rounded-full border border-[color:var(--home-ink)]/10" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_35%,rgba(255,255,255,.18),transparent_36%),linear-gradient(135deg,var(--home-hero-start),var(--home-hero-end))]" />
+              <div className="absolute left-8 top-12 h-20 w-20 rotate-12 rounded-[28px] border border-[color:var(--home-ink)]/10" />
+              <div className="absolute bottom-8 right-12 h-12 w-12 -rotate-12 rounded-full border border-[color:var(--home-ink)]/10" />
+            </>
           )}
-        </div>
-        <h1 className="text-display text-foreground mb-1.5">
-          {salon.name}
-        </h1>
-        {salon.slogan && (
-          <p className="mb-1.5 text-body text-foreground font-medium">
-            {salon.slogan}
-          </p>
-        )}
-        <p className="mb-5 text-caption text-muted-foreground">
-          {salon.description}
-        </p>
+          <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--home-overlay)] via-transparent to-[color:var(--home-overlay)]/10" />
 
-        <div className="rounded-2xl p-4 border border-border bg-card">
-          <div className="space-y-2.5">
-            <InfoRow icon={<MapPin className="h-4 w-4" />} text={salon.address} />
-            <InfoRow icon={<Phone className="h-4 w-4" />} text={toPersianDigits(salon.phone)} dir="ltr" />
-            <InfoRow icon={<Clock className="h-4 w-4" />} text={getWorkingHoursText(salon.working_hours_text)} />
-          </div>
-        </div>
-
-        {onBookNow && (
-          <div className="mt-5 rounded-[24px] border border-border/80 bg-card p-3.5 text-right shadow-card">
-            <div className="flex items-start justify-between gap-3 px-1">
-              <div className="min-w-0">
-                <p className="text-h3 text-foreground">وقتت را برای زیبایی رزرو کن</p>
-                <p className="mt-1 text-caption text-muted-foreground">
-                  خدمت را انتخاب کن و زمان‌های آزاد را ببین.
-                </p>
-              </div>
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-muted text-foreground">
-                <ArrowLeft className="h-5 w-5" aria-hidden="true" />
-              </div>
+          <div className="relative flex min-h-[246px] flex-col justify-between p-5 text-background" dir="rtl">
+            <div className="flex items-center justify-between text-[11px] font-bold tracking-[0.08em] text-background/80">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--home-blush)]" aria-hidden="true" />
+                استودیو تخصصی ناخن
+              </span>
+              <span className="font-sans text-[10px] tracking-[0.2em] opacity-75">FOREHAND</span>
             </div>
-            <Button
-              className="mt-4 h-14 w-full rounded-2xl bg-foreground text-body-lg font-bold text-background shadow-sm transition-transform hover:bg-foreground/90 active:scale-[0.99]"
-              onClick={onBookNow}
-            >
-              رزرو نوبت
-              <ChevronLeft className="h-5 w-5 ms-1" aria-hidden="true" />
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
-function InfoRow({ icon, text, dir }: { icon: React.ReactNode; text: string; dir?: string }) {
-  return (
-    <div className="flex items-center gap-3 text-body text-foreground/80">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
-        {icon}
+            <div className="flex items-end justify-between gap-4">
+              <div className="min-w-0">
+                <div className="mb-3 flex h-14 w-14 items-center justify-center overflow-hidden rounded-[20px] border border-white/35 bg-white/15 shadow-lg backdrop-blur-sm">
+                  {salon.logo_url ? (
+                    <Image src={salon.logo_url} alt="" width={56} height={56} unoptimized className="h-full w-full object-cover" />
+                  ) : (
+                    <Sparkles className="h-6 w-6 text-white/90" aria-hidden="true" />
+                  )}
+                </div>
+                <p className="text-small font-medium text-white/75">یک قرار کوچک با خودت</p>
+              </div>
+              <div className="h-12 w-12 shrink-0 rounded-full border border-white/30 bg-white/10" aria-hidden="true" />
+            </div>
+          </div>
+        </div>
+
+        <div className="px-1 pt-5 text-right" dir="rtl">
+          <h1 id="salon-hero-title" className="text-[30px] font-extrabold leading-[1.25] tracking-[-0.03em] text-foreground sm:text-[34px]">
+            {salon.name}
+          </h1>
+          {salon.slogan && (
+            <p className="mt-2 text-body font-medium text-[color:var(--home-accent-strong)]">{salon.slogan}</p>
+          )}
+          {salon.description && (
+            <p className="mt-2 max-w-md text-caption leading-6 text-muted-foreground">{salon.description}</p>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-small text-muted-foreground" aria-label="اطلاعات سالن">
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 text-[color:var(--home-accent-strong)]" aria-hidden="true" />
+              <span>{salon.address}</span>
+            </span>
+            <span className="text-[color:var(--home-border-strong)]" aria-hidden="true">•</span>
+            <span className="inline-flex items-center gap-1.5" dir="rtl">
+              <Clock3 className="h-3.5 w-3.5 text-[color:var(--home-accent-strong)]" aria-hidden="true" />
+              <span>{getWorkingHoursText(salon.working_hours_text)}</span>
+            </span>
+            {salon.phone && (
+              <a className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground" href={`tel:${salon.phone}`} dir="ltr" aria-label="تماس با سالن">
+                <Phone className="h-3.5 w-3.5 text-[color:var(--home-accent-strong)]" aria-hidden="true" />
+                <span>{toPersianDigits(salon.phone)}</span>
+              </a>
+            )}
+          </div>
+
+          <a
+            href="#booking-cta"
+            className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[var(--radius-booking-item)] bg-foreground px-4 text-body font-bold text-background shadow-xs transition-[background-color,box-shadow,transform] duration-200 hover:bg-foreground/85 hover:shadow-elevated active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2"
+          >
+            رزرو نوبت
+            <span aria-hidden="true">←</span>
+          </a>
+        </div>
       </div>
-      <span className="text-body" dir={dir}>{text}</span>
-    </div>
+    </section>
   );
 }

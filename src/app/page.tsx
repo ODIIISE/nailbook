@@ -122,11 +122,11 @@ function SalonBooking() {
       <div className="relative z-10">
         <AppHeader />
         <div className="animate-stagger">
+          <Hero salon={salon} />
           <Highlights highlights={highlights} onSelect={setViewingHighlight} />
-          <div className="px-4 pt-2">
+          <div className="px-4 pt-1">
             <SocialProofPulse totalBookings={bookings.filter((b) => b.status !== "cancelled").length} />
           </div>
-          <Hero salon={salon} />
           <BookingCta services={services} isLoading={!loaded} />
           <TrustSignals totalBookings={bookings.length} recentBookings={bookings.filter((b) => b.status !== "cancelled").slice(0, 3)} />
           <ContactButtons phone={salon.phone} />
