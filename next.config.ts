@@ -14,7 +14,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
-      "img-src 'self' data: blob: https://*.vercel-storage.com https://cdn.jsdelivr.net",
+      "img-src 'self' data: blob: https://*.vercel-storage.com https://cdn.jsdelivr.net https://images.unsplash.com",
       "connect-src 'self' https://*.vercel-storage.com",
       "frame-ancestors 'none'",
     ].join("; "),
@@ -31,6 +31,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "cdn.jsdelivr.net",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
       },
     ],
   },

@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { ArrowUpLeft, CalendarDays, ChevronLeft, Clock3, Sparkles } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import type { Service } from "@/lib/types";
+import { ServiceImage } from "@/components/ui/service-image";
 
 interface BookingCtaProps {
   services: Service[];
@@ -28,20 +28,11 @@ function ServiceOption({ service, onSelect }: { service: Service; onSelect: () =
       aria-label={`شروع رزرو ${service.name}`}
     >
       <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-[var(--radius-booking-icon)] bg-muted">
-        {service.image_url ? (
-          <Image
-            src={service.image_url}
-            alt=""
-            fill
-            sizes="48px"
-            unoptimized
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-            <Sparkles className="h-5 w-5" aria-hidden="true" />
-          </div>
-        )}
+        <ServiceImage
+          service={service}
+          sizes="48px"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+        />
       </div>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-body font-bold text-foreground">{service.name}</span>

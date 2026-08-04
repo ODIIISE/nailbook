@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
+import { ServiceImage } from "@/components/ui/service-image";
 import { Sparkles, Users } from "lucide-react";
 import type { Service } from "@/lib/types";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
+
 
 interface Props {
   service: Service;
@@ -15,7 +16,7 @@ interface Props {
  * Pure presentation: derives signals from `service` and the booking count.
  */
 export function ServiceDetail({ service, popularLast30Days }: Props) {
-  const hasImage = Boolean(service.image_url && service.image_url.length > 0);
+  const hasImage = true;
   const bestFor = Array.isArray(service.best_for) ? service.best_for.filter(Boolean) : [];
   const description = typeof service.description === "string" ? service.description.trim() : "";
 
@@ -23,13 +24,11 @@ export function ServiceDetail({ service, popularLast30Days }: Props) {
     <div className="space-y-3">
       {hasImage ? (
         <div className="relative w-full aspect-[16/10] overflow-hidden rounded-2xl border border-border bg-muted">
-          <Image
-            src={service.image_url as string}
+          <ServiceImage
+            service={service}
             alt={service.name}
-            fill
             sizes="(max-width: 430px) 100vw, 430px"
             className="object-cover"
-            unoptimized
             priority
           />
           <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/60 to-transparent">

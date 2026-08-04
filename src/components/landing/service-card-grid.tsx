@@ -1,31 +1,79 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Clock, DollarSign, Sparkles, ChevronLeft, CalendarCheck } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import type { Service } from "@/lib/types";
+import { ServiceImage } from "@/components/ui/service-image";
 
 interface ServiceCardGridProps {
   services: Service[];
   isLoading?: boolean;
 }
 
-const PLACEHOLDER_GRADIENTS = [
-  "from-rose-300 to-pink-400",
-  "from-amber-300 to-orange-400",
-  "from-emerald-300 to-teal-400",
-  "from-blue-300 to-indigo-400",
-  "from-slate-300 to-slate-500",
-  "from-cyan-300 to-sky-400",
-];
+function ServiceCard({
+  service,
+  onSelect,
+}: {
+  service: Service;
+  onSelect: () => void;
+}) {
+  return (
+    <Card
+      className="group cursor-pointer overflow-hidden border border-border bg-card transition-all duration-200 hover:shadow-elevated active:scale-[0.99]"
+      onClick={onSelect}
+      role="button"
+      tabIndex={0}
+      aria-label={`رزرو ${service.name}`}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
+    >
+      <div className="flex items-center gap-3 p-3">
+        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
+          <ServiceImage
+            service={service}
+            alt={service.name}
+            sizes="64px"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-body font-bold text-foreground transition-colors group-hover:text-primary">
+            {service.name}
+          </h3>
+          <p className="mt-0.5 line-clamp-1 text-caption text-muted-foreground">
+            {service.description || "بدون توضیحات"}
+          </p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-md bg-muted/60 px-2 py-0.5 text-small font-medium text-muted-foreground">
+              <Clock className="h-3 w-3" aria-hidden="true" />
+              {toPersianDigits(service.duration_minutes)} دقیقه
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-primary/5 px-2 py-0.5 text-small font-bold text-primary">
+              <DollarSign className="h-3 w-3" aria-hidden="true" />
+              {formatPrice(Number(service.price))} تومان
+            </span>
+          </div>
+        </div>
+
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted/50 text-muted-foreground transition-colors group-hover:bg-foreground group-hover:text-background">
+          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 export function ServiceCardGrid({ services, isLoading }: ServiceCardGridProps) {
   const router = useRouter();
-
   const activeServices = services
-    .filter((s) => s.is_active)
+    .filter((service) => service.is_active)
     .sort((a, b) => a.sort_order - b.sort_order);
 
   if (isLoading) {
@@ -39,19 +87,10 @@ export function ServiceCardGrid({ services, isLoading }: ServiceCardGridProps) {
     );
   }
 
-  if (services.length === 0) {
-    return (
-      <div className="px-4 py-12 text-center">
-        <Sparkles className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-40" />
-        <p className="text-caption text-muted-foreground">هنوز خدماتی اضافه نشده</p>
-      </div>
-    );
-  }
-
   if (activeServices.length === 0) {
     return (
       <div className="px-4 py-12 text-center">
-        <Sparkles className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-40" />
+        <Sparkles className="mx-auto mb-3 h-10 w-10 text-muted-foreground opacity-40" aria-hidden="true" />
         <p className="text-caption text-muted-foreground">هنوز خدماتی اضافه نشده</p>
       </div>
     );
@@ -60,81 +99,21 @@ export function ServiceCardGrid({ services, isLoading }: ServiceCardGridProps) {
   return (
     <div className="px-4 py-6">
       <div className="mx-auto max-w-lg">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="h-5 w-5 text-primary" />
+        <div className="mb-4 flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-primary" aria-hidden="true" />
           <h2 className="text-h2 text-foreground">خدمات ما</h2>
         </div>
         <div className="space-y-3">
-          {activeServices.map((service, index) => (
-            <Card
+          {activeServices.map((service) => (
+            <ServiceCard
               key={service.id}
-              className="group overflow-hidden cursor-pointer border border-border bg-card hover:shadow-elevated transition-all duration-200 active:scale-[0.99]"
-              onClick={() => router.push(`/book?service=${service.id}`)}
-              role="button"
-              tabIndex={0}
-              aria-label={`رزرو ${service.name}`}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  router.push(`/book?service=${service.id}`);
-                }
-              }}
-            >
-              <div className="flex items-center gap-3 p-3">
-                {/* Thumbnail */}
-                <div className="relative h-16 w-16 rounded-xl overflow-hidden shrink-0 bg-muted">
-                  {service.image_url ? (
-                    <Image
-                      src={service.image_url}
-                      alt={service.name}
-                      fill
-                      unoptimized
-                      loading="lazy"
-                      decoding="async"
-                      sizes="64px"
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div
-                      className={`h-full w-full bg-gradient-to-br ${PLACEHOLDER_GRADIENTS[index % PLACEHOLDER_GRADIENTS.length]} flex items-center justify-center`}
-                    >
-                      <Sparkles className="h-6 w-6 text-white/80" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-body font-bold text-foreground truncate group-hover:text-primary transition-colors">
-                    {service.name}
-                  </h3>
-                  <p className="text-caption text-muted-foreground mt-0.5 line-clamp-1">
-                    {service.description || "بدون توضیحات"}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                    <span className="inline-flex items-center gap-1 text-small font-medium text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
-                      <Clock className="h-3 w-3" />
-                      {toPersianDigits(service.duration_minutes)} دقیقه
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-small font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-md">
-                      <DollarSign className="h-3 w-3" />
-                      {formatPrice(Number(service.price))} تومان
-                    </span>
-                  </div>
-                </div>
-
-                {/* Arrow */}
-                <div className="h-8 w-8 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-foreground group-hover:text-background transition-colors">
-                  <ChevronLeft className="h-4 w-4" />
-                </div>
-              </div>
-            </Card>
+              service={service}
+              onSelect={() => router.push(`/book?service=${service.id}`)}
+            />
           ))}
         </div>
-
-        {/* Trust microcopy */}
-        <div className="flex items-center justify-center gap-1.5 mt-4 text-small text-muted-foreground">
-          <CalendarCheck className="h-3.5 w-3.5" />
+        <div className="mt-4 flex items-center justify-center gap-1.5 text-small text-muted-foreground">
+          <CalendarCheck className="h-3.5 w-3.5" aria-hidden="true" />
           <span>رزرو آنی و بدون تماس تلفنی</span>
         </div>
       </div>
