@@ -128,8 +128,8 @@ export default function BookingsPage() {
   }
 
   return (
-    <SalonGuard>
-    <div className="min-h-screen">
+    <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
+    <div className="min-h-screen animate-fade">
       <AppHeader title="نوبت‌های من" />
 
       <div className="px-4 pt-6 pb-24">
@@ -154,7 +154,7 @@ export default function BookingsPage() {
             </div>
           ) : (
             groupedByDate.map((group) => (
-              <div key={group.date}>
+              <div key={group.date} className="animate-slideUp">
                 <p className="text-caption font-bold text-muted-foreground mb-2 px-1">
                   {group.jalaliStr}
                 </p>

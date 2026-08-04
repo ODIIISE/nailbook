@@ -71,8 +71,8 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
   const isCancelled = statusKey === "cancelled";
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="mx-auto max-w-md pt-8">
+    <div className="min-h-screen bg-background p-4 animate-fade">
+      <div className="mx-auto max-w-md pt-8 animate-slideUp">
         <Card className="overflow-hidden border-border shadow-card">
           <CardHeader className="bg-muted/30 pb-4">
             <div className="flex items-center justify-between">

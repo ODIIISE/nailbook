@@ -4,6 +4,7 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Providers } from "./providers";
 import { SplashScreen } from "@/components/layout/splash-screen";
 import { DeviceThemeSync } from "@/components/layout/device-theme-sync";
+import { PageTransition } from "@/components/layout/page-transition";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -49,11 +50,11 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <SplashScreen />
         <DeviceThemeSync />
         <Providers>
+          <SplashScreen />
           <ErrorBoundary>
-            {children}
+            <PageTransition>{children}</PageTransition>
           </ErrorBoundary>
           <Toaster />
         </Providers>

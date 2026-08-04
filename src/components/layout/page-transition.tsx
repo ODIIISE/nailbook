@@ -2,7 +2,13 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+
+const CUSTOMER_ROUTES = ["/", "/book", "/bookings", "/profile", "/login"];
+
+function isCustomerRoute(pathname: string): boolean {
+  return CUSTOMER_ROUTES.some((route) => pathname === route || (route !== "/" && pathname.startsWith(`${route}/`)));
+}
 
 /**
  * Directional cross-route page transition.
@@ -19,12 +25,9 @@ import { useEffect, useRef, useState } from "react";
  */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  // previousPathRef is only ever read inside the diffing effect below —
-  // never during render — so a ref is fine here.
-  const previousPathRef = useRef<string | null>(null);
-  // direction + reduced MUST be state (not refs) so changes re-render.
-  const [direction, setDirection] = useState<"forward" | "back">("forward");
-  const [reduced, setReduced] = useState(false);
+  const [reduced, setReduced] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -35,26 +38,13 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
     return () => mq.removeEventListener("change", update);
   }, []);
 
-  useEffect(() => {
-    // Track direction. popstate = browser back / OS swipe-back.
-    const handler = () => setDirection("back");
-    window.addEventListener("popstate", handler);
-    return () => window.removeEventListener("popstate", handler);
-  }, []);
 
-  useEffect(() => {
-    if (previousPathRef.current === pathname) return;
-    previousPathRef.current = pathname;
-    // After any non-popstate path change, reset direction back to forward
-    // so the NEXT popstate gets correctly identified as the new "back".
-    // setTimeout 0 defers past the current commit so the AnimatePresence
-    // exit/enter pair fires with the correct direction first.
-    const t = setTimeout(() => setDirection("forward"), 0);
-    return () => clearTimeout(t);
-  }, [pathname]);
+  // Keep management surfaces unchanged; customer navigation gets the shared
+  // crossfade while the page-level components provide spatial entrance motion.
+  if (!isCustomerRoute(pathname)) return <>{children}</>;
 
-  const isForward = direction === "forward";
-
+  // Use opacity-only shell transitions. A transformed ancestor would change
+  // the containing block of the customer's fixed bottom navigation.
   const variants = reduced
     ? {
         initial: { opacity: 0 },
@@ -62,21 +52,14 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
         exit: { opacity: 0 },
       }
     : {
-        // In RTL: forward enters from -X (left), exits to +X (right).
-        initial: { opacity: 0, x: isForward ? -16 : 16 },
-        animate: { opacity: 1, x: 0 },
-        exit: { opacity: 0, x: isForward ? 16 : -16 },
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
       };
 
   const transition = reduced
-    ? { duration: 0.18, ease: "easeOut" as const }
-    : {
-        // Mirrors --ease-spring-decay (0.22, 1, 0.36, 1). framer-motion's
-        // cubic-bezier API takes a fixed array; CSS variables can't be read
-        // here so we keep the values in sync via the comment above.
-        duration: 0.3,
-        ease: [0.22, 1, 0.36, 1] as const,
-      };
+    ? { duration: 0.01, ease: "linear" as const }
+    : { duration: 0.24, ease: [0.22, 1, 0.36, 1] as const };
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -86,7 +69,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
         animate={variants.animate}
         exit={variants.exit}
         transition={transition}
-        style={{ willChange: "transform, opacity" }}
+        style={{ willChange: "opacity" }}
       >
         {children}
       </motion.div>

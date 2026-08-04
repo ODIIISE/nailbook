@@ -94,16 +94,9 @@ function ServiceSelectionSheet({
         </div>
 
         {isLoading ? (
-          <div className="space-y-2" aria-label="در حال بارگذاری خدمات" aria-busy="true">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="flex min-h-[76px] items-center gap-3 rounded-[var(--radius-booking-item)] border border-border p-3">
-                <div className="h-12 w-12 shrink-0 animate-pulse rounded-[var(--radius-booking-icon)] bg-muted" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 w-2/3 animate-pulse rounded bg-muted" />
-                  <div className="h-2.5 w-1/2 animate-pulse rounded bg-muted" />
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center justify-center gap-3 rounded-[var(--radius-booking-item)] border border-border p-5 text-small text-muted-foreground" role="status" aria-busy="true">
+            <span className="loading-dot" aria-hidden="true" />
+            <span>در حال آماده‌سازی خدمات...</span>
           </div>
         ) : activeServices.length > 0 ? (
           <div className="space-y-2" role="list" aria-label="خدمات قابل رزرو">

@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, DollarSign, Sparkles, ChevronLeft, CalendarCheck } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import type { Service } from "@/lib/types";
@@ -18,31 +17,9 @@ const PLACEHOLDER_GRADIENTS = [
   "from-amber-300 to-orange-400",
   "from-emerald-300 to-teal-400",
   "from-blue-300 to-indigo-400",
-  "from-purple-300 to-violet-400",
+  "from-slate-300 to-slate-500",
   "from-cyan-300 to-sky-400",
 ];
-
-function ServiceCardSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <Card key={i} className="p-3 overflow-hidden">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-16 w-16 rounded-xl shrink-0" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-1/2" />
-              <div className="flex items-center gap-2 pt-0.5">
-                <Skeleton className="h-3 w-16" />
-                <Skeleton className="h-3 w-20" />
-              </div>
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
-  );
-}
 
 export function ServiceCardGrid({ services, isLoading }: ServiceCardGridProps) {
   const router = useRouter();
@@ -51,16 +28,22 @@ export function ServiceCardGrid({ services, isLoading }: ServiceCardGridProps) {
     .filter((s) => s.is_active)
     .sort((a, b) => a.sort_order - b.sort_order);
 
-  if (isLoading || services.length === 0) {
+  if (isLoading) {
     return (
-      <div className="px-4 py-6">
-        <div className="mx-auto max-w-lg">
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <h2 className="text-h2 text-foreground">خدمات ما</h2>
-          </div>
-          <ServiceCardSkeleton />
+      <div className="px-4 py-6" role="status" aria-label="در حال بارگذاری خدمات">
+        <div className="mx-auto flex max-w-lg items-center justify-center gap-3 rounded-2xl border border-border p-5 text-small text-muted-foreground">
+          <span className="loading-dot" aria-hidden="true" />
+          <span>در حال آماده‌سازی خدمات...</span>
         </div>
+      </div>
+    );
+  }
+
+  if (services.length === 0) {
+    return (
+      <div className="px-4 py-12 text-center">
+        <Sparkles className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-40" />
+        <p className="text-caption text-muted-foreground">هنوز خدماتی اضافه نشده</p>
       </div>
     );
   }

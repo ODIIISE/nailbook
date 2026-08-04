@@ -76,7 +76,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen animate-fade">
       <AppHeader title="پروفایل" />
 
       <div className="px-4 pt-6 pb-24">
@@ -87,7 +87,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <Card className="glass p-4 shadow-card">
+          <Card className="glass p-4 shadow-card animate-slideUp">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-muted">

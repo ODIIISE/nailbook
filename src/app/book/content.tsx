@@ -474,7 +474,7 @@ export default function BookContent() {
   };
 
   return (
-    <SalonGuard>
+    <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
     <div className="min-h-screen">
       <AppHeader
         showBack={step !== "receipt"}

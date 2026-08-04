@@ -117,24 +117,26 @@ function SalonBooking() {
   }, [searchParams]);
 
   return (
-    <SalonGuard>
+    <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
     <div className="relative min-h-screen">
       <div className="relative z-10">
         <AppHeader />
-        <Highlights highlights={highlights} onSelect={setViewingHighlight} />
-        <div className="px-4 pt-2">
-          <SocialProofPulse totalBookings={bookings.filter((b) => b.status !== "cancelled").length} />
-        </div>
-        <Hero salon={salon} />
-        <BookingCta services={services} isLoading={!loaded} />
-        <TrustSignals totalBookings={bookings.length} recentBookings={bookings.filter((b) => b.status !== "cancelled").slice(0, 3)} />
-        <ContactButtons phone={salon.phone} />
+        <div className="animate-stagger">
+          <Highlights highlights={highlights} onSelect={setViewingHighlight} />
+          <div className="px-4 pt-2">
+            <SocialProofPulse totalBookings={bookings.filter((b) => b.status !== "cancelled").length} />
+          </div>
+          <Hero salon={salon} />
+          <BookingCta services={services} isLoading={!loaded} />
+          <TrustSignals totalBookings={bookings.length} recentBookings={bookings.filter((b) => b.status !== "cancelled").slice(0, 3)} />
+          <ContactButtons phone={salon.phone} />
 
-        <footer className="px-4 py-6 text-center pb-20">
-          <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-            ساخته شده با <Heart className="h-3 w-3 text-destructive fill-destructive" /> برای {salon.name}
-          </p>
-        </footer>
+          <footer className="px-4 py-6 text-center pb-20">
+            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+              ساخته شده با <Heart className="h-3 w-3 text-destructive fill-destructive" /> برای {salon.name}
+            </p>
+          </footer>
+        </div>
         <AppNavbar />
         {viewingHighlight && (
           <HighlightViewer highlight={viewingHighlight} onClose={() => setViewingHighlight(null)} />
@@ -160,11 +162,7 @@ export default function HomePage() {
   }, []);
 
   if (isSalonMode === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">در حال بارگذاری...</div>
-      </div>
-    );
+    return <div className="min-h-screen bg-background" aria-hidden="true" />;
   }
 
   if (!isSalonMode) {
@@ -172,11 +170,7 @@ export default function HomePage() {
   }
 
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">در حال بارگذاری...</div>
-      </div>
-    }>
+    <Suspense fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
       <SalonBooking />
     </Suspense>
   );

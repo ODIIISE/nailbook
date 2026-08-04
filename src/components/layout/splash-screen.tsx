@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useSalon } from "@/lib/salon-context";
 
@@ -47,12 +47,36 @@ function BrandMark({ className = "" }: { className?: string }) {
 
 export function SplashScreen() {
   const [visible, setVisible] = useState(true);
-  const { salon } = useSalon();
+  const [minimumTimeElapsed, setMinimumTimeElapsed] = useState(false);
+  const [exiting, setExiting] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+  const exitStartedRef = useRef(false);
+  const { salon, loaded } = useSalon();
 
   useEffect(() => {
-    const timer = setTimeout(() => setVisible(false), 2000);
-    return () => clearTimeout(timer);
+    const timer = setTimeout(() => setMinimumTimeElapsed(true), 1500);
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updateMotion = () => setReducedMotion(media.matches);
+    media.addEventListener("change", updateMotion);
+    return () => {
+      clearTimeout(timer);
+      media.removeEventListener("change", updateMotion);
+    };
   }, []);
+
+  useEffect(() => {
+    // Keep the brand screen over the first data request. This prevents the
+    // homepage fallback from flashing between the splash and real content.
+    if (!loaded || !minimumTimeElapsed || exitStartedRef.current) return;
+    exitStartedRef.current = true;
+    const exitTimer = window.setTimeout(() => {
+      setExiting(!reducedMotion);
+      window.setTimeout(() => setVisible(false), reducedMotion ? 0 : 420);
+    }, 0);
+    return () => window.clearTimeout(exitTimer);
+  }, [loaded, minimumTimeElapsed, reducedMotion]);
 
   if (!visible) return null;
 
@@ -61,7 +85,7 @@ export function SplashScreen() {
   const logoUrl = salon.splash_logo_url || null;
 
   return (
-    <div className="splash-screen">
+    <div className={`splash-screen ${exiting ? "splash-screen-exit" : ""}`}>
       <div className="splash-logo flex flex-col items-center gap-5">
         <div className="relative w-[72px] h-[72px]">
           {logoUrl ? (
