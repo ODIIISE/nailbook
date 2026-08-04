@@ -498,11 +498,15 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<SalonContextType>(() => {
-    if (!loaded || !salon) {
+    if (!loaded) {
       return EMPTY_SALON_CONTEXT;
     }
+    // The salon record itself may be null (fetch failed or not provisioned).
+    // Keep loaded=true so consumers render their empty/default states instead
+    // of showing an eternal loading skeleton.
+    const effectiveSalon = salon ?? EMPTY_SALON_CONTEXT.salon;
     return {
-      salon,
+      salon: effectiveSalon,
       workingHours,
       specificDaysOff,
       services,

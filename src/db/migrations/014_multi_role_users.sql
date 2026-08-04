@@ -20,6 +20,10 @@ SET roles = ARRAY(SELECT DISTINCT unnest(roles || ARRAY['customer']::TEXT[]))
 WHERE NOT ('customer' = ANY(roles));
 
 -- Specific row: upsert owner=mehrdad for phone 09357149901.
+-- Conflict target is (id), not (phone): migration 013 replaces the global
+-- users_phone_key with tenant-aware unique indexes, so ON CONFLICT (phone)
+-- has no matching arbiter on a schema that ran 013 first. The id is always
+-- resolved via the lookup above, so id-based upsert is equivalent.
 INSERT INTO users (id, phone, pin, name, "role", roles)
 VALUES (
   COALESCE(
@@ -32,7 +36,7 @@ VALUES (
   'owner',
   ARRAY['customer','owner']::TEXT[]
 )
-ON CONFLICT (phone) DO UPDATE
+ON CONFLICT (id) DO UPDATE
 SET "role" = 'owner',
     roles = ARRAY['customer','owner']::TEXT[],
     name = 'mehrdad';
