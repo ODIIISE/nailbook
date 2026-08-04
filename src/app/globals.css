@@ -676,6 +676,20 @@
 
 /* ── Homepage semantic accents ── */
 
+.home-profile-bento,
+.home-booking-bento {
+  isolation: isolate;
+}
+
+.home-profile-art {
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--home-blush-light) 76%, var(--card)), var(--card));
+}
+
+.home-booking-mark {
+  background: color-mix(in oklab, var(--foreground) 88%, var(--home-accent));
+}
+
 /* Warm tokens stay available for salon branding, while the booking-first home
    uses quiet surfaces and a single restrained accent. */
 

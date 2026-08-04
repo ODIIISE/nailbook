@@ -77,21 +77,23 @@ export function BookingCta({ services, isLoading }: BookingCtaProps) {
   return (
     <>
       <section id="booking-cta" className="px-4 pb-4 pt-1" aria-labelledby="booking-cta-title" aria-describedby="booking-cta-description">
-        <div className="mx-auto max-w-lg rounded-[var(--radius-booking-item)] border border-border bg-foreground p-4 text-background shadow-card sm:p-5" dir="rtl">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-booking-icon)] bg-background/10 text-background" aria-hidden="true">
-              <CalendarDays className="h-5 w-5" />
+        <div className="home-booking-bento mx-auto max-w-lg overflow-hidden rounded-[24px] border border-foreground bg-foreground text-background shadow-elevated" dir="rtl">
+          <div className="grid grid-cols-[1fr_88px] items-stretch">
+            <div className="min-w-0 p-5 sm:p-6">
+              <p className="text-small font-bold tracking-wide text-background/65">رزرو آنلاین</p>
+              <h2 id="booking-cta-title" className="mt-2 text-[24px] font-extrabold leading-[1.35] tracking-[-0.025em]">وقتت را برای زیبایی رزرو کن</h2>
+              <p id="booking-cta-description" className="mt-2 max-w-xs text-caption leading-6 text-background/70">خدمتت را انتخاب کن و زمان مناسب خودت را ببین.</p>
+              <button type="button" onClick={() => setSheetOpen(true)} className="booking-cta-action group mt-5 flex min-h-[52px] w-full items-center justify-between rounded-[var(--radius-booking-item)] bg-background px-4 text-body font-bold text-foreground shadow-xs transition-[background-color,box-shadow,transform] duration-200 hover:bg-background/90 hover:shadow-elevated active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-foreground" aria-haspopup="dialog" aria-expanded={sheetOpen}>
+                <span>شروع رزرو</span><span className="booking-cta-arrow flex h-8 w-8 items-center justify-center rounded-full bg-foreground/10 transition-transform duration-200 group-hover:-translate-x-0.5" aria-hidden="true"><ChevronLeft className="h-4 w-4" /></span>
+              </button>
             </div>
-            <div className="min-w-0">
-              <p className="text-small font-bold text-background/70">رزرو آنلاین</p>
-              <h2 id="booking-cta-title" className="mt-1 text-[19px] font-bold leading-8">رزرو نوبت</h2>
-              <p id="booking-cta-description" className="text-small leading-6 text-background/70">انتخاب خدمت و زمان مناسب در چند قدم</p>
+            <div className="home-booking-mark flex items-center justify-center border-s border-background/15" aria-hidden="true">
+              <CalendarDays className="h-7 w-7 text-background/80" />
             </div>
           </div>
-          <button type="button" onClick={() => setSheetOpen(true)} className="booking-cta-action group mt-4 flex min-h-[52px] w-full items-center justify-between rounded-[var(--radius-booking-item)] bg-background px-4 text-body font-bold text-foreground shadow-xs transition-[background-color,box-shadow,transform] duration-200 hover:bg-background/90 hover:shadow-elevated active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-foreground" aria-haspopup="dialog" aria-expanded={sheetOpen}>
-            <span>شروع رزرو</span>
-            <span className="booking-cta-arrow flex h-8 w-8 items-center justify-center rounded-full bg-foreground/10 transition-transform duration-200 group-hover:-translate-x-0.5" aria-hidden="true"><ChevronLeft className="h-4 w-4" /></span>
-          </button>
+          <div className="flex items-center justify-between border-t border-background/15 px-5 py-3 text-[10px] text-background/55">
+            <span>انتخاب خدمت</span><span>زمان مناسب</span><span>تأیید نهایی</span>
+          </div>
         </div>
       </section>
       <ServiceSelectionSheet open={sheetOpen} services={services} isLoading={isLoading} onClose={() => setSheetOpen(false)} />
