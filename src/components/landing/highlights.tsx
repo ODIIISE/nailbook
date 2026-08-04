@@ -40,6 +40,9 @@ export function Highlights({ highlights, onSelect }: HighlightsProps) {
                     alt={highlight.name}
                     fill
                     unoptimized
+                    loading="lazy"
+                    decoding="async"
+                    sizes="68px"
                     className="rounded-full object-cover"
                   />
                 ) : (
@@ -52,7 +55,7 @@ export function Highlights({ highlights, onSelect }: HighlightsProps) {
               </div>
             </div>
           </div>
-          <span className="text-[11px] text-foreground font-medium max-w-[72px] truncate">
+          <span className="text-small text-foreground font-medium max-w-[72px] truncate">
             {highlight.name}
           </span>
         </button>
@@ -69,7 +72,7 @@ export function Highlights({ highlights, onSelect }: HighlightsProps) {
                 <Icon className="h-6 w-6 text-muted-foreground/50" />
               </div>
             </div>
-            <span className="text-[11px] text-muted-foreground/60 font-medium max-w-[72px] truncate">
+            <span className="text-small text-muted-foreground/60 font-medium max-w-[72px] truncate">
               {item.label}
             </span>
           </div>

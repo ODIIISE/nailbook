@@ -527,3 +527,28 @@
   0% { opacity: 0; }
   100% { opacity: 1; }
 }
+
+/* ── Reduced Motion ──
+   Intentionally simple: keep state-change feedback (opacity fades) but drop
+   movement that displaces layout (slides, bounces) and theme cross-fades.
+   Step transitions degrade to a quick fade so users still see which step
+   changed, without vestibular triggers. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .step-animate {
+    animation-name: stepFadeIn !important;
+  }
+
+  @keyframes stepFadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+}

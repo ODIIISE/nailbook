@@ -241,19 +241,19 @@ export default function OwnerUsersPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-[15px] font-bold text-foreground truncate">{user.name || "بدون نام"}</p>
+                    <p className="text-body font-bold text-foreground truncate">{user.name || "بدون نام"}</p>
                     {user.role === "owner" && (
-                      <Badge variant="default" className="text-[10px] px-1.5 py-0 h-5">
+                      <Badge variant="default" className="text-small px-1.5 py-0 h-5">
                         مدیر
                       </Badge>
                     )}
                     {user.locked_until && (
-                      <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-5">قفل</Badge>
+                      <Badge variant="destructive" className="text-small px-1.5 py-0 h-5">قفل</Badge>
                     )}
                   </div>
-                  <p className="text-[13px] text-muted-foreground" dir="ltr">{formatPhone(user.phone)}</p>
+                  <p className="text-caption text-muted-foreground" dir="ltr">{formatPhone(user.phone)}</p>
                   <div className="flex items-center gap-2">
-                    <p className="text-[11px] text-muted-foreground/60">عضویت: {formatDate(user.created_at)}</p>
+                    <p className="text-small text-muted-foreground/60">عضویت: {formatDate(user.created_at)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5 flex-shrink-0">
@@ -281,15 +281,15 @@ export default function OwnerUsersPage() {
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="text-[13px] text-muted-foreground">نام</label>
+              <label className="text-caption text-muted-foreground">نام</label>
               <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="نام و نام خانوادگی" className="mt-1" />
             </div>
             <div>
-              <label className="text-[13px] text-muted-foreground">شماره موبایل</label>
+              <label className="text-caption text-muted-foreground">شماره موبایل</label>
               <Input value={formPhone} onChange={(e) => setFormPhone(e.target.value)} placeholder="09121234567" dir="ltr" className="mt-1 text-left" />
             </div>
             <div>
-              <label className="text-[13px] text-muted-foreground">نقش</label>
+              <label className="text-caption text-muted-foreground">نقش</label>
               <Select value={formRole} onValueChange={(val) => setFormRole(val as string)}>
                 <SelectTrigger className="mt-1 w-full">
                   <SelectValue />
@@ -301,7 +301,7 @@ export default function OwnerUsersPage() {
               </Select>
             </div>
             {formError && (
-              <div className="flex items-center gap-2 text-[13px] text-destructive">
+              <div className="flex items-center gap-2 text-caption text-destructive">
                 <AlertTriangle className="h-4 w-4 shrink-0" /><span>{formError}</span>
               </div>
             )}
@@ -324,8 +324,8 @@ export default function OwnerUsersPage() {
               آیا از حذف <strong>{selectedUser?.name || (selectedUser ? formatPhone(selectedUser.phone) : "")}</strong> مطمئنید؟
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <p className="text-[12px] text-destructive text-center -mt-2">این عمل قابل بازگشت نیست</p>
-          {formError && <p className="text-[13px] text-destructive text-center">{formError}</p>}
+          <p className="text-small text-destructive text-center -mt-2">این عمل قابل بازگشت نیست</p>
+          {formError && <p className="text-caption text-destructive text-center">{formError}</p>}
           <AlertDialogFooter>
             <AlertDialogCancel>انصراف</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={handleDelete} disabled={isSubmitting}>

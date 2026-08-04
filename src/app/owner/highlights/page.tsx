@@ -103,7 +103,7 @@ export default function OwnerHighlightsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-foreground">هایلایت‌ها</h2>
-          <p className="text-[13px] text-muted-foreground mt-0.5">
+          <p className="text-caption text-muted-foreground mt-0.5">
             {highlights.length} هایلایت
           </p>
         </div>
@@ -145,7 +145,7 @@ export default function OwnerHighlightsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-foreground truncate">{highlight.name}</p>
-                    <p className="text-[13px] text-muted-foreground">
+                    <p className="text-caption text-muted-foreground">
                       {highlight.images.length} تصویر
                     </p>
                   </div>
@@ -172,7 +172,7 @@ export default function OwnerHighlightsPage() {
                   <div className="px-4 pb-4 space-y-4 border-t border-border/30">
                     {/* Name */}
                     <div className="pt-3">
-                      <Label className="text-[13px]">نام</Label>
+                      <Label className="text-caption">نام</Label>
                       <div className="flex gap-2 mt-1">
                         <Input
                           value={editName}
@@ -191,7 +191,7 @@ export default function OwnerHighlightsPage() {
 
                     {/* Cover */}
                     <div>
-                      <Label className="text-[13px]">کاور</Label>
+                      <Label className="text-caption">کاور</Label>
                       <div className="mt-2 flex items-center gap-3">
                         <div className="relative w-14 h-14 rounded-full overflow-hidden bg-muted shrink-0">
                           {expandedHighlight.cover_url ? (
@@ -218,7 +218,7 @@ export default function OwnerHighlightsPage() {
                     {/* Images */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <Label className="text-[13px]">تصاویر ({expandedHighlight.images.length})</Label>
+                        <Label className="text-caption">تصاویر ({expandedHighlight.images.length})</Label>
                         <Button
                           variant="outline"
                           size="sm"
@@ -239,7 +239,7 @@ export default function OwnerHighlightsPage() {
                       </div>
 
                       {expandedHighlight.images.length === 0 ? (
-                        <div className="text-center py-4 text-muted-foreground text-[13px]">
+                        <div className="text-center py-4 text-muted-foreground text-caption">
                           هنوز تصویری اضافه نشده
                         </div>
                       ) : (
@@ -259,7 +259,7 @@ export default function OwnerHighlightsPage() {
                               >
                                 <X className="h-3 w-3" />
                               </button>
-                              <span className="absolute bottom-1 left-1 text-[10px] text-white bg-black/50 px-1.5 py-0.5 rounded-full">
+                              <span className="absolute bottom-1 left-1 text-small text-white bg-black/50 px-1.5 py-0.5 rounded-full">
                                 {index + 1}
                               </span>
                             </div>
@@ -284,7 +284,7 @@ export default function OwnerHighlightsPage() {
 
           <div className="space-y-4">
             <div>
-              <Label className="text-[13px]">نام هایلایت</Label>
+              <Label className="text-caption">نام هایلایت</Label>
               <Input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}

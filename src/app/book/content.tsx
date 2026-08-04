@@ -18,6 +18,7 @@ import { AuthCard, AuthCardRoot, AuthError } from "@/components/auth/auth-card";
 import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { BookingProgress } from "@/components/booking/booking-progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StickyActionBar, StickyPrimaryButton } from "@/components/ui/sticky-action-bar";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
@@ -71,6 +72,11 @@ export default function BookContent() {
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isBookingLoading, setIsBookingLoading] = useState(false);
   const verifiedUserRef = useRef<{ id: string } | null>(null);
+
+  // Guest booking state — phone collected at confirm instead of an OTP wall
+  const [guestPhone, setGuestPhone] = useState("");
+  const [guestName, setGuestName] = useState("");
+  const [guestError, setGuestError] = useState("");
 
   // Determine initial step based on service addons
   const selectedService = services.find((s) => s.id === selectedServiceId);
@@ -197,21 +203,26 @@ export default function BookContent() {
 
   const goBack = useCallback(() => {
     setSpamError("");
-    // Build the actual step flow based on current state
+    // Auth is now an optional detour from the confirm step, so the main
+    // flow no longer contains it: addons → datetime → confirm.
     const flow: BookingStep[] = [];
     if (hasAddons) flow.push("addons");
     flow.push("datetime");
-    if (!user) flow.push("auth");
     flow.push("confirm");
 
-    const idx = flow.indexOf(step);
-    if (idx > 0) {
-      setStep(flow[idx - 1]);
+    if (step === "auth") {
+      setStep("confirm");
       resetAuth();
     } else {
-      router.push("/");
+      const idx = flow.indexOf(step);
+      if (idx > 0) {
+        setStep(flow[idx - 1]);
+        resetAuth();
+      } else {
+        router.push("/");
+      }
     }
-  }, [step, router, hasAddons, user, resetAuth]);
+  }, [step, router, hasAddons, resetAuth]);
 
   const handleAddonToggle = useCallback((addonId: string) => {
     setSelectedAddons((prev) =>
@@ -252,13 +263,9 @@ export default function BookContent() {
   }, []);
 
   const handleDateTimeContinue = useCallback(() => {
-    if (user) {
-      setStep("confirm");
-    } else {
-      setStep("auth");
-      resetAuth();
-    }
-  }, [user, resetAuth]);
+    // Guests skip the OTP wall entirely — phone is collected at confirm.
+    setStep("confirm");
+  }, []);
 
   // ─── Auth handlers ───
 
@@ -339,11 +346,23 @@ export default function BookContent() {
   const handleConfirmBooking = useCallback(async () => {
     if (!selectedDate || !selectedService || !selectedTime) return;
     if (isSubmittingRef.current) return;
+
+    // Guests must provide a valid phone — the salon contacts them for
+    // confirmation and the receipt SMS. Anti-spam still applies server-side.
+    if (!user) {
+      const normalizedPhone = normalizeDigits(guestPhone);
+      if (!isValidIranianPhone(normalizedPhone)) {
+        setGuestError("شماره موبایل معتبر نیست (مثال: ۰۹۱۲۱۲۳۴۵۶۷)");
+        return;
+      }
+    }
+
     isSubmittingRef.current = true;
     setIsBookingLoading(true);
     setSpamError("");
 
-    const customerPhone = user?.phone || authPhone;
+    const customerPhone = user?.phone || normalizeDigits(guestPhone);
+    const customerName = user?.name || guestName.trim() || "";
     const [h, m] = selectedTime.split(":").map(Number);
     const endMinutes = h * 60 + m + totalDuration;
     const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
@@ -356,14 +375,14 @@ export default function BookContent() {
       user_id: user?.id,
       service_id: selectedService.id,
       selected_addons: selectedAddons,
-      customer_name: user?.name || authName || "",
+      customer_name: customerName,
       customer_phone: customerPhone,
       date: (() => { const j = gregorianToJalali(selectedDate); return `${j.jy}/${String(j.jm).padStart(2, "0")}/${String(j.jd).padStart(2, "0")}`; })(),
       date_gregorian: getTehranDateKey(selectedDate),
       start_time: selectedTime,
       end_time: endTime,
       status: "reserved",
-      phone_verified: true,
+      phone_verified: !!user,
       paid: false,
       created_at: new Date().toISOString(),
       service: selectedService,
@@ -388,7 +407,7 @@ export default function BookContent() {
         setSpamError(result.error || "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید");
       }
     }
-  }, [selectedDate, selectedService, selectedTime, user, authPhone, authName, addBooking, selectedAddons, totalDuration, refreshBookings]);
+  }, [selectedDate, selectedService, selectedTime, user, guestPhone, guestName, addBooking, selectedAddons, totalDuration, refreshBookings]);
 
   // ─── Step titles ───
 
@@ -416,19 +435,18 @@ export default function BookContent() {
           <BookingProgress
             currentStep={step}
             hasAddons={hasAddons}
-            isLoggedIn={!!user}
           />
         </div>
       )}
 
-      <div className="mx-auto max-w-lg px-4 pt-4 pb-28 space-y-4">
+      <div className={`mx-auto max-w-lg px-4 pt-4 space-y-4 ${step === "confirm" ? "pb-40" : "pb-28"}`}>
 
         {/* ─── Step 1: Addons ─── */}
         {step === "addons" && (
           <div key={step} className="space-y-4 step-animate">
             {hasAddons ? (
               <>
-                <p className="text-[13px] text-muted-foreground text-center">
+                <p className="text-caption text-muted-foreground text-center">
                   آپشن‌های اضافی برای خدمت انتخاب کنید (اختیاری)
                 </p>
                 <div className="space-y-2">
@@ -452,11 +470,11 @@ export default function BookContent() {
                             <span className="text-sm font-medium">{addon.name}</span>
                             <div className="flex items-center gap-2 mt-0.5">
                               {addon.duration_minutes > 0 && (
-                                <span className="text-[11px] text-muted-foreground">
+                                <span className="text-small text-muted-foreground">
                                   +{toPersianDigits(addon.duration_minutes)} دقیقه
                                 </span>
                               )}
-                              <span className="text-[11px] font-bold text-primary">
+                              <span className="text-small font-bold text-primary">
                                 +{formatPrice(Number(addon.price))} تومان
                               </span>
                             </div>
@@ -468,7 +486,7 @@ export default function BookContent() {
                 </div>
               </>
             ) : (
-              <p className="text-[13px] text-muted-foreground text-center py-8">
+              <p className="text-caption text-muted-foreground text-center py-8">
                 آپشن اضافی برای این خدمت وجود ندارد
               </p>
             )}
@@ -512,7 +530,7 @@ export default function BookContent() {
               <div className="mx-auto max-w-lg">
                 <div className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-primary/5 border border-primary/10">
                   <CalendarDays className="h-4 w-4 text-primary" />
-                  <span className="text-[15px] font-bold text-foreground">
+                  <span className="text-body font-bold text-foreground">
                     {(() => {
                       const j = gregorianToJalali(selectedDate);
                       return formatJalaliDate(j.jy, j.jm, j.jd);
@@ -667,6 +685,8 @@ export default function BookContent() {
                           width={32}
                           height={32}
                           unoptimized
+                          loading="lazy"
+                          decoding="async"
                           className="w-8 h-8 rounded-[9px] object-cover shrink-0"
                         />
                       ) : (
@@ -675,55 +695,88 @@ export default function BookContent() {
                         </div>
                       )}
                       <div>
-                        <div className="text-[13px] font-semibold text-foreground">{selectedService.name}</div>
-                        <div className="text-[10px] text-muted-foreground">{salon.name}</div>
+                        <div className="text-caption font-semibold text-foreground">{selectedService.name}</div>
+                        <div className="text-small text-muted-foreground">{salon.name}</div>
                       </div>
                     </div>
 
                     {/* Detail list */}
                     <div className="relative z-[2]">
                       <div className="flex justify-between items-center py-[7px]">
-                        <span className="text-[12px] text-muted-foreground">تاریخ</span>
-                        <span className="text-[12px] font-semibold text-foreground">{selectedFullDate}</span>
+                        <span className="text-small text-muted-foreground">تاریخ</span>
+                        <span className="text-small font-semibold text-foreground">{selectedFullDate}</span>
                       </div>
                       <div className="flex justify-between items-center py-[7px] border-t border-dashed border-black/[0.05]">
-                        <span className="text-[12px] text-muted-foreground">ساعت</span>
-                        <span className="text-[12px] font-semibold text-foreground">{toPersianDigits(selectedTime)} تا {toPersianDigits(selectedEndTime)}</span>
+                        <span className="text-small text-muted-foreground">ساعت</span>
+                        <span className="text-small font-semibold text-foreground">{toPersianDigits(selectedTime)} تا {toPersianDigits(selectedEndTime)}</span>
                       </div>
                       <div className="flex justify-between items-center py-[7px] border-t border-dashed border-black/[0.05]">
-                        <span className="text-[12px] text-muted-foreground">مدت</span>
-                        <span className="text-[12px] font-semibold text-foreground">{toPersianDigits(totalDuration)} دقیقه</span>
+                        <span className="text-small text-muted-foreground">مدت</span>
+                        <span className="text-small font-semibold text-foreground">{toPersianDigits(totalDuration)} دقیقه</span>
                       </div>
                       <div className="flex justify-between items-center pt-2.5 pb-0.5 border-t border-dashed border-black/[0.05]">
-                        <span className="text-[12px] font-medium text-muted-foreground">هزینه کل</span>
-                        <span className="text-[16px] font-extrabold text-primary">{formatPrice(Number(totalPrice))} تومان</span>
+                        <span className="text-small font-medium text-muted-foreground">هزینه کل</span>
+                        <span className="text-body-lg font-extrabold text-primary">{formatPrice(Number(totalPrice))} تومان</span>
                       </div>
                     </div>
                   </div>
                 </TornPaperCard>
 
+                {/* Guest contact card — replaces the old OTP wall */}
+                {!user && (
+                  <div className="bg-card border border-border rounded-2xl p-4 space-y-3 animate-slideUp">
+                    <div>
+                      <p className="text-caption font-medium text-foreground mb-0.5">
+                        اطلاعات تماس
+                      </p>
+                      <p className="text-small text-muted-foreground mb-3">
+                        بدون نیاز به حساب — فقط برای رسید و یادآوری رزرو
+                      </p>
+                      <Label className="text-caption text-muted-foreground mb-1.5 block">شماره موبایل *</Label>
+                      <Input
+                        value={guestPhone}
+                        onChange={(e) => { setGuestPhone(e.target.value); setGuestError(""); }}
+                        placeholder="۰۹۱۲۱۲۳۴۵۶۷"
+                        dir="ltr"
+                        inputMode="tel"
+                        className="h-12 text-left text-base rounded-xl"
+                      />
+                      {guestError && (
+                        <p className="text-small text-destructive mt-1.5">{guestError}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-caption text-muted-foreground mb-1.5 block">نام (اختیاری)</Label>
+                      <Input
+                        value={guestName}
+                        onChange={(e) => setGuestName(e.target.value)}
+                        placeholder="مثال: سارا احمدی"
+                        className="h-12 text-base rounded-xl"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGuestError("");
+                        setAuthPhone(guestPhone);
+                        setStep("auth");
+                      }}
+                      className="w-full text-center text-small font-medium text-primary py-1"
+                    >
+                      ورود با کد برای پیگیری رزروها
+                    </button>
+                  </div>
+                )}
+
                 {/* Spam Error */}
                 {spamError && (
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-slideUp">
                     <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
-                    <p className="text-[13px] text-destructive">{spamError}</p>
+                    <p className="text-caption text-destructive">{spamError}</p>
                   </div>
                 )}
 
-                {/* Confirm Button */}
-                <Button size="xl" onClick={handleConfirmBooking} disabled={isBookingLoading} className="w-full bg-foreground text-background hover:bg-foreground/90">
-                  {isBookingLoading ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      در حال ثبت...
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      تایید و رزرو
-                      <ArrowLeft className="h-4 w-4" />
-                    </span>
-                  )}
-                </Button>
+                {/* Confirm action moved to the shared StickyActionBar below */}
               </>
             )}
           </div>
@@ -738,7 +791,7 @@ export default function BookContent() {
               time={selectedTime}
               duration={totalDuration}
               price={totalPrice}
-              customerName={user?.name || ""}
+              customerName={user?.name || guestName || ""}
               bookingId={bookingId}
               phone={salon.phone}
             />
@@ -748,26 +801,44 @@ export default function BookContent() {
 
       {/* Sticky CTA for datetime step */}
       {step === "datetime" && selectedTime && (
-        <div className="fixed bottom-[72px] left-0 right-0 z-30 px-4 pb-2 pointer-events-none">
-          <div className="mx-auto max-w-lg pointer-events-auto">
-            <Button size="xl" className="w-full bg-foreground text-background hover:bg-foreground/90 shadow-lg" onClick={handleDateTimeContinue}>
-              ادامه
-              <ChevronLeft className="h-5 w-5 mr-2" />
-            </Button>
-          </div>
-        </div>
+        <StickyActionBar>
+          <StickyPrimaryButton onClick={handleDateTimeContinue}>
+            ادامه
+            <ChevronLeft className="h-5 w-5 mr-2" />
+          </StickyPrimaryButton>
+        </StickyActionBar>
       )}
 
       {/* Sticky CTA for addons step */}
       {step === "addons" && (
-        <div className="fixed bottom-[72px] left-0 right-0 z-30 px-4 pb-2 pointer-events-none">
-          <div className="mx-auto max-w-lg pointer-events-auto">
-            <Button size="xl" className="w-full bg-foreground text-background hover:bg-foreground/90 shadow-lg" onClick={handleAddonsContinue}>
-              {hasAddons ? "انتخاب زمان" : "ادامه"}
-              <ChevronLeft className="h-5 w-5 mr-2" />
-            </Button>
-          </div>
-        </div>
+        <StickyActionBar>
+          <StickyPrimaryButton onClick={handleAddonsContinue}>
+            {hasAddons ? "انتخاب زمان" : "ادامه"}
+            <ChevronLeft className="h-5 w-5 mr-2" />
+          </StickyPrimaryButton>
+        </StickyActionBar>
+      )}
+
+      {/* Sticky CTA for confirm step — keeps the decisive action in the thumb zone */}
+      {step === "confirm" && !isBookingLoading && (
+        <StickyActionBar>
+          <StickyPrimaryButton
+            onClick={handleConfirmBooking}
+            disabled={isBookingLoading}
+          >
+            {isBookingLoading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                در حال ثبت...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                تایید و رزرو
+                <ArrowLeft className="h-4 w-4" />
+              </span>
+            )}
+          </StickyPrimaryButton>
+        </StickyActionBar>
       )}
 
       <AppNavbar />

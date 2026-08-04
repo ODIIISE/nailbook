@@ -64,6 +64,19 @@ export const chartColors = {
   tooltipText: { light: "#0A0A0A", dark: "#FAFAFA" },
 } as const;
 
+// ── Status Badge Classes (single source of truth for status pills) ──
+// Tailwind utility classes for rendered status badges. Uses semantic tokens
+// (primary/success/violet/rose/destructive) so badges stay theme-aware.
+export const statusBadgeClass: Record<string, string> = {
+  pending: "bg-muted text-muted-foreground",
+  reserved: "bg-primary/10 text-primary",
+  confirmed: "bg-success/10 text-success",
+  in_progress: "bg-amber-500/10 text-amber-600",
+  completed: "bg-violet-500/10 text-violet-600",
+  cancelled: "bg-destructive/10 text-destructive",
+  no_show: "bg-amber-500/10 text-amber-600",
+};
+
 // ── Theme-aware helper ──
 export function themeColor(light: string, dark: string, isDark: boolean): string {
   return isDark ? dark : light;

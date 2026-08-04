@@ -26,10 +26,12 @@ export function Hero({ salon, onBookNow }: HeroProps) {
               alt={salon.name}
               fill
               unoptimized
+              priority
+              sizes="72px"
               className="object-cover"
             />
           ) : (
-            <Image src="/logo-placeholder.svg" alt="" width={40} height={40} className="opacity-60" unoptimized />
+            <Image src="/logo-placeholder.svg" alt="" width={40} height={40} className="opacity-60" unoptimized priority />
           )}
         </div>
         <h1 className="text-display text-foreground mb-1.5">
@@ -66,7 +68,7 @@ export function Hero({ salon, onBookNow }: HeroProps) {
               </div>
             </div>
             <Button
-              className="mt-4 h-14 w-full rounded-2xl bg-foreground text-[16px] font-bold text-background shadow-sm transition-transform hover:bg-foreground/90 active:scale-[0.99]"
+              className="mt-4 h-14 w-full rounded-2xl bg-foreground text-body-lg font-bold text-background shadow-sm transition-transform hover:bg-foreground/90 active:scale-[0.99]"
               onClick={onBookNow}
             >
               رزرو نوبت
@@ -81,7 +83,7 @@ export function Hero({ salon, onBookNow }: HeroProps) {
 
 function InfoRow({ icon, text, dir }: { icon: React.ReactNode; text: string; dir?: string }) {
   return (
-    <div className="flex items-center gap-3 text-[14px] text-foreground/80">
+    <div className="flex items-center gap-3 text-body text-foreground/80">
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
         {icon}
       </div>

@@ -52,14 +52,14 @@ export default function BootstrapPage() {
             <Sparkles className="h-6 w-6 text-foreground" />
           </div>
           <h1 className="text-h1 text-foreground">ایجاد اکانت مدیر</h1>
-          <p className="text-[13px] text-muted-foreground mt-1">
+          <p className="text-caption text-muted-foreground mt-1">
             فقط زمانی که هیچ مدیری وجود ندارد کار می‌کند
           </p>
         </div>
 
         <div className="space-y-4">
           <div>
-            <Label className="text-[13px]">شماره موبایل</Label>
+            <Label className="text-caption">شماره موبایل</Label>
             <Input
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -70,7 +70,7 @@ export default function BootstrapPage() {
             />
           </div>
           <div>
-            <Label className="text-[13px]">نام (اختیاری)</Label>
+            <Label className="text-caption">نام (اختیاری)</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -80,7 +80,7 @@ export default function BootstrapPage() {
             />
           </div>
           {error && (
-            <p className="text-[13px] text-destructive text-center">{error}</p>
+            <p className="text-caption text-destructive text-center">{error}</p>
           )}
           <Button
             size="xl"

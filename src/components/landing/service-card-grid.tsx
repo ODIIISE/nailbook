@@ -106,6 +106,8 @@ export function ServiceCardGrid({ services, isLoading }: ServiceCardGridProps) {
                       alt={service.name}
                       fill
                       unoptimized
+                      loading="lazy"
+                      decoding="async"
                       sizes="64px"
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
@@ -127,11 +129,11 @@ export function ServiceCardGrid({ services, isLoading }: ServiceCardGridProps) {
                     {service.description || "بدون توضیحات"}
                   </p>
                   <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+                    <span className="inline-flex items-center gap-1 text-small font-medium text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
                       <Clock className="h-3 w-3" />
                       {toPersianDigits(service.duration_minutes)} دقیقه
                     </span>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-md">
+                    <span className="inline-flex items-center gap-1 text-small font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-md">
                       <DollarSign className="h-3 w-3" />
                       {formatPrice(Number(service.price))} تومان
                     </span>
@@ -148,7 +150,7 @@ export function ServiceCardGrid({ services, isLoading }: ServiceCardGridProps) {
         </div>
 
         {/* Trust microcopy */}
-        <div className="flex items-center justify-center gap-1.5 mt-4 text-[11px] text-muted-foreground">
+        <div className="flex items-center justify-center gap-1.5 mt-4 text-small text-muted-foreground">
           <CalendarCheck className="h-3.5 w-3.5" />
           <span>رزرو آنی و بدون تماس تلفنی</span>
         </div>

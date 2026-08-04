@@ -59,7 +59,7 @@ export default function ProfilePage() {
                 <User className="h-8 w-8 text-muted-foreground/50" />
               </div>
               <h2 className="text-h3 text-foreground mb-2">وارد شوید</h2>
-              <p className="text-[13px] text-muted-foreground mb-6 max-w-xs mx-auto">
+              <p className="text-caption text-muted-foreground mb-6 max-w-xs mx-auto">
                 برای مشاهده پروفایل و اطلاعات حساب کاربری وارد شوید
               </p>
               <Button onClick={() => router.push("/login")} className="gap-2">
@@ -98,11 +98,11 @@ export default function ProfilePage() {
                     <Input
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="mt-1 h-9 text-[15px] font-bold"
+                      className="mt-1 h-9 text-body font-bold"
                       placeholder="نام خود را وارد کنید"
                     />
                   ) : (
-                    <p className="text-[15px] font-bold text-foreground">{user.name || "بدون نام"}</p>
+                    <p className="text-body font-bold text-foreground">{user.name || "بدون نام"}</p>
                   )}
                 </div>
                 {editing ? (
@@ -126,7 +126,7 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">شماره موبایل</p>
-                  <p className="text-[15px] font-bold text-foreground" dir="ltr">
+                  <p className="text-body font-bold text-foreground" dir="ltr">
                     {toPersianDigits(user.phone)}
                   </p>
                 </div>

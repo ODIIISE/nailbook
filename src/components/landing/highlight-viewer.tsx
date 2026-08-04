@@ -192,6 +192,9 @@ export function HighlightViewer({ highlight, onClose }: HighlightViewerProps) {
         alt={highlight.name}
         fill
         unoptimized
+        loading="lazy"
+        decoding="async"
+        sizes="100vw"
         className="object-contain select-none"
         draggable={false}
       />

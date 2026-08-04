@@ -221,9 +221,9 @@ export function ReceiptRow({ icon, value, subValue, iconBg, iconColor }: Receipt
         <div style={{ color: iconColor }}>{icon}</div>
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-[14px] font-bold text-foreground">{value}</div>
+        <div className="text-body font-bold text-foreground">{value}</div>
         {subValue && (
-          <div className="text-[11px] text-muted-foreground mt-0.5">{subValue}</div>
+          <div className="text-small text-muted-foreground mt-0.5">{subValue}</div>
         )}
       </div>
     </div>
@@ -239,9 +239,9 @@ interface ReceiptTotalProps {
 export function ReceiptTotal({ label, amount, currency = "تومان" }: ReceiptTotalProps) {
   return (
     <div className="flex items-center justify-between pt-3 mt-2 border-t border-dashed border-foreground/[0.06]">
-      <span className="text-[13px] text-muted-foreground font-medium">{label}</span>
-      <span className="text-[20px] font-extrabold text-foreground">
-        {amount} <span className="text-[13px] font-medium text-muted-foreground">{currency}</span>
+      <span className="text-caption text-muted-foreground font-medium">{label}</span>
+      <span className="text-h2 font-extrabold text-foreground">
+        {amount} <span className="text-caption font-medium text-muted-foreground">{currency}</span>
       </span>
     </div>
   );

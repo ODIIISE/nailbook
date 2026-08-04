@@ -140,7 +140,7 @@ export function BookingConfirm({
             >
               <Check className="h-4 w-4 text-primary-foreground" strokeWidth={2.5} />
             </div>
-            <div className="text-[14px] font-bold text-foreground">رزرو ثبت شد</div>
+            <div className="text-body font-bold text-foreground">رزرو ثبت شد</div>
           </div>
 
           <div className="flex items-center gap-2.5 mb-2 relative z-[2]">
@@ -151,8 +151,8 @@ export function BookingConfirm({
               <Sparkles className="h-4 w-4 text-foreground" />
             </div>
             <div>
-              <div className="text-[13px] font-semibold text-foreground">{serviceName}</div>
-              <div className="text-[10px] text-muted-foreground">{salonName}</div>
+              <div className="text-caption font-semibold text-foreground">{serviceName}</div>
+              <div className="text-small text-muted-foreground">{salonName}</div>
             </div>
           </div>
 
@@ -160,29 +160,29 @@ export function BookingConfirm({
 
           <div className="relative z-[2]">
             <div className="flex justify-between items-center py-[7px]">
-              <span className="text-[12px] text-muted-foreground">تاریخ</span>
-              <span className="text-[12px] font-semibold text-foreground">{fullDate}</span>
+              <span className="text-small text-muted-foreground">تاریخ</span>
+              <span className="text-small font-semibold text-foreground">{fullDate}</span>
             </div>
             <div className="flex justify-between items-center py-[7px] border-t border-dashed border-foreground/5">
-              <span className="text-[12px] text-muted-foreground">ساعت</span>
-              <span className="text-[12px] font-semibold text-foreground">{formattedTime} تا {formattedEndTime}</span>
+              <span className="text-small text-muted-foreground">ساعت</span>
+              <span className="text-small font-semibold text-foreground">{formattedTime} تا {formattedEndTime}</span>
             </div>
             <div className="flex justify-between items-center py-[7px] border-t border-dashed border-foreground/5">
-              <span className="text-[12px] text-muted-foreground">مدت</span>
-              <span className="text-[12px] font-semibold text-foreground">{toPersianDigits(duration)} دقیقه</span>
+              <span className="text-small text-muted-foreground">مدت</span>
+              <span className="text-small font-semibold text-foreground">{toPersianDigits(duration)} دقیقه</span>
             </div>
             <div className="flex justify-between items-center pt-2.5 pb-0.5 border-t border-dashed border-foreground/5">
-              <span className="text-[12px] font-medium text-muted-foreground">هزینه کل</span>
-              <span className="text-[16px] font-extrabold text-foreground">{formatPrice(Number(price))} تومان</span>
+              <span className="text-small font-medium text-muted-foreground">هزینه کل</span>
+              <span className="text-body-lg font-extrabold text-foreground">{formatPrice(Number(price))} تومان</span>
             </div>
           </div>
 
           <div className="mt-3 relative z-[2]">
             <Barcode id={bookingId} />
-            <div className="text-center text-[10px] font-medium tracking-[1px] text-foreground/20 mt-1.5" dir="ltr">
+            <div className="text-center text-small font-medium tracking-[1px] text-foreground/20 mt-1.5" dir="ltr">
               #{shortId}
             </div>
-            <div className="text-center text-[7px] font-medium tracking-[2px] text-muted-foreground opacity-30 mt-0.5">
+            <div className="text-center text-small font-medium tracking-[2px] text-muted-foreground opacity-30 mt-0.5">
               {displayDomain}
             </div>
           </div>

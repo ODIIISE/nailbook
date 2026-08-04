@@ -110,7 +110,7 @@ export function ManualReserveModal({
     <BottomSheet open={true} onClose={onClose} title="رزرو دستی">
       <div className="space-y-4">
         <div>
-          <Label className="text-[13px]">نام مشتری</Label>
+          <Label className="text-caption">نام مشتری</Label>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -120,7 +120,7 @@ export function ManualReserveModal({
         </div>
 
         <div>
-          <Label className="text-[13px]">شماره موبایل</Label>
+          <Label className="text-caption">شماره موبایل</Label>
           <Input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -128,15 +128,15 @@ export function ManualReserveModal({
             dir="ltr"
             className="mt-1 text-left"
           />
-          <p className="text-[11px] text-muted-foreground mt-1">
+          <p className="text-small text-muted-foreground mt-1">
             اگر شماره جدید باشد، کاربر خودکار ساخته می‌شود
           </p>
         </div>
 
         <div>
-          <Label className="text-[13px]">خدمت</Label>
+          <Label className="text-caption">خدمت</Label>
           <Select value={serviceId} onValueChange={(val) => handleServiceChange(val as string)}>
-            <SelectTrigger className="mt-1 w-full h-12 rounded-xl border border-border bg-card px-3 text-[15px]" dir="rtl">
+            <SelectTrigger className="mt-1 w-full h-12 rounded-xl border border-border bg-card px-3 text-body" dir="rtl">
               <SelectValue placeholder="خدمت را انتخاب کنید" />
             </SelectTrigger>
             <SelectContent>
@@ -151,7 +151,7 @@ export function ManualReserveModal({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label className="text-[13px]">از ساعت</Label>
+            <Label className="text-caption">از ساعت</Label>
             <Input
               type="time"
               value={startTime}
@@ -161,7 +161,7 @@ export function ManualReserveModal({
             />
           </div>
           <div>
-            <Label className="text-[13px]">تا ساعت</Label>
+            <Label className="text-caption">تا ساعت</Label>
             <Input
               type="time"
               value={endTime}
@@ -173,7 +173,7 @@ export function ManualReserveModal({
         </div>
 
         {endTime <= startTime && (
-          <p className="text-[12px] text-destructive text-center">ساعت پایان باید بعد از ساعت شروع باشد</p>
+          <p className="text-small text-destructive text-center">ساعت پایان باید بعد از ساعت شروع باشد</p>
         )}
       </div>
 

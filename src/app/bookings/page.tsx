@@ -102,7 +102,7 @@ export default function BookingsPage() {
                 <User className="h-8 w-8 text-muted-foreground/50" />
               </div>
               <h2 className="text-h3 text-foreground mb-2">وارد شوید</h2>
-              <p className="text-[13px] text-muted-foreground mb-6 max-w-xs mx-auto">
+              <p className="text-caption text-muted-foreground mb-6 max-w-xs mx-auto">
                 برای مشاهده نوبت‌های خود وارد حساب کاربری شوید
               </p>
               <Button
@@ -133,7 +133,7 @@ export default function BookingsPage() {
                 <Calendar className="h-8 w-8 text-muted-foreground/50" />
               </div>
               <h2 className="text-h3 text-foreground mb-2">نوبتی ندارید</h2>
-              <p className="text-[13px] text-muted-foreground mb-6 max-w-xs mx-auto">
+              <p className="text-caption text-muted-foreground mb-6 max-w-xs mx-auto">
                 هنوز نوبتی رزرو نکرده‌اید. همین الان اولین نوبت خود را بگیرید.
               </p>
               <Button
@@ -147,7 +147,7 @@ export default function BookingsPage() {
           ) : (
             groupedByDate.map((group) => (
               <div key={group.date}>
-                <p className="text-[13px] font-bold text-muted-foreground mb-2 px-1">
+                <p className="text-caption font-bold text-muted-foreground mb-2 px-1">
                   {group.jalaliStr}
                 </p>
                 <div className="space-y-2">

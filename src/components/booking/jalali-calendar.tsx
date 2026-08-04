@@ -160,7 +160,7 @@ export function JalaliCalendar({
     <>
       <div className="mx-auto max-w-lg relative">
         <div className="flex items-center justify-between px-4 mb-2">
-          <span className="text-[13px] text-muted-foreground">انتخاب تاریخ</span>
+          <span className="text-caption text-muted-foreground">انتخاب تاریخ</span>
           <Button
             variant="ghost"
             size="sm"
@@ -168,7 +168,7 @@ export function JalaliCalendar({
             className="text-primary gap-1.5 h-8 px-2"
           >
             <CalendarDays className="h-4 w-4" />
-            <span className="text-[12px]">تقویم</span>
+            <span className="text-small">تقویم</span>
           </Button>
         </div>
         {/* Outer wrapper with padding to prevent shadow clipping */}
@@ -206,7 +206,7 @@ export function JalaliCalendar({
             >
               {/* Weekday label */}
               <span
-                className="text-[11px] font-medium leading-none"
+                className="text-small font-medium leading-none"
                 style={{ color: d.isSelected ? "var(--background)" : "var(--muted-foreground)" }}
               >
                 {d.weekday}
@@ -223,7 +223,7 @@ export function JalaliCalendar({
               {/* Today label */}
               {d.isToday && (
                 <span
-                  className="text-[10px] font-semibold mt-0.5 leading-none"
+                  className="text-small font-semibold mt-0.5 leading-none"
                   style={{ color: d.isSelected ? "var(--background)" : "var(--foreground)" }}
                 >
                   امروز
@@ -233,7 +233,7 @@ export function JalaliCalendar({
               {/* Tomorrow label */}
               {d.isTomorrow && (
                 <span
-                  className="text-[10px] font-semibold mt-0.5 leading-none"
+                  className="text-small font-semibold mt-0.5 leading-none"
                   style={{ color: d.isSelected ? "var(--background)" : "var(--muted-foreground)" }}
                 >
                   فردا
@@ -242,7 +242,7 @@ export function JalaliCalendar({
 
               {/* Fully booked label */}
               {d.isFullyBooked && !d.isSelected && (
-                <span className="text-[9px] font-medium mt-0.5 leading-none text-destructive">
+                <span className="text-small font-medium mt-0.5 leading-none text-destructive">
                   تکمیل
                 </span>
               )}
@@ -345,7 +345,7 @@ function CalendarModal({
           <Button variant="ghost" size="icon-sm" onClick={() => setViewYear((y) => y - 1)}>
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <span className="text-[14px] font-bold text-foreground min-w-[60px] text-center">
+          <span className="text-body font-bold text-foreground min-w-[60px] text-center">
             {toPersianDigits(viewYear)}
           </span>
           <Button variant="ghost" size="icon-sm" onClick={() => setViewYear((y) => y + 1)}>
@@ -355,7 +355,7 @@ function CalendarModal({
 
         <div className="grid grid-cols-7 gap-1 mb-2">
           {PERSIAN_WEEKDAYS_SHORT.map((wd) => (
-            <div key={wd} className="text-center text-[11px] font-bold text-muted-foreground py-1">
+            <div key={wd} className="text-center text-small font-bold text-muted-foreground py-1">
               {wd}
             </div>
           ))}
@@ -372,7 +372,7 @@ function CalendarModal({
                 disabled={cell.isPast}
                 onClick={() => cell.date && onSelect(cell.date)}
                 className={`
-                  h-10 rounded-xl text-[13px] font-bold transition-all duration-150
+                  h-10 rounded-xl text-caption font-bold transition-all duration-150
                   ${cell.isSelected
                     ? "bg-foreground text-background"
                     : cell.isToday

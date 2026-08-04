@@ -17,7 +17,7 @@ export function ContactButtons({ phone }: ContactButtonsProps) {
   const whatsappUrl = valid ? `https://wa.me/98${phone.slice(1)}` : null;
 
   const pillClass =
-    "flex min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-border/70 bg-transparent px-3 py-3 text-[13px] font-medium transition-all duration-200 hover:bg-muted/60 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+    "flex min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-border/70 bg-transparent px-3 py-3 text-caption font-medium transition-all duration-200 hover:bg-muted/60 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
   return (
     <section className="px-4 pb-3" aria-labelledby="contact-heading">

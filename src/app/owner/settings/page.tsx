@@ -185,10 +185,10 @@ export default function OwnerSettingsPage() {
       {/* Backup Section */}
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[14px]">💾</span>
+          <span className="text-body">💾</span>
           <h3 className="font-semibold text-foreground">پشتیبان‌گیری</h3>
         </div>
-        <p className="text-[12px] text-muted-foreground">
+        <p className="text-small text-muted-foreground">
           از تمام اطلاعات سالن (خدمات، قیمت‌ها، رزروها، تنظیمات) خروجی بگیرید
         </p>
         <div className="flex gap-3">

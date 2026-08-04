@@ -80,7 +80,7 @@ export default function AdminBootstrapPage() {
               <Shield className="h-6 w-6 text-primary" />
             </div>
             <h1 className="text-h1 text-foreground">ایجاد اکانت مدیر کل</h1>
-            <p className="text-[13px] text-muted-foreground mt-1">
+            <p className="text-caption text-muted-foreground mt-1">
               فقط زمانی که هیچ مدیری وجود ندارد کار می‌کند
             </p>
           </div>
@@ -88,7 +88,7 @@ export default function AdminBootstrapPage() {
           {step === "form" && (
             <div className="space-y-4">
               <div>
-                <Label className="text-[13px]">شماره موبایل</Label>
+                <Label className="text-caption">شماره موبایل</Label>
                 <Input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -98,7 +98,7 @@ export default function AdminBootstrapPage() {
                 />
               </div>
               <div>
-                <Label className="text-[13px]">نام (اختیاری)</Label>
+                <Label className="text-caption">نام (اختیاری)</Label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -107,7 +107,7 @@ export default function AdminBootstrapPage() {
                 />
               </div>
               {error && (
-                <p className="text-[13px] text-destructive text-center">{error}</p>
+                <p className="text-caption text-destructive text-center">{error}</p>
               )}
               <Button
                 size="xl"
@@ -122,20 +122,20 @@ export default function AdminBootstrapPage() {
 
           {step === "pin" && (
             <div className="space-y-4">
-              <p className="text-[13px] text-muted-foreground text-center">
+              <p className="text-caption text-muted-foreground text-center">
                 یک رمز ۴ رقمی برای مدیر کل انتخاب کنید
               </p>
               <PinInput onComplete={handlePinComplete} disabled={isLoading} />
               {error && (
-                <p className="text-[13px] text-destructive text-center">{error}</p>
+                <p className="text-caption text-destructive text-center">{error}</p>
               )}
             </div>
           )}
 
           {step === "done" && (
             <div className="text-center py-4">
-              <p className="text-[15px] font-bold text-success">اکانت با موفقیت ایجاد شد</p>
-              <p className="text-[13px] text-muted-foreground mt-2">در حال انتقال...</p>
+              <p className="text-body font-bold text-success">اکانت با موفقیت ایجاد شد</p>
+              <p className="text-caption text-muted-foreground mt-2">در حال انتقال...</p>
             </div>
           )}
         </Card>

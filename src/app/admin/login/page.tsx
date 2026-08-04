@@ -58,7 +58,7 @@ export default function AdminLoginPage() {
               <Shield className="h-6 w-6 text-primary" />
             </div>
             <h1 className="text-h1 text-foreground">ورود مدیر کل</h1>
-            <p className="text-[13px] text-muted-foreground mt-1">
+            <p className="text-caption text-muted-foreground mt-1">
               شماره موبایل و رمز ۴ رقمی خود را وارد کنید
             </p>
           </div>
@@ -66,7 +66,7 @@ export default function AdminLoginPage() {
           {step === "phone" && (
             <div className="space-y-4">
               <div>
-                <Label className="text-[13px]">شماره موبایل</Label>
+                <Label className="text-caption">شماره موبایل</Label>
                 <Input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -77,7 +77,7 @@ export default function AdminLoginPage() {
                 />
               </div>
               {error && (
-                <p className="text-[13px] text-destructive text-center">{error}</p>
+                <p className="text-caption text-destructive text-center">{error}</p>
               )}
               <Button
                 size="xl"
@@ -92,7 +92,7 @@ export default function AdminLoginPage() {
 
           {step === "pin" && (
             <div className="space-y-4">
-              <p className="text-[13px] text-muted-foreground text-center">
+              <p className="text-caption text-muted-foreground text-center">
                 رمز ۴ رقمی خود را وارد کنید
               </p>
               <PinInput onComplete={handlePinComplete} disabled={isLoading} />
@@ -102,7 +102,7 @@ export default function AdminLoginPage() {
                 </div>
               )}
               {error && (
-                <p className="text-[13px] text-destructive text-center">{error}</p>
+                <p className="text-caption text-destructive text-center">{error}</p>
               )}
               <Button
                 variant="ghost"

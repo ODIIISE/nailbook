@@ -11,9 +11,10 @@ import { Highlights } from "@/components/landing/highlights";
 import { HighlightViewer } from "@/components/landing/highlight-viewer";
 import { ServiceCardGrid } from "@/components/landing/service-card-grid";
 import { SalonGuard } from "@/components/ui/salon-guard";
-import { Heart, Store, Users, Calendar } from "lucide-react";
+import { Heart, Store, Users, Calendar, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { GradientBackground } from "@/components/layout/gradient-background";
 
 import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
@@ -21,68 +22,78 @@ import type { Highlight } from "@/lib/types";
 
 function AdminLanding() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <nav className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xs">X</span>
-            </div>
-            <span className="font-semibold text-sm tracking-wider uppercase">NailBook</span>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="rounded px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-bold uppercase text-xs tracking-widest"
-            onClick={() => window.location.href = "/admin/login"}
-          >
-            ورود
-          </Button>
-        </div>
-      </nav>
-
-      <section className="max-w-6xl mx-auto px-6 pt-24 pb-20">
-        <div className="max-w-2xl">
-          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tighter leading-none mb-6 uppercase">
-            مدیریت سالن‌ها
-          </h1>
-          <p className="text-muted-foreground text-lg max-w-lg mb-10 leading-relaxed">
-            رزرو آنلاین، مدیریت کاربران، و درآمد — همه از یک پنل.
-          </p>
-          <Button
-            size="lg"
-            className="rounded px-8 py-4 bg-primary text-primary-foreground hover:bg-primary/90 font-bold uppercase text-sm tracking-widest"
-            onClick={() => window.location.href = "/admin/login"}
-          >
-            ورود به پنل
-          </Button>
-        </div>
-      </section>
-
-      <section className="border-t border-border">
-        <div className="max-w-6xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border">
-            {[
-              { icon: Store, label: "سالن‌ها", desc: "ایجاد و مدیریت" },
-              { icon: Users, label: "کاربران", desc: "مدیران و مشتریان" },
-              { icon: Calendar, label: "رزروها", desc: "رزرو و درآمد" },
-            ].map((f) => (
-              <div key={f.label} className="bg-background p-6 group hover:bg-muted/20 transition-colors">
-                <f.icon className="h-5 w-5 text-muted-foreground mb-3 group-hover:text-foreground transition-colors" />
-                <p className="font-bold text-sm mb-1 uppercase tracking-wide">{f.label}</p>
-                <p className="text-xs text-muted-foreground">{f.desc}</p>
+    <div className="relative min-h-screen bg-background text-foreground">
+      <GradientBackground />
+      <div className="relative z-10">
+        <nav className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
+          <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-foreground text-background flex items-center justify-center shadow-card">
+                <Sparkles className="h-5 w-5" />
               </div>
-            ))}
+              <span className="text-body font-bold text-foreground">پنل مدیریت سالن</span>
+            </div>
+            <Button
+              size="sm"
+              className="rounded-xl bg-foreground text-background hover:bg-foreground/90 font-semibold"
+              onClick={() => window.location.href = "/admin/login"}
+            >
+              ورود
+            </Button>
           </div>
-        </div>
-      </section>
+        </nav>
 
-      <footer className="border-t border-border py-6">
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between text-xs text-muted-foreground uppercase tracking-wider">
-          <span>© 2026 NailBook</span>
-          <span>v1.0</span>
-        </div>
-      </footer>
+        <section className="max-w-6xl mx-auto px-6 pt-20 pb-16">
+          <div className="max-w-2xl mx-auto text-center md:text-right">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-caption font-medium text-primary mb-6">
+              <Sparkles className="h-3.5 w-3.5" />
+              نوبت‌دهی آنلاین سالن‌های زیبایی
+            </div>
+            <h1 className="text-h1 font-extrabold leading-snug mb-4">
+              مدیریت سالن‌ها
+            </h1>
+            <p className="text-body text-muted-foreground max-w-lg mx-auto md:mx-0 mb-10 leading-relaxed">
+              رزرو آنلاین، مدیریت کاربران، و درآمد — همه از یک پنل.
+            </p>
+            <Button
+              size="lg"
+              className="rounded-2xl px-8 py-4 bg-foreground text-background hover:bg-foreground/90 font-bold h-14"
+              onClick={() => window.location.href = "/admin/login"}
+            >
+              ورود به پنل
+            </Button>
+          </div>
+        </section>
+
+        <section className="border-t border-border">
+          <div className="max-w-6xl mx-auto px-6 py-16">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { icon: Store, label: "سالن‌ها", desc: "ایجاد و مدیریت" },
+                { icon: Users, label: "کاربران", desc: "مدیران و مشتریان" },
+                { icon: Calendar, label: "رزروها", desc: "رزرو و درآمد" },
+              ].map((f) => (
+                <div key={f.label} className="bg-card border border-border rounded-2xl p-6 group hover:shadow-elevated hover:-translate-y-0.5 transition-all">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                    <f.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <p className="text-h3 font-bold mb-1">{f.label}</p>
+                  <p className="text-caption text-muted-foreground">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <footer className="border-t border-border py-6">
+          <div className="max-w-6xl mx-auto px-6 flex items-center justify-between text-small text-muted-foreground">
+            <span>© ۱۴۰۵ پنل مدیریت سالن</span>
+            <span className="flex items-center gap-1.5">
+              ساخته شده با <Heart className="h-3 w-3 text-destructive fill-destructive" /> برای سالن‌های زیبایی
+            </span>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }

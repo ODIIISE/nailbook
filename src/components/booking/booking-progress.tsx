@@ -15,11 +15,12 @@ interface StepConfig {
 interface BookingProgressProps {
   currentStep: BookingStep;
   hasAddons: boolean;
-  isLoggedIn: boolean;
 }
 
-export function BookingProgress({ currentStep, hasAddons, isLoggedIn }: BookingProgressProps) {
-  // Build the actual flow based on current state
+export function BookingProgress({ currentStep, hasAddons }: BookingProgressProps) {
+  // Build the actual flow based on current state. Auth is now an optional
+  // detour from the confirm step (guest booking), so it is not part of the
+  // main progress flow.
   const steps = useMemo(() => {
     const allSteps: StepConfig[] = [];
 
@@ -29,17 +30,16 @@ export function BookingProgress({ currentStep, hasAddons, isLoggedIn }: BookingP
 
     allSteps.push({ id: "datetime", label: "انتخاب زمان", shortLabel: "زمان" });
 
-    if (!isLoggedIn) {
-      allSteps.push({ id: "auth", label: "ورود", shortLabel: "ورود" });
-    }
-
     allSteps.push({ id: "confirm", label: "تایید رزرو", shortLabel: "تایید" });
 
     return allSteps;
-  }, [hasAddons, isLoggedIn]);
+  }, [hasAddons]);
 
-  const currentIndex = steps.findIndex((s) => s.id === currentStep);
-  const isReceipt = currentStep === "receipt";
+  // Auth is a detour from the confirm step, so it keeps confirm marked as
+  // the current step rather than leaving every segment inactive.
+  const effectiveStep = currentStep === "auth" ? "confirm" : currentStep;
+  const currentIndex = steps.findIndex((s) => s.id === effectiveStep);
+  const isReceipt = effectiveStep === "receipt";
 
   return (
     <div className="px-4 pt-3 pb-2">
@@ -86,11 +86,11 @@ export function BookingProgress({ currentStep, hasAddons, isLoggedIn }: BookingP
               {isCompleted ? (
                 <Check className="h-3 w-3" strokeWidth={3} />
               ) : (
-                <span className="text-[10px] font-bold">
+                <span className="text-small font-bold">
                   {toPersianDigits(String(index + 1))}
                 </span>
               )}
-              <span className={`text-[10px] font-medium ${isCurrent ? "font-bold" : ""}`}>
+              <span className={`text-small font-medium ${isCurrent ? "font-bold" : ""}`}>
                 {step.shortLabel}
               </span>
             </div>

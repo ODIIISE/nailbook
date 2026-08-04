@@ -66,7 +66,7 @@ export function EarningsModal({
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              className={`flex-1 h-9 rounded-full text-[13px] font-bold transition-all ${
+              className={`flex-1 h-9 rounded-full text-caption font-bold transition-all ${
                 period === p
                   ? "bg-foreground text-background"
                   : "border border-border text-foreground hover:bg-muted"
@@ -81,13 +81,13 @@ export function EarningsModal({
           <div className="flex items-center justify-between p-3 rounded-xl bg-success/10">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-success" />
-              <span className="text-[13px] text-foreground">پرداخت شده</span>
+              <span className="text-caption text-foreground">پرداخت شده</span>
             </div>
             <div className="text-left">
-              <p className="text-[15px] font-bold text-success">
+              <p className="text-body font-bold text-success">
                 {formatPrice(earnings.paid)} تومان
               </p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-small text-muted-foreground">
                 {toPersianDigits(earnings.paidCount)} نوبت
               </p>
             </div>
@@ -96,13 +96,13 @@ export function EarningsModal({
           <div className="flex items-center justify-between p-3 rounded-xl bg-destructive/10">
             <div className="flex items-center gap-2">
               <TrendingDown className="h-4 w-4 text-destructive" />
-              <span className="text-[13px] text-foreground">پرداخت نشده</span>
+              <span className="text-caption text-foreground">پرداخت نشده</span>
             </div>
             <div className="text-left">
-              <p className="text-[15px] font-bold text-destructive">
+              <p className="text-body font-bold text-destructive">
                 {formatPrice(earnings.unpaid)} تومان
               </p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-small text-muted-foreground">
                 {toPersianDigits(earnings.unpaidCount)} نوبت
               </p>
             </div>
@@ -113,13 +113,13 @@ export function EarningsModal({
           <div className="flex items-center justify-between p-3 rounded-xl bg-foreground/5">
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-foreground" />
-              <span className="text-[13px] font-bold text-foreground">کل درآمد</span>
+              <span className="text-caption font-bold text-foreground">کل درآمد</span>
             </div>
             <div className="text-left">
-              <p className="text-[17px] font-bold text-foreground">
+              <p className="text-body-lg font-bold text-foreground">
                 {formatPrice(earnings.total)} تومان
               </p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-small text-muted-foreground">
                 {toPersianDigits(earnings.count)} نوبت
               </p>
             </div>

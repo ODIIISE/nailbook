@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Trash2, AlertTriangle } from "lucide-react";
+import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Trash2, AlertTriangle, CheckCircle2, XCircle, Loader } from "lucide-react";
 import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
 import { calculateBookingPrice } from "@/lib/pricing";
 import { STATUS_CONFIG, VALID_TRANSITIONS } from "@/lib/constants";
@@ -23,9 +23,24 @@ interface BookingModalProps {
   onClose: () => void;
 }
 
-const ALL_STATUS_OPTIONS: { value: string; label: string; color: string }[] = Object.entries(STATUS_CONFIG).map(
-  ([value, { label, color }]) => ({ value, label, color })
-);
+const STATUS_ICONS: Record<string, typeof CheckCircle2> = {
+  reserved: Clock,
+  confirmed: CheckCircle2,
+  completed: CheckCircle2,
+  cancelled: XCircle,
+  no_show: AlertTriangle,
+  in_progress: Loader,
+  pending: Clock,
+};
+
+const ALL_STATUS_OPTIONS: { value: string; label: string; color: string; Icon: typeof CheckCircle2 }[] = Object.entries(
+  STATUS_CONFIG
+).map(([value, { label, color }]) => ({
+  value,
+  label,
+  color,
+  Icon: STATUS_ICONS[value] || Clock,
+}));
 
 export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, onStatusChange, onDelete, onClose }: BookingModalProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -70,8 +85,8 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
         {/* Header */}
         <div className="flex items-center justify-between mb-3.5">
           <div className="flex items-center gap-2">
-            <h2 className="text-[16px] font-bold">جزئیات نوبت</h2>
-            <span className={`text-[10px] font-semibold text-muted-foreground ${subtleBg2} px-2 py-0.5 rounded-md`} dir="ltr">{shortId}</span>
+            <h2 className="text-body-lg font-bold">جزئیات نوبت</h2>
+            <span className={`text-small font-semibold text-muted-foreground ${subtleBg2} px-2 py-0.5 rounded-md`} dir="ltr">{shortId}</span>
           </div>
           <button onClick={onClose} className={`w-7 h-7 rounded-lg ${subtleBg2} flex items-center justify-center`}>
             <svg className="h-3.5 w-3.5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -85,8 +100,8 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
               <User className={`h-4 w-4 ${textMuted}`} />
             </div>
             <div>
-              <div className="text-[13px] font-bold">{booking.customer_name}</div>
-              <div className="text-[11px] text-muted-foreground mt-px" dir="ltr">{toPersianDigits(booking.customer_phone)}</div>
+              <div className="text-caption font-bold">{booking.customer_name}</div>
+              <div className="text-small text-muted-foreground mt-px" dir="ltr">{toPersianDigits(booking.customer_phone)}</div>
             </div>
           </div>
           <div className="flex gap-1">
@@ -109,12 +124,12 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
                 <div className={`w-6 h-6 rounded-md ${subtleBg2} flex items-center justify-center`}>
                   <Wrench className={`h-[11px] w-[11px] ${textMuted2}`} />
                 </div>
-                <span className="text-[12px] font-semibold">{booking.service?.name || "نامشخص"}</span>
+                <span className="text-small font-semibold">{booking.service?.name || "نامشخص"}</span>
               </div>
               {selectedAddons.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {selectedAddons.map((addon) => (
-                    <span key={addon!.id} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[5px] text-[10px] font-semibold`}
+                    <span key={addon!.id} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[5px] text-small font-semibold`}
                       style={{ backgroundColor: `${addonColor}` + "10", color: addonColor as string }}>
                       {addon!.name}
                     </span>
@@ -130,11 +145,11 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
               <div className={`w-6 h-6 rounded-md flex items-center justify-center`} style={{ backgroundColor: `${calendarColor}14` }}>
                 <Calendar className={`h-[11px] w-[11px]`} style={{ color: calendarColor as string }} />
               </div>
-              <span className="text-[12px] font-medium">{shortDate}</span>
-              <span className="text-[11px] text-muted-foreground mx-1">•</span>
+              <span className="text-small font-medium">{shortDate}</span>
+              <span className="text-small text-muted-foreground mx-1">•</span>
               <Clock className="h-3 w-3 text-muted-foreground" />
-              <span className="text-[11px] text-muted-foreground">{toPersianDigits(booking.start_time.slice(0, 5))} – {toPersianDigits(booking.end_time.slice(0, 5))}</span>
-              <span className="text-[10px] text-muted-foreground/60 mr-auto">{toPersianDigits(duration)} دقیقه</span>
+              <span className="text-small text-muted-foreground">{toPersianDigits(booking.start_time.slice(0, 5))} – {toPersianDigits(booking.end_time.slice(0, 5))}</span>
+              <span className="text-small text-muted-foreground/60 mr-auto">{toPersianDigits(duration)} دقیقه</span>
             </div>
           </div>
 
@@ -145,9 +160,9 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
                 <div className={`w-6 h-6 rounded-md flex items-center justify-center`} style={{ backgroundColor: `${priceColor}14` }}>
                   <DollarSign className={`h-[11px] w-[11px]`} style={{ color: priceColor as string }} />
                 </div>
-                <span className="text-[12px] font-medium">هزینه</span>
+                <span className="text-small font-medium">هزینه</span>
               </div>
-              <span className="text-[12px] font-bold" style={{ color: priceColor as string }}>{formatPrice(Number(price))} تومان</span>
+              <span className="text-small font-bold" style={{ color: priceColor as string }}>{formatPrice(Number(price))} تومان</span>
             </div>
           </div>
         </div>
@@ -155,16 +170,18 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
         {/* Status + Paid Toggle */}
         <div className="flex items-center justify-between mb-3">
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted text-[11px] font-semibold">
+            <DropdownMenuTrigger className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted text-small font-semibold">
+              <statusConfig.Icon className="h-3.5 w-3.5" style={{ color: statusConfig.color }} />
               <span style={{ color: statusConfig.color }}>{statusConfig.label}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="min-w-[140px]">
               {statusOptions.length === 0 ? (
                 <DropdownMenuItem disabled>
-                  <span className="text-muted-foreground text-[11px]">بدون تغییر وضعیت</span>
+                  <span className="text-muted-foreground text-small">بدون تغییر وضعیت</span>
                 </DropdownMenuItem>
               ) : statusOptions.map((opt) => (
-                <DropdownMenuItem key={opt.value} onClick={() => onStatusChange(opt.value)}>
+                <DropdownMenuItem key={opt.value} onClick={() => onStatusChange(opt.value)} className="gap-2">
+                  <opt.Icon className="h-3.5 w-3.5" style={{ color: opt.color }} />
                   <span style={{ color: opt.color }}>{opt.label}</span>
                 </DropdownMenuItem>
               ))}
@@ -172,7 +189,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
           </DropdownMenu>
 
           <button onClick={onTogglePaid} className="flex items-center gap-2">
-            <span className={`text-[11px] font-medium ${isPaid ? paidColor : "text-muted-foreground"}`}>{isPaid ? "پرداخت شده" : "پرداخت نشده"}</span>
+            <span className={`text-small font-medium ${isPaid ? paidColor : "text-muted-foreground"}`}>{isPaid ? "پرداخت شده" : "پرداخت نشده"}</span>
             <div className={`w-9 h-5 rounded-full relative transition-colors`} style={{ backgroundColor: isPaid ? paidColor as string : "var(--muted)" }}>
               <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-background shadow transition-transform ${isPaid ? "right-0.5" : "right-[18px]"}`} />
             </div>
@@ -182,7 +199,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
         {/* Actions */}
         <div className="flex gap-2">
           <button onClick={() => setDeleteOpen(true)}
-            className={`flex-1 py-2.5 rounded-[10px] text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-colors`}
+            className={`flex-1 py-2.5 rounded-[10px] text-small font-semibold flex items-center justify-center gap-1.5 transition-colors`}
             style={{ backgroundColor: `${deleteColor}14`, color: deleteColor as string }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = `${deleteColor}1F`)}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = `${deleteColor}14`)}>
@@ -193,7 +210,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
 
         {/* Created at */}
         {createdAtTime && (
-          <p className="text-[10px] text-muted-foreground/50 text-center mt-2" dir="ltr">
+          <p className="text-small text-muted-foreground/50 text-center mt-2" dir="ltr">
             Created at {createdAtTime}
           </p>
         )}
@@ -207,18 +224,18 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
               <AlertTriangle className="h-4 w-4" />
               حذف نوبت
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-[11px]" style={{ color: `${deleteColor}B3` }}>
+            <AlertDialogDescription className="text-small" style={{ color: `${deleteColor}B3` }}>
               آیا مطمئن هستید؟ این عمل غیرقابل بازگشت است.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => { onDelete(booking.id); onClose(); }}
-              className="text-[11px] font-semibold text-white" style={{ backgroundColor: deleteColor as string }}
+              className="text-small font-semibold text-white" style={{ backgroundColor: deleteColor as string }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = deleteHover as string)}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = deleteColor as string)}>
               بله، حذف
             </AlertDialogAction>
-            <AlertDialogCancel className="bg-muted text-[11px] font-semibold border-0">
+            <AlertDialogCancel className="bg-muted text-small font-semibold border-0">
               انصراف
             </AlertDialogCancel>
           </AlertDialogFooter>

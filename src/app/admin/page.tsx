@@ -185,7 +185,7 @@ export default function AdminDashboard() {
           >
             {t.label}
             {t.badge !== undefined && t.badge > 0 && (
-              <span className="h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
+              <span className="h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-small flex items-center justify-center">
                 {t.badge}
               </span>
             )}
@@ -438,7 +438,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: { icon: LucideIcon; 
         <Icon className={`h-4 w-4 ${color}`} />
       </div>
       <p className="text-lg font-extrabold">{value}</p>
-      {sub && <p className="text-[10px] text-muted-foreground mt-1">{sub}</p>}
+      {sub && <p className="text-small text-muted-foreground mt-1">{sub}</p>}
     </div>
   );
 }

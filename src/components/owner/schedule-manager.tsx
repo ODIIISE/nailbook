@@ -74,7 +74,7 @@ function Help({ text }: { text: string }) {
   return (
     <Tooltip>
       <TooltipTrigger render={<HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help hover:text-muted-foreground transition-colors" />} />
-      <TooltipContent side="top" className="w-52 text-[11px] leading-relaxed p-2.5 rounded-xl bg-card border border-border">
+      <TooltipContent side="top" className="w-52 text-small leading-relaxed p-2.5 rounded-xl bg-card border border-border">
         {text}
       </TooltipContent>
     </Tooltip>
@@ -97,12 +97,12 @@ function SettingRow({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <Label className="text-[13px] font-medium">{label}</Label>
+        <Label className="text-caption font-medium">{label}</Label>
         <Help text={help} />
       </div>
       {children}
       {description && (
-        <p className="text-[11px] text-muted-foreground/70 leading-relaxed">{description}</p>
+        <p className="text-small text-muted-foreground/70 leading-relaxed">{description}</p>
       )}
     </div>
   );
@@ -137,7 +137,7 @@ function NumberInput({
         className="w-20 text-center text-sm"
         dir="ltr"
       />
-      {unit && <span className="text-[12px] text-muted-foreground">{unit}</span>}
+      {unit && <span className="text-small text-muted-foreground">{unit}</span>}
     </div>
   );
 }
@@ -167,7 +167,7 @@ function JalaliMonthGrid({
       </p>
       <div className="grid grid-cols-7 gap-1 mb-1">
         {PERSIAN_WEEKDAYS_SHORT.map((day) => (
-          <div key={day} className="text-center text-[10px] font-medium text-muted-foreground py-1">
+          <div key={day} className="text-center text-small font-medium text-muted-foreground py-1">
             {day}
           </div>
         ))}
@@ -430,7 +430,7 @@ export function ScheduleManager({
                   key={v}
                   onClick={() => { setSlotInterval(v); markChanged(); }}
                   className={`
-                    h-9 min-w-[40px] px-2 rounded-lg text-[13px] font-medium transition-all
+                    h-9 min-w-[40px] px-2 rounded-lg text-caption font-medium transition-all
                     ${slotInterval === v
                       ? "bg-foreground text-background shadow-sm"
                       : "bg-secondary text-foreground hover:bg-secondary/80"
@@ -539,7 +539,7 @@ export function ScheduleManager({
                   key={mode}
                   type="button"
                   onClick={() => { setOptimizationMode(mode); markChanged(); }}
-                  className={`h-10 rounded-xl text-[12px] font-medium transition-all ${optimizationMode === mode ? "bg-foreground text-background" : "bg-secondary text-foreground hover:bg-secondary/80"}`}
+                  className={`h-10 rounded-xl text-small font-medium transition-all ${optimizationMode === mode ? "bg-foreground text-background" : "bg-secondary text-foreground hover:bg-secondary/80"}`}
                 >
                   {mode === "hybrid" ? "هوشمند (پیشنهادی)" : "قدیمی"}
                 </button>
@@ -604,7 +604,7 @@ export function ScheduleManager({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Label className="text-[13px] font-medium">تمدید ساعت کاری</Label>
+                <Label className="text-caption font-medium">تمدید ساعت کاری</Label>
                 <Help text="اگر فعال شود، رزروها می‌توانند از ساعت پایان کاری فراتر بروند." />
               </div>
               <Switch
@@ -612,7 +612,7 @@ export function ScheduleManager({
                 onCheckedChange={(v) => { setAllowOverflow(v); markChanged(); }}
               />
             </div>
-            <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
+            <p className="text-small text-muted-foreground/70 leading-relaxed">
               {allowOverflow
                 ? `رزروها می‌توانند تا ${toPersianDigits(overflowMinutes)} دقیقه بعد از پایان کار ادامه داشته باشند`
                 : "رزروها باید قبل از ساعت پایان کار تمام شوند"
@@ -633,7 +633,7 @@ export function ScheduleManager({
                   className="w-20 text-center text-sm"
                   dir="ltr"
                 />
-                <span className="text-[12px] text-muted-foreground">دقیقه</span>
+                <span className="text-small text-muted-foreground">دقیقه</span>
               </div>
             )}
           </div>
@@ -672,13 +672,13 @@ export function ScheduleManager({
                 <button
                   key={d}
                   onClick={() => toggleSpecificDayOff(d)}
-                  className="px-2 py-0.5 rounded text-[10px] bg-destructive/10 text-destructive hover:bg-destructive/20"
+                  className="px-2 py-0.5 rounded text-small bg-destructive/10 text-destructive hover:bg-destructive/20"
                 >
                   {d} ×
                 </button>
               ))}
               {daysOff.length > 10 && (
-                <span className="text-[10px] text-muted-foreground self-center">
+                <span className="text-small text-muted-foreground self-center">
                   +{toPersianDigits(daysOff.length - 10)} مورد دیگر
                 </span>
               )}

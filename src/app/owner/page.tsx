@@ -169,8 +169,8 @@ export default function OwnerDashboard() {
         {/* Full date display */}
         <div className="px-4 py-2">
           <div className="flex items-center justify-center gap-2">
-            <span className="text-[13px] text-muted-foreground">تاریخ:</span>
-            <span className="text-[17px] font-bold text-foreground">
+            <span className="text-caption text-muted-foreground">تاریخ:</span>
+            <span className="text-body-lg font-bold text-foreground">
               {(() => {
                 const j = gregorianToJalali(currentDate);
                 return formatJalaliDate(j.jy, j.jm, j.jd);
@@ -197,8 +197,8 @@ export default function OwnerDashboard() {
               <Users className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground">نوبت‌های امروز</p>
-              <p className="text-[17px] font-bold text-foreground">{toPersianDigits(todayStats.count)}</p>
+              <p className="text-small text-muted-foreground">نوبت‌های امروز</p>
+              <p className="text-body-lg font-bold text-foreground">{toPersianDigits(todayStats.count)}</p>
             </div>
           </Card>
           <Card className="p-3 flex items-center gap-3">
@@ -206,8 +206,8 @@ export default function OwnerDashboard() {
               <Banknote className="h-5 w-5 text-success" />
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground">درآمد امروز</p>
-              <p className="text-[15px] font-bold text-foreground">{formatPrice(todayStats.revenue)}</p>
+              <p className="text-small text-muted-foreground">درآمد امروز</p>
+              <p className="text-body font-bold text-foreground">{formatPrice(todayStats.revenue)}</p>
             </div>
           </Card>
           <Card className="p-3 flex items-center gap-3">
@@ -215,8 +215,8 @@ export default function OwnerDashboard() {
               <Clock className="h-5 w-5 text-destructive" />
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground">پرداخت نشده</p>
-              <p className="text-[17px] font-bold text-foreground">{toPersianDigits(todayStats.unpaidCount)}</p>
+              <p className="text-small text-muted-foreground">پرداخت نشده</p>
+              <p className="text-body-lg font-bold text-foreground">{toPersianDigits(todayStats.unpaidCount)}</p>
             </div>
           </Card>
           <Card className="p-3 flex items-center gap-3">
@@ -224,8 +224,8 @@ export default function OwnerDashboard() {
               <CalendarClock className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] text-muted-foreground">نوبت بعدی</p>
-              <p className="text-[13px] font-bold text-foreground truncate">
+              <p className="text-small text-muted-foreground">نوبت بعدی</p>
+              <p className="text-caption font-bold text-foreground truncate">
                 {todayStats.nextBooking ? todayStats.nextBooking.start_time.slice(0, 5) : "—"}
               </p>
             </div>
@@ -254,27 +254,27 @@ export default function OwnerDashboard() {
 
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[13px] font-bold text-foreground">حساب امروز</span>
+            <span className="text-caption font-bold text-foreground">حساب امروز</span>
             <Button variant="ghost" size="icon-sm" onClick={() => setShowEarnings(true)}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="text-center">
-              <p className="text-[13px] text-muted-foreground">پرداخت شده</p>
-              <p className="text-[15px] font-bold text-success">
+              <p className="text-caption text-muted-foreground">پرداخت شده</p>
+              <p className="text-body font-bold text-success">
                 {formatPrice(accounting.paid)}
               </p>
             </div>
             <div className="text-center">
-              <p className="text-[13px] text-muted-foreground">پرداخت نشده</p>
-              <p className="text-[15px] font-bold text-destructive">
+              <p className="text-caption text-muted-foreground">پرداخت نشده</p>
+              <p className="text-body font-bold text-destructive">
                 {formatPrice(accounting.unpaid)}
               </p>
             </div>
             <div className="text-center">
-              <p className="text-[13px] text-muted-foreground">کل</p>
-              <p className="text-[15px] font-bold text-foreground">
+              <p className="text-caption text-muted-foreground">کل</p>
+              <p className="text-body font-bold text-foreground">
                 {formatPrice(accounting.total)}
               </p>
             </div>

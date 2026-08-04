@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowRight, Search, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { statusBadgeClass } from "@/lib/design-tokens";
 
 type Tab = "overview" | "users" | "bookings" | "services" | "settings";
 
@@ -234,12 +235,7 @@ function BookingsTab({ salonId }: { salonId: string }) {
       .finally(() => setIsLoading(false));
   }, [salonId, status]);
 
-  const statusColors: Record<string, string> = {
-    reserved: "bg-primary/10 text-primary",
-    confirmed: "bg-success/10 text-success",
-    completed: "bg-rose-500/10 text-rose-500",
-    cancelled: "bg-destructive/10 text-destructive",
-  };
+  const statusColors: Record<string, string> = statusBadgeClass;
 
   return (
     <div className="space-y-3">

@@ -575,7 +575,7 @@ function ServiceForm({
           ) : (
             <div className="text-center">
               <Upload className="h-5 w-5 mx-auto text-muted-foreground" />
-              <span className="text-[10px] text-muted-foreground">تصویر</span>
+              <span className="text-small text-muted-foreground">تصویر</span>
             </div>
           )}
         </div>
@@ -588,7 +588,7 @@ function ServiceForm({
         />
         <div className="flex-1">
           <p className="text-xs text-muted-foreground">تصویر خدمت</p>
-          <p className="text-[10px] text-muted-foreground/60">اختیاری - حداکثر ۵ مگابایت</p>
+          <p className="text-small text-muted-foreground/60">اختیاری - حداکثر ۵ مگابایت</p>
           {form.image_url && (
             <button
               type="button"

@@ -26,14 +26,14 @@ export function TrustSignals({ totalBookings, recentBookings = [] }: TrustSignal
     <section className="px-4 py-1" aria-label="مزیت‌های رزرو">
       <div className="mx-auto flex max-w-lg items-center justify-center gap-5 border-y border-border/35 py-3 text-muted-foreground/65">
         {features.map(({ icon: Icon, label }) => (
-          <div key={label} className="flex min-w-0 items-center gap-1.5 text-[10px] sm:text-[11px]">
+          <div key={label} className="flex min-w-0 items-center gap-1.5 text-small sm:text-small">
             <Icon className="h-3.5 w-3.5 shrink-0 opacity-75" strokeWidth={1.7} aria-hidden="true" />
             <span className="truncate">{label}</span>
           </div>
         ))}
       </div>
       {totalBookings > 0 && (
-        <p className="mx-auto mt-2 max-w-lg text-center text-[10px] text-muted-foreground/55">
+        <p className="mx-auto mt-2 max-w-lg text-center text-small text-muted-foreground/55">
           {toPersianDigits(totalBookings.toLocaleString("en-US"))} رزرو موفق
           {recentCount > 0 ? ` · ${toPersianDigits(recentCount)} رزرو در هفتهٔ گذشته` : ""}
         </p>

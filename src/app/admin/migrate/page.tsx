@@ -104,7 +104,7 @@ export default function AdminMigratePage() {
               <Database className="h-6 w-6 text-primary" />
             </div>
             <h1 className="text-h1 text-foreground">مایگریشن دیتابیس</h1>
-            <p className="text-[13px] text-muted-foreground mt-1">
+            <p className="text-caption text-muted-foreground mt-1">
               ایجاد جداول جدید و اضافه کردن salon_id
             </p>
           </div>
@@ -112,7 +112,7 @@ export default function AdminMigratePage() {
           {step === "login" && (
             <div className="space-y-4">
               <div>
-                <Label className="text-[13px]">شماره مدیر کل</Label>
+                <Label className="text-caption">شماره مدیر کل</Label>
                 <Input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -121,12 +121,12 @@ export default function AdminMigratePage() {
                   placeholder="09121234567"
                 />
               </div>
-              <p className="text-[13px] text-muted-foreground text-center">
+              <p className="text-caption text-muted-foreground text-center">
                 رمز مدیر کل خود را وارد کنید
               </p>
               <PinInput onComplete={handleLogin} disabled={isLoading} />
               {error && (
-                <p className="text-[13px] text-destructive text-center">{error}</p>
+                <p className="text-caption text-destructive text-center">{error}</p>
               )}
             </div>
           )}
@@ -148,7 +148,7 @@ export default function AdminMigratePage() {
               >
                 اجرای فایل‌های مایگریشن (OTP, session_version, ...)
               </Button>
-              <p className="text-[12px] text-muted-foreground text-center leading-relaxed">
+              <p className="text-small text-muted-foreground text-center leading-relaxed">
                 اگر خطای سرور هنگام دریافت کد OTP دارید، دکمهٔ دوم را بزنید تا جدول otps ساخته شود.
               </p>
             </div>
@@ -156,10 +156,10 @@ export default function AdminMigratePage() {
 
           {step === "done" && (
             <div className="space-y-3">
-              <p className="text-[13px] text-success text-center font-bold">
+              <p className="text-caption text-success text-center font-bold">
                 مایگریشن با موفقیت اجرا شد
               </p>
-              <div className="text-[12px] text-muted-foreground space-y-1 max-h-60 overflow-y-auto">
+              <div className="text-small text-muted-foreground space-y-1 max-h-60 overflow-y-auto">
                 {results.map((r, i) => (
                   <p key={i} className={r.includes("error") ? "text-destructive" : ""}>
                     {r}

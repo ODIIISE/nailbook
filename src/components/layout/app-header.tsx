@@ -101,14 +101,14 @@ export function AppHeader({
             ) : null}
             {title ? (
               <div>
-                <h1 className="text-[15px] font-bold text-foreground">{title}</h1>
+                <h1 className="text-body font-bold text-foreground">{title}</h1>
                 {subtitle && (
-                  <p className="text-[11px] text-muted-foreground">{subtitle}</p>
+                  <p className="text-small text-muted-foreground">{subtitle}</p>
                 )}
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
-                <span className="text-[15px] font-bold text-foreground">{salon.name}</span>
+                <span className="text-body font-bold text-foreground">{salon.name}</span>
               </div>
             )}
           </div>
@@ -135,7 +135,7 @@ export function AppHeader({
           >
             <div className="p-5 flex-1 flex flex-col">
               <div className="flex items-center justify-between mb-5">
-                <span className="text-[15px] font-bold text-foreground">{salon.name}</span>
+                <span className="text-body font-bold text-foreground">{salon.name}</span>
                 <Button variant="ghost" size="icon-sm" onClick={closeMenu}>
                   <X className="h-4 w-4" />
                 </Button>
@@ -154,7 +154,7 @@ export function AppHeader({
                       <span className={item.destructive ? "text-destructive" : "text-muted-foreground"}>
                         {item.icon}
                       </span>
-                      <span className="text-[14px]">{item.label}</span>
+                      <span className="text-body">{item.label}</span>
                     </button>
                   </div>
                 ))}
@@ -173,7 +173,7 @@ export function AppHeader({
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors duration-150"
                     >
                       <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-[14px]" dir="ltr">{toPersianDigits(salon.phone)}</span>
+                      <span className="text-body" dir="ltr">{toPersianDigits(salon.phone)}</span>
                     </a>
 
                     <Separator className="my-2" />
@@ -181,11 +181,11 @@ export function AppHeader({
                     <div className="px-3 py-2 space-y-1.5">
                       <div className="flex items-center gap-2">
                         <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-[12px] text-muted-foreground">{salon.address}</span>
+                        <span className="text-small text-muted-foreground">{salon.address}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-[12px] text-muted-foreground">
+                        <span className="text-small text-muted-foreground">
                           {salon.working_hours_text || "شنبه تا پنج شنبه . ۱۰ تا ۱۸"}
                         </span>
                       </div>
@@ -200,7 +200,7 @@ export function AppHeader({
                     onClick={() => { router.push("/owner/login"); closeMenu(); }}
                     className="w-full flex items-center justify-center px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors duration-150"
                   >
-                    <span className="text-[13px] text-muted-foreground">ورود مدیر</span>
+                    <span className="text-caption text-muted-foreground">ورود مدیر</span>
                   </button>
                 </div>
               )}
@@ -223,7 +223,7 @@ function ThemeToggleMenuItem({ onClose }: { onClose: () => void }) {
       <span className="text-muted-foreground">
         {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </span>
-      <span className="text-[14px]">
+      <span className="text-body">
         {theme === "dark" ? "حالت روشن" : "حالت تاریک"}
       </span>
     </button>

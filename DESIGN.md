@@ -40,6 +40,16 @@ typography:
     fontWeight: 700
     lineHeight: "1.25"
     letterSpacing: "-0.01em"
+  subtitle:
+    fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
+    fontSize: "17px"
+    fontWeight: 600
+    lineHeight: "1.3"
+  body-lg:
+    fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
+    fontSize: "17px"
+    fontWeight: 400
+    lineHeight: "1.6"
   body:
     fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
     fontSize: "15px"
@@ -49,6 +59,11 @@ typography:
     fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
     fontSize: "13px"
     fontWeight: 500
+    lineHeight: "1.4"
+  small:
+    fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
+    fontSize: "12px"
+    fontWeight: 400
     lineHeight: "1.4"
 rounded:
   sm: "10px"
@@ -128,8 +143,11 @@ The palette is intentionally small. Almost everything derives from the CSS varia
 - **Display** (800, 34px): Hero headlines.
 - **Headline** (700, 24px): Page/section titles.
 - **Title** (700, 20px): Card titles, modal headers.
+- **Subtitle** (600, 17px): Section subheadings.
+- **Body-LG** (400, 17px): Large reading text, stat values.
 - **Body** (400, 15px): Primary reading text.
 - **Caption** (500, 13px): Labels, metadata.
+- **Small** (400, 12px): Footnotes, dense metadata. 12px is the floor — never smaller on mobile.
 
 ## Layout
 
