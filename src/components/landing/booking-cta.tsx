@@ -40,7 +40,11 @@ function ServiceSelectionSheet({ open, services, isLoading, onClose }: BookingCt
   const activeServices = sortActiveServices(services);
   const [pendingServiceId, setPendingServiceId] = useState<string | null>(null);
 
-  const handleSelect = (serviceId: string) => { setPendingServiceId(serviceId); onClose(); };
+  const handleSelect = (serviceId: string) => {
+    setPendingServiceId(serviceId);
+    onClose();
+  };
+
   const handleClosed = () => {
     if (!pendingServiceId) return;
     const serviceId = pendingServiceId;
@@ -72,24 +76,22 @@ export function BookingCta({ services, isLoading }: BookingCtaProps) {
 
   return (
     <>
-      <section id="booking-cta" className="scroll-mt-20 px-4 py-6" aria-labelledby="booking-cta-title" aria-describedby="booking-cta-description">
-        <div className="booking-invitation relative mx-auto max-w-lg overflow-hidden rounded-[28px] p-5 shadow-elevated sm:p-6" dir="rtl">
-          <div className="pointer-events-none absolute -left-10 -top-16 h-40 w-40 rounded-full border border-[color:var(--home-accent)]/30" aria-hidden="true" />
-          <div className="pointer-events-none absolute -bottom-16 -right-8 h-44 w-44 rounded-full border border-[color:var(--home-accent)]/20" aria-hidden="true" />
-          <div className="relative">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-small font-bold tracking-wide text-[color:var(--home-accent-strong)]">قرار بعدی تو</p>
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--home-accent)]/10 text-[color:var(--home-accent-strong)]" aria-hidden="true"><CalendarDays className="h-4 w-4" /></span>
+      <section id="booking-cta" className="px-4 pb-4 pt-1" aria-labelledby="booking-cta-title" aria-describedby="booking-cta-description">
+        <div className="mx-auto max-w-lg rounded-[var(--radius-booking-item)] border border-border bg-foreground p-4 text-background shadow-card sm:p-5" dir="rtl">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-booking-icon)] bg-background/10 text-background" aria-hidden="true">
+              <CalendarDays className="h-5 w-5" />
             </div>
-            <h2 id="booking-cta-title" className="mt-3 text-[24px] font-extrabold leading-[1.45] tracking-[-0.025em] text-foreground sm:text-[27px]">وقتت را برای زیبایی رزرو کن</h2>
-            <p id="booking-cta-description" className="mt-2 max-w-md text-caption leading-6 text-muted-foreground">چند دقیقه برای خودت؛ یک انتخاب زیبا برای روزهای بعد.</p>
-            <div className="mt-5 flex items-center gap-3 border-t border-[color:var(--home-border-strong)]/70 pt-4">
-              <button type="button" onClick={() => setSheetOpen(true)} className="booking-cta-action group flex min-h-[48px] flex-1 items-center justify-between rounded-[var(--radius-booking-item)] bg-foreground px-4 text-body font-bold text-background shadow-xs transition-[background-color,box-shadow,transform] duration-200 hover:bg-foreground/85 hover:shadow-elevated active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background" aria-haspopup="dialog" aria-expanded={sheetOpen}>
-                <span>شروع رزرو</span><span className="booking-cta-arrow flex h-7 w-7 items-center justify-center rounded-full bg-background/10 transition-transform duration-200 group-hover:-translate-x-0.5" aria-hidden="true"><ChevronLeft className="h-4 w-4" /></span>
-              </button>
-              <span className="hidden text-[10px] font-medium leading-5 text-muted-foreground sm:block">انتخاب خدمت<br />زمان مناسب</span>
+            <div className="min-w-0">
+              <p className="text-small font-bold text-background/70">رزرو آنلاین</p>
+              <h2 id="booking-cta-title" className="mt-1 text-[19px] font-bold leading-8">رزرو نوبت</h2>
+              <p id="booking-cta-description" className="text-small leading-6 text-background/70">انتخاب خدمت و زمان مناسب در چند قدم</p>
             </div>
           </div>
+          <button type="button" onClick={() => setSheetOpen(true)} className="booking-cta-action group mt-4 flex min-h-[52px] w-full items-center justify-between rounded-[var(--radius-booking-item)] bg-background px-4 text-body font-bold text-foreground shadow-xs transition-[background-color,box-shadow,transform] duration-200 hover:bg-background/90 hover:shadow-elevated active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-foreground" aria-haspopup="dialog" aria-expanded={sheetOpen}>
+            <span>شروع رزرو</span>
+            <span className="booking-cta-arrow flex h-8 w-8 items-center justify-center rounded-full bg-foreground/10 transition-transform duration-200 group-hover:-translate-x-0.5" aria-hidden="true"><ChevronLeft className="h-4 w-4" /></span>
+          </button>
         </div>
       </section>
       <ServiceSelectionSheet open={sheetOpen} services={services} isLoading={isLoading} onClose={() => setSheetOpen(false)} />

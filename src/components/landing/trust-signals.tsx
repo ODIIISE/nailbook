@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { toPersianDigits } from "@/lib/jalali";
-import { Clock, ShieldCheck, Sparkles } from "lucide-react";
+import { CheckCircle2, Clock3 } from "lucide-react";
 import type { Booking } from "@/lib/types";
 
 interface TrustSignalsProps {
@@ -12,32 +12,27 @@ interface TrustSignalsProps {
 
 export function TrustSignals({ totalBookings, recentBookings = [] }: TrustSignalsProps) {
   const [weekAgo] = useState(() => new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
-  const recentCount = useMemo(() => {
-    return recentBookings.filter((b) => new Date(b.created_at) > weekAgo).length;
-  }, [recentBookings, weekAgo]);
+  const recentCount = useMemo(() => recentBookings.filter((booking) => new Date(booking.created_at) > weekAgo).length, [recentBookings, weekAgo]);
+  const hasProof = totalBookings > 0 || recentCount > 0;
 
-  const features = [
-    { icon: Clock, label: "رزرو ۲۴ ساعته" },
-    { icon: ShieldCheck, label: "تایید تلفنی" },
-    { icon: Sparkles, label: "کیفیت تضمینی" },
-  ];
+  if (!hasProof) return null;
 
   return (
-    <section className="px-4 py-1" aria-label="مزیت‌های رزرو">
-      <div className="mx-auto flex max-w-lg items-center justify-center gap-5 border-y border-border/35 py-3 text-muted-foreground/65">
-        {features.map(({ icon: Icon, label }) => (
-          <div key={label} className="flex min-w-0 items-center gap-1.5 text-small sm:text-small">
-            <Icon className="h-3.5 w-3.5 shrink-0 opacity-75" strokeWidth={1.7} aria-hidden="true" />
-            <span className="truncate">{label}</span>
+    <section className="px-4 py-3" aria-label="اطمینان برای رزرو">
+      <div className="mx-auto flex max-w-lg items-center justify-center gap-4 border-y border-border/60 py-3 text-muted-foreground">
+        {totalBookings > 0 && (
+          <div className="flex min-w-0 items-center gap-1.5 text-small">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-[color:var(--home-accent-strong)]" aria-hidden="true" />
+            <span>{toPersianDigits(totalBookings.toLocaleString("en-US"))} نوبت موفق</span>
           </div>
-        ))}
+        )}
+        {recentCount > 0 && (
+          <div className="flex min-w-0 items-center gap-1.5 text-small">
+            <Clock3 className="h-4 w-4 shrink-0 text-[color:var(--home-accent-strong)]" aria-hidden="true" />
+            <span>{toPersianDigits(recentCount)} نوبت این هفته</span>
+          </div>
+        )}
       </div>
-      {totalBookings > 0 && (
-        <p className="mx-auto mt-2 max-w-lg text-center text-small text-muted-foreground/55">
-          {toPersianDigits(totalBookings.toLocaleString("en-US"))} رزرو موفق
-          {recentCount > 0 ? ` · ${toPersianDigits(recentCount)} رزرو در هفتهٔ گذشته` : ""}
-        </p>
-      )}
     </section>
   );
 }

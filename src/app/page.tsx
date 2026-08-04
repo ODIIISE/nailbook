@@ -6,7 +6,6 @@ import { AppHeader } from "@/components/layout/app-header";
 import { AppNavbar } from "@/components/layout/app-navbar";
 import { Hero } from "@/components/landing/hero";
 import { TrustSignals } from "@/components/landing/trust-signals";
-import { SocialProofPulse } from "@/components/landing/social-proof-pulse";
 import { ContactButtons } from "@/components/landing/contact-buttons";
 import { BookingCta } from "@/components/landing/booking-cta";
 import { Highlights } from "@/components/landing/highlights";
@@ -123,13 +122,10 @@ function SalonBooking() {
         <AppHeader />
         <div className="animate-stagger">
           <Hero salon={salon} />
-          <Highlights highlights={highlights} onSelect={setViewingHighlight} />
-          <div className="px-4 pt-1">
-            <SocialProofPulse totalBookings={bookings.filter((b) => b.status !== "cancelled").length} />
-          </div>
           <BookingCta services={services} isLoading={!loaded} />
-          <TrustSignals totalBookings={bookings.length} recentBookings={bookings.filter((b) => b.status !== "cancelled").slice(0, 3)} />
-          <ContactButtons phone={salon.phone} />
+          <TrustSignals totalBookings={bookings.filter((b) => ["confirmed", "completed"].includes(b.status)).length} recentBookings={bookings.filter((b) => ["confirmed", "completed"].includes(b.status)).slice(0, 3)} />
+          <Highlights highlights={highlights} onSelect={setViewingHighlight} />
+          <ContactButtons phone={salon.phone} address={salon.address} />
 
           <footer className="px-4 py-6 text-center pb-20">
             <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">

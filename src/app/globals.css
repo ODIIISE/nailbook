@@ -674,19 +674,10 @@
   50% { transform: scale(1.04); }
 }
 
-/* ── Homepage emotional surfaces ── */
+/* ── Homepage semantic accents ── */
 
-.home-hero-stage {
-  background: var(--home-sand);
-  box-shadow: var(--shadow-elevated);
-}
-
-.booking-invitation {
-  background:
-    radial-gradient(circle at 0% 0%, color-mix(in oklab, var(--home-blush) 22%, transparent), transparent 45%),
-    linear-gradient(135deg, color-mix(in oklab, var(--home-blush-light) 84%, var(--card)), var(--card));
-  border: 1px solid color-mix(in oklab, var(--home-border-strong) 62%, transparent);
-}
+/* Warm tokens stay available for salon branding, while the booking-first home
+   uses quiet surfaces and a single restrained accent. */
 
 /* ── Reduced Motion ── */
 
