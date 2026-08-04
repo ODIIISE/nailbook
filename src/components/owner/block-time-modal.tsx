@@ -42,12 +42,17 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
   const [startTime, setStartTime] = useState(defaultTimes.start);
   const [endTime, setEndTime] = useState(defaultTimes.end);
   const [reason, setReason] = useState("");
+  const [timeError, setTimeError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (startTime && endTime) {
-      onBlock(startTime, endTime, reason);
+    if (!startTime || !endTime) return;
+    if (endTime <= startTime) {
+      setTimeError("ساعت پایان باید بعد از ساعت شروع باشد");
+      return;
     }
+    setTimeError("");
+    onBlock(startTime, endTime, reason);
   };
 
   return (
@@ -71,12 +76,17 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
               id="block-end"
               type="time"
               value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
+              onChange={(e) => {
+                setEndTime(e.target.value);
+                setTimeError("");
+              }}
               className="mt-1 text-center"
               dir="ltr"
+              aria-invalid={Boolean(timeError)}
             />
           </div>
         </div>
+        {timeError && <p className="text-small text-destructive" role="alert">{timeError}</p>}
         <div>
           <Label htmlFor="block-reason" className="text-sm">دلیل (اختیاری)</Label>
           <Input
@@ -88,7 +98,7 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
           />
         </div>
         <div className="flex gap-3">
-          <Button type="submit" size="lg" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl">
+          <Button type="submit" size="lg" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl">
             مسدود کن
           </Button>
           <Button type="button" size="lg" variant="outline" onClick={onCancel} className="flex-1">

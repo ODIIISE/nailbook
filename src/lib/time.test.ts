@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getTehranDateKey, getTehranNow, isTehranToday } from "./time";
+import { getTehranDateKey, getTehranNow, isTehranToday, parseGregorianDateKey } from "./time";
 
 describe("getTehranDateKey", () => {
   it("should return YYYY-MM-DD format in Tehran timezone", () => {
@@ -21,6 +21,17 @@ describe("getTehranDateKey", () => {
     const date = new Date("2026-07-14T20:31:00Z");
     const result = getTehranDateKey(date);
     expect(result).toBe("2026-07-15");
+  });
+});
+
+describe("parseGregorianDateKey", () => {
+  it("parses a stored date at UTC noon without timezone drift", () => {
+    const date = parseGregorianDateKey("2026-07-14");
+    expect(date.toISOString()).toBe("2026-07-14T12:00:00.000Z");
+  });
+
+  it("returns an invalid date for malformed input", () => {
+    expect(Number.isNaN(parseGregorianDateKey("2026/07/14").getTime())).toBe(true);
   });
 });
 

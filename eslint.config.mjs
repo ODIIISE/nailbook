@@ -13,6 +13,7 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     // External AI tooling copied into the repo (not application code)
+    ".agents/**",
     ".claude/**",
     ".mimocode/**",
   ]),

@@ -8,6 +8,7 @@ import { z } from "zod";
  */
 
 const timeRegex = /^([0-1]?\d|2[0-3]):([0-5]\d)$/;
+const manualTimeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
 export const bookingRequestSchema = z.object({
@@ -25,3 +26,15 @@ export const bookingRequestSchema = z.object({
 });
 
 export type BookingRequestInput = z.infer<typeof bookingRequestSchema>;
+
+export const manualBookingRequestSchema = z.object({
+  customer_phone: z.string().min(1),
+  customer_name: z.string().max(100).optional().default(""),
+  service_id: z.string().min(1),
+  date_gregorian: z.string().regex(dateRegex, "date_gregorian must be YYYY-MM-DD"),
+  start_time: z.string().regex(manualTimeRegex, "start_time must be HH:MM"),
+  end_time: z.string().regex(manualTimeRegex, "end_time must be HH:MM"),
+  selected_addons: z.array(z.string()).default([]),
+});
+
+export type ManualBookingRequestInput = z.infer<typeof manualBookingRequestSchema>;

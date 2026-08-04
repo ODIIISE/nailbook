@@ -41,7 +41,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# impeccable (design skill)
+# Local AI tooling / design skills (not application source)
+.agents/
 .claude/settings.local.json
 .impeccable/
 

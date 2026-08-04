@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { ActivityLog } from "@/components/owner/activity-log";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,8 +33,8 @@ export default function ActivityPage() {
         setLogs(data.logs || []);
         setCounts(data.counts || { all: 0 });
       }
-    } catch (error) {
-      console.error("Failed to fetch activity logs:", error);
+    } catch {
+      toast.error("خطا در دریافت لاگ‌ها");
     } finally {
       setLoading(false);
     }

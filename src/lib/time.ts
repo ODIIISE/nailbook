@@ -31,6 +31,15 @@ function tehranParts(date: Date) {
   };
 }
 
+/** Parse a stored Gregorian date key at UTC noon so display code never
+ * shifts it into the previous/next day in the viewer's local timezone. */
+export function parseGregorianDateKey(dateKey: string): Date {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey);
+  if (!match) return new Date(NaN);
+  const [, year, month, day] = match;
+  return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), 12, 0, 0));
+}
+
 /** Gregorian date key (YYYY-MM-DD) of `date` as observed in Tehran. */
 export function getTehranDateKey(date: Date): string {
   const { year, month, day } = tehranParts(date);

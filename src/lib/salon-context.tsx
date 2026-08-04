@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react";
+import { useAuth } from "@/lib/auth-context";
 import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "@/lib/types";
 import type { WorkingHours } from "@/lib/slots";
 
@@ -43,11 +44,11 @@ interface SalonContextType {
   updateServices: (services: Service[]) => Promise<string | null>;
   updateAddons: (addons: Addon[]) => Promise<string | null>;
   updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
-  updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => void;
+  updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => Promise<boolean>;
   addBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   addOwnerBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   cancelBooking: (bookingId: string) => Promise<boolean>;
-  refreshBookings: () => Promise<void>;
+  refreshBookings: (scope?: "owner" | "default") => Promise<void>;
   refreshSalonData: () => Promise<void>;
   addHighlight: (highlight: Highlight) => Promise<void>;
   updateHighlight: (highlight: Highlight) => Promise<void>;
@@ -71,7 +72,40 @@ const DEFAULT_WORKING_HOURS: WorkingHours = {
   fri: null,
 };
 
+const EMPTY_SALON_CONTEXT: SalonContextType = {
+  salon: { id: "", name: "", description: "", slogan: "", phone: "", address: "", hero_image_url: null, logo_url: null, splash_title: "Forehand Nail", splash_slogan: "Nail Art Studio", splash_logo_url: null, working_hours_text: "", working_hours: DEFAULT_WORKING_HOURS, slot_buffer_minutes: 15, slot_interval_minutes: 15, early_extra_hours: 0, late_extra_hours: 0, expand_threshold: 80, proximity_window_hours: 2, allow_overflow: false, overflow_minutes: 0, optimization_mode: "hybrid", suggestion_limit: 3, min_useful_gap_minutes: 30 },
+  workingHours: DEFAULT_WORKING_HOURS,
+  specificDaysOff: [],
+  services: [],
+  addons: [],
+  bookings: [],
+  highlights: [],
+  blockedTimes: [],
+  loaded: false,
+  updateWorkingHours: async () => {},
+  updateSpecificDaysOff: async () => {},
+  saveSchedule: async () => {},
+  updateServices: async () => null,
+  updateAddons: async () => null,
+  updateSalon: async () => {},
+  updateBlockedTimes: async () => false,
+  addBooking: async () => ({ success: false }),
+  addOwnerBooking: async () => ({ success: false }),
+  cancelBooking: async () => false,
+  refreshBookings: async () => {},
+  refreshSalonData: async () => {},
+  addHighlight: async () => {},
+  updateHighlight: async () => {},
+  removeHighlight: async () => {},
+  addHighlightImage: async () => {},
+  removeHighlightImage: async () => {},
+  uploadHighlightImage: async () => null,
+  toggleBookingPaid: async () => {},
+  updateBookingStatus: async () => {},
+};
+
 export function SalonProvider({ children }: { children: ReactNode }) {
+  const { user: authUser, isLoading: authLoading } = useAuth();
   const [salon, setSalon] = useState<SalonInfo | null>(null);
   const [workingHours, setWorkingHours] = useState<WorkingHours>(DEFAULT_WORKING_HOURS);
   const [specificDaysOff, setSpecificDaysOff] = useState<string[]>([]);
@@ -85,31 +119,35 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   // Refs to avoid stale closures in callbacks
   const servicesRef = useRef(services);
   const addonsRef = useRef(addons);
+  const bookingsRef = useRef(bookings);
   const salonRef = useRef(salon);
   const highlightsRef = useRef(highlights);
   const workingHoursRef = useRef(workingHours);
   const specificDaysOffRef = useRef(specificDaysOff);
+  const authSyncKeyRef = useRef<string | null>(null);
+  const bookingsRequestRef = useRef(0);
 
   // Sync refs with state after render to avoid mutating them during render
   useEffect(() => {
     servicesRef.current = services;
     addonsRef.current = addons;
+    bookingsRef.current = bookings;
     salonRef.current = salon;
     highlightsRef.current = highlights;
     workingHoursRef.current = workingHours;
     specificDaysOffRef.current = specificDaysOff;
-  }, [services, addons, salon, highlights, workingHours, specificDaysOff]);
+  },    [services, addons, bookings, salon, highlights, workingHours, specificDaysOff]);
+
 
   useEffect(() => {
     const controller = new AbortController();
     async function load() {
       try {
         const signal = controller.signal;
-        const [salonData, servicesData, addonsData, bookingsData, hoursData, highlightsData, blockedData] = await Promise.all([
+        const [salonData, servicesData, addonsData, hoursData, highlightsData, blockedData] = await Promise.all([
           fetchSalonInfo(),
           fetchServices(),
           fetchAddons(),
-          fetchBookings(),
           fetchWorkingHours(),
           fetchHighlights(),
           fetch("/api/read/blocked-times", { signal }).then((r) => r.json()).catch(() => ({ blockedTimes: [] })),
@@ -118,7 +156,6 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         if (salonData) setSalon(salonData);
         if (servicesData.length) setServices(servicesData);
         if (addonsData.length) setAddons(addonsData);
-        setBookings(bookingsData);
         if (highlightsData.length) setHighlights(highlightsData);
         if (hoursData) {
           setWorkingHours(hoursData.working_hours);
@@ -204,7 +241,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const handleUpdateBlockedTimes = useCallback(async (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => {
+  const handleUpdateBlockedTimes = useCallback(async (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>): Promise<boolean> => {
     // Capture previous state from functional update to avoid stale closure
     let prevBlocks: typeof blockedTimes = [];
     setBlockedTimes((prev) => {
@@ -220,10 +257,13 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       if (!res.ok) {
         devLog("Failed to save blocked times");
         setBlockedTimes(prevBlocks);
+        return false;
       }
+      return true;
     } catch (e) {
       devLog("Failed to save blocked times:", e);
       setBlockedTimes(prevBlocks);
+      return false;
     }
   }, []);
 
@@ -261,27 +301,49 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleCancelBooking = useCallback(async (bookingId: string): Promise<boolean> => {
-    // Capture original status before optimistic update
-    let originalStatus: string | undefined;
-    setBookings((prev) => {
-      const booking = prev.find((b) => b.id === bookingId);
-      originalStatus = booking?.status;
-      return prev.map((b) => b.id === bookingId ? { ...b, status: "cancelled" } : b);
-    });
+    // Read the snapshot from a ref before the optimistic write. A state
+    // updater may run later (or more than once) under concurrent rendering,
+    // so capturing the value inside it can lose the rollback status.
+    const originalStatus = bookingsRef.current.find((b) => b.id === bookingId)?.status;
+    setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: "cancelled" } : b));
     try {
       await cancelBookingApi(bookingId);
       return true;
     } catch (e) {
       devLog("Failed to cancel booking:", e);
-      setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: (originalStatus as Booking["status"]) || "reserved" } : b));
+      if (originalStatus) {
+        setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: originalStatus } : b));
+      }
       return false;
     }
   }, []);
 
-  const refreshBookings = useCallback(async () => {
-    const data = await fetchBookings();
-    setBookings(data);
+  const refreshBookings = useCallback(async (scope: "owner" | "default" = "default") => {
+    const requestId = ++bookingsRequestRef.current;
+    const data = await fetchBookings(scope);
+    // Ignore a slower response from an older scope/request. Without this guard,
+    // the initial guest availability request can finish after the owner refresh
+    // and silently replace the full timeline with partial data.
+    if (requestId !== bookingsRequestRef.current) return;
+    // Keep the last known-good bookings during a transient network/API error.
+    // Replacing the timeline with [] makes a live app look empty and can hide
+    // occupied slots while the next poll is still pending.
+    if (data !== null) setBookings(data);
   }, []);
+
+  // The provider mounts before OTP/session validation finishes. Refresh once
+  // when auth settles (and again when the user changes) so a newly signed-in
+  // customer gets their own history, while an owner upgrades to the full
+  // owner-scoped timeline instead of keeping the guest availability payload.
+  useEffect(() => {
+    if (!loaded || authLoading) return;
+    const authKey = authUser
+      ? `${authUser.id}:${[...(authUser.roles ?? [])].sort().join(",")}`
+      : null;
+    if (authSyncKeyRef.current === authKey) return;
+    authSyncKeyRef.current = authKey;
+    void refreshBookings(authUser?.roles?.includes("owner") ? "owner" : "default");
+  }, [loaded, authLoading, authUser, refreshBookings]);
 
   const refreshSalonData = useCallback(async () => {
     try {
@@ -412,12 +474,8 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleUpdateBookingStatus = useCallback(async (bookingId: string, status: string) => {
-    let originalStatus: string | undefined;
-    setBookings((prev) => {
-      const booking = prev.find((b) => b.id === bookingId);
-      originalStatus = booking?.status;
-      return prev.map((b) => (b.id === bookingId ? { ...b, status: status as Booking["status"] } : b));
-    });
+    const originalStatus = bookingsRef.current.find((b) => b.id === bookingId)?.status;
+    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: status as Booking["status"] } : b)));
     try {
       const res = await fetch("/api/owner/bookings/status", {
         method: "POST",
@@ -441,37 +499,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<SalonContextType>(() => {
     if (!loaded || !salon) {
-      return {
-        salon: { id: "", name: "", description: "", slogan: "", phone: "", address: "", hero_image_url: null, logo_url: null, working_hours_text: "", working_hours: DEFAULT_WORKING_HOURS, slot_buffer_minutes: 0, slot_interval_minutes: 15, early_extra_hours: 0, late_extra_hours: 0, expand_threshold: 80, proximity_window_hours: 2, allow_overflow: false, overflow_minutes: 0, optimization_mode: "hybrid", suggestion_limit: 3, min_useful_gap_minutes: 30 },
-        workingHours: DEFAULT_WORKING_HOURS,
-        specificDaysOff: [],
-        services: [],
-        addons: [],
-        bookings: [],
-        highlights: [],
-        blockedTimes: [],
-        loaded: false,
-        updateWorkingHours: async () => {},
-        updateSpecificDaysOff: async () => {},
-        saveSchedule: async () => {},
-        updateServices: async () => null,
-        updateAddons: async () => null,
-        updateSalon: async () => {},
-        updateBlockedTimes: () => {},
-        addBooking: async () => ({ success: false }),
-    addOwnerBooking: async () => ({ success: false }),
-        cancelBooking: async () => false,
-        refreshBookings: async () => {},
-        refreshSalonData: async () => {},
-        addHighlight: async () => {},
-        updateHighlight: async () => {},
-        removeHighlight: async () => {},
-        addHighlightImage: async () => {},
-        removeHighlightImage: async () => {},
-        uploadHighlightImage: async () => null,
-        toggleBookingPaid: async () => {},
-        updateBookingStatus: async () => {},
-      };
+      return EMPTY_SALON_CONTEXT;
     }
     return {
       salon,
@@ -535,8 +563,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useSalon() {
+export function useSalon(): SalonContextType {
   const ctx = useContext(SalonContext);
-  if (!ctx) throw new Error("useSalon must be used within SalonProvider");
-  return ctx;
+  // Return the empty fallback rather than throwing. Some routes are prerendered at build
+  // time without the SalonProvider mounted; the consumer sees loaded=false / empty arrays,
+  // which renders the same loading / empty state as a fresh client without data.
+  return ctx ?? EMPTY_SALON_CONTEXT;
 }

@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppNavbar } from "@/components/layout/app-navbar";
 import { Hero } from "@/components/landing/hero";
 import { TrustSignals } from "@/components/landing/trust-signals";
+import { SocialProofPulse } from "@/components/landing/social-proof-pulse";
 import { ContactButtons } from "@/components/landing/contact-buttons";
+import { BookingCta } from "@/components/landing/booking-cta";
 import { Highlights } from "@/components/landing/highlights";
 import { HighlightViewer } from "@/components/landing/highlight-viewer";
-import { ServiceCardGrid } from "@/components/landing/service-card-grid";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { Heart, Store, Users, Calendar, Sparkles } from "lucide-react";
 
@@ -115,22 +116,19 @@ function SalonBooking() {
     }
   }, [searchParams]);
 
-  const scrollToServices = () => {
-    document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });
-  };
-
   return (
     <SalonGuard>
     <div className="relative min-h-screen">
       <div className="relative z-10">
         <AppHeader />
         <Highlights highlights={highlights} onSelect={setViewingHighlight} />
-        <Hero salon={salon} onBookNow={scrollToServices} />
+        <div className="px-4 pt-2">
+          <SocialProofPulse totalBookings={bookings.filter((b) => b.status !== "cancelled").length} />
+        </div>
+        <Hero salon={salon} />
+        <BookingCta services={services} isLoading={!loaded} />
         <TrustSignals totalBookings={bookings.length} recentBookings={bookings.filter((b) => b.status !== "cancelled").slice(0, 3)} />
         <ContactButtons phone={salon.phone} />
-        <div id="services">
-          <ServiceCardGrid services={services} isLoading={!loaded} />
-        </div>
 
         <footer className="px-4 py-6 text-center pb-20">
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
@@ -173,5 +171,13 @@ export default function HomePage() {
     return <AdminLanding />;
   }
 
-  return <SalonBooking />;
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">در حال بارگذاری...</div>
+      </div>
+    }>
+      <SalonBooking />
+    </Suspense>
+  );
 }

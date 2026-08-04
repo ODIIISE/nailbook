@@ -4,7 +4,6 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { toPersianDigits } from "@/lib/jalali";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -18,12 +17,11 @@ import {
   LogIn,
   LogOut,
   User,
-  Sun,
-  Moon,
 } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "./menu-context";
-import { useTheme } from "@/lib/hooks/use-theme";
+import { haptic } from "@/lib/haptics";
+import { ThemeToggle, ThemeModeMenu } from "@/components/ui/theme-toggle";
 
 interface MenuItem {
   icon: ReactNode;
@@ -91,14 +89,29 @@ export function AppHeader({
 
   return (
     <>
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border h-[52px]">
-        <div className="mx-auto max-w-lg px-4 h-full flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {showBack && !isHome ? (
-              <Button variant="ghost" size="icon-sm" onClick={onBack || (() => router.back())}>
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            ) : null}
+      <div
+      className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border"
+      style={{
+        // Native safe-area: notch + Dynamic Island sit above the title row.
+        // padding-top pushes content into the safe zone; the inner row keeps
+        // its 52px height so visual rhythm stays identical on non-notch devices.
+        paddingTop: "env(safe-area-inset-top, 0px)",
+      }}
+    >
+      <div className="mx-auto max-w-lg px-4 h-[52px] flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {showBack && !isHome ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => {
+                haptic.tap();
+                (onBack || (() => router.back()))();
+              }}
+            >
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          ) : null}
             {title ? (
               <div>
                 <h1 className="text-body font-bold text-foreground">{title}</h1>
@@ -114,7 +127,16 @@ export function AppHeader({
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
-            <Button variant="ghost" size="icon-sm" onClick={openMenu} aria-label="منو" aria-expanded={menuOpen}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => {
+                haptic.tap();
+                openMenu();
+              }}
+              aria-label="منو"
+              aria-expanded={menuOpen}
+            >
               <Menu className="h-4 w-4" />
             </Button>
           </div>
@@ -124,7 +146,7 @@ export function AppHeader({
       {menuOpen && (
         <div className="fixed inset-0 z-50">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50 backdrop-blur-md"
             onClick={closeMenu}
           />
           <div
@@ -161,8 +183,9 @@ export function AppHeader({
 
                 <Separator className="my-2" />
 
-                {/* Theme Toggle in Menu */}
-                <ThemeToggleMenuItem onClose={closeMenu} />
+                <div className="mb-2">
+                  <ThemeModeMenu onSelect={closeMenu} />
+                </div>
 
                 <Separator className="my-2" />
 
@@ -209,23 +232,5 @@ export function AppHeader({
         </div>
       )}
     </>
-  );
-}
-
-function ThemeToggleMenuItem({ onClose }: { onClose: () => void }) {
-  const { theme, toggleTheme } = useTheme();
-
-  return (
-    <button
-      onClick={() => { toggleTheme(); onClose(); }}
-      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors duration-150"
-    >
-      <span className="text-muted-foreground">
-        {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      </span>
-      <span className="text-body">
-        {theme === "dark" ? "حالت روشن" : "حالت تاریک"}
-      </span>
-    </button>
   );
 }

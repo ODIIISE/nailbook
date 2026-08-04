@@ -5,19 +5,6 @@
  * Semantic tokens map to CSS variables; palette tokens are fixed.
  */
 
-// ── Semantic (maps to CSS vars via Tailwind) ──
-export const semantic = {
-  // Actions
-  action: {
-    primary: "var(--foreground)",
-    primaryHover: "var(--foreground)",
-    onPrimary: "var(--background)",
-  },
-  // Status
-  success: "var(--success)",
-  destructive: "var(--destructive)",
-} as const;
-
 // ── Timeline Service Palette ──
 // Decorative colors for booking blocks — not used in interactive UI.
 export const servicePalette = [

@@ -7,26 +7,27 @@ import { AppNavbar } from "@/components/layout/app-navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, Check, AlertCircle, CalendarDays, ArrowLeft, Loader2, Sparkles, User, Smartphone, ArrowRight, LogIn } from "lucide-react";
-import Image from "next/image";
+import { ChevronLeft, Check, AlertCircle, CalendarDays, ArrowLeft, Loader2, User, Smartphone, ArrowRight, LogIn } from "lucide-react";
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { TimeSlots } from "@/components/booking/time-slots";
 import { BookingConfirm } from "@/components/booking/booking-confirm";
-import { TornPaperCard } from "@/components/booking/torn-paper-card";
 import { PinInput } from "@/components/booking/pin-input";
+import { PrintedReceipt } from "@/components/booking/printed-receipt";
 import { AuthCard, AuthCardRoot, AuthError } from "@/components/auth/auth-card";
 import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { BookingProgress } from "@/components/booking/booking-progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StickyActionBar, StickyPrimaryButton } from "@/components/ui/sticky-action-bar";
 import { SalonGuard } from "@/components/ui/salon-guard";
+import { ServiceDetail } from "@/components/booking/service-detail";
 import { generateTimeSlots } from "@/lib/slots";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
-import { formatPrice, toPersianDigits, gregorianToJalali, jalaliToGregorian, formatJalaliDate, DAYS_IN_MONTH, isJalaliLeapYear } from "@/lib/jalali";
+import { formatPrice, toPersianDigits, gregorianToJalali, jalaliToGregorian, formatJalaliDate, DAYS_IN_MONTH, isJalaliLeapYear, PERSIAN_MONTHS } from "@/lib/jalali";
 import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
 import { getTehranDateKey } from "@/lib/time";
 import type { Booking } from "@/lib/types";
+import { haptic } from "@/lib/haptics";
 
 type BookingStep = "addons" | "datetime" | "auth" | "confirm" | "receipt";
 
@@ -49,6 +50,14 @@ export default function BookContent() {
     return () => clearInterval(interval);
   }, [refreshBookings]);
 
+  // Refs for guard against duplicate submits across re-renders.
+  const verifiedUserRef = useRef<{ id: string } | null>(null);
+  const isSendingOtpRef = useRef(false);
+  const isVerifyingOtpRef = useRef(false);
+  const isRegisteringRef = useRef(false);
+  const isSubmittingRef = useRef(false);
+
+  // Form state
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
@@ -60,9 +69,8 @@ export default function BookContent() {
   });
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string>("");
+  const [bookingIdRaw, setBookingIdRaw] = useState<string>("");
   const [spamError, setSpamError] = useState("");
-
-  // No auto-dismiss for spam errors — critical messages persist until user acts
 
   // Auth state
   const [authPhone, setAuthPhone] = useState("");
@@ -71,15 +79,34 @@ export default function BookContent() {
   const [authError, setAuthError] = useState("");
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isBookingLoading, setIsBookingLoading] = useState(false);
-  const verifiedUserRef = useRef<{ id: string } | null>(null);
 
   // Guest booking state — phone collected at confirm instead of an OTP wall
   const [guestPhone, setGuestPhone] = useState("");
   const [guestName, setGuestName] = useState("");
   const [guestError, setGuestError] = useState("");
 
-  // Determine initial step based on service addons
+  // Sorted service selection
   const selectedService = services.find((s) => s.id === selectedServiceId);
+
+  // Popular-stat cutoff captured once at mount so the value is stable per session.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  const [popularCutoff, setPopularCutoff] = useState<number | null>(null);
+  useEffect(() => {
+    setPopularCutoff(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+  const popularLast30Days = useMemo(() => {
+    if (!selectedService || popularCutoff === null) return 0;
+    let count = 0;
+    for (const b of bookings) {
+      if (b.service_id !== selectedService.id) continue;
+      if (b.status === "cancelled" || b.status === "pending") continue;
+      const ts = new Date(b.created_at).getTime();
+      if (Number.isFinite(ts) && ts >= popularCutoff) count += 1;
+    }
+    return count;
+  }, [bookings, selectedService, popularCutoff]);
+
   const activeAddons = useMemo(() => {
     return selectedService
       ? addons.filter((a) => selectedService.addon_ids.includes(a.id) && a.is_active)
@@ -133,12 +160,18 @@ export default function BookContent() {
     return Number(selectedService.price) + addonsPrice;
   }, [selectedService, selectedAddons, addons]);
 
-  // Computed date/time display for confirm step
-  const selectedFullDate = useMemo(() => {
-    if (!selectedDate) return "";
+  // Keep receipt date tokens structured so visual order never depends on
+  // browser bidi heuristics for a mixed Persian/number string.
+  const selectedDateParts = useMemo(() => {
     const j = gregorianToJalali(selectedDate);
-    return formatJalaliDate(j.jy, j.jm, j.jd);
+    return { day: j.jd, month: PERSIAN_MONTHS[j.jm - 1], year: j.jy };
   }, [selectedDate]);
+
+  const selectedAddonItems = useMemo(() => {
+    return selectedAddons
+      .map((id) => addons.find((a) => a.id === id))
+      .filter((a): a is NonNullable<typeof a> => Boolean(a));
+  }, [selectedAddons, addons]);
 
   const selectedEndTime = useMemo(() => {
     if (!selectedTime) return "";
@@ -155,7 +188,7 @@ export default function BookContent() {
     const dayBookings = bookings
       .filter((b) => {
         const bookingDate = b.date_gregorian.split("T")[0];
-        return bookingDate === dateStr && (b.status === undefined || b.status === "reserved" || b.status === "confirmed" || b.status === "in_progress");
+        return bookingDate === dateStr && (b.status === "reserved" || b.status === "confirmed");
       })
       .map((b) => ({ start_time: b.start_time, end_time: b.end_time }));
     const dayBlocked = blockedTimes.filter((b) => {
@@ -203,8 +236,8 @@ export default function BookContent() {
 
   const goBack = useCallback(() => {
     setSpamError("");
-    // Auth is now an optional detour from the confirm step, so the main
-    // flow no longer contains it: addons → datetime → confirm.
+    // Auth is an optional detour from the confirm step (guest booking), so
+    // the main flow no longer contains it: addons → datetime → confirm.
     const flow: BookingStep[] = [];
     if (hasAddons) flow.push("addons");
     flow.push("datetime");
@@ -270,42 +303,55 @@ export default function BookContent() {
   // ─── Auth handlers ───
 
   const handleAuthPhoneSubmit = useCallback(async () => {
-    if (isAuthLoading) return;
+    if (isAuthLoading || isSendingOtpRef.current) return;
     const normalized = normalizeDigits(authPhone);
     if (!isValidIranianPhone(normalized)) {
       setAuthError("شماره موبایل معتبر نیست (مثال: ۰۹۱۲۱۲۳۴۵۶۷)");
       return;
     }
+    isSendingOtpRef.current = true;
     setIsAuthLoading(true);
     setAuthError("");
     setAuthPhone(normalized);
 
-    const result = await sendOtp(normalized, "customer");
-    setIsAuthLoading(false);
-
-    if (result.success) {
-      setAuthStep("otp");
-    } else {
-      setAuthError(result.error || "خطا در ارسال کد");
+    try {
+      const result = await sendOtp(normalized);
+      if (result.success) {
+        setAuthStep("otp");
+      } else {
+        setAuthError(result.error || "خطا در ارسال کد");
+      }
+    } catch {
+      setAuthError("خطای سرور");
+    } finally {
+      setIsAuthLoading(false);
+      isSendingOtpRef.current = false;
     }
   }, [authPhone, sendOtp, isAuthLoading]);
 
   const handleAuthOtpSubmit = useCallback(async (code: string) => {
-    if (isAuthLoading) return;
+    if (isAuthLoading || isVerifyingOtpRef.current) return;
+    isVerifyingOtpRef.current = true;
     setIsAuthLoading(true);
     setAuthError("");
-    const result = await verifyOtp(normalizeDigits(authPhone), code, { roleContext: "customer" });
-    setIsAuthLoading(false);
 
-    if (result.success && result.user) {
-      verifiedUserRef.current = result.user;
-      if (!result.user.name) {
-        setAuthStep("name");
+    try {
+      const result = await verifyOtp(normalizeDigits(authPhone), code);
+      if (result.success && result.user) {
+        verifiedUserRef.current = result.user;
+        if (!result.user.name) {
+          setAuthStep("name");
+        } else {
+          setStep("confirm");
+        }
       } else {
-        setStep("confirm");
+        setAuthError(result.error || "کد نادرست است");
       }
-    } else {
-      setAuthError(result.error || "کد نادرست است");
+    } catch {
+      setAuthError("خطای سرور");
+    } finally {
+      setIsAuthLoading(false);
+      isVerifyingOtpRef.current = false;
     }
   }, [authPhone, verifyOtp, isAuthLoading]);
 
@@ -319,6 +365,8 @@ export default function BookContent() {
       setAuthError("خطا در شناسایی کاربر");
       return;
     }
+    if (isRegisteringRef.current) return;
+    isRegisteringRef.current = true;
     setIsAuthLoading(true);
     setAuthError("");
     try {
@@ -335,13 +383,13 @@ export default function BookContent() {
       }
     } catch {
       setAuthError("خطای سرور");
+    } finally {
+      setIsAuthLoading(false);
+      isRegisteringRef.current = false;
     }
-    setIsAuthLoading(false);
   }, [authName]);
 
   // ─── Confirm booking ───
-
-  const isSubmittingRef = useRef(false);
 
   const handleConfirmBooking = useCallback(async () => {
     if (!selectedDate || !selectedService || !selectedTime) return;
@@ -362,7 +410,7 @@ export default function BookContent() {
     setSpamError("");
 
     const customerPhone = user?.phone || normalizeDigits(guestPhone);
-    const customerName = user?.name || guestName.trim() || "";
+    const customerName = user?.name || guestName.trim() || authName || "";
     const [h, m] = selectedTime.split(":").map(Number);
     const endMinutes = h * 60 + m + totalDuration;
     const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
@@ -392,10 +440,16 @@ export default function BookContent() {
     setIsBookingLoading(false);
     isSubmittingRef.current = false;
     if (result.success) {
+      // Success pattern — confirms booking committed.
+      haptic.success();
       // Use server-generated booking ID for display
-      if (result.id) setBookingId(`BK-${result.id.slice(-6).toUpperCase()}`);
+      if (result.id) {
+        setBookingId(`BK-${result.id.slice(-6).toUpperCase()}`);
+        setBookingIdRaw(result.id);
+      }
       setStep("receipt");
     } else {
+      haptic.warning();
       // On conflict: re-fetch fresh bookings and send user back to slot picker
       const isConflict = result.error?.includes("قبلاً رزرو شده") || result.error?.includes("همین الان رزرو شد") || result.error?.includes("مسدود شده");
       if (isConflict) {
@@ -407,7 +461,7 @@ export default function BookContent() {
         setSpamError(result.error || "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید");
       }
     }
-  }, [selectedDate, selectedService, selectedTime, user, guestPhone, guestName, addBooking, selectedAddons, totalDuration, refreshBookings]);
+  }, [selectedDate, selectedService, selectedTime, user, guestPhone, guestName, authName, addBooking, selectedAddons, totalDuration, refreshBookings]);
 
   // ─── Step titles ───
 
@@ -441,9 +495,16 @@ export default function BookContent() {
 
       <div className={`mx-auto max-w-lg px-4 pt-4 space-y-4 ${step === "confirm" ? "pb-40" : "pb-28"}`}>
 
-        {/* ─── Step 1: Addons ─── */}
+        {/* ─── Step 1: Service Detail + Addons ─── */}
         {step === "addons" && (
           <div key={step} className="space-y-4 step-animate">
+            {selectedService ? (
+              <ServiceDetail
+                service={selectedService}
+                popularLast30Days={popularLast30Days}
+              />
+            ) : null}
+
             {hasAddons ? (
               <>
                 <p className="text-caption text-muted-foreground text-center">
@@ -464,7 +525,7 @@ export default function BookContent() {
                       >
                         <div className="flex items-center gap-3">
                           <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${isSelected ? "border-primary bg-primary" : "border-muted-foreground/40"}`}>
-                            {isSelected && <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} />}
+                            {isSelected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
                           </div>
                           <div>
                             <span className="text-sm font-medium">{addon.name}</span>
@@ -550,7 +611,7 @@ export default function BookContent() {
           </div>
         )}
 
-        {/* ─── Step 3: Auth ─── */}
+        {/* ─── Step 3: Auth (optional detour from confirm) ─── */}
         {step === "auth" && (
           <AuthCardRoot key={step} className="step-animate">
             {authStep === "phone" && (
@@ -604,7 +665,7 @@ export default function BookContent() {
                   <AuthError error={authError} />
                   <ResendOtpButton
                     onResend={async () => {
-                      const result = await sendOtp(normalizeDigits(authPhone), "customer");
+                      const result = await sendOtp(normalizeDigits(authPhone));
                       if (!result.success) {
                         setAuthError(result.error || "خطا در ارسال مجدد کد");
                       }
@@ -671,56 +732,22 @@ export default function BookContent() {
               </div>
             ) : (
               <>
-                <TornPaperCard>
-                  <div className="px-5 py-4">
-                    {/* Paper texture */}
-                    <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.025] mix-blend-multiply" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.25'/%3E%3C/svg%3E\")", backgroundSize: "180px 180px" }} />
-
-                    {/* Service info */}
-                    <div className="flex items-center gap-2.5 mb-3 relative z-[2]">
-                      {selectedService.image_url ? (
-                        <Image
-                          src={selectedService.image_url}
-                          alt={selectedService.name}
-                          width={32}
-                          height={32}
-                          unoptimized
-                          loading="lazy"
-                          decoding="async"
-                          className="w-8 h-8 rounded-[9px] object-cover shrink-0"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(40,136,208,0.06), rgba(91,179,228,0.03))" }}>
-                          <Sparkles className="h-4 w-4 text-primary" />
-                        </div>
-                      )}
-                      <div>
-                        <div className="text-caption font-semibold text-foreground">{selectedService.name}</div>
-                        <div className="text-small text-muted-foreground">{salon.name}</div>
-                      </div>
-                    </div>
-
-                    {/* Detail list */}
-                    <div className="relative z-[2]">
-                      <div className="flex justify-between items-center py-[7px]">
-                        <span className="text-small text-muted-foreground">تاریخ</span>
-                        <span className="text-small font-semibold text-foreground">{selectedFullDate}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-[7px] border-t border-dashed border-black/[0.05]">
-                        <span className="text-small text-muted-foreground">ساعت</span>
-                        <span className="text-small font-semibold text-foreground">{toPersianDigits(selectedTime)} تا {toPersianDigits(selectedEndTime)}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-[7px] border-t border-dashed border-black/[0.05]">
-                        <span className="text-small text-muted-foreground">مدت</span>
-                        <span className="text-small font-semibold text-foreground">{toPersianDigits(totalDuration)} دقیقه</span>
-                      </div>
-                      <div className="flex justify-between items-center pt-2.5 pb-0.5 border-t border-dashed border-black/[0.05]">
-                        <span className="text-small font-medium text-muted-foreground">هزینه کل</span>
-                        <span className="text-body-lg font-extrabold text-primary">{formatPrice(Number(totalPrice))} تومان</span>
-                      </div>
-                    </div>
-                  </div>
-                </TornPaperCard>
+                <PrintedReceipt
+                  mode="preview"
+                  salonName={salon.name}
+                  salonLogoUrl={salon.logo_url}
+                  salonAddress={salon.address}
+                  salonPhone={salon.phone}
+                  serviceName={selectedService.name}
+                  servicePrice={Number(selectedService.price)}
+                  addons={selectedAddonItems.map((a) => ({ name: a.name, price: Number(a.price) }))}
+                  dateParts={selectedDateParts}
+                  startTime={selectedTime}
+                  endTime={selectedEndTime}
+                  totalDuration={totalDuration}
+                  totalPrice={totalPrice}
+                  customerName={user?.name || guestName || authName || ""}
+                />
 
                 {/* Guest contact card — replaces the old OTP wall */}
                 {!user && (
@@ -791,9 +818,15 @@ export default function BookContent() {
               time={selectedTime}
               duration={totalDuration}
               price={totalPrice}
+              servicePrice={Number(selectedService.price)}
               customerName={user?.name || guestName || ""}
               bookingId={bookingId}
+              salonName={salon.name}
+              salonAddress={salon.address}
               phone={salon.phone}
+              salonLogoUrl={salon.logo_url}
+              addons={selectedAddonItems}
+              bookingIdRaw={bookingIdRaw}
             />
           </div>
         )}

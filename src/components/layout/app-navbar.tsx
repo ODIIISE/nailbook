@@ -1,7 +1,9 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useMenu } from "./menu-context";
+import { haptic } from "@/lib/haptics";
 
 // Customer icons — outline (default) + solid (active)
 import { HomeIcon as HomeOutline } from "@heroicons/react/24/outline";
@@ -48,7 +50,6 @@ const defaultOwnerItems: NavItem[] = [
 
 export function AppNavbar({ items }: AppNavbarProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const { openMenu } = useMenu();
 
   const isOwner = pathname.startsWith("/owner");
@@ -56,36 +57,54 @@ export function AppNavbar({ items }: AppNavbarProps) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-20 bg-background/90 backdrop-blur-xl border-t border-border"
-      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      className="fixed bottom-0 left-0 right-0 z-20 bg-background/85 backdrop-blur-2xl border-t border-border shadow-floating"
+      style={{
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}
     >
       <div className="mx-auto max-w-lg flex items-stretch">
         {navItems.map(({ path, icon: OutlineIcon, activeIcon: SolidIcon, label }) => {
           const active = pathname === path;
           const Icon = active ? SolidIcon : OutlineIcon;
           return (
-            <button
+            <Link
               key={path}
-              onClick={() => router.push(path)}
+              href={path}
+              onClick={() => haptic.tap()}
               aria-current={active ? "page" : undefined}
-              className={`flex-1 flex flex-col items-center justify-center gap-1.5 h-[56px] transition-colors duration-200 ${
-                active ? "text-primary" : "text-muted-foreground"
+              className={`relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] transition-all duration-200 press-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-card rounded-md ${
+                active ? "text-primary" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 0 : 1.5} />
-              <span className={`text-small leading-none ${active ? "font-semibold" : "font-normal"}`}>
+              <span
+                aria-hidden="true"
+                className={`absolute top-0 inset-x-3 h-[2px] rounded-full bg-foreground transition-all duration-300 ${
+                  active ? "opacity-100 scale-x-100" : "opacity-0 scale-x-50"
+                }`}
+              />
+              <Icon
+                className={`relative h-[22px] w-[22px] transition-transform duration-200 ${active ? "scale-105" : ""}`}
+                strokeWidth={active ? 0 : 1.5}
+              />
+              <span
+                className={`relative text-small leading-none transition-all ${active ? "font-bold" : "font-medium"}`}
+              >
                 {label}
               </span>
-            </button>
+            </Link>
           );
         })}
 
         <button
-          onClick={openMenu}
-          className="flex-1 flex flex-col items-center justify-center gap-1.5 h-[56px] transition-colors duration-200 text-muted-foreground"
+          onClick={() => {
+            haptic.tap();
+            openMenu();
+          }}
+          aria-label="منو"
+          className="relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] transition-colors duration-200 text-muted-foreground hover:text-foreground press-feedback rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <Bars3Icon className="h-[22px] w-[22px]" strokeWidth={1.5} />
-          <span className="text-small leading-none font-normal">منو</span>
+          <span className="text-small leading-none font-medium">منو</span>
         </button>
       </div>
     </nav>

@@ -2,31 +2,30 @@
 
 import { useSyncExternalStore } from "react";
 
-function subscribe(callback: () => void) {
+function subscribe(callback: () => void): () => void {
   if (typeof document === "undefined") return () => {};
-
-  const target = document.documentElement;
   const observer = new MutationObserver(callback);
-  observer.observe(target, { attributes: true, attributeFilter: ["class"] });
-
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
   return () => observer.disconnect();
 }
 
-function getSnapshot() {
+function getSnapshot(): boolean {
   if (typeof document === "undefined") return false;
   return document.documentElement.classList.contains("dark");
 }
 
-function getServerSnapshot() {
+function getServerSnapshot(): boolean {
   return false;
 }
 
 /**
- * Reactive dark-mode detector.
- *
- * Returns `true` when the root `<html>` element has the `dark` class.
- * The component will re-render whenever the user toggles the theme.
+ * Reactive subscription to whether the document root currently has the `dark`
+ * class. Re-renders consumers when the class flips so inline styles derived
+ * from the current theme stay in sync.
  */
-export function useIsDark() {
+export function useIsDark(): boolean {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

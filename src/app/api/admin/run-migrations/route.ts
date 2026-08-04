@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { runMigrations } from "@/lib/db/migrate";
 import { verifySuperAdmin } from "@/lib/super-admin-auth";
+import { runMigrations } from "@/lib/db/migrate";
 
+/**
+ * POST /api/admin/run-migrations — Track pending SQL migrations from src/db/migrations/.
+ * Super-admin only. The checked-in SQL is applied through the deployment/database
+ * migration workflow; this endpoint records operator-confirmed runs.
+ */
 export async function POST(request: NextRequest) {
   try {
     const admin = await verifySuperAdmin(request);
@@ -10,10 +15,13 @@ export async function POST(request: NextRequest) {
     }
 
     const results = await runMigrations();
-    return NextResponse.json({ success: true, results });
+    return NextResponse.json({
+      success: results.every((result) => result.success),
+      results,
+      total: results.length,
+    });
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error("run-migrations error:", message, error);
-    return NextResponse.json({ error: "خطای سرور", detail: message }, { status: 500 });
+    console.error("Migration error:", error);
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

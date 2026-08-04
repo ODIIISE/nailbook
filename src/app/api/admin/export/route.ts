@@ -36,14 +36,14 @@ export async function GET(request: NextRequest) {
       case "users":
         if (salonId) {
           const { rows } = await sql`
-            SELECT id, phone, name, role, created_at
+            SELECT id, phone, name, "role", created_at
             FROM users WHERE salon_id = ${salonId}
             ORDER BY created_at DESC
           `;
           data = rows;
         } else {
           const { rows } = await sql`
-            SELECT id, phone, name, role, salon_id, created_at
+            SELECT id, phone, name, "role", salon_id, created_at
             FROM users ORDER BY created_at DESC LIMIT 1000
           `;
           data = rows;

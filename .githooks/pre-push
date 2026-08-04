@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Pre-push guard for forehand.vercel.app.
+# Runs lint + tsc + vitest before any push reaches GitHub.
+# Register once per clone:  git config core.hooksPath .githooks
+# Bypass for a single push (NOT recommended):  git push --no-verify
+
+set -e
+
+echo "→ pre-push: running npm run check (lint + tsc + vitest)"
+
+if ! command -v npm >/dev/null 2>&1; then
+  echo "npm not found in PATH; skipping pre-push checks."
+  exit 0
+fi
+
+npm run check

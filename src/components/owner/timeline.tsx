@@ -7,6 +7,7 @@ import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
 import { STATUS_CONFIG } from "@/lib/constants";
 import { servicePalette, statusColors, themeColor } from "@/lib/design-tokens";
+import { useIsDark } from "@/lib/hooks/use-is-dark";
 import type { Booking, Service, Addon } from "@/lib/types";
 
 interface BlockedTime {
@@ -25,7 +26,10 @@ interface TimelineProps {
   endHour?: number;
 }
 
-const HOUR_HEIGHT = 64;
+// 96px = a 30-minute appointment renders at 48px (>= 44pt/48dp tap target).
+// Matches Cal.com / Motion / Notion Calendar day-view density and keeps
+// short services tappable on phone in the salon.
+const HOUR_HEIGHT = 96;
 
 const STATUS_ICONS: Record<string, typeof CheckCircle2> = {
   reserved: Clock,
@@ -100,7 +104,7 @@ export function Timeline({
   const [confirmRemoveIndex, setConfirmRemoveIndex] = useState<number | null>(null);
   const totalHours = endHour - startHour;
   const totalHeight = totalHours * HOUR_HEIGHT;
-  const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+  const isDark = useIsDark();
 
   const hourMarks = useMemo(
     () => Array.from({ length: totalHours + 1 }, (_, i) => startHour + i),
@@ -178,8 +182,17 @@ export function Timeline({
               const addonColor = t(statusColors.addon.light, statusColors.addon.dark);
 
               return (
-                <div key={b.id} className="absolute left-12 right-2 cursor-pointer z-10" style={{ top: pos.top, height: pos.height }} onClick={() => onSelectBooking(b)}>
-                  <div className={`h-full ${borderColor} border overflow-hidden ${compact ? "flex items-stretch" : "flex"}`} style={{ backgroundColor: style.bg }}>
+                <div
+                  key={b.id}
+                  className="absolute left-12 right-2 cursor-pointer z-10 press-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card rounded"
+                  style={{ top: pos.top, height: pos.height }}
+                  onClick={() => onSelectBooking(b)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelectBooking(b); } }}
+                  aria-label={`${b.customer_name}، ${b.service?.name}، ${b.start_time.slice(0, 5)} تا ${b.end_time.slice(0, 5)}${b.paid ? "" : "، پرداخت نشده"}`}
+                >
+                  <div className={`h-full ${borderColor} border overflow-hidden ${compact ? "flex items-stretch" : "flex"} rounded`} style={{ backgroundColor: style.bg }}>
                     <div className="w-[3px] shrink-0" style={{ backgroundColor: style.accent }} />
 
                     {compact ? (
@@ -305,12 +318,18 @@ export function Timeline({
               );
             })}
 
-            {/* Now indicator */}
+            {/* Now indicator: 2px live line + 8px pulsing dot in the time gutter.
+                Reference: Cal.com / Motion day-view "now" indicator. */}
             {showNow && (
               <div id="timeline-now" className="absolute z-20 pointer-events-none" style={{ top: nowPosition, left: 44, right: 0 }}>
-                <div className="h-[2px]" style={{ backgroundColor: t(statusColors.currentLine.light, statusColors.currentLine.dark) }} />
-                <div className="absolute left-0 top-[3px] w-2 h-2 rounded-full -translate-x-1/2 -translate-y-1/2"
-                  style={{ backgroundColor: t(statusColors.currentDot.light, statusColors.currentDot.dark) }} />
+                <div className="relative h-[2px] w-full">
+                  {/* Pulse halo behind the dot */}
+                  <div className="absolute -start-1 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full animate-ping opacity-60"
+                    style={{ backgroundColor: 'currentColor' }} />
+                </div>
+                <div className="h-[2px]" style={{ backgroundColor: 'var(--accent-now)' }} />
+                <div className="absolute start-0 top-[3px] w-2.5 h-2.5 rounded-full -translate-x-1/2 -translate-y-1/2 ring-2 ring-card"
+                  style={{ backgroundColor: 'var(--accent-now)' }} />
               </div>
             )}
           </>

@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useMemo } from "react";
+import { useRef, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Check, CalendarDays, Sparkles, Share2, MessageCircle, Copy, Repeat } from "lucide-react";
-import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
-import { TornPaperCard } from "./torn-paper-card";
-import { getTehranDateKey } from "@/lib/time";
+import { Share2, Repeat, Image as ImageIcon, Loader2 } from "lucide-react";
+import { toPersianDigits, gregorianToJalali, PERSIAN_MONTHS } from "@/lib/jalali";
+import { haptic } from "@/lib/haptics";
+import { PrintedReceipt } from "./printed-receipt";
+import type { Addon } from "@/lib/types";
 
 interface BookingConfirmProps {
   serviceName: string;
@@ -17,28 +18,13 @@ interface BookingConfirmProps {
   price: number;
   customerName: string;
   bookingId: string;
+  bookingIdRaw?: string;
   salonName?: string;
   salonAddress?: string;
   phone?: string;
-}
-
-function Barcode({ id }: { id: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!ref.current) return;
-    ref.current.innerHTML = "";
-    const bars = [2,1,3,1,2,1,1,3,1,2,1,3,1,1,2,1,3,1,2,1,1,3,1,2,1,3,1,2,1,1,3,1,2,1,3,1,1,2,1,3,1,2,1,1,3,1,2,1,3,1,2,1,1,3,1,2,1,3,1,1,2,1,3,1,2,1];
-    bars.forEach((w) => {
-      const bar = document.createElement("div");
-      bar.style.cssText = `width:${w}px;height:${18+Math.random()*4}px;background:var(--foreground);border-radius:0.5px;opacity:0.08;`;
-      ref.current!.appendChild(bar);
-    });
-  }, [id]);
-
-  return (
-    <div ref={ref} className="flex justify-center gap-[1px] h-[22px] items-end" />
-  );
+  salonLogoUrl?: string | null;
+  addons?: Addon[];
+  servicePrice?: number;
 }
 
 export function BookingConfirm({
@@ -49,172 +35,178 @@ export function BookingConfirm({
   price,
   customerName,
   bookingId,
+  bookingIdRaw,
   salonName = "",
   salonAddress = "",
+  phone,
+  salonLogoUrl,
+  addons = [],
+  servicePrice,
 }: BookingConfirmProps) {
   const router = useRouter();
   const jalali = gregorianToJalali(date);
-  const fullDate = formatJalaliDate(jalali.jy, jalali.jm, jalali.jd);
-  const formattedTime = toPersianDigits(time);
+  const dateParts = useMemo(
+    () => ({
+      day: jalali.jd,
+      month: PERSIAN_MONTHS[jalali.jm - 1],
+      year: jalali.jy,
+    }),
+    [jalali.jd, jalali.jm, jalali.jy]
+  );
   const shortId = bookingId.slice(-4).toUpperCase();
 
   const [h, m] = time.split(":").map(Number);
   const endMinutes = h * 60 + m + duration;
   const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
-  const formattedEndTime = toPersianDigits(endTime);
-
-  const displayDomain = useMemo(() => {
-    if (typeof window !== "undefined") return window.location.hostname;
-    return "forehand.vercel.app";
-  }, []);
-
-  const handleAddToGoogleCalendar = () => {
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const tehranKey = getTehranDateKey(date);
-    const [year, month, day] = tehranKey.split("-");
-    const startStr = `${year}${month}${day}T${pad(h)}${pad(m)}00`;
-    const endH = Math.floor(endMinutes / 60);
-    const endM = endMinutes % 60;
-    const endStr = `${year}${month}${day}T${pad(endH)}${pad(endM)}00`;
-    const params = new URLSearchParams({
-      action: "TEMPLATE",
-      text: `${serviceName} - ${salonName}`,
-      dates: `${startStr}/${endStr}`,
-      details: `رزرو شماره: ${shortId}\nهزینه: ${formatPrice(Number(price))} تومان\nنام: ${customerName}`,
-      location: salonAddress,
-      ctz: "Asia/Tehran",
-    });
-    window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, "_blank");
-  };
 
   const shareText = useMemo(
     () =>
-      `رزرو ناخن ثبت شد!\n${serviceName}\n${fullDate} - ساعت ${formattedTime} تا ${formattedEndTime}\n${salonName}${salonAddress ? `\n${salonAddress}` : ""}`,
-    [serviceName, fullDate, formattedTime, formattedEndTime, salonName, salonAddress]
+      `رزرو ناخن ثبت شد!\n${serviceName}\n${toPersianDigits(dateParts.day)} ${dateParts.month} ${toPersianDigits(dateParts.year)} - ساعت ${toPersianDigits(time)} تا ${toPersianDigits(endTime)}\n${salonName}${salonAddress ? `\n${salonAddress}` : ""}`,
+    [serviceName, dateParts.day, dateParts.month, dateParts.year, time, endTime, salonName, salonAddress]
   );
 
-  const handleShare = async () => {
+  const sharePath = bookingIdRaw ? `/bookings/${bookingIdRaw}` : "/book";
+
+  const receiptRef = useRef<HTMLDivElement>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+
+  const createReceiptBlob = useCallback(async () => {
+    if (!receiptRef.current) return null;
+    await document.fonts?.ready;
+    const { toBlob } = await import("html-to-image");
+    return toBlob(receiptRef.current, {
+      backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--background").trim() || "#fafafa",
+      pixelRatio: 2,
+      cacheBust: true,
+    });
+  }, []);
+
+  const downloadBlob = useCallback((blob: Blob) => {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `receipt-${shortId}.png`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, [shortId]);
+
+  const handleDownloadImage = useCallback(async () => {
+    if (isCapturing) return;
+    haptic.tap();
+    setIsCapturing(true);
     try {
-      if (navigator.share) {
-        await navigator.share({ text: shareText });
-      } else {
-        await navigator.clipboard.writeText(shareText);
-        toast.success("اطلاعات رزرو کپی شد");
+      const blob = await createReceiptBlob();
+      if (!blob) throw new Error("receipt-image-empty");
+      downloadBlob(blob);
+      toast.success("تصویر رسید دانلود شد");
+    } catch {
+      toast.error("خطا در ایجاد تصویر رسید");
+    } finally {
+      setIsCapturing(false);
+    }
+  }, [createReceiptBlob, downloadBlob, isCapturing]);
+
+  const handleShare = useCallback(async () => {
+    if (isCapturing) return;
+    haptic.tap();
+    setIsCapturing(true);
+    try {
+      const blob = await createReceiptBlob();
+      if (!blob) throw new Error("receipt-image-empty");
+      const file = new File([blob], `receipt-${shortId}.png`, { type: "image/png" });
+      const shareUrl = new URL(sharePath, window.location.origin).toString();
+      const shareData = {
+        title: `رزرو ${salonName}`,
+        text: shareText,
+        url: shareUrl,
+        files: [file],
+      };
+
+      let canShareFile = false;
+      try {
+        canShareFile = typeof navigator.canShare === "function" && navigator.canShare({ files: [file] });
+      } catch {
+        canShareFile = false;
       }
-    } catch {
-      // ignore
-    }
-  };
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(shareText);
-      toast.success("اطلاعات رزرو کپی شد");
-    } catch {
-      // ignore
+      if (canShareFile) {
+        await navigator.share(shareData);
+      } else if (typeof navigator.share === "function") {
+        // Some browsers support text/link sharing but reject files.
+        await navigator.share({ title: shareData.title, text: shareText, url: shareUrl });
+        downloadBlob(blob);
+        toast.success("لینک و متن ارسال شد؛ تصویر رسید هم دانلود شد");
+      } else {
+        let copied = false;
+        if (navigator.clipboard?.writeText) {
+          try {
+            await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+            copied = true;
+          } catch {
+            // Private browsing or an insecure context may block the clipboard.
+          }
+        }
+        // Download independently so the image is still delivered even when
+        // clipboard permissions are unavailable.
+        downloadBlob(blob);
+        toast.success(copied ? "لینک و متن کپی شد و تصویر رسید دانلود شد" : "تصویر رسید دانلود شد");
+      }
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        toast.error("اشتراک‌گذاری انجام نشد");
+      }
+    } finally {
+      setIsCapturing(false);
     }
-  };
-
-  const handleWhatsAppShare = () => {
-    const encoded = encodeURIComponent(shareText);
-    window.open(`https://wa.me/?text=${encoded}`, "_blank", "noopener,noreferrer");
-  };
+  }, [createReceiptBlob, downloadBlob, isCapturing, salonName, sharePath, shareText, shortId]);
 
   const handleRebook = () => {
+    haptic.tap();
     router.push("/");
   };
 
   return (
     <div className="mx-auto max-w-lg animate-scale">
-      <TornPaperCard>
-        <div className="px-5 py-4">
-          <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.025] mix-blend-multiply" style={{
-            backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.25'/%3E%3C/svg%3E\")",
-            backgroundSize: "180px 180px",
-          }} />
+      <div ref={receiptRef}>
+        <PrintedReceipt
+          mode="final"
+          salonName={salonName}
+          salonLogoUrl={salonLogoUrl}
+          salonAddress={salonAddress}
+          salonPhone={phone}
+          serviceName={serviceName}
+          servicePrice={servicePrice !== undefined ? servicePrice : price}
+          addons={addons.map((a) => ({ name: a.name, price: Number(a.price) }))}
+          dateParts={dateParts}
+          startTime={time}
+          endTime={endTime}
+          totalDuration={duration}
+          totalPrice={price}
+          bookingId={bookingId}
+          bookingIdRaw={bookingIdRaw}
+          customerName={customerName}
+        />
+      </div>
 
-          <div className="flex items-center gap-2.5 mb-4 relative z-[2]">
-            <div
-              className="w-8 h-8 rounded-full bg-success flex items-center justify-center shrink-0"
-              style={{ boxShadow: "0 2px 8px rgba(34,197,94,0.2)" }}
-            >
-              <Check className="h-4 w-4 text-primary-foreground" strokeWidth={2.5} />
-            </div>
-            <div className="text-body font-bold text-foreground">رزرو ثبت شد</div>
-          </div>
-
-          <div className="flex items-center gap-2.5 mb-2 relative z-[2]">
-            <div
-              className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0"
-              style={{ background: "linear-gradient(135deg, rgba(10,10,10,0.06), rgba(10,10,10,0.03))" }}
-            >
-              <Sparkles className="h-4 w-4 text-foreground" />
-            </div>
-            <div>
-              <div className="text-caption font-semibold text-foreground">{serviceName}</div>
-              <div className="text-small text-muted-foreground">{salonName}</div>
-            </div>
-          </div>
-
-          <div className="h-px bg-border/50 mb-2 relative z-[2]" />
-
-          <div className="relative z-[2]">
-            <div className="flex justify-between items-center py-[7px]">
-              <span className="text-small text-muted-foreground">تاریخ</span>
-              <span className="text-small font-semibold text-foreground">{fullDate}</span>
-            </div>
-            <div className="flex justify-between items-center py-[7px] border-t border-dashed border-foreground/5">
-              <span className="text-small text-muted-foreground">ساعت</span>
-              <span className="text-small font-semibold text-foreground">{formattedTime} تا {formattedEndTime}</span>
-            </div>
-            <div className="flex justify-between items-center py-[7px] border-t border-dashed border-foreground/5">
-              <span className="text-small text-muted-foreground">مدت</span>
-              <span className="text-small font-semibold text-foreground">{toPersianDigits(duration)} دقیقه</span>
-            </div>
-            <div className="flex justify-between items-center pt-2.5 pb-0.5 border-t border-dashed border-foreground/5">
-              <span className="text-small font-medium text-muted-foreground">هزینه کل</span>
-              <span className="text-body-lg font-extrabold text-foreground">{formatPrice(Number(price))} تومان</span>
-            </div>
-          </div>
-
-          <div className="mt-3 relative z-[2]">
-            <Barcode id={bookingId} />
-            <div className="text-center text-small font-medium tracking-[1px] text-foreground/20 mt-1.5" dir="ltr">
-              #{shortId}
-            </div>
-            <div className="text-center text-small font-medium tracking-[2px] text-muted-foreground opacity-30 mt-0.5">
-              {displayDomain}
-            </div>
-          </div>
-        </div>
-      </TornPaperCard>
-
-      <div className="grid grid-cols-2 gap-2 mt-3">
-        <Button size="xl" variant="paper" className="w-full" onClick={handleAddToGoogleCalendar}>
-          <CalendarDays className="h-4 w-4 ml-2" />
-          تقویم گوگل
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button size="xl" variant="paper" className="w-full" onClick={handleDownloadImage} disabled={isCapturing}>
+          {isCapturing ? <Loader2 className="h-4 w-4 ml-2 animate-spin" /> : <ImageIcon className="h-4 w-4 ml-2" />}
+          {isCapturing ? "در حال آماده‌سازی..." : "دانلود تصویر"}
         </Button>
-        <Button size="xl" variant="outline" className="w-full bg-background" onClick={handleShare}>
-          <Share2 className="h-4 w-4 ml-2" />
+        <Button size="xl" variant="outline" className="w-full bg-background" onClick={handleShare} disabled={isCapturing}>
+          {isCapturing ? <Loader2 className="h-4 w-4 ml-2 animate-spin" /> : <Share2 className="h-4 w-4 ml-2" />}
           اشتراک‌گذاری
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mt-2">
-        <Button size="xl" variant="outline" className="w-full" onClick={handleWhatsAppShare}>
-          <MessageCircle className="h-4 w-4 ml-2" />
-          واتساپ
-        </Button>
-        <Button size="xl" variant="outline" className="w-full" onClick={handleCopy}>
-          <Copy className="h-4 w-4 ml-2" />
-          کپی اطلاعات
+      <div className="mt-2">
+        <Button size="xl" variant="ghost" className="w-full" onClick={handleRebook} disabled={isCapturing}>
+          <Repeat className="h-4 w-4 ml-2" />
+          رزرو مجدد
         </Button>
       </div>
-
-      <Button size="xl" variant="secondary" className="w-full mt-2" onClick={handleRebook}>
-        <Repeat className="h-4 w-4 ml-2" />
-        رزرو مجدد
-      </Button>
     </div>
   );
 }

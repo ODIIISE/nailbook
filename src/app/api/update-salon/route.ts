@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     // Allowlist: only accept known fields
     const ALLOWED_FIELDS = new Set([
       "name", "description", "slogan", "phone", "address",
-      "hero_image_url", "logo_url", "working_hours_text",
+      "hero_image_url", "logo_url", "splash_title", "splash_slogan", "splash_logo_url", "working_hours_text",
       "working_hours", "specific_days_off",
       "slot_buffer_minutes", "slot_interval_minutes",
       "early_extra_hours", "late_extra_hours",
@@ -114,6 +114,15 @@ export async function POST(request: NextRequest) {
       }
       if (safeUpdates.logo_url !== undefined) {
         await client.query(updateSql("logo_url"), [safeUpdates.logo_url, salonId]);
+      }
+      if (safeUpdates.splash_title !== undefined) {
+        await client.query("UPDATE salon_info SET splash_title = $1 WHERE id = $2", [safeUpdates.splash_title, salonId]);
+      }
+      if (safeUpdates.splash_slogan !== undefined) {
+        await client.query("UPDATE salon_info SET splash_slogan = $1 WHERE id = $2", [safeUpdates.splash_slogan, salonId]);
+      }
+      if (safeUpdates.splash_logo_url !== undefined) {
+        await client.query("UPDATE salon_info SET splash_logo_url = $1 WHERE id = $2", [safeUpdates.splash_logo_url, salonId]);
       }
       if (safeUpdates.working_hours_text !== undefined) {
         await client.query(updateSql("working_hours_text"), [safeUpdates.working_hours_text, salonId]);

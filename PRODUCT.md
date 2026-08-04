@@ -1,5 +1,7 @@
 # Product
 
+> ⚠️ **DEPRECATED**: The color accent (#E86A92 pink) in this file no longer reflects the actual design. See DESIGN-SYSTEM.md for the current monochromatic Clean Slate theme.
+
 <!-- impeccable:product-schema 1 -->
 
 ## Platform
@@ -51,7 +53,7 @@ A lightweight, Persian-first booking app specifically designed for Iranian nail 
 - Salon name: Forehand Nail Studio (استدیو تخصصی ناخن فورهند)
 - Persian-first, RTL layout
 - Paper texture theme (soft, feminine aesthetic)
-- Color accent: #E86A92 (pink)
+- Color accent: #E86A92 (pink) → **See DESIGN-SYSTEM.md for actual implementation**
 
 ## Evidence on Hand
 

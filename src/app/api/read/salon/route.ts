@@ -6,24 +6,55 @@ import { normalizeOptimizerSettings } from "@/lib/salon-settings";
 export async function GET() {
   try {
     const salonId = getSalonId();
-    const { rows } = salonId
-      ? await sql.query(
-          `SELECT id, name, description, slogan, phone, address, hero_image_url, logo_url,
-                  working_hours_text, working_hours, slot_buffer_minutes, slot_interval_minutes,
-                  early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
-                  allow_overflow, overflow_minutes, specific_days_off,
-                  optimization_mode, suggestion_limit, min_useful_gap_minutes
-           FROM salons WHERE id = $1 LIMIT 1`,
-          [salonId]
-        )
-      : await sql`
-          SELECT id, name, description, slogan, phone, address, hero_image_url, logo_url,
-                 working_hours_text, working_hours, slot_buffer_minutes, slot_interval_minutes,
-                 early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
-                 allow_overflow, overflow_minutes, specific_days_off,
-                 optimization_mode, suggestion_limit, min_useful_gap_minutes
-          FROM salon_info LIMIT 1
-        `;
+    let rows;
+    let hasSplashFields = true;
+    try {
+      const result = salonId
+        ? await sql.query(
+            `SELECT id, name, description, slogan, phone, address, hero_image_url, logo_url,
+                    working_hours_text, working_hours, slot_buffer_minutes, slot_interval_minutes,
+                    early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
+                    allow_overflow, overflow_minutes, specific_days_off,
+                    optimization_mode, suggestion_limit, min_useful_gap_minutes,
+                    splash_title, splash_slogan, splash_logo_url
+             FROM salons WHERE id = $1 LIMIT 1`,
+            [salonId]
+          )
+        : await sql`
+            SELECT id, name, description, slogan, phone, address, hero_image_url, logo_url,
+                   working_hours_text, working_hours, slot_buffer_minutes, slot_interval_minutes,
+                   early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
+                   allow_overflow, overflow_minutes, specific_days_off,
+                   optimization_mode, suggestion_limit, min_useful_gap_minutes,
+                   splash_title, splash_slogan, splash_logo_url
+            FROM salon_info LIMIT 1
+          `;
+      rows = result.rows;
+    } catch (error) {
+      const code = (error as { code?: string })?.code;
+      const message = String((error as { message?: string })?.message || "");
+      if (code !== "42703" && !/column .*splash_.*does not exist/i.test(message)) throw error;
+      hasSplashFields = false;
+      const result = salonId
+        ? await sql.query(
+            `SELECT id, name, description, slogan, phone, address, hero_image_url, logo_url,
+                    working_hours_text, working_hours, slot_buffer_minutes, slot_interval_minutes,
+                    early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
+                    allow_overflow, overflow_minutes, specific_days_off,
+                    optimization_mode, suggestion_limit, min_useful_gap_minutes
+             FROM salons WHERE id = $1 LIMIT 1`,
+            [salonId]
+          )
+        : await sql`
+            SELECT id, name, description, slogan, phone, address, hero_image_url, logo_url,
+                   working_hours_text, working_hours, slot_buffer_minutes, slot_interval_minutes,
+                   early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
+                   allow_overflow, overflow_minutes, specific_days_off,
+                   optimization_mode, suggestion_limit, min_useful_gap_minutes
+            FROM salon_info LIMIT 1
+          `;
+      rows = result.rows;
+    }
     if (!rows[0]) return NextResponse.json(null);
     const s = rows[0];
     const optimizerSettings = normalizeOptimizerSettings(s);
@@ -36,6 +67,9 @@ export async function GET() {
       address: s.address,
       hero_image_url: s.hero_image_url,
       logo_url: s.logo_url,
+      splash_title: hasSplashFields ? (s.splash_title || "Forehand Nail") : "Forehand Nail",
+      splash_slogan: hasSplashFields ? (s.splash_slogan || "Nail Art Studio") : "Nail Art Studio",
+      splash_logo_url: hasSplashFields ? (s.splash_logo_url || null) : null,
       working_hours_text: s.working_hours_text || "شنبه تا پنج شنبه . ۱۰ تا ۱۸",
       working_hours: s.working_hours,
       slot_buffer_minutes: s.slot_buffer_minutes ?? 0,

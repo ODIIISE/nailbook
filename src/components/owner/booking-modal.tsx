@@ -7,6 +7,7 @@ import { calculateBookingPrice } from "@/lib/pricing";
 import { STATUS_CONFIG, VALID_TRANSITIONS } from "@/lib/constants";
 import { statusColors, themeColor } from "@/lib/design-tokens";
 import { useIsDark } from "@/lib/hooks/use-is-dark";
+import { parseGregorianDateKey } from "@/lib/time";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -53,7 +54,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
   const isDark = useIsDark();
   const t = (l: string, d: string) => themeColor(l, d, isDark);
 
-  const jalali = gregorianToJalali(new Date(booking.date_gregorian));
+  const jalali = gregorianToJalali(parseGregorianDateKey(booking.date_gregorian));
   const shortDate = formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd);
   const price = calculateBookingPrice(booking, services, addons);
   const startMinutes = parseInt(booking.start_time.split(":")[0]) * 60 + parseInt(booking.start_time.split(":")[1]);

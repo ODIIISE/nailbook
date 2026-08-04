@@ -3,7 +3,6 @@ import { sql } from "@vercel/postgres";
 import crypto from "crypto";
 import { verifyOtp } from "@/lib/otp-service";
 import { signCustomerSession } from "@/lib/customer-auth";
-import { signOwnerSession } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
 import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-config";
@@ -11,7 +10,13 @@ import { getSalonId } from "@/lib/multi-tenant";
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone, code, roleContext = "customer" } = await request.json();
+    const body = await request.json();
+    const { phone, code, roleContext } = body ?? {};
+
+    console.log("[verify-otp] env check:", {
+      customerSecretSet: Boolean(process.env.CUSTOMER_SESSION_SECRET),
+      nodeEnv: process.env.NODE_ENV,
+    });
 
     if (!phone || !code) {
       return NextResponse.json({ error: "شماره و کد الزامی است" }, { status: 400 });
@@ -22,93 +27,163 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "شماره موبایل معتبر نیست" }, { status: 400 });
     }
 
-    // For owner logins, verify the number is actually an owner before consuming the OTP.
-    let user: { id: string; phone: string; name: string; role: string } | null = null;
-    if (roleContext === "owner") {
-      user = await getUserByPhone(normalized);
-      if (!user || user.role !== "owner") {
-        return NextResponse.json({ error: "شماره یا کد نامعتبر است" }, { status: 401 });
-      }
-    }
-
     const otpResult = await verifyOtp(normalized, String(code).trim());
     if (!otpResult.valid) {
       return NextResponse.json({ error: otpResult.error || "کد نامعتبر است" }, { status: otpResult.locked ? 423 : 401 });
     }
 
-    if (!user) {
-      user = await getUserByPhone(normalized);
-    }
+    type OtpUser = { id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number };
+    let user: OtpUser | null = await getUserByPhone(normalized);
 
+    // Owner-flow gate: refuse to auto-create a row when /owner/login is
+    // the source. The pre-OTP table check in send-otp already rejected
+    // non-owners, but we double-down here in case the OTP was already
+    // issued (e.g. before this hardening shipped, or a developer hot-patch).
     if (roleContext === "owner") {
       if (!user) {
-        return NextResponse.json({ error: "شماره یا کد نامعتبر است" }, { status: 401 });
+        return NextResponse.json({ error: "شماره ثبت نشده" }, { status: 401 });
       }
+      const hasOwner =
+        (Array.isArray(user.roles) && user.roles.includes("owner")) ||
+        user.role === "owner";
+      if (!hasOwner) {
+        void logActivity({
+          eventType: "owner_login_denied",
+          entityType: "user",
+          entityId: user.id,
+          description: `تلاش ورود مدیر توسط ${user.name || user.phone} رد شد`,
+          metadata: { phone: normalized, reason: "verify_otp_role_mismatch" },
+        });
+        return NextResponse.json(
+          { error: "این شماره دسترسی مدیر ندارد" },
+          { status: 403 }
+        );
+      }
+      // Successful owner login.
       await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
-
-      await logActivity({
+      void logActivity({
         eventType: "owner_login",
         entityType: "user",
         entityId: user.id,
         description: `مدیر "${user.name || user.phone}" وارد شد`,
         metadata: { userId: user.id, phone: user.phone, name: user.name },
       });
-
-      const response = NextResponse.json({
-        success: true,
-        user: { id: user.id, phone: user.phone, name: user.name, role: "owner" },
-      });
-      response.cookies.set("owner_session", signOwnerSession(user.id), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: SESSION_MAX_AGE_SECONDS,
-        path: "/",
-      });
-      return response;
-    }
-
-    // Customer flow
-    if (!user) {
-      const userId = crypto.randomUUID();
-      const salonId = getSalonId();
-      if (salonId) {
-        await sql.query(
-          "INSERT INTO users (id, phone, name, role, salon_id) VALUES ($1, $2, '', 'customer', $3)",
-          [userId, normalized, salonId]
-        );
-      } else {
-        await sql`
-          INSERT INTO users (id, phone, name, role)
-          VALUES (${userId}, ${normalized}, '', 'customer')
-        `;
-      }
-      user = { id: userId, phone: normalized, name: "", role: "customer" };
-
-      await logActivity({
-        eventType: "user_registered",
-        entityType: "user",
-        entityId: userId,
-        description: `کاربر جدید ${normalized} ثبت‌نام کرد`,
-        metadata: { phone: normalized },
-      });
     } else {
-      await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
+      // Customer flow: auto-create the row if missing, then normal login.
+      if (!user) {
+        const userId = crypto.randomUUID();
+        const salonId = getSalonId();
+        // ON CONFLICT guards against a rare race where two concurrent verify
+        // requests both try to create the same new user. The unique target
+        // depends on schema state: tenant-scoped (post-migration 013) or the
+        // legacy global phone key.
+        let inserted: Array<{ id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number }>;
+        try {
+          const result = salonId
+            ? await sql<{ id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number }>`
+              INSERT INTO users (id, phone, pin, name, "role", roles, salon_id)
+              VALUES (${userId}, ${normalized}, '', '', 'customer', ARRAY['customer']::TEXT[], ${salonId})
+              ON CONFLICT (salon_id, phone) WHERE salon_id IS NOT NULL
+              DO UPDATE SET phone = EXCLUDED.phone
+              RETURNING id, phone, name, "role", roles, session_version
+            `
+            : await sql<{ id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number }>`
+              INSERT INTO users (id, phone, pin, name, "role", roles)
+              VALUES (${userId}, ${normalized}, '', '', 'customer', ARRAY['customer']::TEXT[])
+              ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
+              RETURNING id, phone, name, "role", roles, session_version
+            `;
+          inserted = result.rows;
+        } catch (error) {
+          const code = (error as { code?: string })?.code;
+          const message = String((error as { message?: string })?.message || "");
+          if (code !== "42703" && !/column .* does not exist/i.test(message)) throw error;
+          try {
+            const result = salonId
+              ? await sql<{ id: string; phone: string; name: string; role: string; roles: string[] }>`
+                INSERT INTO users (id, phone, pin, name, "role", roles, salon_id)
+                VALUES (${userId}, ${normalized}, '', '', 'customer', ARRAY['customer']::TEXT[], ${salonId})
+                ON CONFLICT (salon_id, phone) WHERE salon_id IS NOT NULL
+                DO UPDATE SET phone = EXCLUDED.phone
+                RETURNING id, phone, name, "role", roles
+              `
+              : await sql<{ id: string; phone: string; name: string; role: string; roles: string[] }>`
+                INSERT INTO users (id, phone, pin, name, "role", roles)
+                VALUES (${userId}, ${normalized}, '', '', 'customer', ARRAY['customer']::TEXT[])
+                ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
+                RETURNING id, phone, name, "role", roles
+              `;
+            inserted = result.rows.map((row) => ({ ...row, session_version: 0 }));
+          } catch (rolesError) {
+            const rolesCode = (rolesError as { code?: string })?.code;
+            const rolesMessage = String((rolesError as { message?: string })?.message || "");
+            if (rolesCode !== "42703" && !/column .*roles.*does not exist/i.test(rolesMessage)) throw rolesError;
+            const result = salonId
+              ? await sql<{ id: string; phone: string; name: string; role: string }>`
+                INSERT INTO users (id, phone, pin, name, "role", salon_id)
+                VALUES (${userId}, ${normalized}, '', '', 'customer', ${salonId})
+                ON CONFLICT (salon_id, phone) WHERE salon_id IS NOT NULL
+                DO UPDATE SET phone = EXCLUDED.phone
+                RETURNING id, phone, name, "role"
+              `
+              : await sql<{ id: string; phone: string; name: string; role: string }>`
+                INSERT INTO users (id, phone, pin, name, "role")
+                VALUES (${userId}, ${normalized}, '', '', 'customer')
+                ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone
+                RETURNING id, phone, name, "role"
+              `;
+            inserted = result.rows.map((row) => ({ ...row, roles: ["customer"], session_version: 0 }));
+          }
+        }
+        const created = inserted[0];
+        if (!created) {
+          return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+        }
+        user = created;
+        void logActivity({
+          eventType: "user_registered",
+          entityType: "user",
+          entityId: user.id,
+          description: `کاربر جدید ${normalized} ثبت‌نام کرد`,
+          metadata: { phone: normalized },
+        });
+      } else {
+        await sql`UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ${user.id}`;
+      }
     }
 
-    await logActivity({
+    // After either branch, `user` is non-null. The type is narrowed by
+    // asserting it; this is unreachable in practice but tsc can't prove it.
+    const signedInUser = user!;
+    void logActivity({
       eventType: "user_login",
       entityType: "user",
-      entityId: user.id,
-      description: `کاربر "${user.name || user.phone}" وارد شد`,
-      metadata: { userId: user.id, phone: user.phone, name: user.name },
+      entityId: signedInUser.id,
+      description: `کاربر "${signedInUser.name || signedInUser.phone}" وارد شد`,
+      metadata: { userId: signedInUser.id, phone: signedInUser.phone, name: signedInUser.name, roles: signedInUser.roles },
     });
 
+    let sessionToken: string;
+    try {
+      sessionToken = signCustomerSession(signedInUser.id, Number(signedInUser.session_version) || 0);
+    } catch (err) {
+      console.error("[verify-otp] signCustomerSession failed:", err);
+      return NextResponse.json({ error: "خطای پیکربندی نشست" }, { status: 500 });
+    }
+
+    // Single auth cookie for both customer and owner. Owner dashboard is gated
+    // by middleware checking 'owner' in DB roles array.
     const response = NextResponse.json({
       success: true,
-      user: { id: user.id, phone: user.phone, name: user.name, role: user.role },
+      user: {
+        id: signedInUser.id,
+        phone: signedInUser.phone,
+        name: signedInUser.name,
+        role: Array.isArray(signedInUser.roles) && signedInUser.roles.includes("owner") ? "owner" : (signedInUser.role ?? "customer"),
+        roles: Array.isArray(signedInUser.roles) && signedInUser.roles.length > 0 ? signedInUser.roles : ["customer"],
+      },
     });
-    response.cookies.set("session", signCustomerSession(user.id), {
+    response.cookies.set("session", sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -122,14 +197,73 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function getUserByPhone(phone: string): Promise<{ id: string; phone: string; name: string; role: string } | null> {
+async function getUserByPhone(phone: string): Promise<{ id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number } | null> {
+  // "role" is a Postgres reserved keyword — must be double-quoted in SELECT.
+  // In salon mode the lookup is scoped to the tenant's salon_id; legacy
+  // single-salon deployments (salon_id IS NULL) keep the global lookup.
   const salonId = getSalonId();
-  const result = salonId
-    ? await sql.query<{ id: string; phone: string; name: string; role: string }>(
-        "SELECT id, phone, name, role FROM users WHERE phone = $1 AND salon_id = $2 LIMIT 1",
-        [phone, salonId]
-      )
-    : await sql<{ id: string; phone: string; name: string; role: string }>`SELECT id, phone, name, role FROM users WHERE phone = ${phone} LIMIT 1`;
-  const rows = result.rows;
-  return rows[0] || null;
+  const scoped = salonId
+    ? sql<{ id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number }>`
+      SELECT id, phone, name, "role", roles, session_version FROM users
+      WHERE phone = ${phone} AND salon_id = ${salonId} LIMIT 1
+    `
+    : sql<{ id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number }>`
+      SELECT id, phone, name, "role", roles, session_version FROM users WHERE phone = ${phone} LIMIT 1
+    `;
+  // Keep a legacy-schema fallback for databases that have not applied the
+  // multi-role/session migrations yet.
+  try {
+    const { rows } = await scoped;
+    return normalizeUserRoles(rows[0]) || null;
+  } catch (error) {
+    const code = (error as { code?: string })?.code;
+    const message = String((error as { message?: string })?.message || "");
+    if (code !== "42703" && !/column .* does not exist/i.test(message)) throw error;
+
+    // Rolling deployments can have roles but not session_version. Preserve
+    // multi-role owner access in that intermediate schema.
+    try {
+      const { rows } = salonId
+        ? await sql<{ id: string; phone: string; name: string; role: string; roles: string[] }>`
+          SELECT id, phone, name, "role", roles FROM users
+          WHERE phone = ${phone} AND salon_id = ${salonId} LIMIT 1
+        `
+        : await sql<{ id: string; phone: string; name: string; role: string; roles: string[] }>`
+          SELECT id, phone, name, "role", roles FROM users WHERE phone = ${phone} LIMIT 1
+        `;
+      return normalizeUserRoles({ ...rows[0], session_version: 0 }) || null;
+    } catch (rolesError) {
+      const rolesCode = (rolesError as { code?: string })?.code;
+      const rolesMessage = String((rolesError as { message?: string })?.message || "");
+      if (rolesCode !== "42703" && !/column .*roles.*does not exist/i.test(rolesMessage)) throw rolesError;
+      const { rows } = salonId
+        ? await sql<{ id: string; phone: string; name: string; role: string }>`
+          SELECT id, phone, name, "role" FROM users
+          WHERE phone = ${phone} AND salon_id = ${salonId} LIMIT 1
+        `
+        : await sql<{ id: string; phone: string; name: string; role: string }>`
+          SELECT id, phone, name, "role" FROM users WHERE phone = ${phone} LIMIT 1
+        `;
+      return normalizeUserRoles({ ...rows[0], roles: rows[0]?.role === "owner" ? ["customer", "owner"] : ["customer"], session_version: 0 }) || null;
+    }
+  }
+}
+
+function normalizeUserRoles<T extends { roles: string[] | string | null }>(row: T | null): T | null {
+  if (!row) return row;
+  // Postgres returns TEXT[] as JS arrays, but if the column was added/exists, sometimes as text.
+  const raw = row.roles as unknown;
+  if (Array.isArray(raw)) return row;
+  if (typeof raw === "string") {
+    try {
+      const parsed = (raw as string).replace(/^\{|\}$/g, "").split(",").map((s) => s.replace(/\"/g, "").trim()).filter(Boolean);
+      (row as { roles: string[] }).roles = parsed;
+    } catch {
+      (row as { roles: string[] }).roles = ["customer"];
+    }
+  }
+  if (!row.roles || (Array.isArray(row.roles) && row.roles.length === 0)) {
+    (row as { roles: string[] }).roles = ["customer"];
+  }
+  return row;
 }

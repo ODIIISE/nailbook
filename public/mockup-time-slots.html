@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>مکاپ — ۵ حالت بدون ساعت قابل رزرو</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin="anonymous" />
+  <style>
+    @font-face { font-family: Vazirmatn; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+    @font-face { font-family: Vazirmatn; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+    @font-face { font-family: Vazirmatn; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+    @font-face { font-family: Vazirmatn; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-ExtraBold.woff2') format('woff2'); font-weight: 800; font-display: swap; }
+
+    :root {
+      --background: #fff;
+      --foreground: #0a0a0a;
+      --card: #fff;
+      --muted: #f5f5f5;
+      --muted-foreground: #525252;
+      --border: #e5e5e5;
+      --border-strong: #d4d4d4;
+      --primary: #0a0a0a;
+      --primary-foreground: #fff;
+      --shadow-card: 0 1px 2px rgba(10,10,10,.04), 0 8px 24px rgba(10,10,10,.05);
+      --shadow-phone: 0 2px 4px rgba(10,10,10,.04), 0 16px 40px rgba(10,10,10,.08);
+      --radius-card: 24px;
+      --radius-phone: 25px;
+    }
+    html.dark {
+      --background: #000;
+      --foreground: #fafafa;
+      --card: #0f0f10;
+      --muted: #171717;
+      --muted-foreground: #b5b5b5;
+      --border: #262626;
+      --border-strong: #3b3b3b;
+      --primary: #fafafa;
+      --primary-foreground: #000;
+      --shadow-card: 0 1px 0 rgba(255,255,255,.04) inset, 0 12px 30px rgba(0,0,0,.32);
+      --shadow-phone: 0 1px 0 rgba(255,255,255,.05) inset, 0 18px 44px rgba(0,0,0,.6);
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--background); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--foreground);
+      background:
+        radial-gradient(800px 360px at 50% -12%, color-mix(in srgb, var(--foreground) 5%, transparent), transparent 70%),
+        var(--background);
+      font-family: Vazirmatn, -apple-system, BlinkMacSystemFont, sans-serif;
+      transition: background .25s ease, color .25s ease;
+    }
+    button { font: inherit; }
+    button:focus-visible { outline: 2px solid var(--foreground); outline-offset: 3px; }
+
+    .shell { max-width: 1240px; margin: 0 auto; padding: 34px 24px 64px; }
+    .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; color: var(--muted-foreground); font-size: 11px; font-weight: 700; letter-spacing: .02em; }
+    .eyebrow-mark { width: 7px; height: 7px; border-radius: 50%; background: var(--foreground); }
+    h1 { margin: 10px 0 7px; font-size: clamp(22px, 3vw, 31px); line-height: 1.25; letter-spacing: -.035em; font-weight: 800; }
+    .intro { max-width: 540px; margin: 0; color: var(--muted-foreground); font-size: 13px; line-height: 1.9; }
+    .theme-toggle { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); color: var(--foreground); cursor: pointer; font-size: 12px; font-weight: 700; transition: border-color .18s ease, transform .18s ease; }
+    .theme-toggle:hover { border-color: var(--border-strong); }
+    .theme-toggle:active { transform: scale(.97); }
+    .theme-toggle svg { width: 16px; height: 16px; }
+
+    .legend { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; color: var(--muted-foreground); font-size: 11px; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend i { width: 8px; height: 8px; border-radius: 50%; background: var(--foreground); display: inline-block; }
+    .legend i.muted { background: var(--muted); border: 1px solid var(--border-strong); }
+    .legend-divider { width: 1px; height: 13px; background: var(--border); }
+    .coverage { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0 0 24px; }
+    .coverage-item { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 14px; background: color-mix(in srgb, var(--card) 82%, var(--muted)); }
+    .coverage-icon { display: grid; place-items: center; flex: 0 0 auto; width: 30px; height: 30px; border-radius: 10px; background: var(--muted); color: var(--foreground); }
+    .coverage-icon svg { width: 16px; height: 16px; }
+    .coverage-copy { min-width: 0; }
+    .coverage-copy strong { display: block; font-size: 11px; line-height: 1.5; }
+    .coverage-copy span { display: block; margin-top: 2px; color: var(--muted-foreground); font-size: 10px; line-height: 1.5; }
+
+    .variants { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; align-items: start; }
+    .variant { min-width: 0; }
+    .variant-head { min-height: 72px; padding: 0 4px 12px; }
+    .variant-number { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 8px; background: var(--foreground); color: var(--background); font-size: 11px; font-weight: 800; }
+    .variant-title { margin: 9px 0 3px; font-size: 13px; font-weight: 800; line-height: 1.4; }
+    .variant-caption { margin: 0; color: var(--muted-foreground); font-size: 10px; line-height: 1.6; }
+    .phone { overflow: hidden; min-height: 466px; border: 1px solid var(--border); border-radius: var(--radius-phone); background: var(--card); box-shadow: var(--shadow-phone); }
+    .phone-top { height: 32px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid color-mix(in srgb, var(--border) 65%, transparent); }
+    .notch { width: 74px; height: 17px; border-radius: 999px; background: var(--muted); }
+    .phone-content { padding: 14px 13px 18px; }
+    .date-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+    .date-label { font-size: 12px; font-weight: 800; }
+    .date-meta { color: var(--muted-foreground); font-size: 10px; }
+    .day-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 16px; }
+    .day { padding: 7px 2px; border: 1px solid var(--border); border-radius: 10px; text-align: center; color: var(--muted-foreground); font-size: 9px; line-height: 1.55; }
+    .day strong { display: block; color: var(--foreground); font-size: 12px; }
+    .day.selected { border-color: var(--foreground); background: var(--foreground); color: var(--background); }
+    .day.selected strong { color: var(--background); }
+    .section-label { margin: 0 1px 8px; font-size: 11px; font-weight: 800; }
+    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 46px; padding: 0 13px; border: 1px solid transparent; border-radius: 14px; background: var(--primary); color: var(--primary-foreground); cursor: pointer; font-size: 12px; font-weight: 800; transition: transform .18s ease, opacity .18s ease, background .18s ease; }
+    .btn:hover { opacity: .88; }
+    .btn:active { transform: scale(.98); }
+    .btn svg { width: 15px; height: 15px; }
+    .btn-quiet { border-color: var(--border); background: transparent; color: var(--foreground); }
+    .btn-quiet:hover { background: var(--muted); opacity: 1; }
+    .btn-small { min-height: 38px; border-radius: 12px; font-size: 11px; }
+    .muted-copy { color: var(--muted-foreground); font-size: 11px; line-height: 1.85; }
+
+    /* 01 — quiet editorial */
+    .v1-state { padding: 12px 4px 2px; text-align: center; }
+    .v1-glyph { display: grid; place-items: center; width: 50px; height: 50px; margin: 0 auto 18px; border-bottom: 1px solid var(--foreground); color: var(--foreground); }
+    .v1-glyph svg { width: 25px; height: 25px; }
+    .v1-state h2 { margin: 0; font-size: 16px; line-height: 1.45; font-weight: 800; }
+    .v1-state p { max-width: 190px; margin: 9px auto 21px; }
+
+    /* 02 — compact inline action */
+    .v2-state { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 13px; border: 1px solid var(--border); border-radius: 16px; }
+    .v2-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: var(--muted); color: var(--foreground); }
+    .v2-icon svg { width: 17px; height: 17px; }
+    .v2-copy h2 { margin: 1px 0 4px; font-size: 12px; line-height: 1.5; font-weight: 800; }
+    .v2-copy p { margin: 0 0 11px; font-size: 10px; line-height: 1.7; }
+
+    /* 03 — next-day handoff */
+    .v3-state { padding: 13px; border-radius: 18px; background: var(--muted); }
+    .v3-state-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .v3-state-top strong { font-size: 12px; }
+    .zero { color: var(--muted-foreground); font-size: 10px; }
+    .v3-next { display: flex; align-items: center; gap: 10px; padding: 11px; margin-bottom: 13px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); }
+    .v3-next-date { flex: 1; }
+    .v3-next-date small { display: block; margin-bottom: 2px; color: var(--muted-foreground); font-size: 9px; }
+    .v3-next-date strong { font-size: 12px; }
+    .v3-next-arrow { display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: var(--foreground); color: var(--background); }
+    .v3-next-arrow svg { width: 13px; height: 13px; }
+
+    /* 04 — availability preview */
+    .v4-state { padding: 15px; border: 1px dashed var(--border-strong); border-radius: 18px; }
+    .v4-state h2 { margin: 0 0 5px; font-size: 13px; font-weight: 800; }
+    .v4-state p { margin: 0 0 14px; }
+    .availability { display: flex; gap: 6px; margin-bottom: 14px; }
+    .availability span { flex: 1; min-width: 0; padding: 8px 2px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); text-align: center; font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .availability span:first-child { border-color: var(--foreground); }
+    .v4-note { display: flex; align-items: center; gap: 5px; margin-bottom: 12px; color: var(--muted-foreground); font-size: 9px; }
+    .v4-note svg { width: 12px; height: 12px; }
+
+    /* 05 — schedule continuity */
+    .v5-state { position: relative; padding: 3px 0 3px 0; }
+    .v5-line { position: absolute; inset-inline-end: 10px; top: 16px; bottom: 18px; width: 1px; background: var(--border-strong); }
+    .v5-item { position: relative; display: grid; grid-template-columns: 27px 1fr; gap: 10px; padding-bottom: 19px; }
+    .v5-dot { z-index: 1; width: 21px; height: 21px; border: 5px solid var(--card); border-radius: 50%; background: var(--muted-foreground); box-shadow: 0 0 0 1px var(--border-strong); }
+    .v5-item.current .v5-dot { background: var(--foreground); }
+    .v5-copy { padding-top: 1px; }
+    .v5-copy small { display: block; margin-bottom: 3px; color: var(--muted-foreground); font-size: 9px; }
+    .v5-copy strong { display: block; margin-bottom: 5px; font-size: 12px; line-height: 1.5; }
+    .v5-copy p { margin: 0; font-size: 10px; line-height: 1.65; color: var(--muted-foreground); }
+    .v5-action { padding-inline-start: 37px; }
+
+    .selection-note { display: flex; align-items: center; justify-content: center; gap: 7px; margin: 28px auto 0; color: var(--muted-foreground); font-size: 11px; }
+    .selection-note svg { width: 14px; height: 14px; }
+    .footer-note { margin-top: 10px; text-align: center; color: var(--muted-foreground); font-size: 10px; opacity: .78; }
+
+    @media (max-width: 1080px) { .variants { grid-template-columns: repeat(3, minmax(220px, 1fr)); } }
+    @media (max-width: 720px) {
+      .shell { padding: 24px 16px 48px; }
+      .topbar { align-items: stretch; }
+      .theme-toggle { padding-inline: 12px; }
+      .coverage { grid-template-columns: 1fr; margin-bottom: 20px; }
+      .variants { grid-template-columns: 1fr; gap: 24px; }
+      .variant-head { min-height: auto; padding-bottom: 10px; }
+      .phone { min-height: auto; }
+      .phone-content { padding: 15px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow"><span class="eyebrow-mark"></span> طراحی مجدد حالت بدون ساعت</div>
+        <h1>پنج مسیر برای ادامه‌ی رزرو</h1>
+        <p class="intro">پنج نسخه با یک هدف مشترک: وقتی برای یک روز ساعت قابل رزرو نیست، کاربر به بن‌بست نرسد. حالت تعطیل، تکمیل ظرفیت و نبودن زمان مناسب برای خدمت همگی پوشش داده شده‌اند.</p>
+      </div>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.7 6.7 0 0 0 21 12.8Z"/></svg>
+        <span id="themeLabel">حالت تیره</span>
+      </button>
+    </header>
+
+    <div class="legend" aria-label="راهنمای مقایسه">
+      <span><i></i> عمل اصلی</span><span class="legend-divider"></span><span><i class="muted"></i> اطلاعات کمکی</span>
+    </div>
+
+    <section class="coverage" aria-label="دو حالت بدون ساعت قابل رزرو">
+      <div class="coverage-item">
+        <div class="coverage-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M9 15h.01M15 15h.01"/></svg></div>
+        <div class="coverage-copy"><strong>روز تعطیل / بدون ساعت کاری</strong><span>برای این روز ساعتی نداریم</span></div>
+      </div>
+      <div class="coverage-item">
+        <div class="coverage-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M9 15l6 6M15 15l-6 6"/></svg></div>
+        <div class="coverage-copy"><strong>ساعت‌ها پر شده‌اند</strong><span>این روز کاملاً پر شده</span></div>
+      </div>
+    </section>
+
+    <section class="variants" aria-label="پنج نسخه‌ی طراحی حالت بدون ساعت قابل رزرو">
+      <!-- Variant 1 -->
+      <article class="variant">
+        <div class="variant-head">
+          <span class="variant-number">۰۱</span>
+          <h2 class="variant-title">ساده و تحریریه‌ای</h2>
+          <p class="variant-caption">کمترین شلوغی، بیشترین تمرکز روی پیام</p>
+        </div>
+        <div class="phone">
+          <div class="phone-top"><span class="notch"></span></div>
+          <div class="phone-content">
+            <div class="date-row"><span class="date-label">پنجشنبه ۱۰ مرداد</span><span class="date-meta">انتخاب تاریخ</span></div>
+            <div class="v1-state">
+              <div class="v1-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M9 15h.01M15 15h.01M9 19h.01M15 19h.01"/></svg></div>
+              <h2>این روز کاملاً پر شده</h2>
+              <p class="muted-copy">همه‌ی زمان‌های قابل رزرو برای امروز گرفته شده‌اند.</p>
+              <button class="btn" type="button">برنامه فردا را ببینید <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Variant 2 -->
+      <article class="variant">
+        <div class="variant-head">
+          <span class="variant-number">۰۲</span>
+          <h2 class="variant-title">اعلان درون‌خطی · روز تعطیل</h2>
+          <p class="variant-caption">فشرده و روشن برای روز بدون ساعت کاری</p>
+        </div>
+        <div class="phone">
+          <div class="phone-top"><span class="notch"></span></div>
+          <div class="phone-content">
+            <div class="date-row"><span class="date-label">جمعه ۱۱ مرداد</span><span class="date-meta">روز تعطیل</span></div>
+            <div class="v2-state">
+              <div class="v2-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M9 15h.01M15 15h.01"/></svg></div>
+              <div class="v2-copy">
+                <h2>برای این روز ساعت کاری نداریم</h2>
+                <p class="muted-copy">برای این روز زمان قابل رزرو نداریم.</p>
+                <button class="btn btn-small" type="button">روز بعد را بررسی کنید <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="section-label">راهنمای انتخاب</div>
+            <div class="muted-copy">تاریخ دیگری را انتخاب کنید تا ساعت‌های قابل رزرو را ببینید.</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Variant 3 -->
+      <article class="variant">
+        <div class="variant-head">
+          <span class="variant-number">۰۳</span>
+          <h2 class="variant-title">تحویل به روز بعد</h2>
+          <p class="variant-caption">روز بعد را به‌عنوان قدم بعدی نشان می‌دهد</p>
+        </div>
+        <div class="phone">
+          <div class="phone-top"><span class="notch"></span></div>
+          <div class="phone-content">
+            <div class="date-row"><span class="date-label">پنجشنبه ۱۰ مرداد</span><span class="date-meta">روز انتخاب‌شده</span></div>
+            <div class="v3-state">
+              <div class="v3-state-top"><strong>ظرفیت این روز تکمیل است</strong><span class="zero">۰ ساعت خالی</span></div>
+              <p class="muted-copy" style="margin:0 0 15px;">برای ادامه، نزدیک‌ترین روز را بررسی کنید.</p>
+              <div class="v3-next">
+                <div class="v3-next-date"><small>روز بعد</small><strong>جمعه ۱۱ مرداد</strong></div>
+                <div class="v3-next-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div>
+              </div>
+              <button class="btn" type="button">دیدن ساعت‌های جمعه</button>
+            </div>
+            <div class="footer-note">یا تاریخ دیگری را از تقویم انتخاب کنید</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Variant 4 -->
+      <article class="variant">
+        <div class="variant-head">
+          <span class="variant-number">۰۴</span>
+          <h2 class="variant-title">زمان نامناسب برای خدمت</h2>
+          <p class="variant-caption">برای فاصله‌های کوتاه‌تر از مدت خدمت</p>
+        </div>
+        <div class="phone">
+          <div class="phone-top"><span class="notch"></span></div>
+          <div class="phone-content">
+            <div class="date-row"><span class="date-label">پنجشنبه ۱۰ مرداد</span><span class="date-meta">امروز</span></div>
+            <div class="v4-state">
+              <h2>زمان مناسبی برای این خدمت نیست</h2>
+              <p class="muted-copy">ساعت‌های باقی‌مانده برای مدت این خدمت کافی نیستند.</p>
+              <div class="availability" aria-label="فاصله‌های آزاد کوتاه"><span>۱۰:۰۰</span><span>۱۱:۳۰</span><span>۱۴:۰۰</span></div>
+              <div class="v4-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>این فاصله‌ها برای این خدمت کوتاه‌اند</span></div>
+              <button class="btn btn-quiet" type="button">بررسی روز بعد <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Variant 5 -->
+      <article class="variant">
+        <div class="variant-head">
+          <span class="variant-number">۰۵</span>
+          <h2 class="variant-title">پیوستگی تقویم</h2>
+          <p class="variant-caption">روز امروز و قدم بعدی را در یک مسیر می‌چیند</p>
+        </div>
+        <div class="phone">
+          <div class="phone-top"><span class="notch"></span></div>
+          <div class="phone-content">
+            <div class="date-row"><span class="date-label">انتخاب زمان</span><span class="date-meta">تقویم</span></div>
+            <div class="v5-state">
+              <div class="v5-line" aria-hidden="true"></div>
+              <div class="v5-item">
+                <div class="v5-dot" aria-hidden="true"></div>
+                <div class="v5-copy"><small>پنجشنبه ۱۰ مرداد</small><strong>امروز پر شده</strong><p>۰ ساعت قابل رزرو باقی مانده است.</p></div>
+              </div>
+              <div class="v5-item current">
+                <div class="v5-dot" aria-hidden="true"></div>
+                <div class="v5-copy"><small>پیشنهاد بعدی</small><strong>جمعه ۱۱ مرداد</strong><p>برای دیدن زمان‌های آزاد این روز ادامه دهید.</p></div>
+              </div>
+              <div class="v5-action"><button class="btn btn-small" type="button">دیدن روز بعد <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button></div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <div class="selection-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/></svg><span>همه‌ی نسخه‌ها به‌صورت مقایسه‌ای هستند و هنوز وارد اپ اصلی نشده‌اند.</span></div>
+  </main>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var button = document.getElementById('themeToggle');
+      var icon = document.getElementById('themeIcon');
+      var label = document.getElementById('themeLabel');
+      var moon = '<path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.7 6.7 0 0 0 21 12.8Z"/>';
+      var sun = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/>';
+
+      function applyTheme(isDark) {
+        root.classList.toggle('dark', isDark);
+        button.setAttribute('aria-pressed', String(isDark));
+        icon.innerHTML = isDark ? sun : moon;
+        label.textContent = isDark ? 'حالت روشن' : 'حالت تیره';
+      }
+
+      var deviceDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(deviceDark);
+      button.addEventListener('click', function () { applyTheme(!root.classList.contains('dark')); });
+    })();
+  </script>
+</body>
+</html>

@@ -4,3 +4,6 @@
  */
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
 export const SESSION_MAX_AGE_MS = SESSION_MAX_AGE_SECONDS * 1000;
+// Small tolerance for clock skew between serverless regions when a session is
+// minted and immediately verified on another request.
+export const SESSION_CLOCK_SKEW_MS = 5 * 60 * 1000;

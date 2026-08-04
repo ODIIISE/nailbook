@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppNavbar } from "@/components/layout/app-navbar";
@@ -42,8 +43,8 @@ export default function ProfilePage() {
         localStorage.setItem("nailbook_user", JSON.stringify(updated));
         window.location.reload();
       }
-    } catch (error) {
-      console.error("Failed to update profile:", error);
+    } catch {
+      toast.error("خطا در بروزرسانی پروفایل");
     }
     setSaving(false);
   };
@@ -89,7 +90,7 @@ export default function ProfilePage() {
           <Card className="glass p-4 shadow-card">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-background/50">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-muted">
                   <User className="h-4 w-4 text-foreground" />
                 </div>
                 <div className="flex-1">
@@ -121,7 +122,7 @@ export default function ProfilePage() {
                 )}
               </div>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-background/50">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-muted">
                   <Phone className="h-4 w-4 text-foreground" />
                 </div>
                 <div>

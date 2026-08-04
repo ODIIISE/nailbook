@@ -2,6 +2,8 @@ import { sql, VercelPoolClient } from "@vercel/postgres";
 import { logActivity } from "@/lib/db/activity-log";
 import { checkAntiSpam } from "@/lib/anti-spam";
 import { BookingError, createBookingError } from "./errors";
+import { gregorianToJalali } from "@/lib/jalali";
+import { parseGregorianDateKey } from "@/lib/time";
 import type { BookingRequestInput } from "./schema";
 import { getSalonId } from "@/lib/multi-tenant";
 
@@ -39,27 +41,49 @@ function getIranDay(dateString: string): string {
   const [y, m, d] = dateString.split("-").map(Number);
   const jsDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
   const jsDay = jsDate.getDay();
+  // JS: 0=Sun ... 6=Sat. The booking engine's working-hours keys
+  // start on Saturday, so use the same mapping as slots.ts.
   const dayMap = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-  return dayMap[jsDay === 6 ? 0 : jsDay + 1];
+  return dayMap[jsDay];
 }
 
-async function fetchServiceDuration(client: VercelPoolClient, serviceId: string, salonId: string | null): Promise<number> {
+async function fetchService(
+  client: VercelPoolClient,
+  serviceId: string,
+  salonId: string | null
+): Promise<{ durationMinutes: number; addonIds: string[] }> {
   const result = salonId
-    ? await client.query(`SELECT duration_minutes FROM services WHERE id = $1 AND salon_id = $2`, [serviceId, salonId])
-    : await client.query(`SELECT duration_minutes FROM services WHERE id = $1`, [serviceId]);
+    ? await client.query(
+        `SELECT duration_minutes, addon_ids FROM services WHERE id = $1 AND salon_id = $2 AND is_active = true`,
+        [serviceId, salonId]
+      )
+    : await client.query(
+        `SELECT duration_minutes, addon_ids FROM services WHERE id = $1 AND is_active = true`,
+        [serviceId]
+      );
   const { rows } = result;
   if (rows.length === 0) {
     throw createBookingError("SERVICE_NOT_FOUND");
   }
-  return Number(rows[0].duration_minutes);
+  const rawAddonIds = rows[0].addon_ids;
+  const addonIds = Array.isArray(rawAddonIds)
+    ? rawAddonIds.filter((id: unknown): id is string => typeof id === "string")
+    : typeof rawAddonIds === "string"
+      ? rawAddonIds.replace(/^\{|\}$/g, "").split(",").map((id: string) => id.replace(/^"|"$/g, "").trim()).filter(Boolean)
+      : [];
+  return { durationMinutes: Number(rows[0].duration_minutes), addonIds };
 }
 
 async function fetchAddonsDuration(
   client: VercelPoolClient,
   selectedAddons: string[],
+  allowedAddonIds: string[],
   salonId: string | null
 ): Promise<number> {
   if (selectedAddons.length === 0) return 0;
+  if (selectedAddons.some((id) => !allowedAddonIds.includes(id))) {
+    throw createBookingError("INVALID_ADDONS");
+  }
 
   const addonResult = salonId
     ? await client.query(
@@ -105,8 +129,11 @@ function validateEndTimeMatchesService(
   addonsDuration: number,
   salonInfo: SalonInfo
 ): void {
-  const buffer = Number(salonInfo.slot_buffer_minutes || 0);
-  const resolution = Number(salonInfo.slot_interval_minutes || 15);
+  const buffer = Math.max(0, Number(salonInfo.slot_buffer_minutes) || 0);
+  const configuredResolution = Number(salonInfo.slot_interval_minutes);
+  const resolution = Number.isFinite(configuredResolution) && configuredResolution >= 5 && configuredResolution <= 60
+    ? configuredResolution
+    : 15;
 
   const rawDuration = serviceDuration + addonsDuration;
   const expectedMinutes =
@@ -158,62 +185,59 @@ function validateWithinWorkingHours(
   }
 }
 
-async function assertSlotNotOverlapping(
+async function assertSlotAvailable(
   client: VercelPoolClient,
   dateGregorian: string,
   normStart: string,
   normEnd: string,
   salonId: string | null
 ): Promise<void> {
-  // Serialize booking attempts for the same tenant/day before checking
-  // intervals. The unique index protects exact duplicates; this lock also
-  // closes the race for partially overlapping intervals.
+  // Serialize all booking attempts for this tenant/day before checking
+  // intervals. The unique index protects only identical start/end pairs;
+  // this lock also closes the race for partially overlapping intervals.
   await client.query(
     "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
     [`${salonId ?? "legacy"}:${dateGregorian}`]
   );
 
-  const conflictResult = await client.query(
+  const bookedCheck = await client.query(
     salonId
       ? `SELECT id FROM bookings
          WHERE salon_id = $1 AND date_gregorian = $2::date
          AND status IN ('reserved', 'confirmed', 'in_progress')
          AND start_time < ($3 || ':00')::time
          AND end_time > ($4 || ':00')::time
+         LIMIT 1
          FOR UPDATE`
       : `SELECT id FROM bookings
          WHERE date_gregorian = $1::date
          AND status IN ('reserved', 'confirmed', 'in_progress')
          AND start_time < ($2 || ':00')::time
          AND end_time > ($3 || ':00')::time
+         LIMIT 1
          FOR UPDATE`,
     salonId
       ? [salonId, dateGregorian, normEnd, normStart]
       : [dateGregorian, normEnd, normStart]
   );
-  if (conflictResult.rows.length > 0) {
+
+  if (bookedCheck.rows.length > 0) {
     throw createBookingError("SLOT_TAKEN");
   }
-}
 
-async function assertSlotNotBlocked(
-  client: VercelPoolClient,
-  dateGregorian: string,
-  normStart: string,
-  normEnd: string,
-  salonId: string | null
-): Promise<void> {
   const blockedCheck = await client.query(
     salonId
       ? `SELECT id FROM blocked_times
          WHERE salon_id = $1 AND date_gregorian = $2::date
          AND start_time < ($3 || ':00')::time
          AND end_time > ($4 || ':00')::time
+         LIMIT 1
          FOR UPDATE`
       : `SELECT id FROM blocked_times
          WHERE date_gregorian = $1::date
          AND start_time < ($2 || ':00')::time
          AND end_time > ($3 || ':00')::time
+         LIMIT 1
          FOR UPDATE`,
     salonId
       ? [salonId, dateGregorian, normEnd, normStart]
@@ -234,7 +258,9 @@ async function insertBooking(
   normEnd: string,
   salonId: string | null
 ): Promise<CreateBookingResult> {
-  const jalaliDate = input.date || input.date_gregorian;
+  const parsedDate = parseGregorianDateKey(input.date_gregorian);
+  const jalali = gregorianToJalali(parsedDate);
+  const jalaliDate = `${jalali.jy}/${String(jalali.jm).padStart(2, "0")}/${String(jalali.jd).padStart(2, "0")}`;
 
   const insertSql = salonId
     ? `INSERT INTO bookings (
@@ -273,6 +299,10 @@ export async function createBooking(
   phone: string
 ): Promise<CreateBookingResult> {
   const { normStart, normEnd } = normalizeTimes(input);
+  const parsedDate = parseGregorianDateKey(input.date_gregorian);
+  if (!Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== input.date_gregorian) {
+    throw createBookingError("INVALID_DATE");
+  }
 
   if (normEnd >= "24:00") {
     throw createBookingError("TIME_INVALID");
@@ -293,24 +323,23 @@ export async function createBooking(
     await client.query("BEGIN");
 
     const salonId = getSalonId();
-    const [serviceDuration, addonsDuration, salonInfo] = await Promise.all([
-      fetchServiceDuration(client, input.service_id, salonId),
-      fetchAddonsDuration(client, input.selected_addons, salonId),
+    const service = await fetchService(client, input.service_id, salonId);
+    const [addonsDuration, salonInfo] = await Promise.all([
+      fetchAddonsDuration(client, input.selected_addons, service.addonIds, salonId),
       fetchSalonInfo(client),
     ]);
 
     validateEndTimeMatchesService(
       normStart,
       normEnd,
-      serviceDuration,
+      service.durationMinutes,
       addonsDuration,
       salonInfo
     );
 
     validateWithinWorkingHours(normStart, normEnd, input.date_gregorian, salonInfo);
 
-    await assertSlotNotOverlapping(client, input.date_gregorian, normStart, normEnd, salonId);
-    await assertSlotNotBlocked(client, input.date_gregorian, normStart, normEnd, salonId);
+    await assertSlotAvailable(client, input.date_gregorian, normStart, normEnd, salonId);
 
     const booking = await insertBooking(
       client,

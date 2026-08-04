@@ -14,6 +14,7 @@ describe("calculateBookingPrice", () => {
       sort_order: 1,
       addon_ids: ["a1", "a2"],
       priority_score: 7,
+      best_for: [],
     },
   ];
 
@@ -96,6 +97,7 @@ describe("calculateEarnings", () => {
       sort_order: 1,
       addon_ids: [],
       priority_score: 7,
+      best_for: [],
     },
   ];
 

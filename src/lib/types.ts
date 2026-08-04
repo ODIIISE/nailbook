@@ -1,3 +1,11 @@
+export interface User {
+  id: string;
+  phone: string;
+  name: string;
+  role: "customer" | "owner";
+  roles: string[];
+}
+
 export interface SalonInfo {
   id: string;
   name: string;
@@ -7,6 +15,9 @@ export interface SalonInfo {
   address: string;
   hero_image_url: string | null;
   logo_url: string | null;
+  splash_title: string;
+  splash_slogan: string;
+  splash_logo_url: string | null;
   working_hours_text: string;
   working_hours: {
     [key: string]: { open: string; close: string } | null;
@@ -32,6 +43,7 @@ export interface Addon {
   duration_minutes: number;
   is_active: boolean;
   sort_order: number;
+  hint?: string;
 }
 
 export interface Service {
@@ -44,7 +56,8 @@ export interface Service {
   sort_order: number;
   addon_ids: string[];
   priority_score: number;
-  image_url?: string;
+  image_url?: string | null;
+  best_for: string[];
 }
 
 export interface Booking {
@@ -78,5 +91,6 @@ export interface Highlight {
   name: string;
   cover_url: string | null;
   sort_order: number;
+  service_id?: string | null;
   images: HighlightImage[];
 }

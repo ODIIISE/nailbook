@@ -1,7 +1,8 @@
 "use client";
 
-import { Clock, Ban, Sparkles, ChevronLeft } from "lucide-react";
+import { Clock, Sparkles, ChevronLeft, Zap, CalendarX2, CalendarOff } from "lucide-react";
 import { toPersianDigits } from "@/lib/jalali";
+import { haptic } from "@/lib/haptics";
 import type { TimeSlot } from "@/lib/slots";
 
 interface TimeSlotsProps {
@@ -26,34 +27,92 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
   const bookedSlots = slots.filter((s) => !s.available && (s.booked || s.locked));
   const unavailableSlots = slots.filter((s) => !s.available && !s.booked && !s.locked);
 
-  if (slots.length === 0) {
-    return (
-      <div className="mx-auto max-w-lg glass rounded-3xl p-8 text-center">
-        <div className="w-14 h-14 rounded-full bg-muted mx-auto flex items-center justify-center mb-3">
-          <Ban className="h-6 w-6 text-muted-foreground/50" />
-        </div>
-        <p className="text-body font-bold text-foreground mb-1">ساعتی برای این روز موجود نیست</p>
-        <p className="text-caption text-muted-foreground mb-4">لطفاً تاریخ دیگری انتخاب کنید</p>
+  const hasBookedSlots = bookedSlots.length > 0;
+  const hasNoAvailability = availableSlots.length === 0;
+  const emptyState = slots.length === 0
+    ? "closed"
+    : hasBookedSlots
+      ? "full"
+      : "unsuitable";
 
-        {onGoToNextDay && (
-          <button
-            onClick={onGoToNextDay}
-            className="mt-2 w-full h-11 rounded-full bg-foreground text-background text-caption font-bold hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-foreground/30"
-          >
-            برو به روز بعد
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-        )}
+  // Every day with no selectable time uses an intentional empty state. The copy
+  // changes based on whether the salon is closed, full, or has no suitable gap.
+  if (hasNoAvailability) {
+    return (
+      <div className="mx-auto max-w-lg animate-fade">
+        <section
+          className="glass overflow-hidden rounded-[24px] shadow-card"
+          aria-label={
+            emptyState === "full"
+              ? "ظرفیت این روز تکمیل است"
+              : emptyState === "closed"
+                ? "این روز ساعت کاری ندارد"
+                : "برای این خدمت ساعت مناسبی نیست"
+          }
+        >
+          <div className="flex items-center justify-between border-b border-border/70 px-5 py-4">
+            <div role="status" aria-live="polite" className="flex items-center gap-2 text-small font-medium text-muted-foreground">
+              <span className="h-2 w-2 rounded-full bg-muted-foreground/60" aria-hidden="true" />
+              {emptyState === "full"
+                ? "ظرفیت این روز تکمیل است"
+                : emptyState === "closed"
+                  ? "ساعتی برای رزرو نیست"
+                  : "ساعت قابل رزرو نیست"}
+            </div>
+            <span className="tabular-nums text-small text-muted-foreground">
+              {emptyState === "full" ? `${toPersianDigits(0)} ساعت خالی` : emptyState === "closed" ? "روز تعطیل" : "۰ قابل رزرو"}
+            </span>
+          </div>
+
+          <div className="px-6 py-9 text-center sm:px-10">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[18px] border border-border bg-muted/45 text-foreground shadow-xs animate-scale">
+              {emptyState === "full" ? (
+                <CalendarX2 className="h-7 w-7" strokeWidth={1.7} aria-hidden="true" />
+              ) : emptyState === "closed" ? (
+                <CalendarOff className="h-7 w-7" strokeWidth={1.7} aria-hidden="true" />
+              ) : (
+                <Clock className="h-7 w-7" strokeWidth={1.7} aria-hidden="true" />
+              )}
+            </div>
+            <h3 className="text-h3 font-bold text-foreground">
+              {emptyState === "full"
+                ? "این روز کاملاً پر شده"
+                : emptyState === "closed"
+                  ? "برای این روز ساعت کاری نداریم"
+                  : "زمان قابل رزرو پیدا نشد"}
+            </h3>
+            <p className="mx-auto mt-3 max-w-[280px] text-caption leading-6 text-muted-foreground">
+              {emptyState === "full"
+                ? "همه زمان‌های مناسب برای این خدمت گرفته شده‌اند."
+                : emptyState === "closed"
+                  ? "برای این روز زمان قابل رزرو نداریم؛ روز دیگری را انتخاب کنید."
+                  : "در این روز زمان قابل رزرو برای این خدمت پیدا نشد؛ روز دیگری را امتحان کنید."}
+            </p>
+          </div>
+
+          {onGoToNextDay && (
+            <div className="border-t border-border/70 px-5 pb-5 pt-4">
+              <button
+                onClick={() => {
+                  haptic.tap();
+                  onGoToNextDay();
+                }}
+                className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-body font-bold text-background transition-colors hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+              >
+                {emptyState === "full" ? "برنامه فردا را ببینید" : "روز بعد را بررسی کنید"}
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+              </button>
+              <p className="mt-3 text-center text-small text-muted-foreground/75">
+                یا تاریخ دیگری را از تقویم انتخاب کنید
+              </p>
+            </div>
+          )}
+        </section>
       </div>
     );
   }
 
-  // The engine returns slots chronologically for calendar consistency. For the
-  // recommendation group, surface the highest-scored choices first so the
-  // hybrid optimizer is visible in the actual customer flow.
-  const suggestedSlots = availableSlots
-    .filter((s) => s.suggested)
-    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || a.time.localeCompare(b.time));
+  const suggestedSlots = availableSlots.filter((s) => s.suggested);
   const otherSlots = availableSlots.filter((s) => !s.suggested);
   const nextAvailable = availableSlots.length > 0 ? availableSlots[0] : null;
   const remainingSlots = availableSlots.length;
@@ -78,17 +137,14 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
       </div>
 
       {nextAvailable && (
-        <div
-          className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/10 cursor-pointer active:scale-[0.99] transition-transform"
-          onClick={() => onSelectSlot(nextAvailable.time)}
-        >
-          <div>
-            <p className="text-small font-bold text-primary">نزدیک‌ترین ساعت آزاد</p>
-            <p className="text-small text-muted-foreground">برای رزرو سریع کلیک کنید</p>
-          </div>
-          <span className="text-body font-extrabold text-foreground">
-            {toPersianDigits(nextAvailable.time)}
-          </span>
+        <div className="flex items-center justify-center gap-1.5" role="note">
+          <Zap className="h-3 w-3 text-primary" />
+          <p className="text-small text-muted-foreground">
+            نزدیک‌ترین ساعت آزاد:{" "}
+            <span className="font-bold tabular-nums text-foreground">
+              {toPersianDigits(nextAvailable.time.slice(0, 5))}
+            </span>
+          </p>
         </div>
       )}
 
@@ -106,7 +162,6 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
                 slot={slot}
                 isSelected={selectedSlot === slot.time}
                 onSelect={() => onSelectSlot(slot.time)}
-                recommendation={slot.recommendation}
               />
             ))}
           </div>
@@ -133,7 +188,6 @@ export function TimeSlots({ date, slots, selectedSlot, onSelectSlot, onGoToNextD
                 slot={slot}
                 isSelected={selectedSlot === slot.time}
                 onSelect={() => onSelectSlot(slot.time)}
-                recommendation={slot.recommendation}
               />
             ))}
           </div>
@@ -185,12 +239,10 @@ function SlotButton({
   slot,
   isSelected,
   onSelect,
-  recommendation,
 }: {
   slot: TimeSlot;
   isSelected: boolean;
   onSelect: () => void;
-  recommendation?: string;
 }) {
   const formattedTime = slot.time.split(":").map((p) => toPersianDigits(p)).join(":");
   const isBooked = slot.booked || slot.locked;
@@ -199,9 +251,12 @@ function SlotButton({
   return (
     <button
       disabled={!slot.available}
-      onClick={onSelect}
-      aria-label={`${formattedTime} ${slot.available ? "موجود" : slot.booked ? "رزرو شده" : slot.locked ? "مسدود" : "غیرقابل رزرو"}${recommendation ? ` — ${recommendation}` : ""}`}
-      title={recommendation}
+      onClick={() => {
+        if (!slot.available) return;
+        haptic.tap();
+        onSelect();
+      }}
+      aria-label={`${formattedTime} ${slot.available ? "موجود" : slot.booked ? "رزرو شده" : slot.locked ? "مسدود" : "غیرقابل رزرو"}`}
       className="h-[48px] min-h-[44px] rounded-xl text-caption font-bold transition-all duration-200 select-none relative overflow-hidden focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
       style={{
         background: isSelected

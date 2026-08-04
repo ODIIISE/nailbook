@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { generateTimeSlots, type WorkingHours } from "@/lib/slots";
 import { getTehranDateKey } from "@/lib/time";
 import { useHorizontalDrag } from "@/lib/hooks/use-horizontal-drag";
+import { haptic } from "@/lib/haptics";
 
 interface JalaliCalendarProps {
   selectedDate: Date | null;
@@ -189,7 +190,10 @@ export function JalaliCalendar({
             <button
               key={i}
               data-selected={d.isSelected}
-              onClick={() => onSelectDate(d.date)}
+              onClick={() => {
+                if (!d.isSelected) haptic.tap();
+                onSelectDate(d.date);
+              }}
               className="flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl cursor-pointer active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
               style={{
                 background: d.isSelected

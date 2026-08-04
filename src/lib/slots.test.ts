@@ -538,6 +538,27 @@ describe("getNearestAvailableSlot", () => {
   });
 });
 
+describe("generateTimeSlots - Configuration Edge Cases", () => {
+  it("falls back to a safe resolution when configuration is invalid", () => {
+    const date = makeDate(3);
+    const slots = generateTimeSlots(
+      standardHours,
+      date,
+      30,
+      0,
+      0,
+      0,
+      [],
+      [],
+      {}
+    );
+
+    expect(slots.length).toBeGreaterThan(0);
+    expect(slots[0].time).toBe("10:00");
+    expect(slots[1].time).toBe("10:15");
+  });
+});
+
 describe("generateTimeSlots - Service Duration Edge Cases", () => {
   it("should handle service longer than shift", () => {
     const date = makeDate(3);

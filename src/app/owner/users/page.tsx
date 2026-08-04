@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,8 +46,8 @@ export default function OwnerUsersPage() {
       const res = await fetch("/api/owner/users", { credentials: "include" });
       const data = await res.json();
       if (Array.isArray(data)) setUsers(data);
-    } catch (e) {
-      console.error("Failed to fetch users:", e);
+    } catch {
+      toast.error("خطا در دریافت کاربران");
     }
     setLoading(false);
   }, []);
@@ -183,8 +184,8 @@ export default function OwnerUsersPage() {
       });
       const data = await res.json();
       if (data.success) fetchUsers();
-    } catch (e) {
-      console.error("Failed to toggle block:", e);
+    } catch {
+      toast.error("خطا در تغییر وضعیت کاربر");
     }
   };
 

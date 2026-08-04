@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { SESSION_CLOCK_SKEW_MS } from "@/lib/session-config";
 
-const SECRET = process.env.OWNER_SESSION_SECRET;
+const SECRET = process.env.CUSTOMER_SESSION_SECRET;
 
 async function verifySessionSignature(cookieValue: string): Promise<boolean> {
   if (!SECRET || !cookieValue) return false;
@@ -30,11 +31,14 @@ async function verifySessionSignature(cookieValue: string): Promise<boolean> {
     const sigValid = await crypto.subtle.verify("HMAC", key, sigBytes, new TextEncoder().encode(payload));
     if (!sigValid) return false;
 
-    // Check timestamp expiry (second part of payload is always the timestamp)
-    const timestamp = parseInt(parts[1]);
-    if (isNaN(timestamp)) return false;
+    // Check timestamp expiry (second part of payload is always the timestamp).
+    // Reject malformed and future-issued tokens; otherwise NaN/negative ages
+    // could bypass this check even when the signature is valid.
+    const timestamp = Number(parts[1]);
+    if (!Number.isSafeInteger(timestamp) || timestamp <= 0) return false;
     const SESSION_MAX_AGE_MS = 60 * 60 * 24 * 30 * 1000; // 30 days, matches session-config.ts
-    if (Date.now() - timestamp > SESSION_MAX_AGE_MS) return false;
+    const age = Date.now() - timestamp;
+    if (age < -SESSION_CLOCK_SKEW_MS || age > SESSION_MAX_AGE_MS) return false;
 
     return true;
   } catch {
@@ -47,7 +51,6 @@ function checkCsrf(request: NextRequest): boolean {
   // Skip CSRF for GET, HEAD, OPTIONS
   if (["GET", "HEAD", "OPTIONS"].includes(request.method)) return true;
 
-  // Check Origin header
   const origin = request.headers.get("origin");
   const host = request.headers.get("host");
 
@@ -60,7 +63,6 @@ function checkCsrf(request: NextRequest): boolean {
     }
   }
 
-  // Check Referer as fallback
   const referer = request.headers.get("referer");
   if (referer && !origin) {
     try {
@@ -70,6 +72,15 @@ function checkCsrf(request: NextRequest): boolean {
       return false;
     }
   }
+
+  // A state-changing request carrying a browser session must prove it came
+  // from this origin. Modern browsers send Origin/Referer for POST fetches;
+  // accepting both headers as absent would leave cookie-authenticated routes
+  // exposed to CSRF from older or privacy-stripped clients.
+  const hasBrowserSession = Boolean(
+    request.cookies.get("session")?.value || request.cookies.get("super_admin_session")?.value
+  );
+  if (hasBrowserSession && !origin && !referer) return false;
 
   return true;
 }
@@ -82,9 +93,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.json({ error: "درخواست نامعتبر" }, { status: 403 });
   }
 
+  // Unified session cookie - same one for customer and owner.
+  const session = request.cookies.get("session")?.value;
+
   // Protect /owner/* pages (not /owner/login)
   if (pathname.startsWith("/owner") && pathname !== "/owner/login") {
-    const session = request.cookies.get("owner_session")?.value;
     if (!session) {
       return NextResponse.redirect(new URL("/owner/login", request.url));
     }
@@ -94,14 +107,18 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect /api/owner/* and /api/update-salon, /api/upload-* endpoints
-  if (
-    pathname.startsWith("/api/owner") ||
-    pathname === "/api/update-salon" ||
-    pathname.startsWith("/api/upload") ||
-    pathname === "/api/owner-logout"
-  ) {
-    const session = request.cookies.get("owner_session")?.value;
+  // Protect owner-scoped APIs (salon config, image upload, owner logout, etc.).
+  // The page-level or endpoint-level handler still does the roles[] DB check.
+  const ownerApiPaths = [
+    "/api/owner",
+    "/api/update-salon",
+    "/api/upload",
+    "/api/manual-reserve",
+  ];
+  const isOwnerApi =
+    ownerApiPaths.some((p) => pathname === p || pathname.startsWith(p + "/")) ||
+    pathname === "/api/owner-logout";
+  if (isOwnerApi) {
     if (!session && pathname !== "/api/owner-logout") {
       return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
     }
@@ -113,7 +130,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect customer auth mutation routes (not public OTP or auth/me)
   if (
     pathname.startsWith("/api/auth/") &&
     pathname !== "/api/auth/send-otp" &&
@@ -135,6 +151,7 @@ export const config = {
     "/api/owner/:path*",
     "/api/update-salon",
     "/api/upload/:path*",
+    "/api/manual-reserve",
     "/api/owner-logout",
     "/api/:path*",
   ],

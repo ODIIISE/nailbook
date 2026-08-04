@@ -26,12 +26,10 @@ export function Hero({ salon, onBookNow }: HeroProps) {
               alt={salon.name}
               fill
               unoptimized
-              priority
-              sizes="72px"
               className="object-cover"
             />
           ) : (
-            <Image src="/logo-placeholder.svg" alt="" width={40} height={40} className="opacity-60" unoptimized priority />
+            <Image src="/logo-placeholder.svg" alt="" width={40} height={40} className="opacity-60" unoptimized />
           )}
         </div>
         <h1 className="text-display text-foreground mb-1.5">

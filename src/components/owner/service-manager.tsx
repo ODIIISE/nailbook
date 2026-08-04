@@ -82,6 +82,7 @@ function ServicesTab({
     price: 0,
     priority_score: 5,
     image_url: "",
+    best_for: [] as string[],
   });
 
   useEffect(() => {
@@ -93,7 +94,8 @@ function ServicesTab({
 
   const markChanged = () => setHasChanges(true);
 
-  const resetForm = () => setForm({ name: "", description: "", duration_minutes: 45, price: 0, priority_score: 5, image_url: "" });
+  const resetForm = () =>
+    setForm({ name: "", description: "", duration_minutes: 45, price: 0, priority_score: 5, image_url: "", best_for: [] });
 
   const handleAdd = () => {
     if (!form.name.trim()) return;
@@ -107,6 +109,7 @@ function ServicesTab({
       sort_order: pending.length + 1,
       addon_ids: [],
       image_url: form.image_url || undefined,
+      best_for: form.best_for,
     };
     setPending([...pending, newService]);
     resetForm();
@@ -116,7 +119,13 @@ function ServicesTab({
 
   const handleSaveEdit = () => {
     if (!editingId || !form.name.trim()) return;
-    setPending(pending.map((s) => (s.id === editingId ? { ...s, ...form, image_url: form.image_url || s.image_url } : s)));
+    setPending(
+      pending.map((s) =>
+        s.id === editingId
+          ? { ...s, ...form, image_url: form.image_url || s.image_url, best_for: form.best_for }
+          : s
+      )
+    );
     setEditingId(null);
     resetForm();
     markChanged();
@@ -191,6 +200,7 @@ function ServicesTab({
       price: service.price,
       priority_score: service.priority_score || 5,
       image_url: service.image_url || "",
+      best_for: Array.isArray(service.best_for) ? service.best_for : [],
     });
   };
 
@@ -513,7 +523,7 @@ function ServiceForm({
   onCancel,
   title,
 }: {
-  form: { name: string; description: string; duration_minutes: number; price: number; priority_score: number; image_url: string };
+  form: { name: string; description: string; duration_minutes: number; price: number; priority_score: number; image_url: string; best_for: string[] };
   setForm: (f: typeof form) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -611,6 +621,10 @@ function ServiceForm({
         onChange={(e) => setForm({ ...form, description: e.target.value })}
         placeholder="توضیحات"
       />
+      <BestForEditor
+        tags={form.best_for}
+        onChange={(tags) => setForm({ ...form, best_for: tags })}
+      />
       <div className="grid grid-cols-3 gap-3">
         <div>
           <Label className="text-xs">مدت (دقیقه)</Label>
@@ -652,6 +666,58 @@ function ServiceForm({
         </Button>
       </div>
     </Card>
+  );
+}
+
+function BestForEditor({
+  tags,
+  onChange,
+}: {
+  tags: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const commit = () => {
+    const trimmed = draft.trim();
+    if (!trimmed) return;
+    if (tags.includes(trimmed)) {
+      setDraft("");
+      return;
+    }
+    onChange([...tags, trimmed]);
+    setDraft("");
+  };
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">مناسب برای (تگ‌هایی که مشتری می‌بیند)</Label>
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {tags.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => onChange(tags.filter((t) => t !== tag))}
+              className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground"
+            >
+              {tag}
+              <X className="h-3 w-3" />
+            </button>
+          ))}
+        </div>
+      )}
+      <Input
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            commit();
+          }
+        }}
+        onBlur={commit}
+        placeholder="مثلاً: عروس، محل کار، دانشجو — اینتر بزنید"
+      />
+    </div>
   );
 }
 

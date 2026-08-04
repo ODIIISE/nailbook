@@ -33,7 +33,7 @@ export async function upsertOtp(phone: string, code: string, expiresAt: string):
         `INSERT INTO otps (salon_id, phone, code, expires_at, attempts)
          VALUES ($1, $2, $3, $4, 0)
          ON CONFLICT (salon_id, phone) WHERE salon_id IS NOT NULL DO UPDATE
-           SET code = EXCLUDED.code, expires_at = EXCLUDED.expires_at, attempts = 0
+           SET code = EXCLUDED.code, expires_at = EXCLUDED.expires_at, attempts = 0, created_at = NOW()
          RETURNING id, salon_id, phone, code, expires_at, attempts, created_at`,
         [salonId, phone, code, expiresAt]
       )
@@ -41,7 +41,7 @@ export async function upsertOtp(phone: string, code: string, expiresAt: string):
         `INSERT INTO otps (phone, code, expires_at, attempts)
          VALUES ($1, $2, $3, 0)
          ON CONFLICT (phone) WHERE salon_id IS NULL DO UPDATE
-           SET code = EXCLUDED.code, expires_at = EXCLUDED.expires_at, attempts = 0
+           SET code = EXCLUDED.code, expires_at = EXCLUDED.expires_at, attempts = 0, created_at = NOW()
          RETURNING id, salon_id, phone, code, expires_at, attempts, created_at`,
         [phone, code, expiresAt]
       );
@@ -72,8 +72,26 @@ export async function incrementOtpAttempts(phone: string): Promise<void> {
   );
 }
 
-export async function deleteOtp(phone: string): Promise<void> {
+export async function deleteOtp(phone: string, otpId?: string, code?: string): Promise<void> {
   const scope = tenantScope();
+  if (otpId && code) {
+    // The row id is stable across ON CONFLICT updates, so also match the
+    // generated code or a newer concurrent OTP could be deleted.
+    if (scope.salonId) {
+      await sql.query("DELETE FROM otps WHERE id = $1 AND salon_id = $2 AND phone = $3 AND code = $4", [otpId, scope.salonId, phone, code]);
+    } else {
+      await sql.query("DELETE FROM otps WHERE id = $1 AND phone = $2 AND code = $3", [otpId, phone, code]);
+    }
+    return;
+  }
+  if (otpId) {
+    if (scope.salonId) {
+      await sql.query("DELETE FROM otps WHERE id = $1 AND salon_id = $2 AND phone = $3", [otpId, scope.salonId, phone]);
+    } else {
+      await sql.query("DELETE FROM otps WHERE id = $1 AND phone = $2", [otpId, phone]);
+    }
+    return;
+  }
   await sql.query(
     scope.salonId
       ? "DELETE FROM otps WHERE salon_id = $1 AND phone = $2"
@@ -104,7 +122,10 @@ export async function sendOtp(phone: string): Promise<{ success: boolean; code?:
 
     const smsResult = await getSmsProvider().sendOTP(phone, code);
     if (!smsResult.success) {
-      await deleteOtp(phone).catch(() => {});
+      // Rollback the OTP record so the cooldown doesn't block retries.
+      // Delete only the record created by this send attempt. A concurrent
+      // request may already have replaced it with a newer valid OTP.
+      await deleteOtp(phone, otpRecord.id, otpRecord.code).catch(() => {});
       return { success: false, error: smsResult.error || "خطا در ارسال پیامک" };
     }
     return { success: true, code };

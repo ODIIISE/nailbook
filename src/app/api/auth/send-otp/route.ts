@@ -1,12 +1,56 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql } from "@vercel/postgres";
 import { sendOtp } from "@/lib/otp-service";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
-import { getSalonId } from "@/lib/multi-tenant";
+import { logActivity } from "@/lib/db/activity-log";
+import { phoneHasOwnerRole } from "@/lib/owner-auth";
+
+// In-memory per-IP+phone rate limiter for SMS-bomb protection.
+// Resets on every cold start (serverless) — a 15-min window keeps the attack
+// window short and the SMS spend bounded.
+const otpAttempts = new Map<string, { count: number; windowStart: number }>();
+const MAX_OTP_PER_WINDOW = 3;
+const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const MAX_MAP_SIZE = 5000; // hard cap; sweep when exceeded
+
+function rateKey(ip: string, phone: string): string {
+  return `${ip}:${phone}`;
+}
+
+// Best-effort opportunistic sweep so the Map doesn't grow unbounded across
+// high-volume abuse windows. Runs on the first request after the cap.
+let lastSweepAt = 0;
+function sweepIfStale(now: number) {
+  if (now - lastSweepAt < WINDOW_MS) return;
+  if (otpAttempts.size < MAX_MAP_SIZE) return;
+  lastSweepAt = now;
+  for (const [k, v] of otpAttempts) {
+    if (now - v.windowStart > WINDOW_MS) otpAttempts.delete(k);
+  }
+}
+
+function checkOtpRateLimit(ip: string, phone: string): { allowed: boolean; retryAfter?: number } {
+  const key = rateKey(ip, phone);
+  const now = Date.now();
+  sweepIfStale(now);
+  const entry = otpAttempts.get(key);
+  if (!entry || now - entry.windowStart > WINDOW_MS) {
+    otpAttempts.set(key, { count: 1, windowStart: now });
+    return { allowed: true };
+  }
+  if (entry.count >= MAX_OTP_PER_WINDOW) {
+    return {
+      allowed: false,
+      retryAfter: Math.ceil((WINDOW_MS - (now - entry.windowStart)) / 1000),
+    };
+  }
+  entry.count += 1;
+  return { allowed: true };
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone, roleContext = "customer" } = await request.json();
+    const body = await request.json();
+    const { phone, roleContext } = body ?? {};
 
     if (!phone) {
       return NextResponse.json({ error: "شماره الزامی است" }, { status: 400 });
@@ -17,6 +61,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "شماره موبایل معتبر نیست" }, { status: 400 });
     }
 
+    // Per-IP+phone throttle before any work to block SMS-bomb abuse.
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+    const gate = checkOtpRateLimit(ip, normalized);
+    if (!gate.allowed) {
+      return NextResponse.json(
+        {
+          error: `تعداد درخواست‌ها بیش از حد مجاز. ${Math.max(1, Math.ceil((gate.retryAfter || 0) / 60))} دقیقه دیگر تلاش کنید.`,
+        },
+        { status: 429 }
+      );
+    }
+
     // Help diagnose provider configuration in production without exposing secrets.
     console.log("[send-otp] config check:", {
       provider: process.env.SMS_PROVIDER || "default (farazsms)",
@@ -24,21 +83,31 @@ export async function POST(request: NextRequest) {
       farazsmsLineNumberSet: Boolean(process.env.FARAZSMS_LINE_NUMBER),
       farazsmsPatternCodeSet: Boolean(process.env.FARAZSMS_PATTERN_CODE),
       farazsmsPatternVar: process.env.FARAZSMS_PATTERN_VAR || "var1",
-      roleContext,
       phone: normalized,
+      roleContext: roleContext || "customer",
     });
 
-    // If this is an owner login context, only send OTP to registered owners.
-    // Returning an explicit error keeps the user from being trapped on the OTP step
-    // waiting for an SMS that will never arrive.
+    // Owner flow gate: "check the table before sending otp message." Only
+    // send OTP if the phone is already registered with the owner role.
+    // Returns a uniform error so the endpoint can't be used to enumerate
+    // which phones have owner privileges.
     if (roleContext === "owner") {
-      const salonId = getSalonId();
-      const result = salonId
-        ? await sql.query("SELECT id, role FROM users WHERE phone = $1 AND role = 'owner' AND salon_id = $2 LIMIT 1", [normalized, salonId])
-        : await sql`SELECT id, role FROM users WHERE phone = ${normalized} AND role = 'owner' LIMIT 1`;
-      const rows = result.rows;
-      if (rows.length === 0) {
-        return NextResponse.json({ error: "شماره موبایل مدیر یافت نشد" }, { status: 404 });
+      const ownerEligible = await phoneHasOwnerRole(normalized);
+      if (!ownerEligible) {
+        void logActivity({
+          eventType: "owner_login_denied",
+          entityType: "user",
+          entityId: normalized,
+          description: `تلاش ورود مدیر برای شماره ${normalized} رد شد`,
+          metadata: { phone: normalized, reason: "phone_not_owner" },
+        });
+        console.warn("[send-otp] owner flow blocked for phone (not registered or not owner)", {
+          phone: normalized,
+        });
+        return NextResponse.json(
+          { error: "شماره ثبت نشده یا دسترسی ندارد" },
+          { status: 403 }
+        );
       }
     }
 
