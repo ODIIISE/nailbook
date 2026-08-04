@@ -765,14 +765,20 @@
   }
 
   .booking-cta-action,
-  .booking-cta-arrow {
+  .booking-cta-arrow,
+  .home-cover-image,
+  .home-highlight-card,
+  .home-contact-action {
     transition-duration: var(--dur-base);
   }
 
   @media (prefers-reduced-motion: reduce) {
     .surface-lift,
     .booking-cta-action,
-    .booking-cta-arrow {
+    .booking-cta-arrow,
+    .home-cover-image,
+    .home-highlight-card,
+    .home-contact-action {
       transition: none !important;
       transform: none !important;
     }

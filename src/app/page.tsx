@@ -123,7 +123,7 @@ function SalonBooking() {
         <div className="animate-stagger">
           <Hero salon={salon} />
           <BookingCta services={services} isLoading={!loaded} />
-          <TrustSignals totalBookings={bookings.filter((b) => b.status === "completed").length} recentBookings={bookings.filter((b) => b.status === "completed").slice(0, 3)} />
+          <TrustSignals totalBookings={bookings.filter((b) => b.status === "completed").length} />
           <Highlights highlights={highlights} onSelect={setViewingHighlight} />
           <ContactButtons phone={salon.phone} address={salon.address} />
 

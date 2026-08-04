@@ -76,23 +76,18 @@ export function BookingCta({ services, isLoading }: BookingCtaProps) {
 
   return (
     <>
-      <section id="booking-cta" className="px-4 pb-4 pt-1" aria-labelledby="booking-cta-title" aria-describedby="booking-cta-description">
-        <div className="home-booking-bento mx-auto max-w-lg overflow-hidden rounded-[24px] border border-foreground bg-foreground text-background shadow-elevated" dir="rtl">
-          <div className="grid grid-cols-[1fr_88px] items-stretch">
-            <div className="min-w-0 p-5 sm:p-6">
-              <p className="text-small font-bold tracking-wide text-background/65">رزرو آنلاین</p>
-              <h2 id="booking-cta-title" className="mt-2 text-[24px] font-extrabold leading-[1.35] tracking-[-0.025em]">وقتت را برای زیبایی رزرو کن</h2>
-              <p id="booking-cta-description" className="mt-2 max-w-xs text-caption leading-6 text-background/70">خدمتت را انتخاب کن و زمان مناسب خودت را ببین.</p>
-              <button type="button" onClick={() => setSheetOpen(true)} className="booking-cta-action group mt-5 flex min-h-[52px] w-full items-center justify-between rounded-[var(--radius-booking-item)] bg-background px-4 text-body font-bold text-foreground shadow-xs transition-[background-color,box-shadow,transform] duration-200 hover:bg-background/90 hover:shadow-elevated active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-foreground" aria-haspopup="dialog" aria-expanded={sheetOpen}>
-                <span>شروع رزرو</span><span className="booking-cta-arrow flex h-8 w-8 items-center justify-center rounded-full bg-foreground/10 transition-transform duration-200 group-hover:-translate-x-0.5" aria-hidden="true"><ChevronLeft className="h-4 w-4" /></span>
-              </button>
-            </div>
-            <div className="home-booking-mark flex items-center justify-center border-s border-background/15" aria-hidden="true">
-              <CalendarDays className="h-7 w-7 text-background/80" />
-            </div>
-          </div>
-          <div className="flex items-center justify-between border-t border-background/15 px-5 py-3 text-[10px] text-background/55">
-            <span>انتخاب خدمت</span><span>زمان مناسب</span><span>تأیید نهایی</span>
+      <section id="booking-cta" className="px-4 pb-4 pt-2" aria-labelledby="booking-cta-title" aria-describedby="booking-cta-description">
+        <div className="mx-auto max-w-lg rounded-[26px] border border-border bg-card p-2 shadow-elevated" dir="rtl">
+          <button type="button" onClick={() => setSheetOpen(true)} className="booking-cta-action group flex min-h-[64px] w-full items-center gap-3 rounded-[20px] bg-foreground px-4 text-right text-background shadow-card transition-[background-color,box-shadow,transform] duration-200 hover:bg-foreground/90 hover:shadow-floating active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-card" aria-haspopup="dialog" aria-expanded={sheetOpen}>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[15px] bg-background/12 text-background" aria-hidden="true"><CalendarDays className="h-5 w-5" /></span>
+            <span className="min-w-0 flex-1">
+              <span id="booking-cta-title" className="block text-body font-extrabold">رزرو نوبت</span>
+              <span id="booking-cta-description" className="mt-0.5 block text-small text-background/70">خدمت و زمان مناسب خودت را انتخاب کن</span>
+            </span>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background text-foreground transition-transform duration-200 group-hover:-translate-x-0.5" aria-hidden="true"><ChevronLeft className="h-4 w-4" /></span>
+          </button>
+          <div className="flex items-center justify-center gap-3 px-3 py-2 text-[10px] text-muted-foreground" aria-hidden="true">
+            <span>انتخاب خدمت</span><span className="h-1 w-1 rounded-full bg-border" /><span>دیدن زمان‌های آزاد</span><span className="h-1 w-1 rounded-full bg-border" /><span>تأیید</span>
           </div>
         </div>
       </section>
