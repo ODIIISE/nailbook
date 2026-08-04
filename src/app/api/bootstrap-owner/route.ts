@@ -40,7 +40,8 @@ export async function POST(request: NextRequest) {
 
     const ownerName = typeof name === "string" ? name.trim().slice(0, 100) || "مدیر" : "مدیر";
     const configuredSetupSecret = process.env.BOOTSTRAP_OWNER_SECRET?.trim();
-    const suppliedSetupSecret = typeof body.setupSecret === "string" ? body.setupSecret : "";
+    const suppliedSetupSecret = request.headers.get("x-setup-secret")?.trim()
+      || (typeof body.setupSecret === "string" ? body.setupSecret.trim() : "");
     // An unauthenticated first-owner endpoint is a privilege-escalation path:
     // anyone who reaches it could claim the empty installation. Require an
     // operator-provided deployment secret everywhere except local development;

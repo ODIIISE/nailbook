@@ -29,8 +29,11 @@ export default function BootstrapPage() {
     try {
       const res = await fetch("/api/bootstrap-owner", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: normalized, name: name || "مدیر", setupSecret: setupSecret || undefined }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(setupSecret.trim() ? { "x-setup-secret": setupSecret.trim() } : {}),
+        },
+        body: JSON.stringify({ phone: normalized, name: name || "مدیر" }),
       });
       const data = await res.json();
       if (!res.ok) {
