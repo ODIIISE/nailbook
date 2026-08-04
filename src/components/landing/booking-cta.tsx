@@ -76,19 +76,22 @@ export function BookingCta({ services, isLoading }: BookingCtaProps) {
 
   return (
     <>
-      <section id="booking-cta" className="px-4 pb-4 pt-2" aria-labelledby="booking-cta-title" aria-describedby="booking-cta-description">
-        <div className="mx-auto max-w-lg rounded-[26px] border border-border bg-card p-2 shadow-elevated" dir="rtl">
-          <button type="button" onClick={() => setSheetOpen(true)} className="booking-cta-action group flex min-h-[64px] w-full items-center gap-3 rounded-[20px] bg-foreground px-4 text-right text-background shadow-card transition-[background-color,box-shadow,transform] duration-200 hover:bg-foreground/90 hover:shadow-floating active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-card" aria-haspopup="dialog" aria-expanded={sheetOpen}>
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[15px] bg-background/12 text-background" aria-hidden="true"><CalendarDays className="h-5 w-5" /></span>
-            <span className="min-w-0 flex-1">
-              <span id="booking-cta-title" className="block text-body font-extrabold">رزرو نوبت</span>
-              <span id="booking-cta-description" className="mt-0.5 block text-small text-background/70">خدمت و زمان مناسب خودت را انتخاب کن</span>
-            </span>
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background text-foreground transition-transform duration-200 group-hover:-translate-x-0.5" aria-hidden="true"><ChevronLeft className="h-4 w-4" /></span>
-          </button>
-          <div className="flex items-center justify-center gap-3 px-3 py-2 text-[10px] text-muted-foreground" aria-hidden="true">
-            <span>انتخاب خدمت</span><span className="h-1 w-1 rounded-full bg-border" /><span>دیدن زمان‌های آزاد</span><span className="h-1 w-1 rounded-full bg-border" /><span>تأیید</span>
+      <section id="booking-cta" className="px-4 pb-4 pt-0" aria-labelledby="booking-cta-title" aria-describedby="booking-cta-description">
+        <div className="mx-auto max-w-lg" dir="rtl">
+          <div className="mb-3 flex items-center gap-2 text-small text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            <span>آماده‌ای؟</span>
+            <span className="h-px flex-1 bg-border" />
           </div>
+          <button type="button" onClick={() => setSheetOpen(true)} className="booking-cta-action group flex min-h-[68px] w-full items-center gap-3 rounded-[22px] bg-foreground px-4 text-right text-background shadow-floating transition-[background-color,box-shadow,transform] duration-200 hover:bg-foreground/90 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background" aria-haspopup="dialog" aria-expanded={sheetOpen}>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] border border-background/20 bg-background/10" aria-hidden="true"><CalendarDays className="h-5 w-5" /></span>
+            <span className="min-w-0 flex-1">
+              <span id="booking-cta-title" className="block text-body font-extrabold">شروع رزرو</span>
+              <span id="booking-cta-description" className="mt-0.5 block text-small text-background/70">خدمتت را انتخاب کن، زمانت را پیدا کن</span>
+            </span>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-background text-foreground transition-transform duration-200 group-hover:-translate-x-0.5" aria-hidden="true"><ChevronLeft className="h-5 w-5" /></span>
+          </button>
+          <p className="mt-2 text-center text-[11px] text-muted-foreground">بدون تماس تلفنی · زمان‌های آزاد همین‌جا</p>
         </div>
       </section>
       <ServiceSelectionSheet open={sheetOpen} services={services} isLoading={isLoading} onClose={() => setSheetOpen(false)} />
