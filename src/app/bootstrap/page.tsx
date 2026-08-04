@@ -57,7 +57,7 @@ export default function BootstrapPage() {
           </div>
           <h1 className="text-h1 text-foreground">ایجاد اکانت مدیر</h1>
           <p className="text-caption text-muted-foreground mt-1">
-            فقط زمانی که هیچ مدیری وجود ندارد کار می‌کند
+            برای شروع سریع مالک سالن. اگر مدیر کل دارید، از پنل مدیریت سالن را انتخاب و مدیر را ایجاد کنید.
           </p>
         </div>
 
@@ -96,7 +96,7 @@ export default function BootstrapPage() {
               autoComplete="off"
             />
             <p className="text-small text-muted-foreground mt-1">
-              کلید BOOTSTRAP_OWNER_SECRET در تنظیمات Vercel
+              کلید BOOTSTRAP_OWNER_SECRET در تنظیمات Vercel؛ روش پیشنهادی: ایجاد مدیر از پنل مدیر کل
             </p>
           </div>
           {error && (
