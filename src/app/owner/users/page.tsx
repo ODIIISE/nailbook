@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Search, Plus, Pencil, Trash2, UserCheck, AlertTriangle, Lock, Unlock } from "lucide-react";
+import { Users, Search, Plus, Pencil, Trash2, UserCheck, AlertTriangle, Lock, Unlock, ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
@@ -69,8 +69,9 @@ export default function OwnerUsersPage() {
     setFormError("");
   };
 
-  const openAdd = () => {
+  const openAdd = (role: "customer" | "owner" = "customer") => {
     resetForm();
+    setFormRole(role);
     setModal("add");
   };
 
@@ -205,10 +206,16 @@ export default function OwnerUsersPage() {
           <Users className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-bold text-foreground">کاربران</h2>
         </div>
-        <Button size="sm" onClick={openAdd}>
-          <Plus className="h-4 w-4 ms-1" />
-          افزودن
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => openAdd("owner")}>
+            <ShieldCheck className="h-4 w-4 ms-1" />
+            مدیر جدید
+          </Button>
+          <Button size="sm" onClick={() => openAdd("customer")}>
+            <Plus className="h-4 w-4 ms-1" />
+            مشتری جدید
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
@@ -257,17 +264,19 @@ export default function OwnerUsersPage() {
                     <p className="text-small text-muted-foreground/60">عضویت: {formatDate(user.created_at)}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-0.5 flex-shrink-0">
-                  <Button variant="ghost" size="icon-sm" onClick={() => handleToggleBlock(user)} title={user.locked_until ? "رفع قفل" : "قفل"}>
-                    {user.locked_until ? <Unlock className="h-4 w-4 text-amber-500" /> : <Lock className="h-4 w-4 text-muted-foreground" />}
-                  </Button>
-                  <Button variant="ghost" size="icon-sm" onClick={() => openEdit(user)} title="ویرایش">
-                    <Pencil className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                  <Button variant="ghost" size="icon-sm" onClick={() => openDelete(user)} title="حذف">
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
+                {user.role !== "owner" && (
+                  <div className="flex items-center gap-0.5 flex-shrink-0">
+                    <Button variant="ghost" size="icon-sm" onClick={() => handleToggleBlock(user)} title={user.locked_until ? "رفع قفل" : "قفل"}>
+                      {user.locked_until ? <Unlock className="h-4 w-4 text-amber-500" /> : <Lock className="h-4 w-4 text-muted-foreground" />}
+                    </Button>
+                    <Button variant="ghost" size="icon-sm" onClick={() => openEdit(user)} title="ویرایش">
+                      <Pencil className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                    <Button variant="ghost" size="icon-sm" onClick={() => openDelete(user)} title="حذف">
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </Card>
           ))}
@@ -278,7 +287,9 @@ export default function OwnerUsersPage() {
       <Dialog open={modal === "add" || modal === "edit"} onOpenChange={(open) => { if (!open) setModal(null); }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>{modal === "add" ? "کاربر جدید" : "ویرایش کاربر"}</DialogTitle>
+            <DialogTitle>
+              {modal === "add" ? (formRole === "owner" ? "ایجاد مدیر جدید" : "ایجاد مشتری جدید") : "ویرایش کاربر"}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
@@ -289,18 +300,25 @@ export default function OwnerUsersPage() {
               <label className="text-caption text-muted-foreground">شماره موبایل</label>
               <Input value={formPhone} onChange={(e) => setFormPhone(e.target.value)} placeholder="09121234567" dir="ltr" className="mt-1 text-left" />
             </div>
-            <div>
-              <label className="text-caption text-muted-foreground">نقش</label>
-              <Select value={formRole} onValueChange={(val) => setFormRole(val as string)}>
-                <SelectTrigger className="mt-1 w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="customer">مشتری</SelectItem>
-                  <SelectItem value="owner">مدیر</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {(modal === "add" || selectedUser?.role !== "owner") && (
+              <div>
+                <label className="text-caption text-muted-foreground">نقش</label>
+                <Select value={formRole} onValueChange={(val) => setFormRole(val as string)}>
+                  <SelectTrigger className="mt-1 w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="customer">مشتری</SelectItem>
+                    <SelectItem value="owner">مدیر</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {modal === "add" && formRole === "owner" && (
+              <p className="text-caption text-muted-foreground rounded-lg bg-muted/50 p-2">
+                این شماره می‌تواند پس از دریافت کد پیامکی وارد پنل مدیر شود.
+              </p>
+            )}
             {formError && (
               <div className="flex items-center gap-2 text-caption text-destructive">
                 <AlertTriangle className="h-4 w-4 shrink-0" /><span>{formError}</span>
@@ -308,7 +326,7 @@ export default function OwnerUsersPage() {
             )}
             <div className="flex gap-3 pt-2">
               <Button size="lg" onClick={modal === "add" ? handleAdd : handleEdit} disabled={isSubmitting} className="flex-1">
-                {isSubmitting ? "در حال ذخیره..." : modal === "add" ? "ایجاد کاربر" : "ذخیره"}
+                {isSubmitting ? "در حال ذخیره..." : modal === "add" ? (formRole === "owner" ? "ایجاد مدیر" : "ایجاد مشتری") : "ذخیره"}
               </Button>
               <Button size="lg" variant="outline" onClick={() => setModal(null)} className="flex-1">انصراف</Button>
             </div>
