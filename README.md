@@ -70,15 +70,25 @@ Required variables:
 - `POSTGRES_URL` — Vercel Postgres connection string (auto-set by Vercel)
 - `POSTGRES_PRISMA_URL` — Vercel Postgres Prisma-compatible URL (auto-set by Vercel)
 - `OWNER_SESSION_SECRET` — Secret for signing owner session cookies (min 32 chars)
+- `BOOTSTRAP_OWNER_SECRET` — Required for the one-time owner bootstrap route outside development
+- `BOOTSTRAP_SUPER_ADMIN_SECRET` — Required for the one-time super-admin bootstrap route outside development
 
 Optional variables:
 - `CUSTOMER_SESSION_SECRET` — Secret for customer sessions (falls back to OWNER_SESSION_SECRET)
 
 ### Database Setup
 
-The app auto-migrates missing columns on first load via `/api/read/salon`. No manual migration needed.
+Run the checked-in migrations before exposing a production deployment:
 
-Tables are created automatically by Vercel Postgres on first write. Required tables:
+```bash
+node scripts/apply-migrations.mjs
+```
+
+The one-time bootstrap routes require their corresponding setup secret in production. Treat both secrets as deployment credentials, not user passwords, and remove or rotate them after initial setup.
+
+The app keeps a small compatibility fallback for selected legacy columns, but schema creation and migrations should not be delegated to public read requests.
+
+The migration set creates the required tables before application traffic. Required tables include:
 - `users` — Customer and owner accounts
 - `salon_info` — Salon configuration (singleton)
 - `services` — Available services

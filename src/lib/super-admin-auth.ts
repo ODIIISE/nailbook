@@ -101,7 +101,7 @@ export async function setSuperAdminPassword(phone: string, password: string) {
   return rows[0]?.id || null;
 }
 
-function hashPin(pin: string): string {
+export function hashPin(pin: string): string {
   const ALGO = "sha256";
   const ITERATIONS = 100000;
   const KEY_LENGTH = 64;

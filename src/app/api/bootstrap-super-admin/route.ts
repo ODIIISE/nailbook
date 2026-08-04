@@ -1,22 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql } from "@vercel/postgres";
-import { createSuperAdmin, signSuperAdminSession } from "@/lib/super-admin-auth";
+import { sql, type VercelPoolClient } from "@vercel/postgres";
+import { signSuperAdminSession, hashPin } from "@/lib/super-admin-auth";
 import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-config";
+import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
+
+function isConfiguredSecretValid(request: NextRequest): boolean {
+  const configured = process.env.BOOTSTRAP_SUPER_ADMIN_SECRET?.trim();
+  const supplied = request.headers.get("x-setup-secret") || "";
+
+  // Local development may intentionally bootstrap without a secret. Every
+  // deployed environment must have an operator-provided secret.
+  if (!configured) return process.env.NODE_ENV === "development";
+  return supplied === configured;
+}
 
 export async function POST(request: NextRequest) {
+  let client: VercelPoolClient | null = null;
   try {
-    const { phone, pin, name } = await request.json();
+    const body = await request.json() as Record<string, unknown>;
+    const { phone, pin, name } = body;
 
     if (!phone || !pin) {
       return NextResponse.json({ error: "شماره و رمز الزامی است" }, { status: 400 });
+    }
+
+    if (!isConfiguredSecretValid(request)) {
+      return NextResponse.json({ error: "راه‌اندازی اولیه نیاز به کلید محرمانه دارد" }, { status: 403 });
+    }
+
+    const normalizedPhone = normalizeDigits(String(phone).trim());
+    if (!isValidIranianPhone(normalizedPhone)) {
+      return NextResponse.json({ error: "شماره موبایل معتبر نیست" }, { status: 400 });
     }
 
     const cleanPin = String(pin).trim();
     if (cleanPin.length !== 4 || !/^\d{4}$/.test(cleanPin)) {
       return NextResponse.json({ error: "رمز باید ۴ رقمی باشد" }, { status: 400 });
     }
+    const cleanName = typeof name === "string" ? name.trim().slice(0, 100) || null : null;
 
-    // Auto-create tables if they don't exist (first-time setup)
+    // Create the setup tables only after the request proves it knows the
+    // deployment secret. This prevents an unauthenticated caller from using
+    // the bootstrap endpoint as a schema-provisioning primitive.
     await sql`
       CREATE TABLE IF NOT EXISTS super_admins (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -56,18 +81,30 @@ export async function POST(request: NextRequest) {
       )
     `;
 
-    // Check how many super-admins exist
-    const { rows: existing } = await sql`SELECT COUNT(*) as count FROM super_admins`;
-    const count = parseInt(existing[0]?.count || "0");
+    client = await sql.connect();
+    await client.query("BEGIN");
+    // Make the empty-check and first insert one serialized critical section.
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1)::bigint)", ["nailbook-bootstrap-super-admin"]);
 
-    if (count > 0) {
+    const { rows: existing } = await client.query("SELECT COUNT(*)::int AS count FROM super_admins");
+    if (Number(existing[0]?.count || 0) > 0) {
+      await client.query("ROLLBACK");
       return NextResponse.json(
         { error: "اکانت مدیر از قبل وجود دارد." },
         { status: 403 }
       );
     }
 
-    const userId = await createSuperAdmin(String(phone).trim(), cleanPin, name?.trim());
+    const { rows: created } = await client.query(
+      "INSERT INTO super_admins (phone, pin, name) VALUES ($1, $2, $3) RETURNING id",
+      [normalizedPhone, hashPin(cleanPin), cleanName]
+    );
+    const userId = created[0]?.id as string | undefined;
+    if (!userId) {
+      await client.query("ROLLBACK");
+      return NextResponse.json({ error: "خطای ایجاد اکانت مدیر" }, { status: 500 });
+    }
+    await client.query("COMMIT");
 
     const response = NextResponse.json({ success: true, userId });
     response.cookies.set("super_admin_session", signSuperAdminSession(userId), {
@@ -80,7 +117,12 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
+    if (client) {
+      try { await client.query("ROLLBACK"); } catch { /* ignore rollback failure */ }
+    }
     console.error("Bootstrap super-admin error:", error);
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+  } finally {
+    client?.release();
   }
 }

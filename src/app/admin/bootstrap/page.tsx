@@ -27,6 +27,7 @@ export default function AdminBootstrapPage() {
   }, [router]);
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
+  const [setupSecret, setSetupSecret] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,7 +54,10 @@ export default function AdminBootstrapPage() {
     try {
       const res = await fetch("/api/bootstrap-super-admin", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(setupSecret ? { "x-setup-secret": setupSecret } : {}),
+        },
         body: JSON.stringify({ phone, pin, name: name || "مدیر کل" }),
       });
       const data = await res.json();
@@ -104,6 +108,18 @@ export default function AdminBootstrapPage() {
                   onChange={(e) => setName(e.target.value)}
                   className="mt-1"
                   placeholder="مدیر کل"
+                />
+              </div>
+              <div>
+                <Label className="text-caption">کلید راه‌اندازی</Label>
+                <Input
+                  value={setupSecret}
+                  onChange={(e) => setSetupSecret(e.target.value)}
+                  className="mt-1"
+                  type="password"
+                  dir="ltr"
+                  placeholder="BOOTSTRAP_SUPER_ADMIN_SECRET"
+                  autoComplete="off"
                 />
               </div>
               {error && (
