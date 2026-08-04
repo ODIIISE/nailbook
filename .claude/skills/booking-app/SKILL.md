@@ -1,6 +1,12 @@
 ---
 name: booking-app
-description: Use when building, reviewing, or improving booking/appointment/scheduling features. Covers slot engines, conflict resolution, booking flows, owner dashboards, calendar UI, working hours, timezone handling, and booking UX patterns. Also use for salon/clinic/service booking apps, appointment scheduling, time-slot selection, and reservation systems. Trigger on: "booking", "appointment", "schedule", "slot", "calendar", "reservation", "booking flow", "booking UX", "owner dashboard", "working hours", "blocked times".
+description: >-
+  Use when building, reviewing, or improving booking/appointment/scheduling features.
+  Covers slot engines, conflict resolution, booking flows, owner dashboards, calendar UI,
+  working hours, timezone handling, and booking UX patterns. Also use for
+  salon/clinic/service booking apps, appointment scheduling, time-slot selection, and
+  reservation systems. Trigger on booking, appointment, schedule, slot, calendar,
+  reservation, booking flow, booking UX, owner dashboard, working hours, blocked times.
 version: 1.0.0
 license: MIT
 ---
