@@ -21,8 +21,31 @@ export function isSalonMode(): boolean {
 }
 
 /**
+ * Resolve the configured tenant to the canonical salons.id UUID.
+ * Older deployments sometimes store SALON_ID as a salon slug; auth and OTP
+ * queries must use the UUID when comparing against UUID-typed columns.
+ */
+export async function resolveSalonId(): Promise<string | null> {
+  const configured = getSalonId();
+  if (!configured) return null;
+
+  const { sql } = await import("@vercel/postgres");
+  const { rows } = await sql.query(
+    "SELECT id FROM salons WHERE id::text = $1 OR slug = $1 LIMIT 1",
+    [configured]
+  );
+  const resolved = rows[0]?.id as string | undefined;
+  if (!resolved) {
+    // Never turn a broken tenant configuration into an unscoped/global query.
+    // Callers will fail closed through their normal error handling.
+    throw new Error(`Configured SALON_ID does not match a salon: ${configured}`);
+  }
+  return resolved;
+}
+
+/**
  * Get salon_id for database queries.
- * Returns the SALON_ID env var value, or null for admin mode.
+ * Returns the configured SALON_ID value, or null for admin mode.
  */
 export function getSalonFilter(): string | null {
   return getSalonId();

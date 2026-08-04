@@ -6,7 +6,7 @@ import { signCustomerSession } from "@/lib/customer-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
 import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-config";
-import { getSalonId } from "@/lib/multi-tenant";
+import { resolveSalonId } from "@/lib/multi-tenant";
 
 export async function POST(request: NextRequest) {
   try {
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       // Customer flow: auto-create the row if missing, then normal login.
       if (!user) {
         const userId = crypto.randomUUID();
-        const salonId = getSalonId();
+        const salonId = await resolveSalonId();
         // ON CONFLICT guards against a rare race where two concurrent verify
         // requests both try to create the same new user. The unique target
         // depends on schema state: tenant-scoped (post-migration 013) or the
@@ -201,7 +201,7 @@ async function getUserByPhone(phone: string): Promise<{ id: string; phone: strin
   // "role" is a Postgres reserved keyword — must be double-quoted in SELECT.
   // In salon mode the lookup is scoped to the tenant's salon_id; legacy
   // single-salon deployments (salon_id IS NULL) keep the global lookup.
-  const salonId = getSalonId();
+  const salonId = await resolveSalonId();
   const scoped = salonId
     ? sql<{ id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number }>`
       SELECT id, phone, name, "role", roles, session_version FROM users

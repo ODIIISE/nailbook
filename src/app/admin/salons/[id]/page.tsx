@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Search, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowRight, Search, ExternalLink, Loader2, UserPlus, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { statusBadgeClass } from "@/lib/design-tokens";
 
@@ -31,6 +31,11 @@ interface User {
   name: string;
   role: string;
   created_at: string;
+}
+
+interface OwnerForm {
+  phone: string;
+  name: string;
 }
 
 interface Booking {
@@ -166,19 +171,95 @@ function UsersTab({ salonId }: { salonId: string }) {
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [ownerForm, setOwnerForm] = useState<OwnerForm>({ phone: "", name: "" });
 
-  useEffect(() => {
-    fetch(`/api/admin/salons/${salonId}/users?search=${search}`)
+  const loadUsers = () => {
+    setIsLoading(true);
+    fetch(`/api/admin/salons/${salonId}/users?search=${encodeURIComponent(search)}`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) setUsers(data);
       })
-      .catch(console.error)
+      .catch(() => toast.error("خطا در دریافت کاربران"))
       .finally(() => setIsLoading(false));
+  };
+
+  useEffect(() => {
+    let active = true;
+    fetch(`/api/admin/salons/${salonId}/users?search=${encodeURIComponent(search)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (active && Array.isArray(data)) setUsers(data);
+      })
+      .catch(() => {
+        if (active) toast.error("خطا در دریافت کاربران");
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => { active = false; };
   }, [salonId, search]);
 
+  const createOwner = async (userId?: string) => {
+    if (!userId && (!ownerForm.phone.trim() || !ownerForm.name.trim())) {
+      toast.error("نام و شماره موبایل را وارد کنید");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const selectedUser = userId ? users.find((user) => user.id === userId) : undefined;
+      const res = await fetch(`/api/admin/salons/${salonId}/users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userId
+          ? { userId, phone: selectedUser?.phone, name: selectedUser?.name || "مدیر" }
+          : ownerForm),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "خطا در ایجاد مدیر");
+        return;
+      }
+      toast.success("مدیر با موفقیت ایجاد شد");
+      setOwnerForm({ phone: "", name: "" });
+      loadUsers();
+    } catch {
+      toast.error("خطای سرور");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+          <div>
+            <h3 className="font-bold text-sm">ایجاد مدیر سالن</h3>
+            <p className="text-xs text-muted-foreground">این شماره مدیر همان لحظه ساخته یا ارتقا پیدا می‌کند و بعداً با کد پیامکی وارد پنل مدیر می‌شود.</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <Input
+            value={ownerForm.name}
+            onChange={(e) => setOwnerForm((current) => ({ ...current, name: e.target.value }))}
+            placeholder="نام مدیر"
+          />
+          <Input
+            value={ownerForm.phone}
+            onChange={(e) => setOwnerForm((current) => ({ ...current, phone: e.target.value }))}
+            placeholder="09121234567"
+            dir="ltr"
+          />
+        </div>
+        <Button onClick={() => createOwner()} disabled={isSaving} className="rounded-full gap-2">
+          <UserPlus className="h-4 w-4" />
+          {isSaving ? "در حال ذخیره..." : "ایجاد / ارتقای مدیر"}
+        </Button>
+      </div>
+
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -198,19 +279,32 @@ function UsersTab({ salonId }: { salonId: string }) {
           {users.map((user, i) => (
             <div
               key={user.id}
-              className={`p-3 flex items-center justify-between ${
+              className={`p-3 flex items-center justify-between gap-3 ${
                 i < users.length - 1 ? "border-b border-border" : ""
               }`}
             >
-              <div>
-                <p className="font-medium text-sm">{user.name || "بدون نام"}</p>
+              <div className="min-w-0">
+                <p className="font-medium text-sm truncate">{user.name || "بدون نام"}</p>
                 <p className="text-xs text-muted-foreground" dir="ltr">{user.phone}</p>
               </div>
-              <span className={`px-2 py-1 rounded-full text-xs ${
-                user.role === "owner" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-              }`}>
-                {user.role === "owner" ? "مدیر" : "مشتری"}
-              </span>
+              <div className="flex items-center gap-2 shrink-0">
+                {user.role !== "owner" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isSaving}
+                    onClick={() => createOwner(user.id)}
+                    className="rounded-full"
+                  >
+                    ارتقای مدیر
+                  </Button>
+                )}
+                <span className={`px-2 py-1 rounded-full text-xs ${
+                  user.role === "owner" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                }`}>
+                  {user.role === "owner" ? "مدیر" : "مشتری"}
+                </span>
+              </div>
             </div>
           ))}
         </div>

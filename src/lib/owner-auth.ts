@@ -1,6 +1,6 @@
 import { sql } from "@vercel/postgres";
 import { verifyCustomerSession, verifyCustomerSessionWithVersion, signCustomerSession } from "./customer-auth";
-import { getSalonId } from "./multi-tenant";
+import { resolveSalonId } from "./multi-tenant";
 
 /**
  * Unified owner auth: customer and owner share the same "session" cookie.
@@ -45,7 +45,7 @@ function isColumnMissing(err: unknown, column: string): boolean {
  * because the function falls back to the legacy column on SQLSTATE 42703.
  */
 export async function phoneHasOwnerRole(phone: string): Promise<boolean> {
-  const salonId = getSalonId();
+  const salonId = await resolveSalonId();
   try {
     const { rows } = salonId
       ? await sql`SELECT "role", roles FROM users WHERE phone = ${phone} AND salon_id = ${salonId} LIMIT 1`
@@ -81,7 +81,7 @@ export async function phoneHasOwnerRole(phone: string): Promise<boolean> {
  *      missing entirely: fall back to legacy `"role"` column.
  */
 async function getUserRoles(userId: string): Promise<string[] | null> {
-  const salonId = getSalonId();
+  const salonId = await resolveSalonId();
   // Try the new schema first. Note: "role" is a Postgres reserved keyword and
   // MUST be double-quoted; an unquoted reference inside a SELECT list throws
   // "syntax error at or near 'role'" on stricter PG versions.

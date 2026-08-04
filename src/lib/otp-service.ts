@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { sql } from "@vercel/postgres";
 import { getSmsProvider } from "./sms";
-import { getSalonId } from "./multi-tenant";
+import { resolveSalonId } from "./multi-tenant";
 
 export const OTP_LENGTH = 6;
 export const OTP_EXPIRY_MS = 5 * 60 * 1000;
@@ -22,12 +22,12 @@ function generateCode(): string {
   return crypto.randomInt(100000, 1000000).toString();
 }
 
-function tenantScope(): { salonId: string | null } {
-  return { salonId: getSalonId() };
+async function tenantScope(): Promise<{ salonId: string | null }> {
+  return { salonId: await resolveSalonId() };
 }
 
 export async function upsertOtp(phone: string, code: string, expiresAt: string): Promise<OtpRecord> {
-  const salonId = getSalonId();
+  const salonId = await resolveSalonId();
   const result = salonId
     ? await sql.query<OtpRecord>(
         `INSERT INTO otps (salon_id, phone, code, expires_at, attempts)
@@ -49,7 +49,7 @@ export async function upsertOtp(phone: string, code: string, expiresAt: string):
 }
 
 export async function findOtp(phone: string): Promise<OtpRecord | null> {
-  const scope = tenantScope();
+  const scope = await tenantScope();
   const result = scope.salonId
     ? await sql.query<OtpRecord>(
         "SELECT id, salon_id, phone, code, expires_at, attempts, created_at FROM otps WHERE salon_id = $1 AND phone = $2",
@@ -63,7 +63,7 @@ export async function findOtp(phone: string): Promise<OtpRecord | null> {
 }
 
 export async function incrementOtpAttempts(phone: string): Promise<void> {
-  const scope = tenantScope();
+  const scope = await tenantScope();
   await sql.query(
     scope.salonId
       ? "UPDATE otps SET attempts = attempts + 1 WHERE salon_id = $1 AND phone = $2"
@@ -73,7 +73,7 @@ export async function incrementOtpAttempts(phone: string): Promise<void> {
 }
 
 export async function deleteOtp(phone: string, otpId?: string, code?: string): Promise<void> {
-  const scope = tenantScope();
+  const scope = await tenantScope();
   if (otpId && code) {
     // The row id is stable across ON CONFLICT updates, so also match the
     // generated code or a newer concurrent OTP could be deleted.
@@ -143,7 +143,7 @@ export interface VerifyOtpResult {
 
 export async function verifyOtp(phone: string, inputCode: string): Promise<VerifyOtpResult> {
   const trimmedCode = inputCode.trim();
-  const scope = tenantScope();
+  const scope = await tenantScope();
   const deleted = scope.salonId
     ? await sql.query(
         `DELETE FROM otps

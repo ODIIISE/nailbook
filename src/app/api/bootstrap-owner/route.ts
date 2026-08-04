@@ -46,16 +46,37 @@ export async function POST(request: NextRequest) {
     // anyone who reaches it could claim the empty installation. Require an
     // operator-provided deployment secret everywhere except local development;
     // Vercel preview/staging deployments must not be claimable either.
-    if (process.env.NODE_ENV !== "development" && (!configuredSetupSecret || suppliedSetupSecret !== configuredSetupSecret)) {
-      return NextResponse.json({ error: "راه‌اندازی اولیه نیاز به کلید محرمانه دارد" }, { status: 403 });
+    if (process.env.NODE_ENV !== "development") {
+      if (!configuredSetupSecret) {
+        return NextResponse.json({ error: "کلید راه‌اندازی در تنظیمات سرور وجود ندارد" }, { status: 503 });
+      }
+      if (suppliedSetupSecret !== configuredSetupSecret) {
+        return NextResponse.json({ error: "کلید راه‌اندازی اشتباه است" }, { status: 403 });
+      }
     }
 
     client = await sql.connect();
     await client.query("BEGIN");
 
     // Serialize all first-owner bootstrap attempts across serverless instances.
-    const salonId = getSalonId();
-    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", ["nailbook-bootstrap-owner"]);
+    // SALON_ID is historically configured as either the salon UUID or its slug;
+    // always resolve it to the UUID before using it in users.salon_id.
+    const configuredSalonId = getSalonId();
+    let salonId: string | null = null;
+    if (configuredSalonId) {
+      const { rows: salonRows } = await client.query(
+        "SELECT id FROM salons WHERE id::text = $1 OR slug = $1 LIMIT 1",
+        [configuredSalonId]
+      );
+      salonId = salonRows[0]?.id as string | null;
+      if (!salonId) {
+        await client.query("ROLLBACK");
+        return NextResponse.json({ error: "سالن این سایت پیدا نشد" }, { status: 503 });
+      }
+    }
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
+      `nailbook-bootstrap-owner:${salonId || "global"}`,
+    ]);
 
     const { rows: columnRows } = await client.query(
       `SELECT EXISTS (
