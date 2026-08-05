@@ -72,7 +72,7 @@ function InstagramGlyph() {
   return <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5" /><circle cx="12" cy="12" r="4.2" /><circle cx="17.5" cy="6.7" r="1" fill="currentColor" stroke="none" /></svg>;
 }
 
-function ReferenceWorkCard({ highlight, onSelect }: { highlight: Highlight; onSelect: () => void }) {
+function ReferenceWorkCard({ highlight, service, onSelect }: { highlight: Highlight; service?: Service; onSelect: () => void }) {
   const [failed, setFailed] = useState(false);
   return (
     <button type="button" className="reference-home-work-card" onClick={onSelect} aria-label={`دیدن ${highlight.name}`}>
@@ -82,7 +82,10 @@ function ReferenceWorkCard({ highlight, onSelect }: { highlight: Highlight; onSe
         <div className="reference-home-work-fallback" aria-hidden="true"><Images className="h-8 w-8" /><strong>{highlight.name.charAt(0)}</strong></div>
       )}
       <span className="reference-home-work-shade" aria-hidden="true" />
-      <span className="reference-home-work-caption"><span>{highlight.name}</span><ArrowLeft className="h-4 w-4" aria-hidden="true" /></span>
+      <span className="reference-home-work-caption">
+        <span>{highlight.name}</span>
+        {service ? <span className="reference-home-work-price">{formatPrice(Number(service.price))} تومان</span> : <ArrowLeft className="h-4 w-4" aria-hidden="true" />}
+      </span>
     </button>
   );
 }
@@ -112,7 +115,6 @@ function ReferenceServiceRow({ service, onSelect }: { service: Service; onSelect
       <span className="reference-home-service-icon" aria-hidden="true"><ServiceIcon service={service} /></span>
       <span className="reference-home-service-copy">
         <strong>{service.name}</strong>
-        <small>{service.description || "خدمت تخصصی ناخن"}</small>
         <span className="reference-home-service-meta"><b>از {formatPrice(Number(service.price))} تومان</b><span>{toPersianDigits(service.duration_minutes)} دقیقه</span></span>
       </span>
       {isPopular && <span className="reference-home-popular">پرطرفدار</span>}
@@ -134,6 +136,7 @@ export function QwenCustomerHome({ onSelectHighlight }: QwenCustomerHomeProps) {
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const live = getLiveLabel(workingHours);
   const activeServices = useMemo(() => services.filter((service) => service.is_active).sort((a, b) => a.sort_order - b.sort_order), [services]);
+  const serviceById = useMemo(() => new Map(activeServices.map((service) => [service.id, service])), [activeServices]);
   const phoneIsValid = isValidIranianPhone(salon.phone);
   const mapUrl = salon.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.address)}` : null;
   const instagramHandle = salon.instagram_handle || (salon.name.toLowerCase().includes("forehand") ? "forehand.nail" : "");
@@ -194,30 +197,30 @@ export function QwenCustomerHome({ onSelectHighlight }: QwenCustomerHomeProps) {
             <div className="reference-home-portrait-ring">
               {salon.portrait_image_url && !failedPortrait ? <Image src={salon.portrait_image_url} alt={`تصویر ${salon.name}`} fill unoptimized className="reference-home-portrait" onError={() => setFailedPortrait(true)} /> : salon.logo_url && !failedLogo ? <Image src={salon.logo_url} alt={`لوگوی ${salon.name}`} fill unoptimized className="reference-home-portrait" onError={() => setFailedLogo(true)} /> : <div className="reference-home-portrait-fallback" aria-hidden="true"><Sparkles className="h-9 w-9" /></div>}
             </div>
-            <p className="reference-home-kicker">NAIL · CARE · RITUAL</p>
-            <h1 id="reference-home-title">{salon.name || "استودیو تخصصی ناخن"}</h1>
-            {salon.slogan && <p className="reference-home-slogan">{salon.slogan}</p>}
-            {salon.address && <a className="reference-home-location" href={mapUrl ?? undefined} target="_blank" rel="noopener noreferrer"><MapPin className="h-4 w-4" aria-hidden="true" />{salon.address}</a>}
-            <div className="reference-home-open" aria-live="polite"><span className={`reference-home-status-dot ${live.isOpen ? "is-open" : ""}`} aria-hidden="true" /><Clock3 className="h-4 w-4" aria-hidden="true" /><span>{live.label}</span></div>
+            <p className="reference-home-kicker reference-home-stagger-1">NAIL · CARE · RITUAL</p>
+            <h1 id="reference-home-title" className="reference-home-stagger-2">{salon.name || "استودیو تخصصی ناخن"}</h1>
+            {salon.slogan && <p className="reference-home-slogan reference-home-stagger-3">{salon.slogan}</p>}
+            {salon.address && <a className="reference-home-location reference-home-stagger-4" href={mapUrl ?? undefined} target="_blank" rel="noopener noreferrer"><MapPin className="h-4 w-4" aria-hidden="true" />{salon.address}</a>}
+            <div className="reference-home-open reference-home-stagger-5" aria-live="polite"><span className={`reference-home-status-dot ${live.isOpen ? "is-open" : ""}`} aria-hidden="true" /><Clock3 className="h-4 w-4" aria-hidden="true" /><span>{live.label}</span></div>
           </section>
         </div>
 
         <section className="reference-home-booking" aria-labelledby="reference-home-booking-title">
           <button type="button" className="reference-home-booking-cta" onClick={() => setBookingOpen(true)} disabled={!loaded || activeServices.length === 0}>
             <ArrowLeft className="h-7 w-7" aria-hidden="true" />
-            <span><strong id="reference-home-booking-title">{activeServices.length ? "شروع رزرو" : "رزرو موقتاً بسته است"}</strong><small>{activeServices.length ? "انتخاب خدمت و زمان دلخواه" : "در حال حاضر خدمتی برای رزرو فعال نیست"}</small></span>
+            <strong id="reference-home-booking-title">{activeServices.length ? "شروع رزرو" : "رزرو موقتاً بسته است"}</strong>
             <CalendarDays className="h-7 w-7" aria-hidden="true" />
           </button>
-          <p>بدون تماس تلفنی · زمان‌های آزاد همین‌جا نمایش داده می‌شوند.</p>
+          <p>بدون تماس تلفنی · زمان‌های آزاد همین‌جا</p>
         </section>
 
         {highlights.length > 0 && <section className="reference-home-section" aria-labelledby="reference-home-work-title">
           <div className="reference-home-section-heading"><div><h2 id="reference-home-work-title">نمونه‌کارها</h2><span>برای الهام گرفتن</span></div><i aria-hidden="true" /></div>
-          <div className="reference-home-work-scroll">{highlights.map((highlight) => <ReferenceWorkCard key={highlight.id} highlight={highlight} onSelect={() => onSelectHighlight(highlight)} />)}</div>
+          <div className="reference-home-work-scroll">{highlights.map((highlight) => <ReferenceWorkCard key={highlight.id} highlight={highlight} service={highlight.service_id ? serviceById.get(highlight.service_id) : undefined} onSelect={() => onSelectHighlight(highlight)} />)}</div>
         </section>}
 
         <section className="reference-home-section reference-home-services" aria-labelledby="reference-home-services-title">
-          <div className="reference-home-section-heading"><h2 id="reference-home-services-title">خدمات ما</h2></div>
+          <h2 id="reference-home-services-title" className="sr-only">خدمات ما</h2>
           {activeServices.length ? <div className="reference-home-service-list">{activeServices.map((service) => <ReferenceServiceRow key={service.id} service={service} onSelect={() => router.push(`/book?service=${service.id}`)} />)}</div> : <p className="reference-home-empty">هنوز خدمتی برای رزرو فعال نیست</p>}
         </section>
 
