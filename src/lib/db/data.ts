@@ -57,6 +57,8 @@ function normalizeService(value: unknown): Service | null {
     priority_score: finiteNumber(value.priority_score, 5),
     image_url: typeof value.image_url === "string" && value.image_url.length > 0 ? value.image_url : null,
     best_for: normalizeTextArray(value.best_for),
+    icon_key: typeof value.icon_key === "string" && value.icon_key.length > 0 ? value.icon_key : null,
+    is_popular: normalizeBoolean(value.is_popular),
   };
 }
 
@@ -156,6 +158,9 @@ function normalizeSalon(value: unknown): SalonInfo | null {
     slogan: typeof value.slogan === "string" ? value.slogan : "",
     phone: typeof value.phone === "string" ? value.phone : "",
     address: typeof value.address === "string" ? value.address : "",
+    city: typeof value.city === "string" ? value.city : "",
+    instagram_handle: typeof value.instagram_handle === "string" ? value.instagram_handle : "",
+    portrait_image_url: typeof value.portrait_image_url === "string" ? value.portrait_image_url : null,
     hero_image_url: typeof value.hero_image_url === "string" ? value.hero_image_url : null,
     logo_url: typeof value.logo_url === "string" ? value.logo_url : null,
     splash_title: typeof value.splash_title === "string" ? value.splash_title : "Forehand Nail",

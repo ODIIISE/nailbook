@@ -20,7 +20,7 @@ export async function GET() {
     try {
       const result = salonId
         ? await sql.query(
-            `SELECT id, name, description, slogan, phone, address, hero_image_url, logo_url,
+            `SELECT id, name, description, slogan, phone, address, city, instagram_handle, portrait_image_url, hero_image_url, logo_url,
                     working_hours_text, working_hours, slot_buffer_minutes, slot_interval_minutes,
                     early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
                     allow_overflow, overflow_minutes, specific_days_off,
@@ -30,7 +30,7 @@ export async function GET() {
             [salonId]
           )
         : await sql`
-            SELECT id, name, description, slogan, phone, address, hero_image_url, logo_url,
+            SELECT id, name, description, slogan, phone, address, city, instagram_handle, portrait_image_url, hero_image_url, logo_url,
                    working_hours_text, working_hours, slot_buffer_minutes, slot_interval_minutes,
                    early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
                    allow_overflow, overflow_minutes, specific_days_off,
@@ -54,7 +54,7 @@ export async function GET() {
       try {
         const result = salonId
           ? await sql.query(
-              `SELECT id, name, description, slogan, phone, address, hero_image_url, logo_url,
+              `SELECT id, name, description, slogan, phone, address, city, instagram_handle, portrait_image_url, hero_image_url, logo_url,
                       working_hours_text, working_hours, slot_buffer_minutes, slot_interval_minutes,
                       early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
                       allow_overflow, overflow_minutes, specific_days_off
@@ -62,7 +62,7 @@ export async function GET() {
               [salonId]
             )
           : await sql`
-              SELECT id, name, description, slogan, phone, address, hero_image_url, logo_url,
+              SELECT id, name, description, slogan, phone, address, city, instagram_handle, portrait_image_url, hero_image_url, logo_url,
                      working_hours_text, working_hours, slot_buffer_minutes, slot_interval_minutes,
                      early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
                      allow_overflow, overflow_minutes, specific_days_off
@@ -107,6 +107,9 @@ export async function GET() {
       slogan: s.slogan || "",
       phone: s.phone,
       address: s.address,
+      city: s.city || "",
+      instagram_handle: s.instagram_handle || "",
+      portrait_image_url: s.portrait_image_url || null,
       hero_image_url: s.hero_image_url,
       logo_url: s.logo_url,
       splash_title: hasSplashFields ? (s.splash_title || "Forehand Nail") : "Forehand Nail",

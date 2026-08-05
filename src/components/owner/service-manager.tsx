@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Edit2, Trash2, X, Check, ChevronUp, ChevronDown, Upload, Image as ImageIcon } from "lucide-react";
@@ -83,6 +84,8 @@ function ServicesTab({
     priority_score: 5,
     image_url: "",
     best_for: [] as string[],
+    icon_key: "",
+    is_popular: false,
   });
 
   useEffect(() => {
@@ -95,7 +98,7 @@ function ServicesTab({
   const markChanged = () => setHasChanges(true);
 
   const resetForm = () =>
-    setForm({ name: "", description: "", duration_minutes: 45, price: 0, priority_score: 5, image_url: "", best_for: [] });
+    setForm({ name: "", description: "", duration_minutes: 45, price: 0, priority_score: 5, image_url: "", best_for: [], icon_key: "", is_popular: false });
 
   const handleAdd = () => {
     if (!form.name.trim()) return;
@@ -110,6 +113,8 @@ function ServicesTab({
       addon_ids: [],
       image_url: form.image_url || undefined,
       best_for: form.best_for,
+      icon_key: form.icon_key || null,
+      is_popular: form.is_popular,
     };
     setPending([...pending, newService]);
     resetForm();
@@ -122,7 +127,7 @@ function ServicesTab({
     setPending(
       pending.map((s) =>
         s.id === editingId
-          ? { ...s, ...form, image_url: form.image_url || s.image_url, best_for: form.best_for }
+          ? { ...s, ...form, image_url: form.image_url || s.image_url, best_for: form.best_for, icon_key: form.icon_key || null, is_popular: form.is_popular }
           : s
       )
     );
@@ -201,6 +206,8 @@ function ServicesTab({
       priority_score: service.priority_score || 5,
       image_url: service.image_url || "",
       best_for: Array.isArray(service.best_for) ? service.best_for : [],
+      icon_key: service.icon_key || "",
+      is_popular: service.is_popular === true || service.name.includes("ترمیم"),
     });
   };
 
@@ -523,7 +530,7 @@ function ServiceForm({
   onCancel,
   title,
 }: {
-  form: { name: string; description: string; duration_minutes: number; price: number; priority_score: number; image_url: string; best_for: string[] };
+  form: { name: string; description: string; duration_minutes: number; price: number; priority_score: number; image_url: string; best_for: string[]; icon_key: string; is_popular: boolean };
   setForm: (f: typeof form) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -625,6 +632,22 @@ function ServiceForm({
         tags={form.best_for}
         onChange={(tags) => setForm({ ...form, best_for: tags })}
       />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label className="text-xs">آیکون کارت</Label>
+          <select value={form.icon_key} onChange={(e) => setForm({ ...form, icon_key: e.target.value })} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+            <option value="">خودکار بر اساس نام خدمت</option>
+            <option value="hand">دست / مانیکور</option>
+            <option value="paintbrush">براش / ژل و لاک</option>
+            <option value="footprints">پا / پدیکور</option>
+            <option value="wrench">آچار / ترمیم</option>
+          </select>
+        </div>
+        <div className="flex items-end justify-between gap-3 rounded-md border border-border px-3 py-2">
+          <Label className="text-xs leading-5">نمایش پرطرفدار</Label>
+          <Switch checked={form.is_popular} onCheckedChange={(checked) => setForm({ ...form, is_popular: checked })} />
+        </div>
+      </div>
       <div className="grid grid-cols-3 gap-3">
         <div>
           <Label className="text-xs">مدت (دقیقه)</Label>

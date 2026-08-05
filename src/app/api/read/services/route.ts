@@ -31,6 +31,8 @@ function serializeServices(rows: Array<Record<string, unknown>>) {
     priority_score: Number(s.priority_score) || 5,
     image_url: typeof s.image_url === "string" && s.image_url.length > 0 ? s.image_url : null,
     best_for: normalizeTextArray(s.best_for),
+    icon_key: typeof s.icon_key === "string" && s.icon_key.length > 0 ? s.icon_key : null,
+    is_popular: s.is_popular === true,
   }));
 }
 
@@ -38,9 +40,9 @@ export async function GET() {
   try {
     const salonId = getSalonId();
     const scoped = salonId
-      ? sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, image_url, best_for
+      ? sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, image_url, best_for, icon_key, is_popular
            FROM services WHERE salon_id = ${salonId} ORDER BY sort_order`
-      : sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, image_url, best_for
+      : sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, image_url, best_for, icon_key, is_popular
            FROM services ORDER BY sort_order`;
     try {
       const { rows } = await scoped;

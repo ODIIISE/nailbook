@@ -13,6 +13,9 @@ export interface SalonInfo {
   slogan: string;
   phone: string;
   address: string;
+  city: string;
+  instagram_handle: string;
+  portrait_image_url: string | null;
   hero_image_url: string | null;
   logo_url: string | null;
   splash_title: string;
@@ -58,6 +61,8 @@ export interface Service {
   priority_score: number;
   image_url?: string | null;
   best_for: string[];
+  icon_key?: string | null;
+  is_popular?: boolean;
 }
 
 export interface Booking {

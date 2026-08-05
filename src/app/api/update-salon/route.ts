@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     // Allowlist: only accept known fields
     const ALLOWED_FIELDS = new Set([
-      "name", "description", "slogan", "phone", "address",
+      "name", "description", "slogan", "phone", "address", "city", "instagram_handle", "portrait_image_url",
       "hero_image_url", "logo_url", "splash_title", "splash_slogan", "splash_logo_url", "working_hours_text",
       "working_hours", "specific_days_off",
       "slot_buffer_minutes", "slot_interval_minutes",
@@ -108,6 +108,15 @@ export async function POST(request: NextRequest) {
       }
       if (safeUpdates.address !== undefined) {
         await client.query(updateSql("address"), [safeUpdates.address, salonId]);
+      }
+      if (safeUpdates.city !== undefined) {
+        await client.query(updateSql("city"), [safeUpdates.city, salonId]);
+      }
+      if (safeUpdates.instagram_handle !== undefined) {
+        await client.query(updateSql("instagram_handle"), [safeUpdates.instagram_handle, salonId]);
+      }
+      if (safeUpdates.portrait_image_url !== undefined) {
+        await client.query(updateSql("portrait_image_url"), [safeUpdates.portrait_image_url, salonId]);
       }
       if (safeUpdates.hero_image_url !== undefined) {
         await client.query(updateSql("hero_image_url"), [safeUpdates.hero_image_url, salonId]);

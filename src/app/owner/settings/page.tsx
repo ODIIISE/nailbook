@@ -21,16 +21,22 @@ export default function OwnerSettingsPage() {
   const [description, setDescription] = useState(salon.description);
   const [phone, setPhone] = useState(salon.phone);
   const [address, setAddress] = useState(salon.address);
+  const [city, setCity] = useState(salon.city || "");
+  const [instagramHandle, setInstagramHandle] = useState(salon.instagram_handle || "");
   const [workingHoursText, setWorkingHoursText] = useState(salon.working_hours_text);
   const [avatarUrl, setAvatarUrl] = useState(salon.logo_url || "");
   const [splashTitle, setSplashTitle] = useState(salon.splash_title || "Forehand Nail");
   const [splashSlogan, setSplashSlogan] = useState(salon.splash_slogan || "Nail Art Studio");
   const [splashLogoUrl, setSplashLogoUrl] = useState(salon.splash_logo_url || "");
+  const [portraitUrl, setPortraitUrl] = useState(salon.portrait_image_url || "");
+  const [portraitUploading, setPortraitUploading] = useState(false);
   const [splashUploading, setSplashUploading] = useState(false);
   const [splashCropImage, setSplashCropImage] = useState<string | null>(null);
   const splashFileInputRef = useRef<HTMLInputElement>(null);
+  const portraitFileInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+
 
   // Crop state
   const [cropImage, setCropImage] = useState<string | null>(null);
@@ -74,6 +80,39 @@ export default function OwnerSettingsPage() {
     setUploading(false);
   };
 
+  const handlePortraitFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("حجم فایل بیشتر از ۵ مگابایت است");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setPortraitCropImage(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const [portraitCropImage, setPortraitCropImage] = useState<string | null>(null);
+  const handlePortraitCropComplete = async (blob: Blob) => {
+    setPortraitCropImage(null);
+    setPortraitUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", blob, "portrait.jpg");
+      const res = await fetch("/api/upload-logo", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!data.url) throw new Error("upload");
+      setPortraitUrl(data.url);
+      await updateSalon({ portrait_image_url: data.url });
+      toast.success("تصویر پروفایل ذخیره شد");
+    } catch {
+      toast.error("خطا در آپلود تصویر");
+    } finally {
+      setPortraitUploading(false);
+    }
+  };
+
   // ─── Splash logo upload (separate from primary salon logo) ───
   const handleSplashFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -113,7 +152,8 @@ export default function OwnerSettingsPage() {
     setSaving(true);
     try {
       await updateSalon({
-        name, slogan, description, phone, address,
+        name, slogan, description, phone, address, city,
+        instagram_handle: instagramHandle.replace(/^@/, "").trim(),
         working_hours_text: workingHoursText,
         splash_title: splashTitle,
         splash_slogan: splashSlogan,
@@ -218,9 +258,36 @@ export default function OwnerSettingsPage() {
         </div>
 
         <div>
+          <Label className="text-caption">شهر</Label>
+          <Input value={city} onChange={(e) => setCity(e.target.value)} className="mt-1" placeholder="مثلاً مشهد" />
+        </div>
+
+        <div>
+          <Label className="text-caption">آیدی اینستاگرام</Label>
+          <Input value={instagramHandle} onChange={(e) => setInstagramHandle(e.target.value)} className="mt-1" dir="ltr" placeholder="forehand.nail" />
+        </div>
+
+        <div>
           <Label className="text-caption">ساعت کار</Label>
           <Input value={workingHoursText} onChange={(e) => setWorkingHoursText(e.target.value)} className="mt-1" placeholder="مثلاً: شنبه تا پنج شنبه . ۱۰ تا ۱۸" />
         </div>
+      </Card>
+
+      <Card className="p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Camera className="h-4 w-4 text-primary" />
+          <h3 className="font-semibold text-foreground">تصویر صفحه اصلی</h3>
+        </div>
+        <p className="text-small text-muted-foreground">این تصویر جدا از لوگو است و داخل دایره پروفایل صفحه اصلی نمایش داده می‌شود؛ مثلاً عکس دست یا نمونه کار ناخن.</p>
+        <div className="flex items-center gap-4">
+          <div className="relative h-20 w-20 overflow-hidden rounded-full bg-muted">
+            <input ref={portraitFileInputRef} type="file" accept="image/*" onChange={handlePortraitFileSelect} className="hidden" />
+            {portraitUrl ? <Image src={portraitUrl} alt="تصویر صفحه اصلی" fill unoptimized className="object-cover" /> : <div className="flex h-full w-full items-center justify-center"><Sparkles className="h-7 w-7 text-muted-foreground" /></div>}
+            <button type="button" onClick={() => portraitFileInputRef.current?.click()} disabled={portraitUploading} aria-label="تغییر تصویر صفحه اصلی" className="absolute bottom-1 left-1 grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-50"><Camera className="h-3.5 w-3.5" /></button>
+          </div>
+          <div className="text-small text-muted-foreground">عکس دست یا ناخن، مربع یا عمودی، حداکثر ۵ مگابایت.</div>
+        </div>
+        {portraitUrl && <button type="button" onClick={async () => { setPortraitUrl(""); await updateSalon({ portrait_image_url: null }); toast.success("تصویر حذف شد"); }} className="text-small text-destructive hover:underline">حذف تصویر</button>}
       </Card>
 
       {/* Splash Screen section */}
@@ -397,6 +464,14 @@ export default function OwnerSettingsPage() {
         />
       )}
       {/* Crop Modal (splash logo) */}
+      {portraitCropImage && (
+        <ImageCrop
+          image={portraitCropImage}
+          onCropComplete={handlePortraitCropComplete}
+          onCancel={() => setPortraitCropImage(null)}
+          aspect={1}
+        />
+      )}
       {splashCropImage && (
         <ImageCrop
           image={splashCropImage}
