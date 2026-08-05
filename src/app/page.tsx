@@ -8,6 +8,7 @@ import { Hero } from "@/components/landing/hero";
 import { TrustSignals } from "@/components/landing/trust-signals";
 import { ContactButtons } from "@/components/landing/contact-buttons";
 import { BookingCta } from "@/components/landing/booking-cta";
+import { ServiceCardGrid } from "@/components/landing/service-card-grid";
 import { Highlights } from "@/components/landing/highlights";
 import { HighlightViewer } from "@/components/landing/highlight-viewer";
 import { SalonGuard } from "@/components/ui/salon-guard";
@@ -119,21 +120,24 @@ function SalonBooking() {
     <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
     <div className="relative min-h-screen">
       <div className="relative z-10">
-        <AppHeader homeOverlay />
-        <div className="animate-stagger">
-          <Hero salon={salon} workingHours={workingHours} />
-          <BookingCta services={services} isLoading={!loaded} />
-          <TrustSignals totalBookings={bookings.filter((b) => b.status === "completed").length} />
-          <Highlights highlights={highlights} onSelect={setViewingHighlight} />
-          <ContactButtons phone={salon.phone} address={salon.address} />
+        <main className="qwen-home">
+          <div className="qwen-shell">
+            <AppHeader homeOverlay />
+            <Hero salon={salon} workingHours={workingHours} />
+            <BookingCta services={services} isLoading={!loaded} />
+            <TrustSignals totalBookings={bookings.filter((b) => b.status === "completed").length} />
+            <Highlights highlights={highlights} onSelect={setViewingHighlight} />
+            <ServiceCardGrid services={services} isLoading={!loaded} />
+            <ContactButtons phone={salon.phone} address={salon.address} workingHoursText={salon.working_hours_text} workingHours={workingHours} />
 
-          <footer className="px-4 py-6 text-center pb-20">
+            <footer className="px-4 py-6 text-center pb-20">
             <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
               ساخته شده با <Heart className="h-3 w-3 text-destructive fill-destructive" /> برای {salon.name}
             </p>
-          </footer>
-        </div>
-        <AppNavbar />
+            </footer>
+            <AppNavbar />
+          </div>
+        </main>
         {viewingHighlight && (
           <HighlightViewer highlight={viewingHighlight} onClose={() => setViewingHighlight(null)} />
         )}

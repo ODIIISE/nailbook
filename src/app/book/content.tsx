@@ -475,7 +475,7 @@ export default function BookContent() {
 
   return (
     <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
-    <div className="min-h-screen">
+    <div className="qwen-book-page min-h-screen">
       <AppHeader
         showBack={step !== "receipt"}
         title={stepTitles[step]}
@@ -493,7 +493,7 @@ export default function BookContent() {
         </div>
       )}
 
-      <div className={`mx-auto max-w-lg px-4 pt-4 space-y-4 ${step === "confirm" ? "pb-40" : "pb-28"}`}>
+      <div className={`qwen-book-content qwen-book-shell mx-auto max-w-lg px-4 pt-4 space-y-4 ${step === "confirm" ? "pb-40" : "pb-28"}`}>
 
         {/* ─── Step 1: Service Detail + Addons ─── */}
         {step === "addons" && (

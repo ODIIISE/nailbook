@@ -676,6 +676,87 @@
 
 /* ── Homepage editorial accents ── */
 
+.qwen-home-header { width: min(100%, 430px); margin-inline: auto; }
+.qwen-home-header > div { height: 84px; max-width: none; padding: 20px 24px 0; }
+.qwen-home-header > div { justify-content: flex-start; }
+.qwen-home-control { width: 46px !important; height: 46px !important; border-radius: 999px; background: color-mix(in srgb, var(--card) 84%, transparent) !important; color: var(--foreground) !important; box-shadow: var(--shadow-card); }
+.qwen-home-control:hover { background: var(--card) !important; color: var(--foreground) !important; }
+
+
+/* Qwen-inspired customer homepage */
+.qwen-home {
+  --background: #FDF6F0;
+  --foreground: #2C1810;
+  --card: #FFFFFF;
+  --muted: #F5EDE7;
+  --muted-foreground: #8C7B6B;
+  --primary: #3D2B1F;
+  --primary-foreground: #FFFFFF;
+  --border: #EBDFD3;
+  --home-paper-line: rgba(255,255,255,.92);
+  min-height: 100dvh;
+  background: var(--background);
+  color: var(--foreground);
+}
+.dark .qwen-home {
+  --background: #1B1715;
+  --foreground: #F8EEE8;
+  --card: #292321;
+  --muted: #302522;
+  --muted-foreground: #C7B5AA;
+  --primary: #F8EEE8;
+  --primary-foreground: #1B1715;
+  --border: #4A3933;
+  --home-paper-line: rgba(255,255,255,.08);
+}
+.qwen-shell { width: min(100%, 430px); min-height: 100dvh; margin: 0 auto; overflow: hidden; position: relative; background: repeating-linear-gradient(90deg, transparent 0, transparent 40px, var(--home-paper-line) 40px, var(--home-paper-line) 42px), var(--background); }
+.qwen-hero { position: relative; min-height: 392px; padding: 88px 24px 0; overflow: hidden; }
+.qwen-hero-bg { position: absolute; inset: 0 0 auto; height: 392px; z-index: 0; pointer-events: none; }
+.qwen-hero-bg-image { opacity: .78; filter: saturate(.72) contrast(.95); }
+.qwen-hero-fade { position: absolute; inset: 0; background: linear-gradient(to bottom, color-mix(in srgb, var(--background) 5%, transparent), color-mix(in srgb, var(--background) 32%, transparent) 48%, var(--background) 96%); }
+.qwen-hero-fallback { background: radial-gradient(circle at 72% 22%, var(--home-sand), transparent 42%), linear-gradient(145deg, var(--home-hero-start), var(--home-hero-end)); }
+.qwen-profile { position: relative; z-index: 1; text-align: center; }
+.qwen-portrait-ring { width: 112px; height: 112px; padding: 3px; margin: 0 auto 16px; border-radius: 50%; background: linear-gradient(135deg, var(--home-sand), var(--home-blush), var(--home-blush-light)); box-shadow: var(--shadow-floating); }
+.qwen-portrait, .qwen-portrait-fallback { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: var(--home-blush-light); color: var(--home-accent-strong); }
+.qwen-brand-kicker, .qwen-section-kicker { margin: 0; color: var(--home-accent-strong); font-size: 11px; font-weight: 800; letter-spacing: .07em; }
+.qwen-salon-name { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(32px, 9.4vw, 40px); line-height: 1.08; font-weight: 700; letter-spacing: -.03em; direction: ltr; }
+.qwen-salon-slogan { margin: 10px 0 0; color: var(--muted-foreground); font-size: 16px; line-height: 1.7; }
+.qwen-hero-meta { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 14px; color: var(--muted-foreground); font-size: 12px; }
+.qwen-location, .qwen-open-row { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 12px; border-radius: 999px; }
+.qwen-location { color: inherit; text-decoration: none; transition: background var(--dur-base) ease, transform var(--dur-base) ease; }
+.qwen-location:hover { background: color-mix(in srgb, var(--card) 70%, transparent); transform: translateY(-1px); }
+.qwen-open-row { color: var(--muted-foreground); }
+.qwen-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted-foreground); } .qwen-status-dot.is-open { background: var(--success); }
+.qwen-booking-area { position: relative; z-index: 2; padding: 6px 20px 20px; }
+.qwen-booking-card { padding: 0; border-radius: 16px; background: transparent; box-shadow: none; }
+.qwen-booking-button { position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 78px; padding: 16px 48px; border: 0; border-radius: 23px; color: var(--primary-foreground); background: var(--primary); box-shadow: var(--shadow-card); transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+.qwen-booking-button:hover { transform: translateY(-2px); box-shadow: var(--shadow-floating); } .qwen-booking-button:active { transform: scale(.985); }
+.qwen-booking-copy { display: block; text-align: center; } .qwen-booking-copy strong { display: block; font-size: 21px; font-weight: 800; } .qwen-booking-copy small { display: block; margin-top: 2px; color: color-mix(in srgb, var(--primary-foreground) 70%, transparent); font-size: 12px; }
+.qwen-booking-arrow { position: absolute; left: 22px; transform: scaleX(-1); }
+.qwen-booking-note { margin: 16px 0 0; color: var(--muted-foreground); text-align: center; font-size: 13px; line-height: 1.9; } .qwen-booking-note b { color: var(--foreground); }
+.qwen-work-section, .qwen-services { padding: 22px 20px 0; }
+.qwen-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 13px; color: var(--muted-foreground); } .qwen-section-heading h2 { margin: 4px 0 0; color: var(--foreground); font-size: 22px; font-weight: 800; }
+.qwen-work-scroll { display: flex; gap: 12px; overflow-x: auto; padding: 4px 0 12px; scroll-snap-type: x proximity; }
+.qwen-work-card { position: relative; width: 186px; height: 240px; flex: 0 0 auto; overflow: hidden; padding: 0; border: 0; border-radius: 20px; background: var(--muted); box-shadow: var(--shadow-card); scroll-snap-align: start; text-align: right; transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+.qwen-work-card-featured { width: 186px; height: 240px; } .qwen-work-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-elevated); } .qwen-work-card:active { transform: scale(.975); }
+.qwen-work-image { transition: transform 500ms var(--ease-out); } .qwen-work-card:hover .qwen-work-image { transform: scale(1.05); }
+.qwen-work-shade { position: absolute; inset: 0; background: linear-gradient(to top, rgba(25,15,10,.72), transparent 55%); } .qwen-work-fallback { display: flex; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--home-accent-strong); background: var(--home-blush-light); }
+.qwen-work-fallback span { font-size: 42px; font-weight: 800; }
+.qwen-work-caption { position: absolute; right: 12px; bottom: 11px; left: 12px; display: flex; align-items: center; justify-content: space-between; gap: 6px; color: white; font-size: 12px; font-weight: 800; }
+.qwen-services { padding-top: 26px; } .qwen-service-list { display: flex; flex-direction: column; gap: 10px; }
+.qwen-service-card { position: relative; display: flex; min-height: 86px; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--border) 78%, transparent); border-radius: 17px; background: var(--card); box-shadow: var(--shadow-card); cursor: pointer; transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+.qwen-service-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-elevated); } .qwen-service-card:active { transform: scale(.985); }
+.qwen-service-image { width: 54px; height: 54px; flex: 0 0 auto; overflow: hidden; border-radius: 15px; background: var(--home-blush-light); }
+.qwen-service-copy { min-width: 0; flex: 1; } .qwen-service-copy h3 { margin: 0; overflow: hidden; color: var(--foreground); font-size: 15px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; } .qwen-service-copy p { margin: 2px 0 6px; overflow: hidden; color: var(--muted-foreground); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.qwen-service-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; color: var(--home-accent-strong); font-size: 11px; font-weight: 800; } .qwen-service-meta span:last-child { display: inline-flex; align-items: center; gap: 4px; color: var(--muted-foreground); font-weight: 600; }
+.qwen-service-badge { padding: 4px 8px; border-radius: 99px; color: var(--home-accent-strong); background: var(--home-blush-light); font-size: 10px; font-weight: 800; white-space: nowrap; } .qwen-service-chevron { color: var(--muted-foreground); flex: 0 0 auto; } .qwen-service-loading, .qwen-service-empty { padding: 32px 20px; color: var(--muted-foreground); text-align: center; font-size: 13px; }
+.qwen-contact { padding: 25px 20px 10px; text-align: center; } .qwen-hours-line { color: var(--muted-foreground); font-size: 12px; } .qwen-quick-links { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 14px; }
+.qwen-quick-link { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; color: var(--muted-foreground); transition: background var(--dur-base) ease, color var(--dur-base) ease, transform var(--dur-base) var(--ease-spring); } .qwen-quick-link:hover { color: var(--home-accent-strong); background: var(--home-blush-light); transform: translateY(-2px); }
+
+@media (min-width: 560px) { .qwen-shell { border-radius: 30px; box-shadow: 0 28px 80px rgba(0,0,0,.28); margin: 24px auto; min-height: calc(100dvh - 48px); } }
+@media (max-width: 360px) { .qwen-hero { min-height: 392px; padding-inline: 20px; } .qwen-work-card { width: 174px; height: 228px; } .qwen-work-card-featured { width: 174px; height: 228px; } }
+
+
 /* Option A: full-bleed editorial profile. The cover owns the first visual
    moment; the avatar and identity intentionally cross its lower edge. */
 .home-option-a-hero {
@@ -866,6 +947,41 @@
       transform: translateY(0);
     }
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qwen-home *, .qwen-home *::before, .qwen-home *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* Qwen-inspired booking flow surfaces: preserve the real flow, restyle the shell. */
+.qwen-book-page { min-height: 100dvh; background: var(--background); color: var(--foreground); }
+.qwen-book-page > div:first-child { background: color-mix(in srgb, var(--background) 92%, transparent); border-bottom: 1px solid var(--border); }
+.qwen-book-page .qwen-book-content { color: var(--foreground); }
+.qwen-book-page .qwen-book-shell { padding-top: 20px; }
+.qwen-book-page .step-animate { animation: qwenStepIn .32s var(--ease-out) both; }
+.qwen-book-page .glass,
+.qwen-book-page .surface,
+.qwen-book-page .bg-card { box-shadow: var(--shadow-card); }
+.qwen-book-page .qwen-book-shell > .space-y-4 > p.text-center { padding: 12px 16px; border-radius: 16px; background: color-mix(in srgb, var(--home-blush-light) 70%, var(--card)); }
+.qwen-book-page .qwen-book-shell .rounded-2xl.border-border.bg-muted,
+.qwen-book-page .qwen-book-shell .rounded-2xl.border-border.bg-card,
+.qwen-book-page .qwen-book-shell .rounded-2xl.border.border-border { border-radius: 20px; }
+.qwen-book-page .qwen-book-shell .bg-card { background: var(--card); }
+.qwen-book-page .qwen-book-shell .text-primary { color: var(--home-accent-strong); }
+.qwen-book-page .qwen-book-shell .bg-primary\/5 { background: color-mix(in srgb, var(--home-blush-light) 72%, transparent); }
+.qwen-book-page .qwen-book-shell .bg-primary\/10 { background: color-mix(in srgb, var(--home-blush-light) 90%, transparent); }
+.qwen-book-page .qwen-book-shell button:not([class*="bg-"]):not([class*="text-"]) { transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-base) var(--ease-out); }
+.qwen-book-page .qwen-book-shell .rounded-xl.border-border,
+.qwen-book-page .qwen-book-shell .rounded-xl.border { border-radius: 16px; }
+.qwen-book-page .qwen-book-shell .rounded-3xl { border-radius: 24px; }
+.qwen-book-page .qwen-book-shell input { background: var(--card); border-color: var(--border); }
+.qwen-book-page .qwen-book-shell [class*="bg-foreground"] { background: var(--primary); color: var(--primary-foreground); }
+.qwen-book-page .qwen-book-shell [class*="text-muted-foreground"] { color: var(--muted-foreground); }
+@keyframes qwenStepIn { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .qwen-home *, .qwen-home *::before, .qwen-home *::after,
+  .qwen-book-page *, .qwen-book-page *::before, .qwen-book-page *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .qwen-book-page .step-animate { animation: none !important; }
 }
 
 /* ── Step transition helpers ── */
