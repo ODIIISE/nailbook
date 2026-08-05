@@ -2,22 +2,14 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { AppHeader } from "@/components/layout/app-header";
-import { AppNavbar } from "@/components/layout/app-navbar";
-import { Hero } from "@/components/landing/hero";
-import { TrustSignals } from "@/components/landing/trust-signals";
-import { ContactButtons } from "@/components/landing/contact-buttons";
-import { BookingCta } from "@/components/landing/booking-cta";
-import { ServiceCardGrid } from "@/components/landing/service-card-grid";
-import { Highlights } from "@/components/landing/highlights";
 import { HighlightViewer } from "@/components/landing/highlight-viewer";
+import { QwenCustomerHome } from "@/components/landing/qwen-customer-home";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { Heart, Store, Users, Calendar, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { GradientBackground } from "@/components/layout/gradient-background";
 
-import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
 import type { Highlight } from "@/lib/types";
 
@@ -101,7 +93,6 @@ function AdminLanding() {
 
 function SalonBooking() {
   const searchParams = useSearchParams();
-  const { salon, bookings, highlights, services, workingHours, loaded } = useSalon();
   const [viewingHighlight, setViewingHighlight] = useState<Highlight | null>(null);
 
   useEffect(() => {
@@ -120,24 +111,7 @@ function SalonBooking() {
     <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
     <div className="relative min-h-screen">
       <div className="relative z-10">
-        <main className="qwen-home">
-          <div className="qwen-shell">
-            <AppHeader homeOverlay />
-            <Hero salon={salon} workingHours={workingHours} />
-            <BookingCta services={services} isLoading={!loaded} />
-            <TrustSignals totalBookings={bookings.filter((b) => b.status === "completed").length} />
-            <Highlights highlights={highlights} onSelect={setViewingHighlight} />
-            <ServiceCardGrid services={services} isLoading={!loaded} />
-            <ContactButtons phone={salon.phone} address={salon.address} workingHoursText={salon.working_hours_text} workingHours={workingHours} />
-
-            <footer className="px-4 py-6 text-center pb-20">
-            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-              ساخته شده با <Heart className="h-3 w-3 text-destructive fill-destructive" /> برای {salon.name}
-            </p>
-            </footer>
-            <AppNavbar />
-          </div>
-        </main>
+        <QwenCustomerHome onSelectHighlight={setViewingHighlight} />
         {viewingHighlight && (
           <HighlightViewer highlight={viewingHighlight} onClose={() => setViewingHighlight(null)} />
         )}
