@@ -100,7 +100,7 @@ function AdminLanding() {
 
 function SalonBooking() {
   const searchParams = useSearchParams();
-  const { salon, bookings, highlights, services, loaded } = useSalon();
+  const { salon, bookings, highlights, services, workingHours, loaded } = useSalon();
   const [viewingHighlight, setViewingHighlight] = useState<Highlight | null>(null);
 
   useEffect(() => {
@@ -119,9 +119,9 @@ function SalonBooking() {
     <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
     <div className="relative min-h-screen">
       <div className="relative z-10">
-        <AppHeader />
+        <AppHeader homeOverlay />
         <div className="animate-stagger">
-          <Hero salon={salon} />
+          <Hero salon={salon} workingHours={workingHours} />
           <BookingCta services={services} isLoading={!loaded} />
           <TrustSignals totalBookings={bookings.filter((b) => b.status === "completed").length} />
           <Highlights highlights={highlights} onSelect={setViewingHighlight} />

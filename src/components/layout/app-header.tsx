@@ -37,6 +37,8 @@ interface AppHeaderProps {
   onBack?: () => void;
   menuItems?: MenuItem[];
   menuFooter?: ReactNode;
+  /** Render the home header over the Option A editorial cover. */
+  homeOverlay?: boolean;
 }
 
 export function AppHeader({
@@ -46,6 +48,7 @@ export function AppHeader({
   onBack,
   menuItems,
   menuFooter,
+  homeOverlay = false,
 }: AppHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -90,7 +93,7 @@ export function AppHeader({
   return (
     <>
       <div
-      className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border"
+      className={homeOverlay ? "absolute inset-x-0 top-0 z-30 text-white" : "sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-sm"}
       style={{
         // Native safe-area: notch + Dynamic Island sit above the title row.
         // padding-top pushes content into the safe zone; the inner row keeps
@@ -114,22 +117,23 @@ export function AppHeader({
           ) : null}
             {title ? (
               <div>
-                <h1 className="text-body font-bold text-foreground">{title}</h1>
+                <h1 className={`text-body font-bold ${homeOverlay ? "text-white" : "text-foreground"}`}>{title}</h1>
                 {subtitle && (
-                  <p className="text-small text-muted-foreground">{subtitle}</p>
+                  <p className={`text-small ${homeOverlay ? "text-white/75" : "text-muted-foreground"}`}>{subtitle}</p>
                 )}
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
-                <span className="text-body font-bold text-foreground">{salon.name}</span>
+                <span className={`text-body font-bold ${homeOverlay ? "text-white" : "text-foreground"}`}>{salon.name}</span>
               </div>
             )}
           </div>
           <div className="flex items-center gap-1">
-            <ThemeToggle />
+            <ThemeToggle className={homeOverlay ? "bg-black/20 text-white backdrop-blur-sm hover:bg-black/35 hover:text-white" : undefined} />
             <Button
               variant="ghost"
               size="icon-sm"
+              className={homeOverlay ? "bg-black/20 text-white backdrop-blur-sm hover:bg-black/35 hover:text-white" : undefined}
               onClick={() => {
                 haptic.tap();
                 openMenu();

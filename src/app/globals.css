@@ -676,6 +676,61 @@
 
 /* ── Homepage editorial accents ── */
 
+/* Option A: full-bleed editorial profile. The cover owns the first visual
+   moment; the avatar and identity intentionally cross its lower edge. */
+.home-option-a-hero {
+  padding-bottom: 0.25rem;
+}
+
+.home-option-a-cover {
+  height: clamp(286px, 74vw, 360px);
+  isolation: isolate;
+}
+
+.home-option-a-cover-image {
+  transition: transform 700ms var(--ease-spring), opacity var(--dur-slow) var(--ease-out);
+}
+
+.home-option-a-cover-fallback {
+  display: flex;
+  align-items: flex-end;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 72% 24%, color-mix(in oklab, var(--home-sand) 70%, transparent), transparent 42%),
+    linear-gradient(145deg, var(--home-hero-start), var(--home-hero-end));
+}
+
+.home-option-a-cover-fallback span {
+  color: color-mix(in oklab, white 84%, var(--home-accent));
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.home-option-a-profile {
+  position: relative;
+  margin-top: -58px;
+}
+
+.home-option-a-avatar {
+  position: relative;
+  height: 116px;
+  width: 116px;
+  border: 4px solid var(--background);
+  border-radius: 999px;
+  box-shadow: var(--shadow-floating);
+}
+
+.home-option-a-hours {
+  line-height: 1.8;
+}
+
+.home-option-a-hero a,
+.home-option-a-hero [aria-live] {
+  -webkit-tap-highlight-color: transparent;
+}
+
 .home-hero-visual {
   min-height: 224px;
   isolation: isolate;
@@ -783,6 +838,7 @@
 
   .booking-cta-action,
   .booking-cta-arrow,
+  .home-option-a-cover-image,
   .home-cover-image,
   .home-highlight-card,
   .home-contact-action {
@@ -793,6 +849,7 @@
     .surface-lift,
     .booking-cta-action,
     .booking-cta-arrow,
+    .home-option-a-cover-image,
     .home-cover-image,
     .home-highlight-card,
     .home-contact-action {
