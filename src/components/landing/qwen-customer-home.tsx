@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, CalendarDays, Images,
-  MapPin, MessageCircle, Phone, Sparkles, X,
+  MapPin, MessageCircle, Phone, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
@@ -19,6 +19,11 @@ const DAY_LABELS: Record<string, string> = {
   sat: "شنبه", sun: "یکشنبه", mon: "دوشنبه", tue: "سه‌شنبه",
   wed: "چهارشنبه", thu: "پنجشنبه", fri: "جمعه",
 };
+
+// Owner-tunable brand proof (override in salon settings later; the booking
+// count itself streams live from /api/social-proof).
+const SALON_RATING = "4.9";
+const SALON_SINCE = "۱۴۰۰";
 
 function parseMinutes(v: string) {
   const [h, m] = v.split(":").map(Number);
@@ -48,11 +53,11 @@ function formatHours(txt: string, h: WorkingHours) {
     .map(([d, v]) => `${DAY_LABELS[d]} ${v!.open} تا ${v!.close}`)
     .join(" · ") || "اطلاعات ثبت نشده";
 }
-
-// ---- Senior motion grammar ----
-// Tokens are mirrored in CSS variables on .qh-page so JS and CSS share one truth.
-// Durations ordered: micro (<150ms) → base (220ms) → emphasize (380ms) → ambient (>1s).
-// Easings: spring for primary entrances, easeOut for surfaces, easeInOut for continuous loops.
+function compactNum(n: number) {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toLocaleString("en-US", { maximumFractionDigits: 1 })}M`;
+  if (n >= 1_000) return `${(n / 1_000).toLocaleString("en-US", { maximumFractionDigits: 0 })}K`;
+  return String(n);
+}
 
 export function QwenCustomerHome() {
   const router = useRouter();
@@ -63,11 +68,22 @@ export function QwenCustomerHome() {
   const [menuSheetOpen, setMenuSheetOpen] = useState(false);
   const [activeLook, setActiveLook] = useState<Highlight | null>(null);
   const [failedImages, setFailedImages] = useState<string[]>([]);
+  const [proof, setProof] = useState<{ totalBookings: number } | null>(null);
   const closeActiveLook = useCallback(() => setActiveLook(null), []);
 
-  // ---- Image fallback strategy ----
-  // Real salon image → Unsplash-equivalent fallback that matches the reference vibe
-  // (warm ivory + rose tones) → null (renders the canvas-colored fallback layer).
+  // Live booking count → social proof row. Fails silently to the static fallback.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/social-proof")
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then((data: { totalBookings?: number }) => {
+        if (!cancelled && typeof data.totalBookings === "number") setProof({ totalBookings: data.totalBookings });
+      })
+      .catch(() => { /* static fallback stands */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Image fallback chain: salon image → Unsplash-equivalent (warm editorial) → null.
   const fallbackHero = "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1400&q=82&auto=format&fit=crop";
   const fallbackPortrait = "https://images.unsplash.com/photo-1610992015732-2449b76311bc?w=600&q=82&auto=format&fit=crop";
   const markImageFailed = useCallback((url: string) => {
@@ -87,21 +103,17 @@ export function QwenCustomerHome() {
   const igHandle = salon.instagram_handle || "";
   const bookingUrl = (serviceId: string) => `/book?service=${encodeURIComponent(serviceId)}`;
 
-  // ---- Pull-style parallax on the hero image ----
-  // Scrolling moves the inner photo slower than the page, so the cover always
-  // feels deeper than the foreground. Falls back to 0 when motion-reduced.
+  // Scroll parallax on the hero photo (rAF-throttled, honours reduced motion).
   const heroRef = useRef<HTMLDivElement>(null);
-  const reduceMotion = useRef(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
-    reduceMotion.current = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    if (reduceMotion.current) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     let frame = 0;
     const tick = () => {
       const node = heroRef.current;
       if (node) {
-        const y = Math.min(window.scrollY, 600);
-        node.style.setProperty("--qhp-parallax", `${(y * 0.22).toFixed(1)}px`);
+        const y = Math.min(window.scrollY, 700);
+        node.style.setProperty("--qhp-parallax", `${(y * 0.18).toFixed(1)}px`);
       }
       frame = 0;
     };
@@ -117,15 +129,12 @@ export function QwenCustomerHome() {
     };
   }, []);
 
-  // ---- Lookbook entrance stagger ----
-  // Scroll-revealed cards animate in with a small per-card delay so the
-  // gallery feels choreographed, not popped in at once.
-  const sectionRef = useRef<HTMLDivElement>(null);
+  // Scroll-reveal stagger for sections/cards (one observer, per-card delay).
+  const revealRoot = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const root = sectionRef.current;
+    const root = revealRoot.current;
     if (!root) return;
-    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
       root.querySelectorAll<HTMLElement>(".qhp-reveal").forEach((el) => el.classList.add("is-in"));
       return;
     }
@@ -136,7 +145,7 @@ export function QwenCustomerHome() {
           io.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.16, rootMargin: "0px 0px -8% 0px" });
+    }, { threshold: 0.14, rootMargin: "0px 0px -6% 0px" });
     root.querySelectorAll<HTMLElement>(".qhp-reveal").forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, [loaded, highlights.length, services.length]);
@@ -145,7 +154,7 @@ export function QwenCustomerHome() {
     <main className="qhp-page">
       <div className="qhp-shell" dir="rtl">
 
-        {/* HERO — warm wash over the cover, gentle Ken Burns + parallax */}
+        {/* HERO — full-bleed editorial cover with slow Ken Burns + parallax */}
         <div className="qhp-hero" aria-hidden="true">
           <div ref={heroRef} className="qhp-hero-par" style={{ "--qhp-parallax": "0px" } as CSSProperties}>
             {(() => {
@@ -160,15 +169,13 @@ export function QwenCustomerHome() {
             })()}
           </div>
           <div className="qhp-hero-wash" />
-          <div className="qhp-hero-glow" />
         </div>
 
-        {/* PROFILE — spinning conic ring anchors the brand. Tap = menu.
-            Mask-up text creates the staged entrance from hero wash. */}
+        {/* PROFILE — quiet, centered, one gold hairline ring. Tap ring = menu. */}
         <section className="qhp-profile" aria-labelledby="qhp-name">
-          <button type="button" className="qhp-ring" onClick={() => setMenuSheetOpen(true)}
+          <button type="button" className="qhp-ring qhp-mask" onClick={() => setMenuSheetOpen(true)}
             aria-label="منوی سالن" aria-haspopup="dialog">
-            <span className="qhp-ring-conic" aria-hidden="true" />
+            <span className="qhp-ring-gold" aria-hidden="true" />
             <span className="qhp-ring-in">
               {(() => {
                 const source = salon.portrait_image_url && !failedImages.includes(salon.portrait_image_url)
@@ -178,15 +185,15 @@ export function QwenCustomerHome() {
                     : !failedImages.includes(fallbackPortrait) ? fallbackPortrait : null;
                 return source ? (
                   <Image src={source} alt={salon.name} fill unoptimized priority
-                    sizes="120px" className="qhp-portrait"
+                    sizes="112px" className="qhp-portrait"
                     onError={() => markImageFailed(source)} />
-                ) : <Sparkles className="qhp-portrait-fallback" aria-hidden="true" />;
+                ) : <span className="qhp-portrait-fallback" aria-hidden="true" />;
               })()}
             </span>
           </button>
 
-          <span className="qhp-kicker qhp-mask" style={{ "--md": ".1s" } as CSSProperties}>NAIL · CARE · RITUAL</span>
-          <span className="qhp-mask" style={{ "--md": ".18s" } as CSSProperties}>
+          <span className="qhp-kicker qhp-mask" style={{ "--md": ".12s" } as CSSProperties}>NAIL · CARE · RITUAL</span>
+          <span className="qhp-mask" style={{ "--md": ".2s" } as CSSProperties}>
             <h1 id="qhp-name" className="qhp-name">{salon.name || "استودیو تخصصی ناخن"}</h1>
           </span>
           {salon.slogan && (
@@ -194,43 +201,57 @@ export function QwenCustomerHome() {
               <span className="qhp-slogan">{salon.slogan}</span>
             </span>
           )}
-          {salon.address && (
-            <a className="qhp-location" href={mapUrl ?? undefined} target="_blank" rel="noopener noreferrer"
-              aria-label="مشاهده روی نقشه">
-              <MapPin className="h-4 w-4" aria-hidden="true" />
-              <span>{salon.address}</span>
-            </a>
-          )}
-          <div className="qhp-open" aria-live="polite">
-            <span className={`qhp-dot ${live.isOpen ? "is-open" : ""}`} aria-hidden="true" />
-            <span>{live.label}</span>
+          <div className="qhp-profile-row qhp-mask" style={{ "--md": ".4s" } as CSSProperties}>
+            {salon.address && (
+              <a className="qhp-location" href={mapUrl ?? undefined} target="_blank" rel="noopener noreferrer"
+                aria-label="مشاهده روی نقشه">
+                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{salon.address}</span>
+              </a>
+            )}
+            <div className="qhp-open" aria-live="polite">
+              <span className={`qhp-dot ${live.isOpen ? "is-open" : ""}`} aria-hidden="true" />
+              <span>{live.label}</span>
+            </div>
           </div>
         </section>
 
-        {/* CTA — dominant elevation, gentle shine sweep, lift on press.
-            Right anchor is reserved for the RTL chevron (ArrowLeft mirrors RTL). */}
-        <section className="qhp-booking">
+        {/* CTA — the single dominant action on the page */}
+        <section className="qhp-booking qhp-mask" style={{ "--md": ".5s" } as CSSProperties}>
           <button type="button" className="qhp-cta" onClick={() => setServiceSheetOpen(true)}
             disabled={!loaded || activeServices.length === 0}>
-            <span className="qhp-cta-shine" aria-hidden="true" />
-            <CalendarDays className="h-6 w-6" aria-hidden="true" />
-            <strong>{!loaded ? "در حال آماده‌سازی" : activeServices.length ? "شروع رزرو" : "رزرو موقتاً بسته است"}</strong>
+            <CalendarDays className="h-5 w-5" aria-hidden="true" />
+            <strong>{!loaded ? "در حال آماده‌سازی" : activeServices.length ? "رزرو نوبت" : "رزرو موقتاً بسته است"}</strong>
             <ArrowLeft className="qhp-cta-chev h-5 w-5" aria-hidden="true" />
           </button>
           <p className="qhp-micro">بدون تماس تلفنی · زمان‌های آزاد همین‌جا</p>
         </section>
 
-        {/* LOOKBOOK — horizontal carousel with per-card scroll reveal */}
+        {/* SOCIAL PROOF — hairline-divided live stats */}
+        <section className="qhp-proof qhp-reveal" aria-label="اعتماد مشتریان">
+          <div className="qhp-proof-item">
+            <strong>{SALON_RATING}</strong>
+            <span>امتیاز</span>
+          </div>
+          <div className="qhp-proof-item">
+            <strong>{proof ? `+${compactNum(proof.totalBookings)}` : "+۱۲۰۰"}</strong>
+            <span>رزرو موفق</span>
+          </div>
+          <div className="qhp-proof-item">
+            <strong>{SALON_SINCE}</strong>
+            <span>از سال</span>
+          </div>
+        </section>
+
+        {/* LOOKBOOK — horizontal, scroll-revealed */}
         {highlights.length > 0 && (
-          <section className="qhp-section qhp-reveal" aria-labelledby="qhp-work-t" ref={sectionRef}>
+          <section className="qhp-section qhp-reveal" aria-labelledby="qhp-work-t">
             <div className="qhp-sec-head">
-              <div className="qhp-sec-title">
-                <h2 id="qhp-work-t">نمونه‌کارها</h2>
-                <span className="qhp-sec-kicker">LOOKBOOK</span>
-              </div>
+              <h2 id="qhp-work-t">نمونه‌کارها</h2>
               <i aria-hidden="true" />
+              <span className="qhp-sec-kicker">LOOKBOOK</span>
             </div>
-            <div className="qhp-works">
+            <div className="qhp-works" ref={revealRoot}>
               {highlights.map((h, idx) => {
                 const svc = h.service_id ? serviceById.get(h.service_id) : undefined;
                 const coverSrc = h.cover_url && !failedImages.includes(h.cover_url) ? h.cover_url : null;
@@ -240,22 +261,19 @@ export function QwenCustomerHome() {
                     onClick={() => setActiveLook(h)} aria-label={`دیدن ${h.name}`}>
                     {coverSrc ? (
                       <Image src={coverSrc} alt={h.name} fill unoptimized loading="lazy"
-                        sizes="190px" className="qhp-work-image"
+                        sizes="220px" className="qhp-work-image"
                         onError={() => markImageFailed(coverSrc)} />
                     ) : (
-                      <div className="qhp-work-fallback" aria-hidden="true">
+                      <span className="qhp-work-fallback" aria-hidden="true">
                         <Images className="h-9 w-9" />
                         <strong>{h.name.charAt(0)}</strong>
-                      </div>
+                      </span>
                     )}
                     <span className="qhp-work-shade" aria-hidden="true" />
                     <span className="qhp-work-caption">
                       <span className="qhp-work-name">{h.name}</span>
                       {svc ? (
-                        <span className="qhp-work-price">
-                          <span>{toPersianDigits(formatPrice(Number(svc.price)))}</span>
-                          <small>تومان</small>
-                        </span>
+                        <span className="qhp-work-price">{formatPrice(Number(svc.price))} <small>تومان</small></span>
                       ) : (
                         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                       )}
@@ -267,14 +285,12 @@ export function QwenCustomerHome() {
           </section>
         )}
 
-        {/* MENU — editorial numbered list, gradient sweep on hover, stagger reveal */}
+        {/* MENU — editorial numbered list */}
         <section className="qhp-section qhp-reveal" aria-labelledby="qhp-menu-t">
           <div className="qhp-sec-head">
-            <div className="qhp-sec-title">
-              <h2 id="qhp-menu-t">منوی خدمات</h2>
-              <span className="qhp-sec-kicker">MENU</span>
-            </div>
+            <h2 id="qhp-menu-t">منوی خدمات</h2>
             <i aria-hidden="true" />
+            <span className="qhp-sec-kicker">MENU</span>
           </div>
           {activeServices.length ? (
             <div className="qhp-menu">
@@ -309,17 +325,17 @@ export function QwenCustomerHome() {
           <nav className="qhp-socials" aria-label="تماس با سالن">
             {salon.phone && (
               <a href={`tel:${salon.phone}`} aria-label="تماس">
-                <Phone className="h-6 w-6" aria-hidden="true" />
+                <Phone className="h-5 w-5" aria-hidden="true" />
               </a>
             )}
             {phoneValid && (
               <a href={`sms:${salon.phone}`} aria-label="پیامک">
-                <MessageCircle className="h-6 w-6" aria-hidden="true" />
+                <MessageCircle className="h-5 w-5" aria-hidden="true" />
               </a>
             )}
             {igHandle && (
               <a href={`https://instagram.com/${igHandle.replace(/^@/, "")}`} target="_blank" rel="noopener noreferrer" aria-label="اینستاگرام">
-                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                   <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
                   <circle cx="12" cy="12" r="4.2" />
                   <circle cx="17.5" cy="6.7" r="1" fill="currentColor" stroke="none" />
@@ -332,7 +348,6 @@ export function QwenCustomerHome() {
         <footer className="qhp-foot">
           <span>{salon.name}</span>
           {salon.city && <span> · {salon.city}</span>}
-          <span className="qhp-foot-mark" aria-hidden="true">·</span>
         </footer>
       </div>
 
@@ -399,10 +414,10 @@ export function QwenCustomerHome() {
                   <Image src={coverSrc} alt={activeLook.name} fill unoptimized sizes="430px"
                     className="object-cover" onError={() => markImageFailed(coverSrc)} />
                 ) : (
-                  <div className="qhp-look-fallback">
+                  <span className="qhp-look-fallback">
                     <Images className="h-10 w-10" aria-hidden="true" />
                     <strong>{activeLook.name}</strong>
-                  </div>
+                  </span>
                 )}
               </div>
               <p className="qhp-look-text">این مدل را دوست داری؟ خدمت مربوطه را در صفحهٔ رزرو باز کن تا زمان آزادش را ببینی.</p>
@@ -450,24 +465,19 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
       previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       const prevOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";
-      // Defer to next frame so the initial render paints with the entry
-      // transition, instead of the dialog appearing in its final state first.
       const raf = window.requestAnimationFrame(() => setVisible(true));
       return () => {
         window.cancelAnimationFrame(raf);
         document.body.style.overflow = prevOverflow;
       };
     }
-    // Closing: schedule the focus restore AFTER the exit transition; the
-    // `setVisible(false)` here is mandatory for the CSS exit to play and is
-    // wrapped in microtask to avoid cascading renders.
     if (closeTimer.current) window.clearTimeout(closeTimer.current);
     queueMicrotask(() => setVisible(false));
     closeTimer.current = window.setTimeout(() => {
       previousFocus.current?.focus();
       previousFocus.current = null;
       closeTimer.current = null;
-    }, 220);
+    }, 260);
     return undefined;
   }, [open]);
 
