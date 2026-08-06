@@ -105,7 +105,7 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
   const [otpAttempt, setOtpAttempt] = useState(0);
 
   // Sheet visibility (exit animation)
-  const [sheetVisible, setSheetVisible] = useState(false);
+  const [sheetVisible, setSheetVisible] = useState(mode === "page");
   const [dragOffset, setDragOffset] = useState(0);
   const touchStartY = useRef(0);
   const closeTimer = useRef<number | null>(null);
@@ -154,6 +154,10 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
   useEffect(() => {
     if (mode !== "sheet") return;
     if (open) {
+      if (closeTimer.current) {
+        window.clearTimeout(closeTimer.current);
+        closeTimer.current = null;
+      }
       previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       const prevOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";

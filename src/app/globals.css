@@ -970,6 +970,10 @@
   position: relative;
   width: 100%;
   max-width: 430px;
+  /* A max-height alone lets this flex container shrink-wrap to its chrome.
+     The viewport then collapses to zero and only the header/footer remain. */
+  height: min(94dvh, 860px);
+  min-height: 0;
   max-height: 94dvh;
   border-radius: 28px 28px 0 0;
   background: var(--qbf-bg, #FDF6F0);
