@@ -87,6 +87,7 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
   const [step, setStep] = useState<Step>("service");
   const [dir, setDir] = useState<1 | -1>(1);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(initialServiceId);
+  const [expandedServiceId, setExpandedServiceId] = useState<string | null>(initialServiceId);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(() => parseGregorianDateKey(getTehranDateKey(new Date())));
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -110,6 +111,8 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
   const touchStartY = useRef(0);
   const closeTimer = useRef<number | null>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
+  const serviceCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const focusScrollTimer = useRef<number | null>(null);
 
   // Duplicate-submit guards
   const isSendingOtpRef = useRef(false);
@@ -132,6 +135,7 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
         setStep("service");
         setDir(1);
         setSelectedServiceId(initialServiceId);
+        setExpandedServiceId(initialServiceId);
         setSelectedAddons([]);
         setSelectedTime(null);
         setSelectedDate(parseGregorianDateKey(getTehranDateKey(new Date())));
@@ -360,16 +364,59 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
     if (step === "review") { goTo("time", false); return; }
   }, [step, mode, onClose, router, goTo]);
 
+  const cancelFocusScroll = useCallback(() => {
+    if (focusScrollTimer.current) {
+      window.clearTimeout(focusScrollTimer.current);
+      focusScrollTimer.current = null;
+    }
+  }, []);
+
+  const focusServiceCard = useCallback((id: string) => {
+    cancelFocusScroll();
+    // Wait for the accordion's 550ms grid-row transition to settle before
+    // measuring. This keeps the expanded content out from under the fixed CTA.
+    focusScrollTimer.current = window.setTimeout(() => {
+      focusScrollTimer.current = null;
+      const card = serviceCardRefs.current[id];
+      const header = card?.querySelector<HTMLButtonElement>(".qbf-svc-head");
+      const stepEl = card?.closest<HTMLElement>(".qbf-step");
+      if (!card || !header || !stepEl) return;
+
+      const cardRect = card.getBoundingClientRect();
+      const headerRect = header.getBoundingClientRect();
+      const stepRect = stepEl.getBoundingClientRect();
+      const safeInset = 14;
+      const cardFits = cardRect.height <= stepRect.height - safeInset * 2;
+      const topDelta = headerRect.top - stepRect.top - safeInset;
+      const bottomDelta = cardRect.bottom - stepRect.bottom + safeInset;
+      const delta = topDelta < 0 ? topDelta : cardFits && bottomDelta > 0 ? bottomDelta : 0;
+
+      if (delta !== 0) stepEl.scrollBy({ top: delta, behavior: "smooth" });
+      header.focus({ preventScroll: true });
+    }, 650);
+  }, [cancelFocusScroll]);
+
+  useEffect(() => cancelFocusScroll, [cancelFocusScroll]);
+  useEffect(() => {
+    if (step !== "service" || (mode === "sheet" && !open)) cancelFocusScroll();
+  }, [cancelFocusScroll, mode, open, step]);
+
   const handleSelectService = useCallback((id: string) => {
     setSpamError("");
-    if (selectedServiceId !== id) {
+    const isSameService = selectedServiceId === id;
+    const nextExpandedId = isSameService && expandedServiceId === id ? null : id;
+    setExpandedServiceId(nextExpandedId);
+    if (!nextExpandedId) cancelFocusScroll();
+
+    if (!isSameService) {
       setSelectedServiceId(id);
       setSelectedAddons([]);
       if (look && look.service_id !== id) setLookCleared(true);
       setSelectedTime(null);
     }
+    if (nextExpandedId) focusServiceCard(id);
     haptic.tap();
-  }, [selectedServiceId, look]);
+  }, [cancelFocusScroll, expandedServiceId, focusServiceCard, look, selectedServiceId]);
 
   const handleToggleAddon = useCallback((addonId: string) => {
     setSelectedAddons((prev) => (prev.includes(addonId) ? prev.filter((id) => id !== addonId) : [...prev, addonId]));
@@ -384,6 +431,7 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
   }, []);
 
   const handleGoToNextDay = useCallback(() => {
+    userPickedDate.current = true;
     setSelectedDate((prev) => {
       const j = gregorianToJalali(prev);
       let jd = j.jd + 1, jm = j.jm, jy = j.jy;
@@ -614,15 +662,15 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
 
             <p className="qbf-sec-label">انتخاب خدمت</p>
             <div className="qbf-svc-list">
-              {activeServices.map((s) => {
-                const isSelected = selectedService?.id === s.id;
-                const serviceAddons = addons.filter((a) => s.addon_ids.includes(a.id) && a.is_active);
+              {activeServices.map((s) => {                  const isSelected = selectedService?.id === s.id;
+                  const isExpanded = expandedServiceId === s.id;
+                  const serviceAddons = addons.filter((a) => s.addon_ids.includes(a.id) && a.is_active);
                 const chosenAddons = serviceAddons.filter((a) => selectedAddons.includes(a.id));
                 const subtotal = Number(s.price) + chosenAddons.reduce((sum, a) => sum + Number(a.price), 0);
                 const subDur = Number(s.duration_minutes) + chosenAddons.reduce((sum, a) => sum + Number(a.duration_minutes), 0);
                 return (
-                  <div key={s.id} className={`qbf-svc-card ${isSelected ? "sel open" : ""}`}>
-                    <button type="button" className="qbf-svc-head" onClick={() => handleSelectService(s.id)} aria-pressed={isSelected}>
+                  <div key={s.id} ref={(node) => { serviceCardRefs.current[s.id] = node; }} className={`qbf-svc-card ${isSelected ? "sel" : ""} ${isExpanded ? "open" : ""}`}>
+                    <button type="button" className="qbf-svc-head" onClick={() => handleSelectService(s.id)} aria-pressed={isSelected} aria-expanded={isExpanded}>
                       <span className="qbf-svc-thumb"><ServiceImage service={s} sizes="48px" className="object-cover" /></span>
                       <span className="qbf-svc-meta">
                         <span className="qbf-svc-top">
