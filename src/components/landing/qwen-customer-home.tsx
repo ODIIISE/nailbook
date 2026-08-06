@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
+import { QwenBookingFlow } from "@/components/booking/qwen-booking-flow";
 import { toPersianDigits } from "@/lib/jalali";
 import { isValidIranianPhone } from "@/lib/digits";
 import { getServiceImage } from "@/lib/service-images";
@@ -80,6 +81,16 @@ export function QwenCustomerHome() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeLook, setActiveLook] = useState<Look | null>(null);
   const [failedImages, setFailedImages] = useState<string[]>([]);
+
+  // Booking overlay (variant A) — the merged flow slides up over the homepage.
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [bookingServiceId, setBookingServiceId] = useState<string | null>(null);
+  const [bookingLookId, setBookingLookId] = useState<string | null>(null);
+  const openBookingSheet = useCallback((opts?: { serviceId?: string | null; lookId?: string | null }) => {
+    setBookingServiceId(opts?.serviceId ?? null);
+    setBookingLookId(opts?.lookId ?? null);
+    setBookingOpen(true);
+  }, []);
   const closeActiveLook = useCallback(() => setActiveLook(null), []);
   const markImageFailed = useCallback((url: string) => {
     setFailedImages((cur) => (cur.includes(url) ? cur : [...cur, url]));
@@ -110,7 +121,6 @@ export function QwenCustomerHome() {
   const phoneValid = isValidIranianPhone(salon.phone);
   const igHandle = salon.instagram_handle || (salon.name.toLowerCase().includes("forehand") ? "forehand.nail" : "");
   const mapUrl = salon.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.address)}` : null;
-  const bookingUrl = (id: string) => `/book?service=${encodeURIComponent(id)}`;
 
   // Hero parallax — rAF-throttled, honours reduced motion.
   const heroRef = useRef<HTMLDivElement>(null);
@@ -248,12 +258,18 @@ export function QwenCustomerHome() {
         </div>
       </section>
 
-      {/* PRIMARY CTA — the one dominant action */}
-      <button type="button" className="qhp-cta magnetic" onClick={() => router.push("/book")}
+      {/* PRIMARY CTA (variant A) — opens the booking sheet over the homepage */}
+      <button type="button" className="qhp-cta magnetic" onClick={() => openBookingSheet()}
         disabled={!loaded || activeServices.length === 0}>
         <CalendarDays aria-hidden="true" />
         <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? "شروع رزرو" : "رزرو موقتاً بسته است"}</span>
         <ArrowLeft className="qhp-cta-chev" aria-hidden="true" />
+      </button>
+      {/* SECONDARY CTA (variant B) — same flow on its own shareable page */}
+      <button type="button" className="qhp-cta-alt" onClick={() => router.push("/book")}
+        disabled={!loaded || activeServices.length === 0}>
+        <span>رزرو در صفحهٔ جداگانه</span>
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
       </button>
       <p className="qhp-micro">بدون تماس تلفنی · زمان‌های آزاد همین‌جا</p>
 
@@ -306,7 +322,7 @@ export function QwenCustomerHome() {
           <div className="qhp-menu">
             {activeServices.map((s, i) => (
               <button key={s.id} type="button" className="qhp-row"
-                onClick={() => router.push(bookingUrl(s.id))} aria-label={`رزرو ${s.name}`}>
+                onClick={() => openBookingSheet({ serviceId: s.id })} aria-label={`رزرو ${s.name}`}>
                 <span className="qhp-row-num" aria-hidden="true">
                   {toPersianDigits(String(i + 1).padStart(2, "0"))}
                 </span>
@@ -397,7 +413,7 @@ export function QwenCustomerHome() {
               </div>
               {activeLook.service ? (
                 <button type="button" className="qhp-look-cta"
-                  onClick={() => { closeActiveLook(); router.push(bookingUrl(activeLook.service!.id)); }}>
+                  onClick={() => { closeActiveLook(); openBookingSheet({ serviceId: activeLook.service?.id, lookId: activeLook.key }); }}>
                   رزرو این مدل
                   <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -412,7 +428,7 @@ export function QwenCustomerHome() {
       {/* MENU SHEET — keeps login / profile / owner access one tap away */}
       <Sheet open={menuOpen} onClose={() => setMenuOpen(false)} title={salon.name || "منو"}>
         <nav className="qhp-home-menu" aria-label="منوی سالن">
-          <button type="button" onClick={() => { setMenuOpen(false); router.push("/book"); }}>
+          <button type="button" onClick={() => { setMenuOpen(false); openBookingSheet(); }}>
             <CalendarDays aria-hidden="true" />
             <span>رزرو نوبت</span>
             <ArrowLeft aria-hidden="true" />
@@ -440,6 +456,15 @@ export function QwenCustomerHome() {
           </button>
         </nav>
       </Sheet>
+
+      {/* BOOKING FLOW (variant A) — full-screen overlay, one engine */}
+      <QwenBookingFlow
+        mode="sheet"
+        open={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        initialServiceId={bookingServiceId}
+        lookId={bookingLookId}
+      />
     </main>
   );
 }
