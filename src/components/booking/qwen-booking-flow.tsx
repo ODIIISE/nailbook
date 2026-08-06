@@ -116,6 +116,12 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
   const isVerifyingOtpRef = useRef(false);
   const isSubmittingRef = useRef(false);
 
+  // Date anchoring: never strand the user on a fully-booked day. On the default
+  // (today) or after switching service, jump to the first day with availability —
+  // but only until the user explicitly picks a date (then their choice wins).
+  const userPickedDate = useRef(false);
+  const anchoredSelection = useRef<string | null>(null);
+
   // Fresh start every time the overlay opens (scheduled in a microtask so the
   // reset never happens synchronously during render commit).
   const wasOpen = useRef(false);
@@ -128,6 +134,7 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
         setSelectedServiceId(initialServiceId);
         setSelectedAddons([]);
         setSelectedTime(null);
+        setSelectedDate(parseGregorianDateKey(getTehranDateKey(new Date())));
         setOtpState("idle");
         setAuthError("");
         setSpamError("");
@@ -136,6 +143,8 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
         setBookingIdRaw("");
         setIsBookingLoading(false);
         setDragOffset(0);
+        userPickedDate.current = false;
+        anchoredSelection.current = null;
       });
     }
     wasOpen.current = open;
@@ -310,6 +319,26 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
     return result;
   }, [selectedDate, selectedService, selectedAddons, activeAddons, workingHours, salon, bookings, blockedTimes, engineConfig, specificDaysOff]);
 
+  // Auto-anchor: if the currently-selected day has no availability for the chosen
+  // service/addons (and the user hasn't explicitly picked a date), move to the
+  // first open day so the journey never dead-ends on a full day.
+  useEffect(() => {
+    if (!selectedService) return;
+    const current = days.find((d) => d.date.getTime() === selectedDate.getTime());
+    if (current && !current.isOff && !current.isFullyBooked) {
+      anchoredSelection.current = null;
+      return;
+    }
+    if (userPickedDate.current) return;
+    const next = days.find((d) => !d.isOff && !d.isFullyBooked);
+    if (!next) return;
+    const ctxKey = `${selectedService.id}:${validSelectedAddonIds.join(",")}`;
+    if (anchoredSelection.current === ctxKey) return; // already anchored for this selection
+    anchoredSelection.current = ctxKey;
+    setSelectedDate(next.date);
+    setSelectedTime(null);
+  }, [days, selectedDate, selectedService, validSelectedAddonIds]);
+
   // ── Navigation ──
   const goTo = useCallback((next: Step, forward: boolean) => {
     setDir(forward ? 1 : -1);
@@ -344,6 +373,7 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
   }, []);
 
   const handleSelectDate = useCallback((date: Date) => {
+    userPickedDate.current = true;
     setSelectedDate(date);
     setSelectedTime(null);
     haptic.tap();
