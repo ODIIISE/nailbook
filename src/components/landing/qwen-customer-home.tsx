@@ -8,19 +8,16 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
-import { formatPrice, toPersianDigits } from "@/lib/jalali";
+import { toPersianDigits } from "@/lib/jalali";
 import { isValidIranianPhone } from "@/lib/digits";
-import type { Highlight } from "@/lib/types";
+import { getServiceImage } from "@/lib/service-images";
+import type { Service } from "@/lib/types";
 import type { WorkingHours } from "@/lib/slots";
-import { ServiceImage } from "@/components/ui/service-image";
 
 const DAY_LABELS: Record<string, string> = {
   sat: "شنبه", sun: "یکشنبه", mon: "دوشنبه", tue: "سه‌شنبه",
   wed: "چهارشنبه", thu: "پنجشنبه", fri: "جمعه",
 };
-
-const SALON_RATING = "۴٫۹";
-const SALON_SINCE = "۱۴۰۰";
 
 function parseMinutes(v: string) {
   const [h, m] = v.split(":").map(Number);
@@ -39,52 +36,53 @@ function liveLabel(h: WorkingHours) {
   if (!today) return { isOpen: false, label: "امروز · تعطیل" };
   const o = parseMinutes(today.open), c = parseMinutes(today.close);
   if (o == null || c == null) return { isOpen: false, label: "ساعات کاری ثبت نشده" };
-  if (n.minutes >= o && n.minutes < c) return { isOpen: true, label: `باز است · تا ${today.close}` };
-  if (n.minutes < o) return { isOpen: false, label: `بازگشایی ساعت ${today.open}` };
+  if (n.minutes >= o && n.minutes < c) return { isOpen: true, label: `باز است · تا ${toPersianDigits(today.close)}` };
+  if (n.minutes < o) return { isOpen: false, label: `بازگشایی ساعت ${toPersianDigits(today.open)}` };
   return { isOpen: false, label: "امروز · بسته" };
 }
 function formatHours(txt: string, h: WorkingHours) {
   if (txt.trim()) return txt;
   return (Object.entries(h) as Array<[string, { open: string; close: string } | null]>)
     .filter(([, v]) => v)
-    .map(([d, v]) => `${DAY_LABELS[d]} ${v!.open} تا ${v!.close}`)
+    .map(([d, v]) => `${DAY_LABELS[d]} ${toPersianDigits(v!.open)} تا ${toPersianDigits(v!.close)}`)
     .join(" · ") || "اطلاعات ثبت نشده";
 }
-function compactNum(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toLocaleString("en-US", { maximumFractionDigits: 1 })}M`;
-  if (n >= 1_000) return `${(n / 1_000).toLocaleString("en-US", { maximumFractionDigits: 0 })}K`;
-  return String(n);
+/** Compact Persian money, e.g. 350000 → "۳۵۰ هزار", 1500000 → "۱٫۵ میلیون". */
+function compactPrice(n: number): string {
+  if (n < 1000) return toPersianDigits(n);
+  if (n >= 1_000_000) {
+    const m = n / 1_000_000;
+    const s = m % 1 === 0 ? String(m) : m.toFixed(1).replace(".", "٫");
+    return `${toPersianDigits(s)} میلیون`;
+  }
+  return `${toPersianDigits(Math.round(n / 1000))} هزار`;
 }
+function compactToman(n: number): string {
+  return `${compactPrice(n)} تومان`;
+}
+
+interface Look {
+  key: string;
+  name: string;
+  image: string | null;
+  price: number;
+  service?: Service;
+}
+
+const FALLBACK_HERO = "https://images.unsplash.com/photo-1599948128020-9a44505b58b3?w=1400&q=80&auto=format&fit=crop";
+const FALLBACK_PORTRAIT = "https://images.unsplash.com/photo-1610992015732-2449b76311bc?w=600&q=80&auto=format&fit=crop";
 
 export function QwenCustomerHome() {
   const router = useRouter();
   const { salon, workingHours, services, highlights, loaded } = useSalon();
   const { user, logout } = useAuth();
 
-  const [serviceSheetOpen, setServiceSheetOpen] = useState(false);
-  const [menuSheetOpen, setMenuSheetOpen] = useState(false);
-  const [activeLook, setActiveLook] = useState<Highlight | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeLook, setActiveLook] = useState<Look | null>(null);
   const [failedImages, setFailedImages] = useState<string[]>([]);
-  const [proof, setProof] = useState<{ totalBookings: number } | null>(null);
   const closeActiveLook = useCallback(() => setActiveLook(null), []);
-
-  // Live booking count → social proof rail. Fails silently to static fallback.
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/social-proof")
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
-      .then((data: { totalBookings?: number }) => {
-        if (!cancelled && typeof data.totalBookings === "number") setProof({ totalBookings: data.totalBookings });
-      })
-      .catch(() => { /* static fallback stands */ });
-    return () => { cancelled = true; };
-  }, []);
-
-  // Image fallback chain: salon image → Unsplash-equivalent (warm editorial) → null.
-  const fallbackHero = "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1400&q=82&auto=format&fit=crop";
-  const fallbackPortrait = "https://images.unsplash.com/photo-1610992015732-2449b76311bc?w=600&q=82&auto=format&fit=crop";
   const markImageFailed = useCallback((url: string) => {
-    setFailedImages((current) => current.includes(url) ? current : [...current, url]);
+    setFailedImages((cur) => (cur.includes(url) ? cur : [...cur, url]));
   }, []);
 
   const live = liveLabel(workingHours);
@@ -93,14 +91,28 @@ export function QwenCustomerHome() {
     [services],
   );
   const serviceById = useMemo(() => new Map(activeServices.map((s) => [s.id, s])), [activeServices]);
-  const phoneValid = isValidIranianPhone(salon.phone);
-  const mapUrl = salon.address
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.address)}`
-    : null;
-  const igHandle = salon.instagram_handle || (salon.name.toLowerCase().includes("forehand") ? "forehand.nail" : "");
-  const bookingUrl = (serviceId: string) => `/book?service=${encodeURIComponent(serviceId)}`;
 
-  // Scroll parallax on the hero photo (rAF-throttled, honours reduced motion).
+  // Lookbook: real highlights first; when the salon hasn't added any yet,
+  // fall back to the active services so the gallery is never empty.
+  const looks = useMemo<Look[]>(() => {
+    const withCovers = highlights.filter((h) => h.cover_url);
+    if (withCovers.length > 0) {
+      return withCovers.map((h) => {
+        const svc = h.service_id ? serviceById.get(h.service_id) : undefined;
+        return { key: h.id, name: h.name, image: h.cover_url, price: svc?.price ?? 0, service: svc };
+      });
+    }
+    return activeServices.map((s) => ({
+      key: s.id, name: s.name, image: s.image_url || getServiceImage(s.name), price: s.price, service: s,
+    }));
+  }, [highlights, activeServices, serviceById]);
+
+  const phoneValid = isValidIranianPhone(salon.phone);
+  const igHandle = salon.instagram_handle || (salon.name.toLowerCase().includes("forehand") ? "forehand.nail" : "");
+  const mapUrl = salon.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.address)}` : null;
+  const bookingUrl = (id: string) => `/book?service=${encodeURIComponent(id)}`;
+
+  // Hero parallax — rAF-throttled, honours reduced motion.
   const heroRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -126,10 +138,31 @@ export function QwenCustomerHome() {
     };
   }, []);
 
-  // Scroll-reveal stagger for sections/cards (one observer, per-card delay).
-  const revealRoot = useRef<HTMLDivElement>(null);
+  // Magnetic CTA on fine pointers only.
   useEffect(() => {
-    const root = revealRoot.current;
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia?.("(pointer: fine)").matches) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const el = document.querySelector<HTMLElement>(".qhp-cta");
+    if (!el) return;
+    const move = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - r.left - r.width / 2) / r.width;
+      const y = (e.clientY - r.top - r.height / 2) / r.height;
+      el.style.transform = `translate(${x * 7}px, ${y * 5}px)`;
+    };
+    const leave = () => { el.style.transform = ""; };
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerleave", leave);
+    return () => {
+      el.removeEventListener("pointermove", move);
+      el.removeEventListener("pointerleave", leave);
+    };
+  }, []);
+
+  // Scroll-reveal for below-the-fold sections.
+  useEffect(() => {
+    const root = document.querySelector<HTMLElement>(".qhp-page");
     if (!root) return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
       root.querySelectorAll<HTMLElement>(".qhp-reveal").forEach((el) => el.classList.add("is-in"));
@@ -142,362 +175,229 @@ export function QwenCustomerHome() {
           io.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.14, rootMargin: "0px 0px -6% 0px" });
+    }, { threshold: 0.12 });
     root.querySelectorAll<HTMLElement>(".qhp-reveal").forEach((el) => io.observe(el));
     return () => io.disconnect();
-  }, [loaded, highlights.length, services.length]);
+  }, [loaded, looks.length, activeServices.length]);
 
   return (
     <main className="qhp-page">
-      <div className="qhp-shell" dir="rtl">
-
-        {/* HERO — compact editorial cover, shallow, above the profile */}
-        <div className="qhp-hero" aria-hidden="true">
-          <div ref={heroRef} className="qhp-hero-par" style={{ "--qhp-parallax": "0px" } as CSSProperties}>
-            {(() => {
-              const source = salon.hero_image_url && !failedImages.includes(salon.hero_image_url)
-                ? salon.hero_image_url
-                : !failedImages.includes(fallbackHero) ? fallbackHero : null;
-              return source ? (
-                <Image src={source} alt="" fill priority unoptimized
-                  sizes="(max-width: 430px) 100vw, 430px"
-                  className="qhp-hero-image" onError={() => markImageFailed(source)} />
-              ) : <div className="qhp-hero-fallback" />;
-            })()}
-          </div>
-          <div className="qhp-hero-wash" />
+      {/* HERO — full-bleed cover with slow breathe + scroll parallax */}
+      <div className="qhp-hero" aria-hidden="true">
+        <div ref={heroRef} className="qhp-hero-par">
+          {(() => {
+            const src = salon.hero_image_url && !failedImages.includes(salon.hero_image_url)
+              ? salon.hero_image_url
+              : !failedImages.includes(FALLBACK_HERO) ? FALLBACK_HERO : null;
+            return src ? (
+              <Image src={src} alt="" fill priority unoptimized
+                sizes="(max-width: 430px) 100vw, 430px"
+                className="qhp-hero-img" onError={() => markImageFailed(src)} />
+            ) : <div className="qhp-hero-fallback" />;
+          })()}
         </div>
-
-        {/* PROFILE — story-ring avatar (tap = menu), brand, live status */}
-        <section className="qhp-profile" aria-labelledby="qhp-name">
-          <button type="button" className="qhp-ring qhp-mask" onClick={() => setMenuSheetOpen(true)}
-            aria-label="منوی سالن" aria-haspopup="dialog">
-            <span className="qhp-ring-story" aria-hidden="true" />
-            <span className="qhp-ring-in">
-              {(() => {
-                const source = salon.portrait_image_url && !failedImages.includes(salon.portrait_image_url)
-                  ? salon.portrait_image_url
-                  : salon.logo_url && !failedImages.includes(salon.logo_url)
-                    ? salon.logo_url
-                    : !failedImages.includes(fallbackPortrait) ? fallbackPortrait : null;
-                return source ? (
-                  <Image src={source} alt={salon.name} fill unoptimized priority
-                    sizes="112px" className="qhp-portrait"
-                    onError={() => markImageFailed(source)} />
-                ) : <span className="qhp-portrait-fallback" aria-hidden="true"><Sparkles className="h-8 w-8" /></span>;
-              })()}
-            </span>
-          </button>
-
-          <span className="qhp-kicker qhp-mask" style={{ "--md": ".12s" } as CSSProperties}>NAIL · CARE · RITUAL</span>
-          <span className="qhp-mask" style={{ "--md": ".2s" } as CSSProperties}>
-            <h1 id="qhp-name" className="qhp-name">{salon.name || "استودیو تخصصی ناخن"}</h1>
-          </span>
-          {igHandle && (
-            <span className="qhp-mask" style={{ "--md": ".28s" } as CSSProperties}>
-              <span className="qhp-handle" dir="ltr">@{igHandle.replace(/^@/, "")}</span>
-            </span>
-          )}
-          {salon.slogan && (
-            <span className="qhp-mask" style={{ "--md": ".34s" } as CSSProperties}>
-              <span className="qhp-slogan">{salon.slogan}</span>
-            </span>
-          )}
-          <div className="qhp-profile-row qhp-mask" style={{ "--md": ".44s" } as CSSProperties}>
-            <div className="qhp-open" aria-live="polite">
-              <span className={`qhp-dot ${live.isOpen ? "is-open" : ""}`} aria-hidden="true" />
-              <span>{live.label}</span>
-            </div>
-            {salon.address && (
-              <a className="qhp-location" href={mapUrl ?? undefined} target="_blank" rel="noopener noreferrer"
-                aria-label="مشاهده روی نقشه">
-                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>{salon.address}</span>
-              </a>
-            )}
-          </div>
-        </section>
-
-        {/* ACTION STACK — the link-in-bio core */}
-        <section className="qhp-actions">
-          {/* Primary CTA — one dominant action */}
-          <button type="button" className="qhp-action qhp-action-primary qhp-mask" style={{ "--md": ".5s" } as CSSProperties}
-            onClick={() => setServiceSheetOpen(true)}
-            disabled={!loaded || activeServices.length === 0}>
-            <span className="qhp-action-ic" aria-hidden="true">
-              <CalendarDays className="h-5 w-5" />
-            </span>
-            <span className="qhp-action-body">
-              <strong>{!loaded ? "در حال آماده‌سازی" : activeServices.length ? "رزرو نوبت" : "رزرو موقتاً بسته است"}</strong>
-              <small>زمان‌های آزاد را همین‌جا ببین</small>
-            </span>
-            <ArrowLeft className="qhp-action-chev h-5 w-5" aria-hidden="true" />
-          </button>
-
-          {/* Lookbook entry — opens the highlight sheet */}
-          {highlights.length > 0 && (
-            <button type="button" className="qhp-action qhp-mask" style={{ "--md": ".56s" } as CSSProperties}
-              onClick={() => setActiveLook(highlights[0])}>
-              <span className="qhp-action-ic" aria-hidden="true"><Images className="h-5 w-5" /></span>
-              <span className="qhp-action-body">
-                <strong>نمونه‌کارها</strong>
-                <small>برای الهام گرفتن</small>
-              </span>
-              <ArrowLeft className="qhp-action-chev h-5 w-5" aria-hidden="true" />
-            </button>
-          )}
-
-          {/* Instagram — the reason they came */}
-          {igHandle && (
-            <a className="qhp-action qhp-mask" style={{ "--md": ".62s" } as CSSProperties}
-              href={`https://instagram.com/${igHandle.replace(/^@/, "")}`} target="_blank" rel="noopener noreferrer">
-              <span className="qhp-action-ic" aria-hidden="true">
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
-                  <circle cx="12" cy="12" r="4.2" />
-                  <circle cx="17.5" cy="6.7" r="1" fill="currentColor" stroke="none" />
-                </svg>
-              </span>
-              <span className="qhp-action-body">
-                <strong>اینستاگرام</strong>
-                <small>پیگیری کنید</small>
-              </span>
-              <ArrowLeft className="qhp-action-chev h-5 w-5" aria-hidden="true" />
-            </a>
-          )}
-
-          {/* Address / map */}
-          {mapUrl && (
-            <a className="qhp-action qhp-mask" style={{ "--md": ".68s" } as CSSProperties}
-              href={mapUrl} target="_blank" rel="noopener noreferrer">
-              <span className="qhp-action-ic" aria-hidden="true"><MapPin className="h-5 w-5" /></span>
-              <span className="qhp-action-body">
-                <strong>مسیریابی</strong>
-                <small>روی نقشه ببین</small>
-              </span>
-              <ArrowLeft className="qhp-action-chev h-5 w-5" aria-hidden="true" />
-            </a>
-          )}
-
-          {/* Call / SMS — compact pair (only rendered when a phone exists) */}
-          {salon.phone && (
-            <div className="qhp-action-row qhp-mask" style={{ "--md": ".74s" } as CSSProperties}>
-              <a className="qhp-action qhp-action-compact" href={`tel:${salon.phone}`} aria-label="تماس با سالن">
-                <span className="qhp-action-ic" aria-hidden="true"><Phone className="h-5 w-5" /></span>
-                <span className="qhp-action-body"><strong>تماس</strong><small>تلفنی بپرس</small></span>
-              </a>
-              {phoneValid && (
-                <a className="qhp-action qhp-action-compact" href={`sms:${salon.phone}`} aria-label="ارسال پیامک">
-                  <span className="qhp-action-ic" aria-hidden="true"><MessageCircle className="h-5 w-5" /></span>
-                  <span className="qhp-action-body"><strong>پیامک</strong><small>سریع جواب بده</small></span>
-                </a>
-              )}
-            </div>
-          )}
-        </section>
-
-        {/* SOCIAL PROOF — hairline-divided live stats */}
-        <section className="qhp-proof qhp-reveal" aria-label="اعتماد مشتریان">
-          <div className="qhp-proof-item">
-            <strong>{SALON_RATING}</strong>
-            <span>امتیاز</span>
-          </div>
-          <div className="qhp-proof-item">
-            <strong>{proof ? `+${compactNum(proof.totalBookings)}` : "+۱۲۰۰"}</strong>
-            <span>رزرو موفق</span>
-          </div>
-          <div className="qhp-proof-item">
-            <strong>{SALON_SINCE}</strong>
-            <span>از سال</span>
-          </div>
-        </section>
-
-        {/* SERVICES — horizontal menu cards */}
-        {activeServices.length > 0 && (
-          <section className="qhp-section qhp-reveal" aria-labelledby="qhp-menu-t">
-            <div className="qhp-sec-head">
-              <h2 id="qhp-menu-t">منوی خدمات</h2>
-              <i aria-hidden="true" />
-              <span className="qhp-sec-kicker">MENU</span>
-            </div>
-            <div className="qhp-menu" ref={revealRoot}>
-              {activeServices.map((s, i) => (
-                <button key={s.id} type="button" className="qhp-row qhp-reveal"
-                  style={{ "--ri": String(i) } as CSSProperties}
-                  onClick={() => router.push(bookingUrl(s.id))} aria-label={`رزرو ${s.name}`}>
-                  <span className="qhp-row-num" aria-hidden="true">
-                    {toPersianDigits(String(i + 1).padStart(2, "0"))}
-                  </span>
-                  <span className="qhp-row-body">
-                    <strong className="qhp-row-name">
-                      {s.name}
-                      {s.is_popular && <span className="qhp-popular">پرطرفدار</span>}
-                    </strong>
-                    <small className="qhp-row-dur"><Clock className="h-3 w-3" aria-hidden="true" /> {toPersianDigits(s.duration_minutes)} دقیقه</small>
-                  </span>
-                  <span className="qhp-row-price">
-                    <b>{formatPrice(Number(s.price))}</b>
-                    <small>تومان</small>
-                  </span>
-                  <ArrowLeft className="qhp-row-arrow" aria-hidden="true" />
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* LOOKBOOK — horizontal gallery */}
-        {highlights.length > 0 && (
-          <section className="qhp-section qhp-reveal" aria-labelledby="qhp-work-t">
-            <div className="qhp-sec-head">
-              <h2 id="qhp-work-t">نمونه‌کارها</h2>
-              <i aria-hidden="true" />
-              <span className="qhp-sec-kicker">LOOKBOOK</span>
-            </div>
-            <div className="qhp-works">
-              {highlights.map((h, idx) => {
-                const svc = h.service_id ? serviceById.get(h.service_id) : undefined;
-                const coverSrc = h.cover_url && !failedImages.includes(h.cover_url) ? h.cover_url : null;
-                return (
-                  <button key={h.id} type="button" className="qhp-work-card qhp-reveal"
-                    style={{ "--ri": String(idx) } as CSSProperties}
-                    onClick={() => setActiveLook(h)} aria-label={`دیدن ${h.name}`}>
-                    {coverSrc ? (
-                      <Image src={coverSrc} alt={h.name} fill unoptimized loading="lazy"
-                        sizes="220px" className="qhp-work-image"
-                        onError={() => markImageFailed(coverSrc)} />
-                    ) : (
-                      <span className="qhp-work-fallback" aria-hidden="true">
-                        <Images className="h-9 w-9" />
-                        <strong>{h.name.charAt(0)}</strong>
-                      </span>
-                    )}
-                    <span className="qhp-work-shade" aria-hidden="true" />
-                    <span className="qhp-work-caption">
-                      <span className="qhp-work-name">{h.name}</span>
-                      {svc ? (
-                        <span className="qhp-work-price">{formatPrice(Number(svc.price))} <small>تومان</small></span>
-                      ) : (
-                        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                      )}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* CONTACT */}
-        <section className="qhp-contact qhp-reveal">
-          <p className="qhp-hours"><b>ساعات کاری</b> · {formatHours(salon.working_hours_text, workingHours)}</p>
-          <nav className="qhp-socials" aria-label="تماس با سالن">
-            {salon.phone && (
-              <a href={`tel:${salon.phone}`} aria-label="تماس">
-                <Phone className="h-5 w-5" aria-hidden="true" />
-              </a>
-            )}
-            {igHandle && (
-              <a href={`https://instagram.com/${igHandle.replace(/^@/, "")}`} target="_blank" rel="noopener noreferrer" aria-label="اینستاگرام">
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                  <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
-                  <circle cx="12" cy="12" r="4.2" />
-                  <circle cx="17.5" cy="6.7" r="1" fill="currentColor" stroke="none" />
-                </svg>
-              </a>
-            )}
-          </nav>
-        </section>
-
-        <footer className="qhp-foot">
-          <span>{salon.name}</span>
-          {salon.city && <span> · {salon.city}</span>}
-        </footer>
+        <div className="qhp-hero-fade" />
       </div>
 
-      {/* Sheets: service picker, top-level menu, look detail. */}
-      <Sheet open={serviceSheetOpen} onClose={() => setServiceSheetOpen(false)} title="انتخاب خدمت">
-        <header className="qhp-sheet-intro">
-          <CalendarDays className="h-5 w-5" aria-hidden="true" />
-          <div>
-            <strong>از کجا شروع کنیم؟</strong>
-            <p>خدمت موردنظرتان را انتخاب کنید تا زمان‌های آزاد را ببینید.</p>
-          </div>
-        </header>
-        <ul className="qhp-sheet-list">
-          {activeServices.map((s) => (
-            <li key={s.id}>
-              <button type="button" onClick={() => { setServiceSheetOpen(false); router.push(bookingUrl(s.id)); }}>
-                <span className="qhp-sheet-thumb"><ServiceImage service={s} sizes="56px" className="object-cover" /></span>
-                <span className="qhp-sheet-meta">
-                  <strong>{s.name}</strong>
-                  <small>{toPersianDigits(s.duration_minutes)} دقیقه · {formatPrice(Number(s.price))} تومان</small>
-                </span>
-                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      </Sheet>
+      {/* PROFILE — gold-ring portrait (tap = salon menu), editorial brand block */}
+      <section className="qhp-profile" aria-label={salon.name || "سالن"}>
+        <button type="button" className="qhp-ring" onClick={() => setMenuOpen(true)}
+          aria-label="منوی سالن" aria-haspopup="dialog">
+          <span className="qhp-ring-swatch" aria-hidden="true" />
+          <span className="qhp-ring-inner">
+            {(() => {
+              const src = salon.portrait_image_url && !failedImages.includes(salon.portrait_image_url)
+                ? salon.portrait_image_url
+                : salon.logo_url && !failedImages.includes(salon.logo_url)
+                  ? salon.logo_url
+                  : !failedImages.includes(FALLBACK_PORTRAIT) ? FALLBACK_PORTRAIT : null;
+              return src ? (
+                <Image src={src} alt={salon.name || "سالن"} fill priority unoptimized
+                  sizes="110px" className="qhp-portrait" onError={() => markImageFailed(src)} />
+              ) : (
+                <span className="qhp-portrait-fallback" aria-hidden="true"><Sparkles className="h-8 w-8" /></span>
+              );
+            })()}
+          </span>
+        </button>
 
-      <Sheet open={menuSheetOpen} onClose={() => setMenuSheetOpen(false)} title={salon.name || "منو"}>
-        <nav className="qhp-home-menu" aria-label="منوی سالن">
-          <button type="button" onClick={() => { setMenuSheetOpen(false); setServiceSheetOpen(true); }}>
-            <CalendarDays className="h-5 w-5" aria-hidden="true" />
-            <span>رزرو نوبت</span>
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          </button>
-          {user ? (
-            <>
-              <button type="button" onClick={() => { setMenuSheetOpen(false); router.push("/profile"); }}>
-                <span>پروفایل من</span><ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              </button>
-              <button type="button" onClick={async () => { await logout(); setMenuSheetOpen(false); }}>
-                <span>خروج از حساب</span><ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </>
-          ) : (
-            <button type="button" onClick={() => { setMenuSheetOpen(false); router.push("/login"); }}>
-              <span>ورود به حساب</span><ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            </button>
+        <span className="qhp-mask" style={{ "--md": ".08s" } as CSSProperties}>
+          <span className="qhp-kicker">NAIL · CARE · RITUAL</span>
+        </span>
+        <span className="qhp-mask" style={{ "--md": ".16s" } as CSSProperties}>
+          <h1 className="qhp-name">{salon.name || "استودیو ناخن"}</h1>
+        </span>
+        {salon.slogan && (
+          <span className="qhp-mask" style={{ "--md": ".24s" } as CSSProperties}>
+            <span className="qhp-tagline">{salon.slogan}</span>
+          </span>
+        )}
+
+        <div className="qhp-meta">
+          {salon.address && (
+            <a className="qhp-addr" href={mapUrl ?? undefined} target="_blank" rel="noopener noreferrer"
+              aria-label="مشاهده آدرس روی نقشه">
+              <MapPin aria-hidden="true" />
+              <span>{salon.address}</span>
+            </a>
           )}
-          <button type="button" onClick={() => { setMenuSheetOpen(false); router.push("/owner/login"); }}>
-            <span>ورود مدیر</span><ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </nav>
-      </Sheet>
+          <div className="qhp-open" aria-live="polite">
+            <span className={`qhp-dot${live.isOpen ? "" : " is-closed"}`} aria-hidden="true" />
+            <span className={live.isOpen ? "qhp-open-t" : "qhp-open-c"}>{live.label}</span>
+          </div>
+        </div>
+      </section>
 
-      <Sheet open={activeLook !== null} onClose={closeActiveLook} title={activeLook?.name ?? "نمونه‌کار"}>
+      {/* PRIMARY CTA — the one dominant action */}
+      <button type="button" className="qhp-cta magnetic" onClick={() => router.push("/book")}
+        disabled={!loaded || activeServices.length === 0}>
+        <CalendarDays aria-hidden="true" />
+        <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? "شروع رزرو" : "رزرو موقتاً بسته است"}</span>
+        <ArrowLeft className="qhp-cta-chev" aria-hidden="true" />
+      </button>
+      <p className="qhp-micro">بدون تماس تلفنی · زمان‌های آزاد همین‌جا</p>
+
+      {/* LOOKBOOK — story-style rail */}
+      {looks.length > 0 && (
+        <section className="qhp-section qhp-reveal" aria-labelledby="qhp-work-title">
+          <div className="qhp-sec-head">
+            <h2 id="qhp-work-title">نمونه‌کارها</h2>
+            <span className="qhp-sec-kicker">LOOKBOOK</span>
+          </div>
+          <div className="qhp-works">
+            {looks.map((look) => {
+              const src = look.image && !failedImages.includes(look.image) ? look.image : null;
+              return (
+                <button key={look.key} type="button" className="qhp-work-card"
+                  onClick={() => setActiveLook(look)} aria-label={`دیدن ${look.name}`}>
+                  {src ? (
+                    <Image src={src} alt={look.name} fill unoptimized loading="lazy"
+                      sizes="190px" className="qhp-work-image"
+                      onError={() => markImageFailed(src)} />
+                  ) : (
+                    <span className="qhp-work-fallback" aria-hidden="true">
+                      <Images className="h-9 w-9" />
+                      <strong>{look.name.charAt(0)}</strong>
+                    </span>
+                  )}
+                  <span className="qhp-work-shade" aria-hidden="true" />
+                  <span className="qhp-work-pill">
+                    <span className="qhp-work-name">{look.name}</span>
+                    {look.price > 0 ? (
+                      <span className="qhp-work-price">{compactToman(look.price)}</span>
+                    ) : (
+                      <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                    )}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* MENU — editorial numbered service list */}
+      {activeServices.length > 0 && (
+        <section className="qhp-section qhp-reveal" aria-labelledby="qhp-menu-title">
+          <div className="qhp-sec-head">
+            <h2 id="qhp-menu-title">منوی خدمات</h2>
+            <span className="qhp-sec-kicker">MENU</span>
+          </div>
+          <div className="qhp-menu">
+            {activeServices.map((s, i) => (
+              <button key={s.id} type="button" className="qhp-row"
+                onClick={() => router.push(bookingUrl(s.id))} aria-label={`رزرو ${s.name}`}>
+                <span className="qhp-row-num" aria-hidden="true">
+                  {toPersianDigits(String(i + 1).padStart(2, "0"))}
+                </span>
+                <span className="qhp-row-body">
+                  <b className="qhp-row-name">
+                    {s.name}
+                    {s.is_popular && <span className="qhp-badge">پرطرفدار</span>}
+                  </b>
+                  <small className="qhp-row-dur">
+                    {s.description ? `${s.description} · ` : ""}
+                    <Clock className="h-3 w-3" aria-hidden="true" />
+                    {toPersianDigits(s.duration_minutes)} دقیقه
+                  </small>
+                </span>
+                <span className="qhp-row-price"><b>{compactPrice(s.price)}</b><small>تومان</small></span>
+                <ArrowLeft className="qhp-row-chev" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* CONTACT — hours + quiet social row */}
+      <section className="qhp-contact qhp-reveal">
+        <p className="qhp-hours"><b>ساعات کاری</b> · {formatHours(salon.working_hours_text, workingHours)}</p>
+        <nav className="qhp-socials" aria-label="تماس با سالن">
+          {salon.phone && (
+            <a className="qhp-soc" href={`tel:${salon.phone}`} aria-label="تماس">
+              <Phone aria-hidden="true" />
+            </a>
+          )}
+          {phoneValid && (
+            <a className="qhp-soc" href={`sms:${salon.phone}`} aria-label="ارسال پیامک">
+              <MessageCircle aria-hidden="true" />
+            </a>
+          )}
+          {igHandle && (
+            <a className="qhp-soc" href={`https://instagram.com/${igHandle.replace(/^@/, "")}`}
+              target="_blank" rel="noopener noreferrer" aria-label="اینستاگرام">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
+                <circle cx="12" cy="12" r="4.2" />
+                <circle cx="17.5" cy="6.7" r="1" fill="currentColor" stroke="none" />
+              </svg>
+            </a>
+          )}
+        </nav>
+      </section>
+
+      <footer className="qhp-foot">
+        {salon.name}
+        {salon.city && <span> — {salon.city}</span>}
+      </footer>
+
+      {/* LOOK SHEET — image, price, chips, one CTA into the real booking flow */}
+      <Sheet open={activeLook !== null} onClose={closeActiveLook} title="نمونه‌کار">
         {activeLook && (() => {
-          const service = activeLook.service_id ? serviceById.get(activeLook.service_id) : undefined;
-          const coverSrc = activeLook.cover_url && !failedImages.includes(activeLook.cover_url) ? activeLook.cover_url : null;
+          const src = activeLook.image && !failedImages.includes(activeLook.image) ? activeLook.image : null;
           return (
             <div className="qhp-look-body">
               <div className="qhp-look-cover">
-                {coverSrc ? (
-                  <Image src={coverSrc} alt={activeLook.name} fill unoptimized sizes="430px"
-                    className="object-cover" onError={() => markImageFailed(coverSrc)} />
+                {src ? (
+                  <Image key={activeLook.key} src={src} alt={activeLook.name} fill unoptimized
+                    sizes="430px" className="qhp-look-cover-open object-cover"
+                    onError={() => markImageFailed(src)} />
                 ) : (
-                  <span className="qhp-look-fallback">
-                    <Images className="h-10 w-10" aria-hidden="true" />
+                  <span className="qhp-look-fallback" aria-hidden="true">
+                    <Images className="h-10 w-10" />
                     <strong>{activeLook.name}</strong>
                   </span>
                 )}
               </div>
-              <p className="qhp-look-text">این مدل را دوست داری؟ خدمت مربوطه را در صفحهٔ رزرو باز کن تا زمان آزادش را ببینی.</p>
+              <div className="qhp-look-title-row">
+                <h4>{activeLook.name}</h4>
+                {activeLook.price > 0 && <span className="qhp-look-price">{compactToman(activeLook.price)}</span>}
+              </div>
+              <p className="qhp-look-sub">این مدل را دوست داری؟ خدمت را همین حالا برای این مدل رزرو کن — بدون تماس تلفنی.</p>
               <div className="qhp-look-chips">
-                {service ? (
+                {activeLook.service ? (
                   <>
-                    <span className="qhp-chip primary">{service.name}</span>
-                    <span className="qhp-chip">{toPersianDigits(service.duration_minutes)} دقیقه</span>
-                    <span className="qhp-chip">{formatPrice(Number(service.price))} تومان</span>
+                    <span className="qhp-chip primary">{activeLook.service.name}</span>
+                    <span className="qhp-chip">{toPersianDigits(activeLook.service.duration_minutes)} دقیقه</span>
+                    {activeLook.service.description && <span className="qhp-chip">{activeLook.service.description}</span>}
                   </>
                 ) : (
                   <span className="qhp-chip">مدل الهام‌بخش</span>
                 )}
               </div>
-              {service ? (
-                <button type="button" className="qhp-look-cta" onClick={() => { closeActiveLook(); router.push(bookingUrl(service.id)); }}>
+              {activeLook.service ? (
+                <button type="button" className="qhp-look-cta"
+                  onClick={() => { closeActiveLook(); router.push(bookingUrl(activeLook.service!.id)); }}>
                   رزرو این مدل
                   <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -508,18 +408,50 @@ export function QwenCustomerHome() {
           );
         })()}
       </Sheet>
+
+      {/* MENU SHEET — keeps login / profile / owner access one tap away */}
+      <Sheet open={menuOpen} onClose={() => setMenuOpen(false)} title={salon.name || "منو"}>
+        <nav className="qhp-home-menu" aria-label="منوی سالن">
+          <button type="button" onClick={() => { setMenuOpen(false); router.push("/book"); }}>
+            <CalendarDays aria-hidden="true" />
+            <span>رزرو نوبت</span>
+            <ArrowLeft aria-hidden="true" />
+          </button>
+          {user ? (
+            <>
+              <button type="button" onClick={() => { setMenuOpen(false); router.push("/profile"); }}>
+                <span>پروفایل من</span>
+                <ArrowLeft aria-hidden="true" />
+              </button>
+              <button type="button" onClick={async () => { await logout(); setMenuOpen(false); }}>
+                <span>خروج از حساب</span>
+                <ArrowLeft aria-hidden="true" />
+              </button>
+            </>
+          ) : (
+            <button type="button" onClick={() => { setMenuOpen(false); router.push("/login"); }}>
+              <span>ورود به حساب</span>
+              <ArrowLeft aria-hidden="true" />
+            </button>
+          )}
+          <button type="button" onClick={() => { setMenuOpen(false); router.push("/owner/login"); }}>
+            <span>ورود مدیر</span>
+            <ArrowLeft aria-hidden="true" />
+          </button>
+        </nav>
+      </Sheet>
     </main>
   );
 }
 
 // ---- Inline sheet primitive ----
-// Same lifecycle as BottomSheet (focus trap, drag-to-dismiss, body-lock, exit transition)
-// but rendered inside this component tree so its styles share the qhp-* layer.
+// Focus-friendly bottom sheet: scrim tap / Escape / drag-to-dismiss, body
+// lock, exit transition, focus restore. Rendered inside this component tree
+// so its styles share the qhp-* layer.
 
 function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
   const [visible, setVisible] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
-  const sheetRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef(0);
   const previousFocus = useRef<HTMLElement | null>(null);
   const closeTimer = useRef<number | null>(null);
@@ -541,7 +473,7 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
       previousFocus.current?.focus();
       previousFocus.current = null;
       closeTimer.current = null;
-    }, 260);
+    }, 600);
     return undefined;
   }, [open]);
 
@@ -556,15 +488,14 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
 
   if (!open && !visible) return null;
 
-  const translateY = !visible ? "100%" : dragOffset > 0 ? `${dragOffset}px` : "0";
+  const translateY = !visible ? "105%" : dragOffset > 0 ? `${dragOffset}px` : "0";
 
   return (
     <div className="qhp-sheet-wrap" role="presentation">
       <div className="qhp-sheet-scrim" aria-hidden="true"
         onClick={onClose}
         style={{ opacity: visible ? 1 : 0 }} />
-      <div ref={sheetRef}
-        role="dialog" aria-modal="true" aria-label={title} tabIndex={-1}
+      <div role="dialog" aria-modal="true" aria-label={title} tabIndex={-1}
         className="qhp-sheet"
         style={{ transform: `translateY(${translateY})` }}>
         <div className="qhp-sheet-handle" aria-hidden="true"

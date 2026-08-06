@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond } from "next/font/google";
+import { Markazi_Text } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Providers } from "./providers";
@@ -8,12 +8,11 @@ import { DeviceThemeSync } from "@/components/layout/device-theme-sync";
 import { PageTransition } from "@/components/layout/page-transition";
 import "./globals.css";
 
-// Next.js-managed serif for the boutique brand treatments. Italic loaded for
-// the "Forehand Nail" wordmark and the sheet/section titles.
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
+// Next.js-managed display serif for the boutique brand treatments — matches the
+// approved homepage reference (Markazi Text, the elegant Persian-Latin serif).
+const markazi = Markazi_Text({
+  subsets: ["latin", "arabic"],
   weight: ["500", "600", "700"],
-  style: ["normal", "italic"],
   display: "swap",
   variable: "--qhp-serif-font",
 });
@@ -45,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fa" dir="rtl" className={`${cormorant.variable} h-full antialiased`}>
+    <html lang="fa" dir="rtl" className={`${markazi.variable} h-full antialiased`}>
       <head>
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
