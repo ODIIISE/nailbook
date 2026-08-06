@@ -963,29 +963,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ---- Sheet (overlay) chrome ---- */
-.qbf-overlay { position: fixed; inset: 0; z-index: 80; display: flex; align-items: flex-end; justify-content: center; }
-.qbf-scrim { position: absolute; inset: 0; background: rgba(24, 13, 7, .45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: opacity .4s; }
-.qbf-sheet {
-  position: relative;
-  width: 100%;
-  max-width: 430px;
-  /* A max-height alone lets this flex container shrink-wrap to its chrome.
-     The viewport then collapses to zero and only the header/footer remain. */
-  height: min(94dvh, 860px);
-  min-height: 0;
-  max-height: 94dvh;
-  border-radius: 28px 28px 0 0;
-  background: var(--qbf-bg, #FDF6F0);
-  box-shadow: 0 4px 12px rgba(42, 24, 16, .08), 0 28px 70px rgba(42, 24, 16, .18);
-  display: flex;
-  flex-direction: column;
-  transition: transform .6s cubic-bezier(.22, 1, .36, 1);
-  overflow: hidden;
-}
-.qbf-handle { width: 44px; height: 4px; border-radius: 3px; background: rgba(42, 24, 16, .12); margin: 8px auto 2px; cursor: grab; touch-action: none; flex-shrink: 0; }
-.qbf-handle i { display: block; }
-
 /* ---- Flow frame ---- */
 .qbf-flow { display: flex; flex-direction: column; flex: 1; min-height: 0; position: relative; }
 .qbf-flow :focus-visible { outline: 2px solid var(--qbf-rose); outline-offset: 3px; border-radius: 4px; }
@@ -1206,8 +1183,7 @@
 @keyframes qbfTitleIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .qbf-page *, .qbf-page *::before, .qbf-page *::after,
-  .qbf-sheet *, .qbf-sheet *::before, .qbf-sheet *::after {
+  .qbf-page *, .qbf-page *::before, .qbf-page *::after {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
@@ -1217,23 +1193,3 @@
 
 /* ---- Service list container (cards keep their own spacing) ---- */
 .qbf-svc-list { display: flex; flex-direction: column; }
-
-/* ---- Secondary CTA (variant B: standalone /book page) ---- */
-.qhp-cta-alt {
-  position: relative; z-index: 1;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; padding: 14px;
-  border: 1.5px solid var(--qhp-hair-2);
-  border-radius: var(--qhp-r3);
-  background: transparent;
-  color: var(--qhp-sub);
-  font: 800 13.5px 'Vazirmatn';
-  cursor: pointer;
-  margin: -6px 0 14px;
-  transition: all .3s var(--qhp-ease-spring);
-  animation: qhpFadeUp .7s var(--qhp-ease-out) .58s both;
-}
-.qhp-cta-alt:hover { border-color: var(--qhp-rose); color: var(--qhp-rose-2); background: var(--qhp-blush); }
-.qhp-cta-alt:active { transform: scale(.97); }
-.qhp-cta-alt:disabled { opacity: .5; cursor: not-allowed; }
-.qhp-cta-alt svg { width: 16px; height: 16px; }

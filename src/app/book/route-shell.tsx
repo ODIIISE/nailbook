@@ -10,7 +10,6 @@ export function BookingRouteShell() {
   return (
     <QwenBookingFlow
       key={searchParams.toString()}
-      mode="page"
       initialServiceId={service}
       lookId={look}
     />

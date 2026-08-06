@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, CalendarDays, Check, ChevronDown, Clock, Images, Loader2, X,
+  ArrowLeft, CalendarDays, Check, ChevronDown, Clock, Images, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
@@ -63,15 +63,12 @@ function compactToman(n: number): string {
 }
 
 interface QwenBookingFlowProps {
-  /** page = standalone /book route · sheet = overlay on the homepage */
-  mode: "page" | "sheet";
-  open?: boolean;
-  onClose?: () => void;
+  /** Standalone /book route page. */
   initialServiceId?: string | null;
   lookId?: string | null;
 }
 
-export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId = null, lookId = null }: QwenBookingFlowProps) {
+export function QwenBookingFlow({ initialServiceId = null, lookId = null }: QwenBookingFlowProps) {
   const router = useRouter();
   const { salon, workingHours, services, addons, highlights, bookings, blockedTimes, addBooking, refreshSalonData, refreshBookings, specificDaysOff, loaded } = useSalon();
   const { user, sendOtp, verifyOtp } = useAuth();
@@ -105,12 +102,6 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [otpAttempt, setOtpAttempt] = useState(0);
 
-  // Sheet visibility (exit animation)
-  const [sheetVisible, setSheetVisible] = useState(mode === "page");
-  const [dragOffset, setDragOffset] = useState(0);
-  const touchStartY = useRef(0);
-  const closeTimer = useRef<number | null>(null);
-  const previousFocus = useRef<HTMLElement | null>(null);
   const serviceCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const focusScrollTimer = useRef<number | null>(null);
 
@@ -125,70 +116,6 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
   const userPickedDate = useRef(false);
   const anchoredSelection = useRef<string | null>(null);
 
-  // Fresh start every time the overlay opens (scheduled in a microtask so the
-  // reset never happens synchronously during render commit).
-  const wasOpen = useRef(false);
-  useEffect(() => {
-    if (mode !== "sheet") return;
-    if (open && !wasOpen.current) {
-      queueMicrotask(() => {
-        setStep("service");
-        setDir(1);
-        setSelectedServiceId(initialServiceId);
-        setExpandedServiceId(initialServiceId);
-        setSelectedAddons([]);
-        setSelectedTime(null);
-        setSelectedDate(parseGregorianDateKey(getTehranDateKey(new Date())));
-        setOtpState("idle");
-        setAuthError("");
-        setSpamError("");
-        setLookCleared(false);
-        setBookingId("");
-        setBookingIdRaw("");
-        setIsBookingLoading(false);
-        setDragOffset(0);
-        userPickedDate.current = false;
-        anchoredSelection.current = null;
-      });
-    }
-    wasOpen.current = open;
-  }, [mode, open, initialServiceId]);
-
-  // Sheet body-lock + exit animation
-  useEffect(() => {
-    if (mode !== "sheet") return;
-    if (open) {
-      if (closeTimer.current) {
-        window.clearTimeout(closeTimer.current);
-        closeTimer.current = null;
-      }
-      previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      const prevOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      const raf = window.requestAnimationFrame(() => setSheetVisible(true));
-      return () => {
-        window.cancelAnimationFrame(raf);
-        document.body.style.overflow = prevOverflow;
-      };
-    }
-    if (closeTimer.current) window.clearTimeout(closeTimer.current);
-    queueMicrotask(() => setSheetVisible(false));
-    closeTimer.current = window.setTimeout(() => {
-      previousFocus.current?.focus();
-      previousFocus.current = null;
-      closeTimer.current = null;
-    }, 600);
-    return undefined;
-  }, [mode, open]);
-
-  useEffect(() => {
-    if (mode !== "sheet" || !open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { e.preventDefault(); onClose?.(); }
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [mode, open, onClose]);
 
   // Preselect the look's service once highlights resolve (lookbook deep link
   // such as /book?look=… — salon data loads asynchronously, so re-run until
@@ -356,13 +283,12 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
 
   const handleBack = useCallback(() => {
     if (step === "service") {
-      if (mode === "sheet") onClose?.();
-      else router.push("/");
+      router.push("/");
       return;
     }
     if (step === "time") { goTo("service", false); return; }
     if (step === "review") { goTo("time", false); return; }
-  }, [step, mode, onClose, router, goTo]);
+  }, [step, router, goTo]);
 
   const cancelFocusScroll = useCallback(() => {
     if (focusScrollTimer.current) {
@@ -398,8 +324,8 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
 
   useEffect(() => cancelFocusScroll, [cancelFocusScroll]);
   useEffect(() => {
-    if (step !== "service" || (mode === "sheet" && !open)) cancelFocusScroll();
-  }, [cancelFocusScroll, mode, open, step]);
+    if (step !== "service") cancelFocusScroll();
+  }, [cancelFocusScroll, step]);
 
   const handleSelectService = useCallback((id: string) => {
     setSpamError("");
@@ -605,10 +531,6 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
   const hasAnyAvailability = timeSlots.some((s) => s.available);
   const emptyReason: "closed" | "full" | null = timeSlots.length === 0 ? "closed" : hasAnyAvailability ? null : "full";
 
-  // ── Sheet chrome ──
-  if (mode === "sheet" && !open && !sheetVisible) return null;
-  const translateY = mode === "sheet" && !sheetVisible ? "105%" : dragOffset > 0 ? `${dragOffset}px` : "0";
-
   const content = (
     <div className="qbf-flow">
       {/* Header */}
@@ -620,11 +542,7 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
           <span className="qbf-kicker">{STEP_KICKER[step]}</span>
           <h2 key={step} className="qbf-title">{STEP_TITLES[step]}</h2>
         </div>
-        {mode === "sheet" ? (
-          <button type="button" className="qbf-round-btn" onClick={onClose} aria-label="بستن">
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
-        ) : <span className="qbf-head-spacer" />}
+        <span className="qbf-head-spacer" />
       </header>
 
       {/* Progress */}
@@ -817,29 +735,6 @@ export function QwenBookingFlow({ mode, open = false, onClose, initialServiceId 
       )}
     </div>
   );
-
-  if (mode === "sheet") {
-    return (
-      <div className="qbf-overlay" role="presentation">
-        <div className="qbf-scrim" aria-hidden="true" onClick={onClose} style={{ opacity: sheetVisible ? 1 : 0 }} />
-        <div className="qbf-sheet" role="dialog" aria-modal="true" aria-label="رزرو نوبت" style={{ transform: `translateY(${translateY})` }}>
-          <div
-            className="qbf-handle"
-            aria-hidden="true"
-            onTouchStart={(e) => { touchStartY.current = e.touches[0]?.clientY ?? 0; }}
-            onTouchMove={(e) => {
-              const delta = (e.touches[0]?.clientY ?? touchStartY.current) - touchStartY.current;
-              if (delta > 0) setDragOffset(delta);
-            }}
-            onTouchEnd={() => { if (dragOffset > 110) onClose?.(); else setDragOffset(0); }}
-          >
-            <i />
-          </div>
-          {content}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="qbf-page">
