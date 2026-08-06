@@ -1,16 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, CalendarDays, Images,
-  MapPin, Menu, MessageCircle, Phone, Sparkles, X,
+  MapPin, Menu, MessageCircle, Phone, Sparkles,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { ServiceImage } from "@/components/ui/service-image";
-import { useMenu } from "@/components/layout/menu-context";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
@@ -55,19 +53,18 @@ export function QwenCustomerHome() {
   const router = useRouter();
   const { salon, workingHours, services, highlights, loaded } = useSalon();
   const { user, logout } = useAuth();
-  const { open: menuOpen, openMenu, closeMenu } = useMenu();
 
+  const [menuSheetOpen, setMenuSheetOpen] = useState(false);
   const [serviceSheetOpen, setServiceSheetOpen] = useState(false);
   const [activeLook, setActiveLook] = useState<Highlight | null>(null);
-  const [failedHero, setFailedHero] = useState(false);
-  const [failedPortrait, setFailedPortrait] = useState(false);
-  const [failedLogo, setFailedLogo] = useState(false);
+  const [failedImages, setFailedImages] = useState<string[]>([]);
   const closeActiveLook = useCallback(() => setActiveLook(null), []);
 
-  const drawerCloseRef = useRef<HTMLButtonElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
-  const previousBodyOverflowRef = useRef("");
-  const drawerOpenRef = useRef(false);
+  const fallbackHero = "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1200&q=82&auto=format&fit=crop";
+  const fallbackPortrait = "https://images.unsplash.com/photo-1610992015732-2449b76311bc?w=600&q=82&auto=format&fit=crop";
+  const markImageFailed = useCallback((url: string) => {
+    setFailedImages((current) => current.includes(url) ? current : [...current, url]);
+  }, []);
 
   const live = liveLabel(workingHours);
   const activeServices = useMemo(
@@ -82,65 +79,17 @@ export function QwenCustomerHome() {
   const igHandle = salon.instagram_handle || (salon.name.toLowerCase().includes("forehand") ? "forehand.nail" : "");
   const bookingUrl = (serviceId: string) => `/book?service=${encodeURIComponent(serviceId)}`;
 
-  /* Keep the drawer's focus and scroll lifecycle self-contained. */
-  useEffect(() => {
-    if (!menuOpen) {
-      if (!drawerOpenRef.current) return;
-      drawerOpenRef.current = false;
-      document.body.style.overflow = previousBodyOverflowRef.current;
-      previousFocusRef.current?.focus();
-      previousFocusRef.current = null;
-      return;
-    }
-
-    drawerOpenRef.current = true;
-    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    previousBodyOverflowRef.current = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    drawerCloseRef.current?.focus();
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { e.preventDefault(); closeMenu(); return; }
-      if (e.key !== "Tab") return;
-      const drawer = document.querySelector<HTMLElement>(".qh-drawer");
-      if (!drawer) return;
-      const focusable = Array.from(drawer.querySelectorAll<HTMLElement>(
-        "button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])",
-      ));
-      if (!focusable.length) {
-        e.preventDefault();
-        drawer.focus();
-        return;
-      }
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!drawer.contains(document.activeElement)) {
-        e.preventDefault();
-        first.focus();
-      } else if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [menuOpen, closeMenu]);
-
-  useEffect(() => () => {
-    if (!drawerOpenRef.current) return;
-    document.body.style.overflow = previousBodyOverflowRef.current;
-    previousFocusRef.current?.focus();
-  }, []);
-
   /* scroll reveals */
   useEffect(() => {
-    const io = new IntersectionObserver((es) => {
-      es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("qh-in"); io.unobserve(e.target); } });
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("qh-in");
+          io.unobserve(entry.target);
+        }
+      });
     }, { threshold: 0.12 });
-    document.querySelectorAll(".qh-reveal").forEach((el) => io.observe(el));
+    document.querySelectorAll(".qh-reveal").forEach((element) => io.observe(element));
     return () => io.disconnect();
   }, [loaded, highlights.length, services.length]);
 
@@ -148,39 +97,45 @@ export function QwenCustomerHome() {
     <main className="qh-page">
       <div className="qh-phone">
 
-        {/* HERO */}
+        {/* The editable cover image is used first; the fallback keeps the profile
+            visually complete until the owner adds one in salon settings. */}
         <div className="qh-hero" aria-hidden="true">
           <div className="qh-hero-par">
-            {salon.hero_image_url && !failedHero ? (
-              <Image src={salon.hero_image_url} alt="" fill priority unoptimized
-                sizes="(max-width: 430px) 100vw, 430px"
-                className="qh-hero-image" onError={() => setFailedHero(true)} />
-            ) : <div className="qh-hero-fallback" />}
+            {(() => {
+              const source = salon.hero_image_url && !failedImages.includes(salon.hero_image_url)
+                ? salon.hero_image_url
+                : !failedImages.includes(fallbackHero) ? fallbackHero : null;
+              return source ? (
+                <Image src={source} alt="" fill priority unoptimized
+                  sizes="(max-width: 430px) 100vw, 430px"
+                  className="qh-hero-image" onError={() => markImageFailed(source)} />
+              ) : <div className="qh-hero-fallback" />;
+            })()}
           </div>
           <div className="qh-hero-wash" />
         </div>
 
         <div className="qh-controls">
-          <button type="button" className="qh-control" onClick={openMenu}
-            aria-label="باز کردن منو" aria-expanded={menuOpen}>
+          <button type="button" className="qh-control" onClick={() => setMenuSheetOpen(true)} aria-label="باز کردن منو">
             <Menu className="h-5 w-5" aria-hidden="true" />
           </button>
-          <ThemeToggle className="qh-control" />
         </div>
 
         {/* PROFILE */}
         <section className="qh-profile" aria-labelledby="qh-title">
           <div className="qh-ring">
             <div className="qh-ring-in">
-              {salon.portrait_image_url && !failedPortrait ? (
-                <Image src={salon.portrait_image_url} alt={`تصویر ${salon.name}`} fill unoptimized
-                  className="qh-portrait" onError={() => setFailedPortrait(true)} />
-              ) : salon.logo_url && !failedLogo ? (
-                <Image src={salon.logo_url} alt={`لوگوی ${salon.name}`} fill unoptimized
-                  className="qh-portrait" onError={() => setFailedLogo(true)} />
-              ) : (
-                <div className="qh-portrait-fallback" aria-hidden="true"><Sparkles className="h-9 w-9" /></div>
-              )}
+              {(() => {
+                const source = salon.portrait_image_url && !failedImages.includes(salon.portrait_image_url)
+                  ? salon.portrait_image_url
+                  : salon.logo_url && !failedImages.includes(salon.logo_url)
+                    ? salon.logo_url
+                    : !failedImages.includes(fallbackPortrait) ? fallbackPortrait : null;
+                return source ? (
+                  <Image src={source} alt={`تصویر ${salon.name}`} fill unoptimized
+                    className="qh-portrait" onError={() => markImageFailed(source)} />
+                ) : <div className="qh-portrait-fallback" aria-hidden="true"><Sparkles className="h-9 w-9" /></div>;
+              })()}
             </div>
           </div>
 
@@ -229,12 +184,13 @@ export function QwenCustomerHome() {
             <div className="qh-works">
               {highlights.map((h) => {
                 const svc = h.service_id ? serviceById.get(h.service_id) : undefined;
+                const highlightSource = h.cover_url && !failedImages.includes(h.cover_url) ? h.cover_url : null;
                 return (
                   <button key={h.id} type="button" className="qh-work-card"
                     onClick={() => setActiveLook(h)} aria-label={`دیدن ${h.name}`}>
-                    {h.cover_url ? (
-                      <Image src={h.cover_url} alt={h.name} fill unoptimized loading="lazy"
-                        sizes="190px" className="qh-work-image" />
+                    {highlightSource ? (
+                      <Image src={highlightSource} alt={h.name} fill unoptimized loading="lazy"
+                        sizes="190px" className="qh-work-image" onError={() => markImageFailed(highlightSource)} />
                     ) : (
                       <div className="qh-work-fallback" aria-hidden="true">
                         <Images className="h-8 w-8" /><strong>{h.name.charAt(0)}</strong>
@@ -312,37 +268,6 @@ export function QwenCustomerHome() {
         </footer>
       </div>
 
-      {/* DRAWER */}
-      {menuOpen && (
-        <div className="qh-drawer-layer">
-          <button type="button" className="qh-drawer-backdrop" onClick={closeMenu} aria-label="بستن منو" />
-          <aside className="qh-drawer" role="dialog" aria-modal="true" aria-labelledby="qh-drawer-t">
-            <div className="qh-drawer-head">
-              <strong id="qh-drawer-t">{salon.name}</strong>
-              <button ref={drawerCloseRef} type="button" className="qh-drawer-close" onClick={closeMenu} aria-label="بستن منو">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <nav className="qh-drawer-list">
-              <button type="button" onClick={() => {
-                closeMenu();
-                document.querySelector(".qh-cta")?.scrollIntoView({ behavior: "smooth", block: "center" });
-              }}>رزرو نوبت</button>
-              <button type="button" onClick={() => { closeMenu(); router.push("/"); }}>صفحه اصلی</button>
-              {user ? (
-                <>
-                  <button type="button" onClick={() => { closeMenu(); router.push("/profile"); }}>پروفایل</button>
-                  <button type="button" onClick={async () => { await logout(); closeMenu(); }}>خروج</button>
-                </>
-              ) : (
-                <button type="button" onClick={() => { closeMenu(); router.push("/login"); }}>ورود</button>
-              )}
-              <button type="button" onClick={() => { closeMenu(); router.push("/owner/login"); }}>ورود مدیر</button>
-            </nav>
-          </aside>
-        </div>
-      )}
-
       {/* SERVICE PICKER (existing BottomSheet, restyled content) */}
       <BottomSheet
         open={serviceSheetOpen}
@@ -371,7 +296,36 @@ export function QwenCustomerHome() {
             </button>
           ))}
         </div>
-      </BottomSheet>      {/* LOOKBOOK DETAIL — reuse the shared sheet primitive for one modal lifecycle. */}
+      </BottomSheet>
+
+      <BottomSheet open={menuSheetOpen} onClose={() => setMenuSheetOpen(false)} title={salon.name || "منو"}>
+        <nav className="qh-home-menu" aria-label="منوی سالن">
+          <button type="button" onClick={() => { setMenuSheetOpen(false); setServiceSheetOpen(true); }}>
+            <CalendarDays className="h-5 w-5" aria-hidden="true" />
+            <span>رزرو نوبت</span>
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          </button>
+          {user ? (
+            <>
+              <button type="button" onClick={() => { setMenuSheetOpen(false); router.push("/profile"); }}>
+                <span>پروفایل من</span><ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              </button>
+              <button type="button" onClick={async () => { await logout(); setMenuSheetOpen(false); }}>
+                <span>خروج از حساب</span><ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </>
+          ) : (
+            <button type="button" onClick={() => { setMenuSheetOpen(false); router.push("/login"); }}>
+              <span>ورود به حساب</span><ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
+          <button type="button" onClick={() => { setMenuSheetOpen(false); router.push("/owner/login"); }}>
+            <span>ورود مدیر</span><ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </nav>
+      </BottomSheet>
+
+      {/* LOOKBOOK DETAIL — reuse the shared sheet primitive for one modal lifecycle. */}
       <BottomSheet
         open={activeLook !== null}
         onClose={closeActiveLook}
@@ -382,8 +336,8 @@ export function QwenCustomerHome() {
           return (
             <div className="space-y-4">
               <div className="relative h-64 overflow-hidden rounded-2xl bg-muted">
-                {activeLook.cover_url ? (
-                  <Image src={activeLook.cover_url} alt={activeLook.name} fill unoptimized sizes="430px" className="object-cover" />
+                {activeLook.cover_url && !failedImages.includes(activeLook.cover_url) ? (
+                  <Image src={activeLook.cover_url} alt={activeLook.name} fill unoptimized sizes="430px" className="object-cover" onError={() => markImageFailed(activeLook.cover_url!)} />
                 ) : (
                   <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground" aria-hidden="true">
                     <Images className="h-10 w-10" />
