@@ -923,7 +923,9 @@
    on the homepage. Full reduced-motion support.
    ================================================================ */
 
-.qbf-page {
+:root {
+  /* QBF — booking-flow tokens. Defined globally (not on .qbf-page) so the
+     overlay-sheet variant, which never renders .qbf-page, inherits them too. */
   --qbf-bg: #FDF6F0;
   --qbf-bg-2: #FBF1E8;
   --qbf-card: #FFFFFF;
@@ -942,10 +944,14 @@
   --qbf-r1: 10px;
   --qbf-r2: 14px;
   --qbf-r3: 20px;
+  --qbf-r4: 28px;
   --qbf-sh1: 0 1px 2px rgba(42, 24, 16, .04), 0 6px 18px rgba(42, 24, 16, .06);
   --qbf-sh2: 0 2px 6px rgba(42, 24, 16, .06), 0 14px 36px rgba(42, 24, 16, .10);
   --qbf-ease-out: cubic-bezier(.22, 1, .36, 1);
   --qbf-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.qbf-page {
   min-height: 100dvh;
   max-width: 430px;
   margin: 0 auto;
@@ -1001,8 +1007,9 @@
 
 /* ---- Steps ---- */
 .qbf-view { position: relative; flex: 1; min-height: 0; overflow: hidden; }
-.qbf-step { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; }
+.qbf-step { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; opacity: 0; visibility: hidden; pointer-events: none; }
 .qbf-step::-webkit-scrollbar { display: none; }
+.qbf-step.active { opacity: 1; visibility: visible; pointer-events: auto; }
 .qbf-step.active.enter-fwd { animation: qbfEnterFwd .5s var(--qbf-ease-out) both; }
 .qbf-step.active.enter-back { animation: qbfEnterBack .5s var(--qbf-ease-out) both; }
 @keyframes qbfEnterFwd { from { opacity: 0; transform: translateX(-44px); } to { opacity: 1; transform: none; } }
