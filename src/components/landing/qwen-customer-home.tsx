@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, CalendarDays, Footprints, Hand, Images,
-  MapPin, Menu, MessageCircle, Paintbrush, Phone, Sparkles, Wrench, X,
+  ArrowLeft, CalendarDays, Images,
+  MapPin, Menu, MessageCircle, Phone, Sparkles, X,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -15,14 +15,8 @@ import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { isValidIranianPhone } from "@/lib/digits";
-import type { Highlight, Service } from "@/lib/types";
+import type { Highlight } from "@/lib/types";
 import type { WorkingHours } from "@/lib/slots";
-import { HighlightSheet } from "./highlight-sheet";
-
-interface QwenCustomerHomeProps {
-  /** Kept for backward-compat with page.tsx. The polished sheet now opens internally. */
-  onSelectHighlight?: (highlight: Highlight) => void;
-}
 
 const DAY_LABELS: Record<string, string> = {
   sat: "شنبه", sun: "یکشنبه", mon: "دوشنبه", tue: "سه‌شنبه",
@@ -57,25 +51,7 @@ function formatHours(txt: string, h: WorkingHours) {
     .map(([d, v]) => `${DAY_LABELS[d]} ${v!.open} تا ${v!.close}`)
     .join(" · ") || "اطلاعات ثبت نشده";
 }
-function iconKey(s: Service): "hand" | "paintbrush" | "footprints" | "wrench" {
-  const k = s.icon_key?.toLowerCase();
-  if (k === "hand" || k === "paintbrush" || k === "footprints" || k === "wrench") return k;
-  const n = s.name.toLowerCase();
-  if (n.includes("ترمیم") || n.includes("repair")) return "wrench";
-  if (n.includes("پدیکور") || n.includes("pedicure")) return "footprints";
-  if (n.includes("ژل") || n.includes("gel") || n.includes("لاک")) return "paintbrush";
-  return "hand";
-}
-function ServiceIcon({ s }: { s: Service }) {
-  const k = iconKey(s);
-  const p = { className: "h-7 w-7", strokeWidth: 1.7 } as const;
-  if (k === "paintbrush") return <Paintbrush {...p} />;
-  if (k === "footprints") return <Footprints {...p} />;
-  if (k === "wrench") return <Wrench {...p} />;
-  return <Hand {...p} />;
-}
-
-export function QwenCustomerHome({}: QwenCustomerHomeProps) {
+export function QwenCustomerHome() {
   const router = useRouter();
   const { salon, workingHours, services, highlights, loaded } = useSalon();
   const { user, logout } = useAuth();
@@ -86,10 +62,12 @@ export function QwenCustomerHome({}: QwenCustomerHomeProps) {
   const [failedHero, setFailedHero] = useState(false);
   const [failedPortrait, setFailedPortrait] = useState(false);
   const [failedLogo, setFailedLogo] = useState(false);
+  const closeActiveLook = useCallback(() => setActiveLook(null), []);
 
-  const heroParRef = useRef<HTMLDivElement>(null);
   const drawerCloseRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const previousBodyOverflowRef = useRef("");
+  const drawerOpenRef = useRef(false);
 
   const live = liveLabel(workingHours);
   const activeServices = useMemo(
@@ -102,47 +80,60 @@ export function QwenCustomerHome({}: QwenCustomerHomeProps) {
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.address)}`
     : null;
   const igHandle = salon.instagram_handle || (salon.name.toLowerCase().includes("forehand") ? "forehand.nail" : "");
+  const bookingUrl = (serviceId: string) => `/book?service=${encodeURIComponent(serviceId)}`;
 
-  /* parallax (GPU-only) */
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let raf = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        if (!heroParRef.current) return;
-        const y = Math.min(window.scrollY, 480);
-        heroParRef.current.style.transform = `translate3d(0,${y * 0.18}px,0)`;
-      });
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => { window.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
-  }, []);
-
-  /* drawer focus trap */
+  /* Keep the drawer's focus and scroll lifecycle self-contained. */
   useEffect(() => {
     if (!menuOpen) {
-      document.body.style.overflow = "";
+      if (!drawerOpenRef.current) return;
+      drawerOpenRef.current = false;
+      document.body.style.overflow = previousBodyOverflowRef.current;
       previousFocusRef.current?.focus();
       previousFocusRef.current = null;
       return;
     }
+
+    drawerOpenRef.current = true;
     previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    previousBodyOverflowRef.current = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     drawerCloseRef.current?.focus();
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") { e.preventDefault(); closeMenu(); return; }
       if (e.key !== "Tab") return;
-      const d = document.querySelector<HTMLElement>(".qh-drawer");
-      if (!d) return;
-      const f = Array.from(d.querySelectorAll<HTMLElement>("button, a[href], [tabindex]:not([tabindex='-1'])"));
-      if (!f.length) return;
-      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
-      else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+      const drawer = document.querySelector<HTMLElement>(".qh-drawer");
+      if (!drawer) return;
+      const focusable = Array.from(drawer.querySelectorAll<HTMLElement>(
+        "button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])",
+      ));
+      if (!focusable.length) {
+        e.preventDefault();
+        drawer.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!drawer.contains(document.activeElement)) {
+        e.preventDefault();
+        first.focus();
+      } else if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+    return () => document.removeEventListener("keydown", onKey);
   }, [menuOpen, closeMenu]);
+
+  useEffect(() => () => {
+    if (!drawerOpenRef.current) return;
+    document.body.style.overflow = previousBodyOverflowRef.current;
+    previousFocusRef.current?.focus();
+  }, []);
 
   /* scroll reveals */
   useEffect(() => {
@@ -159,7 +150,7 @@ export function QwenCustomerHome({}: QwenCustomerHomeProps) {
 
         {/* HERO */}
         <div className="qh-hero" aria-hidden="true">
-          <div className="qh-hero-par" ref={heroParRef}>
+          <div className="qh-hero-par">
             {salon.hero_image_url && !failedHero ? (
               <Image src={salon.hero_image_url} alt="" fill priority unoptimized
                 sizes="(max-width: 430px) 100vw, 430px"
@@ -221,7 +212,7 @@ export function QwenCustomerHome({}: QwenCustomerHomeProps) {
           <button type="button" className="qh-cta" onClick={() => setServiceSheetOpen(true)}
             disabled={!loaded || activeServices.length === 0}>
             <CalendarDays className="h-6 w-6" aria-hidden="true" />
-            <strong>{activeServices.length ? "شروع رزرو" : "رزرو موقتاً بسته است"}</strong>
+            <strong>{!loaded ? "در حال آماده‌سازی" : activeServices.length ? "شروع رزرو" : "رزرو موقتاً بسته است"}</strong>
             <ArrowLeft className="qh-cta-chev h-5 w-5" aria-hidden="true" />
           </button>
           <p className="qh-micro">بدون تماس تلفنی · زمان‌های آزاد همین‌جا</p>
@@ -274,7 +265,7 @@ export function QwenCustomerHome({}: QwenCustomerHomeProps) {
             <div className="qh-menu">
               {activeServices.map((s, i) => (
                 <button key={s.id} type="button" className="qh-menu-row"
-                  onClick={() => router.push(`/book?service=${s.id}`)} aria-label={`رزرو ${s.name}`}>
+                  onClick={() => router.push(bookingUrl(s.id))} aria-label={`رزرو ${s.name}`}>
                   <span className="qh-num" aria-hidden="true">{toPersianDigits(String(i + 1).padStart(2, "0"))}</span>
                   <span className="qh-body">
                     <strong>
@@ -353,7 +344,11 @@ export function QwenCustomerHome({}: QwenCustomerHomeProps) {
       )}
 
       {/* SERVICE PICKER (existing BottomSheet, restyled content) */}
-      <BottomSheet open={serviceSheetOpen} onClose={() => setServiceSheetOpen(false)} title="انتخاب خدمت">
+      <BottomSheet
+        open={serviceSheetOpen}
+        onClose={() => setServiceSheetOpen(false)}
+        title="انتخاب خدمت"
+      >
         <div className="qh-pick-intro">
           <CalendarDays className="h-5 w-5" aria-hidden="true" />
           <div>
@@ -365,7 +360,7 @@ export function QwenCustomerHome({}: QwenCustomerHomeProps) {
           {activeServices.map((s) => (
             <button key={s.id} type="button" onClick={() => {
               setServiceSheetOpen(false);
-              router.push(`/book?service=${s.id}`);
+              router.push(bookingUrl(s.id));
             }}>
               <span className="qh-pick-img"><ServiceImage service={s} sizes="48px" className="object-cover" /></span>
               <span className="qh-pick-meta">
@@ -376,18 +371,52 @@ export function QwenCustomerHome({}: QwenCustomerHomeProps) {
             </button>
           ))}
         </div>
+      </BottomSheet>      {/* LOOKBOOK DETAIL — reuse the shared sheet primitive for one modal lifecycle. */}
+      <BottomSheet
+        open={activeLook !== null}
+        onClose={closeActiveLook}
+        title={activeLook?.name ?? "مدل انتخاب‌شده"}
+      >
+        {activeLook && (() => {
+          const service = activeLook.service_id ? serviceById.get(activeLook.service_id) : undefined;
+          return (
+            <div className="space-y-4">
+              <div className="relative h-64 overflow-hidden rounded-2xl bg-muted">
+                {activeLook.cover_url ? (
+                  <Image src={activeLook.cover_url} alt={activeLook.name} fill unoptimized sizes="430px" className="object-cover" />
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground" aria-hidden="true">
+                    <Images className="h-10 w-10" />
+                    <strong>{activeLook.name}</strong>
+                  </div>
+                )}
+              </div>
+              <p className="text-small leading-7 text-muted-foreground">
+                این مدل را دوست داری؟ خدمت مربوطه را در صفحهٔ رزرو باز کن.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {service ? (
+                  <>
+                    <span className="rounded-full bg-primary px-3 py-1.5 text-caption font-bold text-primary-foreground">{service.name}</span>
+                    <span className="rounded-full border border-border bg-card px-3 py-1.5 text-caption font-bold text-muted-foreground">{formatPrice(Number(service.price))} تومان · پایه</span>
+                  </>
+                ) : (
+                  <span className="rounded-full border border-border bg-card px-3 py-1.5 text-caption font-bold text-muted-foreground">مدل الهام‌بخش</span>
+                )}
+              </div>
+              {service ? (
+                <button type="button" className="qh-sheet-cta" onClick={() => { closeActiveLook(); router.push(bookingUrl(service.id)); }}>
+                  رزرو این مدل
+                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                </button>
+              ) : (
+                <button type="button" className="qh-sheet-cta ghost" onClick={closeActiveLook}>بستن</button>
+              )}
+              <p className="text-center text-caption text-muted-foreground">{salon.name}</p>
+            </div>
+          );
+        })()}
       </BottomSheet>
-
-      {/* LOOK SHEET MODAL */}
-      {activeLook && (
-        <HighlightSheet
-          highlight={activeLook}
-          service={activeLook.service_id ? serviceById.get(activeLook.service_id) : undefined}
-          salonName={salon.name}
-          onClose={() => setActiveLook(null)}
-          onBook={(svcId) => { setActiveLook(null); router.push(`/book?service=${svcId}`); }}
-        />
-      )}
     </main>
   );
 }

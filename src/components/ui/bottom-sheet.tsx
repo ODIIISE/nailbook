@@ -93,7 +93,12 @@ export function BottomSheet({ open, onClose, onClosed, title, children }: Bottom
   }, [open, clearTimers]);
 
   useEffect(() => {
-    return () => clearTimers();
+    return () => {
+      clearTimers();
+      document.body.style.overflow = previousOverflowRef.current;
+      previousActiveElementRef.current?.focus();
+      previousActiveElementRef.current = null;
+    };
   }, [clearTimers]);
 
   const handleClose = useCallback(() => {

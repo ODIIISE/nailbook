@@ -25,7 +25,7 @@ import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
 import { formatPrice, toPersianDigits, gregorianToJalali, jalaliToGregorian, formatJalaliDate, DAYS_IN_MONTH, isJalaliLeapYear, PERSIAN_MONTHS } from "@/lib/jalali";
 import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
-import { getTehranDateKey } from "@/lib/time";
+import { getTehranDateKey, parseGregorianDateKey } from "@/lib/time";
 import type { Booking } from "@/lib/types";
 import { haptic } from "@/lib/haptics";
 
@@ -34,7 +34,7 @@ type BookingStep = "addons" | "datetime" | "auth" | "confirm" | "receipt";
 export default function BookContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { salon, workingHours, services, addons, bookings, blockedTimes, addBooking, refreshSalonData, refreshBookings, specificDaysOff } = useSalon();
+  const { salon, workingHours, services, addons, bookings, blockedTimes, addBooking, refreshSalonData, refreshBookings, specificDaysOff, loaded } = useSalon();
   const { user, sendOtp, verifyOtp } = useAuth();
 
   // Refresh salon data on mount to get latest working hours
@@ -58,15 +58,11 @@ export default function BookContent() {
   const isSubmittingRef = useRef(false);
 
   // Form state
-  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const [selectedServiceId] = useState<string | null>(() => searchParams.get("service"));
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>(() => {
-    // Use Tehran timezone to avoid timezone drift — UTC noon like jalaliToGregorian
-    const now = new Date();
-    const tehranKey = getTehranDateKey(now);
-    const [y, m, d] = tehranKey.split("-").map(Number);
-    return new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
-  });
+  const [selectedDate, setSelectedDate] = useState<Date>(() =>
+    parseGregorianDateKey(getTehranDateKey(new Date())),
+  );
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string>("");
   const [bookingIdRaw, setBookingIdRaw] = useState<string>("");
@@ -115,50 +111,38 @@ export default function BookContent() {
 
   const hasAddons = activeAddons.length > 0;
 
-  // Start at addons if service has them, otherwise datetime
-  const [step, setStep] = useState<BookingStep>("addons");
-
-  // Sync initial step with the ?service=... query param.
-  useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
-    const serviceId = searchParams.get("service");
-    if (serviceId && services.length > 0) {
-      // Sync URL query param to local booking step state
-      setSelectedServiceId(serviceId);
-      const service = services.find((s) => s.id === serviceId);
-      if (service) {
-        const serviceAddons = addons.filter((a) => service.addon_ids.includes(a.id) && a.is_active);
-        setStep(serviceAddons.length > 0 ? "addons" : "datetime");
-      }
-    }
-    // Only run on mount + when services load (not on every services/addons update)
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [searchParams, services, addons]);
+  // The route is the source of truth for the initial service. The first
+  // visible step is derived once salon data resolves, so there is no effect
+  // that can reset an in-progress booking during a background refresh.
+  const [step, setStep] = useState<BookingStep | null>(null);
+  const currentStep: BookingStep = step ?? (selectedService && hasAddons ? "addons" : "datetime");
 
   // Compute total duration with addons
   const totalDuration = useMemo(() => {
     if (!selectedService) return 0;
     const addonsDur = selectedAddons.reduce((sum, id) => {
-      const addon = addons.find((a) => a.id === id);
+      const addon = activeAddons.find((a) => a.id === id);
       return sum + Number(addon?.duration_minutes || 0);
     }, 0);
     const raw = Number(selectedService.duration_minutes) + addonsDur;
-    const buffer = salon.slot_buffer_minutes;
-    const R = salon.slot_interval_minutes;
-    if (buffer > 0) {
-      return Math.ceil((raw + buffer) / R) * R;
-    }
-    return Math.ceil(raw / R) * R;
-  }, [selectedService, selectedAddons, addons, salon]);
+    const buffer = Number(salon.slot_buffer_minutes);
+    const configuredResolution = Number(salon.slot_interval_minutes);
+    const resolution = Number.isFinite(configuredResolution) && configuredResolution >= 5 && configuredResolution <= 60
+      ? configuredResolution
+      : 15;
+    if (!Number.isFinite(raw) || raw < 0) return 0;
+    const safeBuffer = Number.isFinite(buffer) && buffer > 0 ? buffer : 0;
+    return Math.ceil((raw + safeBuffer) / resolution) * resolution;
+  }, [selectedService, selectedAddons, activeAddons, salon]);
 
   const totalPrice = useMemo(() => {
     if (!selectedService) return 0;
     const addonsPrice = selectedAddons.reduce((sum, id) => {
-      const addon = addons.find((a) => a.id === id);
+      const addon = activeAddons.find((a) => a.id === id);
       return sum + Number(addon?.price || 0);
     }, 0);
     return Number(selectedService.price) + addonsPrice;
-  }, [selectedService, selectedAddons, addons]);
+  }, [selectedService, selectedAddons, activeAddons]);
 
   // Keep receipt date tokens structured so visual order never depends on
   // browser bidi heuristics for a mixed Persian/number string.
@@ -169,17 +153,21 @@ export default function BookContent() {
 
   const selectedAddonItems = useMemo(() => {
     return selectedAddons
-      .map((id) => addons.find((a) => a.id === id))
+      .map((id) => activeAddons.find((a) => a.id === id))
       .filter((a): a is NonNullable<typeof a> => Boolean(a));
-  }, [selectedAddons, addons]);
+  }, [selectedAddons, activeAddons]);
+
+  const validSelectedAddonIds = useMemo(
+    () => selectedAddonItems.map((addon) => addon.id),
+    [selectedAddonItems],
+  );
 
   const selectedEndTime = useMemo(() => {
     if (!selectedTime) return "";
     const [h, m] = selectedTime.split(":").map(Number);
     const endMinutes = h * 60 + m + totalDuration;
-    // Cap at 23:59 to prevent invalid time display
-    const capped = Math.min(endMinutes, 23 * 60 + 59);
-    return `${String(Math.floor(capped / 60)).padStart(2, "0")}:${String(capped % 60).padStart(2, "0")}`;
+    if (!Number.isFinite(h) || !Number.isFinite(m) || endMinutes >= 24 * 60) return "";
+    return `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
   }, [selectedTime, totalDuration]);
 
   const timeSlots = useMemo(() => {
@@ -197,7 +185,7 @@ export default function BookContent() {
     });
 
     const addonsDuration = selectedAddons.reduce((sum, id) => {
-      const addon = addons.find((a) => a.id === id);
+      const addon = activeAddons.find((a) => a.id === id);
       return sum + Number(addon?.duration_minutes || 0);
     }, 0);
 
@@ -223,7 +211,7 @@ export default function BookContent() {
       },
       specificDaysOff
     );
-  }, [selectedDate, selectedService, selectedAddons, workingHours, salon, bookings, blockedTimes, addons, specificDaysOff]);
+  }, [selectedDate, selectedService, selectedAddons, activeAddons, workingHours, salon, bookings, blockedTimes, specificDaysOff]);
 
   // ─── Navigation ───
 
@@ -243,11 +231,11 @@ export default function BookContent() {
     flow.push("datetime");
     flow.push("confirm");
 
-    if (step === "auth") {
+    if (currentStep === "auth") {
       setStep("confirm");
       resetAuth();
     } else {
-      const idx = flow.indexOf(step);
+      const idx = flow.indexOf(currentStep);
       if (idx > 0) {
         setStep(flow[idx - 1]);
         resetAuth();
@@ -255,7 +243,7 @@ export default function BookContent() {
         router.push("/");
       }
     }
-  }, [step, router, hasAddons, resetAuth]);
+  }, [currentStep, router, hasAddons, resetAuth]);
 
   const handleAddonToggle = useCallback((addonId: string) => {
     setSelectedAddons((prev) =>
@@ -395,6 +383,13 @@ export default function BookContent() {
     if (!selectedDate || !selectedService || !selectedTime) return;
     if (isSubmittingRef.current) return;
 
+    const [h, m] = selectedTime.split(":").map(Number);
+    const endMinutes = h * 60 + m + totalDuration;
+    if (!Number.isFinite(h) || !Number.isFinite(m) || endMinutes >= 24 * 60) {
+      setSpamError("این زمان برای مدت خدمت قابل رزرو نیست");
+      return;
+    }
+
     // Guests must provide a valid phone — the salon contacts them for
     // confirmation and the receipt SMS. Anti-spam still applies server-side.
     if (!user) {
@@ -411,8 +406,6 @@ export default function BookContent() {
 
     const customerPhone = user?.phone || normalizeDigits(guestPhone);
     const customerName = user?.name || guestName.trim() || authName || "";
-    const [h, m] = selectedTime.split(":").map(Number);
-    const endMinutes = h * 60 + m + totalDuration;
     const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
 
     const id = crypto.randomUUID();
@@ -422,7 +415,7 @@ export default function BookContent() {
       id,
       user_id: user?.id,
       service_id: selectedService.id,
-      selected_addons: selectedAddons,
+      selected_addons: validSelectedAddonIds,
       customer_name: customerName,
       customer_phone: customerPhone,
       date: (() => { const j = gregorianToJalali(selectedDate); return `${j.jy}/${String(j.jm).padStart(2, "0")}/${String(j.jd).padStart(2, "0")}`; })(),
@@ -461,7 +454,7 @@ export default function BookContent() {
         setSpamError(result.error || "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید");
       }
     }
-  }, [selectedDate, selectedService, selectedTime, user, guestPhone, guestName, authName, addBooking, selectedAddons, totalDuration, refreshBookings]);
+  }, [selectedDate, selectedService, selectedTime, user, guestPhone, guestName, authName, addBooking, validSelectedAddonIds, totalDuration, refreshBookings]);
 
   // ─── Step titles ───
 
@@ -477,27 +470,34 @@ export default function BookContent() {
     <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
     <div className="qwen-book-page min-h-screen">
       <AppHeader
-        showBack={step !== "receipt"}
-        title={stepTitles[step]}
+        showBack={currentStep !== "receipt"}
+        title={stepTitles[currentStep]}
         subtitle={selectedService?.name}
-        onBack={step !== "receipt" ? goBack : undefined}
+        onBack={currentStep !== "receipt" ? goBack : undefined}
       />
 
       {/* Progress Indicator */}
-      {step !== "receipt" && selectedService && (
+      {currentStep !== "receipt" && selectedService && (
         <div className="mx-auto max-w-lg">
           <BookingProgress
-            currentStep={step}
+            currentStep={currentStep}
             hasAddons={hasAddons}
           />
         </div>
       )}
 
-      <div className={`qwen-book-content qwen-book-shell mx-auto max-w-lg px-4 pt-4 space-y-4 ${step === "confirm" ? "pb-40" : "pb-28"}`}>
+      <div className={`qwen-book-content qwen-book-shell mx-auto max-w-lg px-4 pt-4 space-y-4 ${currentStep === "confirm" ? "pb-40" : "pb-28"}`}>
+        {loaded && !selectedService && (
+          <div className="rounded-2xl border border-border bg-card p-6 text-center" role="alert">
+            <p className="text-body font-bold text-foreground">خدمت موردنظر پیدا نشد</p>
+            <p className="mt-2 text-small text-muted-foreground">لطفاً از صفحه اصلی یک خدمت فعال انتخاب کنید.</p>
+            <Button type="button" className="mt-4 rounded-xl" onClick={() => router.push("/")}>بازگشت به صفحه اصلی</Button>
+          </div>
+        )}
 
         {/* ─── Step 1: Service Detail + Addons ─── */}
-        {step === "addons" && (
-          <div key={step} className="space-y-4 step-animate">
+        {currentStep === "addons" && selectedService && (
+          <div key={currentStep} className="space-y-4 step-animate">
             {selectedService ? (
               <ServiceDetail
                 service={selectedService}
@@ -555,14 +555,14 @@ export default function BookContent() {
         )}
 
         {/* ─── Step 2: Date & Time ─── */}
-        {step === "datetime" && (
-          <div key={step} className="space-y-4 step-animate">
+        {currentStep === "datetime" && selectedService && (
+          <div key={currentStep} className="space-y-4 step-animate">
             <JalaliCalendar
               selectedDate={selectedDate}
               onSelectDate={handleSelectDate}
               serviceDuration={Number(selectedService?.duration_minutes || 0)}
               addonsDuration={selectedAddons.reduce((sum, id) => {
-                const addon = addons.find((a) => a.id === id);
+                const addon = activeAddons.find((a) => a.id === id);
                 return sum + Number(addon?.duration_minutes || 0);
               }, 0)}
               config={{
@@ -612,8 +612,8 @@ export default function BookContent() {
         )}
 
         {/* ─── Step 3: Auth (optional detour from confirm) ─── */}
-        {step === "auth" && (
-          <AuthCardRoot key={step} className="step-animate">
+        {currentStep === "auth" && selectedService && (
+          <AuthCardRoot key={currentStep} className="step-animate">
             {authStep === "phone" && (
               <AuthCard
                 icon={<Smartphone className="h-6 w-6" />}
@@ -723,8 +723,8 @@ export default function BookContent() {
         )}
 
         {/* ─── Step 4: Confirm (Pre-Receipt) ─── */}
-        {step === "confirm" && selectedService && selectedDate && selectedTime && (
-          <div key={step} className="space-y-3 step-animate">
+        {currentStep === "confirm" && selectedService && selectedDate && selectedTime && (
+          <div key={currentStep} className="space-y-3 step-animate">
             {isBookingLoading ? (
               <div className="space-y-3">
                 <Skeleton className="h-48 w-full rounded-2xl" />
@@ -810,8 +810,8 @@ export default function BookContent() {
         )}
 
         {/* ─── Step 5: Receipt ─── */}
-        {step === "receipt" && selectedService && selectedDate && selectedTime && (
-          <div key={step} className="step-animate">
+        {currentStep === "receipt" && selectedService && selectedDate && selectedTime && (
+          <div key={currentStep} className="step-animate">
             <BookingConfirm
               serviceName={selectedService.name}
               date={selectedDate}
@@ -833,7 +833,7 @@ export default function BookContent() {
       </div>
 
       {/* Sticky CTA for datetime step */}
-      {step === "datetime" && selectedTime && (
+      {currentStep === "datetime" && selectedService && selectedTime && (
         <StickyActionBar>
           <StickyPrimaryButton onClick={handleDateTimeContinue}>
             ادامه
@@ -843,7 +843,7 @@ export default function BookContent() {
       )}
 
       {/* Sticky CTA for addons step */}
-      {step === "addons" && (
+      {currentStep === "addons" && selectedService && (
         <StickyActionBar>
           <StickyPrimaryButton onClick={handleAddonsContinue}>
             {hasAddons ? "انتخاب زمان" : "ادامه"}
@@ -853,7 +853,7 @@ export default function BookContent() {
       )}
 
       {/* Sticky CTA for confirm step — keeps the decisive action in the thumb zone */}
-      {step === "confirm" && !isBookingLoading && (
+      {currentStep === "confirm" && !isBookingLoading && (
         <StickyActionBar>
           <StickyPrimaryButton
             onClick={handleConfirmBooking}

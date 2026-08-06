@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import { HighlightViewer } from "@/components/landing/highlight-viewer";
 import { QwenCustomerHome } from "@/components/landing/qwen-customer-home";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { Heart, Store, Users, Calendar, Sparkles } from "lucide-react";
@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { GradientBackground } from "@/components/layout/gradient-background";
 
 import { toast } from "sonner";
-import type { Highlight } from "@/lib/types";
 
 function AdminLanding() {
   return (
@@ -92,8 +91,8 @@ function AdminLanding() {
 }
 
 function SalonBooking() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const [viewingHighlight, setViewingHighlight] = useState<Highlight | null>(null);
 
   useEffect(() => {
     const welcome = searchParams.get("welcome");
@@ -103,18 +102,15 @@ function SalonBooking() {
         description: searchParams.get("name") ? "حساب شما با موفقیت ساخته شد" : "ورود شما با موفقیت انجام شد",
         duration: 3000,
       });
-      window.history.replaceState({}, "", "/");
+      router.replace("/", { scroll: false });
     }
-  }, [searchParams]);
+  }, [router, searchParams]);
 
   return (
     <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
     <div className="relative min-h-screen">
       <div className="relative z-10">
-        <QwenCustomerHome onSelectHighlight={setViewingHighlight} />
-        {viewingHighlight && (
-          <HighlightViewer highlight={viewingHighlight} onClose={() => setViewingHighlight(null)} />
-        )}
+        <QwenCustomerHome />
       </div>
     </div>
     </SalonGuard>

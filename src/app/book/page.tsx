@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import BookContent from "./content";
+import { BookingRouteShell } from "./route-shell";
 
 export const metadata: Metadata = {
   title: "رزرو نوبت | Forehand Nail Studio",
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function BookPage() {
   return (
     <Suspense>
-      <BookContent />
+      <BookingRouteShell />
     </Suspense>
   );
 }

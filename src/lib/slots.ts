@@ -367,16 +367,23 @@ export function generateTimeSlots(
       !Number.isFinite(configuredAddonDuration) || configuredAddonDuration < 0) {
     return [];
   }
-  const proximityMinutes = (config.proximity_window_hours ?? 2) * 60;
+  const configuredBuffer = Number(bufferMinutes);
+  const safeBuffer = Number.isFinite(configuredBuffer) && configuredBuffer >= 0 ? configuredBuffer : 0;
+  const configuredProximity = Number(config.proximity_window_hours);
+  const proximityMinutes = Number.isFinite(configuredProximity) && configuredProximity >= 0
+    ? configuredProximity * 60
+    : 120;
+  const configuredOverflow = Number(config.overflow_minutes);
+  const safeOverflow = Number.isFinite(configuredOverflow) && configuredOverflow >= 0 ? configuredOverflow : 0;
   const cfg: EngineConfig = {
     resolution,
-    buffer: bufferMinutes,
+    buffer: safeBuffer,
     proximityWindow: proximityMinutes,
-    earlyExtraHours: config.early_extra_hours ?? 0,
-    lateExtraHours: config.late_extra_hours ?? 0,
-    expandThreshold: config.expand_threshold ?? 80,
+    earlyExtraHours: Math.max(0, Number(config.early_extra_hours) || 0),
+    lateExtraHours: Math.max(0, Number(config.late_extra_hours) || 0),
+    expandThreshold: Number.isFinite(Number(config.expand_threshold)) ? Number(config.expand_threshold) : 80,
     allowOverflow: config.allow_overflow ?? false,
-    overflowMinutes: config.overflow_minutes ?? 0,
+    overflowMinutes: safeOverflow,
   };
   // Get working hours for this day
   const dayKey = getIranWeekDay(date);
@@ -434,7 +441,9 @@ export function generateTimeSlots(
   );
 
   // Hard limit: slot end must not exceed this
-  const hardEndLimit = rawShiftEnd + (cfg.allowOverflow ? (cfg.overflowMinutes ?? 0) : 0);
+  // TIME values and the booking API are same-day values; never expose a
+  // slot that would cross midnight even when the salon enables overflow.
+  const hardEndLimit = Math.min(24 * 60, rawShiftEnd + (cfg.allowOverflow ? (cfg.overflowMinutes ?? 0) : 0));
 
   // Generate all candidate slots on the resolution grid
   // Use expanded end (shiftEnd) for late_extra_hours, not rawShiftEnd
@@ -447,7 +456,8 @@ export function generateTimeSlots(
     const slot: TimeBlock = { start: m, end: m + effectiveDuration };
 
     // Service can extend past shift end, but NOT past the hard limit (extra hours)
-    if (slot.end > hardEndLimit) continue;
+    // The API stores same-day HH:MM values and does not accept 24:00.
+    if (slot.end > hardEndLimit || slot.end >= 24 * 60) continue;
     if (isToday && m < nowMinutes) continue;
 
     candidates.push(slot);
@@ -520,7 +530,8 @@ export function generateTimeSlots(
   const result: TimeSlot[] = [];
   for (let m = shiftStart; m < shiftEnd; m += cfg.resolution) {
     const slot: TimeBlock = { start: m, end: m + effectiveDuration };
-    if (slot.end > hardEndLimit) continue;
+    // The API stores same-day HH:MM values and does not accept 24:00.
+    if (slot.end > hardEndLimit || slot.end >= 24 * 60) continue;
 
     const isBooked = bookings.some((b) => overlaps(slot, b));
     const isBlocked = blocks.some((b) => overlaps(slot, b));
