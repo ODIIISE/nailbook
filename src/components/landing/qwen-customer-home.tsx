@@ -550,6 +550,7 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
   const [visible, setVisible] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const dragOffsetRef = useRef(0);
   const touchStartY = useRef(0);
   const reducedMotionRef = useRef(false);
   const previousFocus = useRef<HTMLElement | null>(null);
@@ -565,35 +566,45 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
       }
       previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       reducedMotionRef.current = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-      const previousOverflow = document.body.style.overflow;
+      // Lock scrolling on both the html and body elements: some mobile
+      // browsers keep scrolling on <html> even when body overflow is hidden.
+      const previousHtmlOverflow = document.documentElement.style.overflow;
+      const previousBodyOverflow = document.body.style.overflow;
+      document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
       let enterFrame = 0;
       let visibleFrame = 0;
       enterFrame = window.requestAnimationFrame(() => {
         setMounted(true);
+        dragOffsetRef.current = 0;
         setDragOffset(0);
         visibleFrame = window.requestAnimationFrame(() => {
           setVisible(true);
-          closeButtonRef.current?.focus();
+          // Never let focusing the close button scroll the page — the sheet is
+          // fixed, and smooth-scrolling to a bottom-anchored element would
+          // visibly jump the homepage to its end.
+          closeButtonRef.current?.focus({ preventScroll: true });
         });
       });
       return () => {
         window.cancelAnimationFrame(enterFrame);
         window.cancelAnimationFrame(visibleFrame);
-        document.body.style.overflow = previousOverflow;
+        document.documentElement.style.overflow = previousHtmlOverflow;
+        document.body.style.overflow = previousBodyOverflow;
       };
     }
 
     if (closeTimer.current) window.clearTimeout(closeTimer.current);
     const closeFrame = window.requestAnimationFrame(() => {
       setVisible(false);
+      dragOffsetRef.current = 0;
       setDragOffset(0);
       setIsDragging(false);
     });
-    const exitDuration = reducedMotionRef.current ? 0 : 600;
+    const exitDuration = reducedMotionRef.current ? 0 : 450;
     closeTimer.current = window.setTimeout(() => {
       setMounted(false);
-      if (previousFocus.current?.isConnected) previousFocus.current.focus();
+      if (previousFocus.current?.isConnected) previousFocus.current.focus({ preventScroll: true });
       previousFocus.current = null;
       closeTimer.current = null;
     }, exitDuration);
@@ -620,22 +631,22 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
       ));
       if (focusable.length === 0) {
         e.preventDefault();
-        sheetRef.current.focus();
+        sheetRef.current.focus({ preventScroll: true });
         return;
       }
       if (!sheetRef.current.contains(document.activeElement)) {
         e.preventDefault();
-        (e.shiftKey ? focusable[focusable.length - 1] : focusable[0]).focus();
+        (e.shiftKey ? focusable[focusable.length - 1] : focusable[0]).focus({ preventScroll: true });
         return;
       }
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
-        last.focus();
+        last.focus({ preventScroll: true });
       } else if (!e.shiftKey && document.activeElement === last) {
         e.preventDefault();
-        first.focus();
+        first.focus({ preventScroll: true });
       }
     };
     document.addEventListener("keydown", handler);
@@ -661,11 +672,19 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
           }}
           onTouchMove={(e) => {
             const delta = (e.touches[0]?.clientY ?? touchStartY.current) - touchStartY.current;
-            if (delta > 0) setDragOffset(delta);
+            if (delta > 0) {
+              dragOffsetRef.current = delta;
+              setDragOffset(delta);
+            }
           }}
           onTouchEnd={() => {
             setIsDragging(false);
-            if (dragOffset > 110) onClose(); else setDragOffset(0);
+            if (dragOffsetRef.current > 110) {
+              onClose();
+            } else {
+              dragOffsetRef.current = 0;
+              setDragOffset(0);
+            }
           }}
           aria-hidden="true">
           <i />

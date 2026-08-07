@@ -868,9 +868,9 @@
 /* ================= SHEETS ================= */
 .qhp-sheet-wrap { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; }
 .qhp-sheet-scrim { position: absolute; inset: 0; background: rgba(24, 13, 7, .45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: opacity .4s; }
-.qhp-sheet { position: relative; width: 100%; max-width: 430px; background: var(--qhp-bg); border-radius: var(--qhp-r4) var(--qhp-r4) 0 0; padding: 10px 22px calc(22px + env(safe-area-inset-bottom)); box-shadow: var(--qhp-sh3); transition: transform .6s var(--qhp-ease-spring); max-height: min(88dvh, 760px); box-sizing: border-box; display: flex; flex-direction: column; }
+.qhp-sheet { position: relative; width: 100%; max-width: 430px; background: var(--qhp-bg); border-radius: var(--qhp-r4) var(--qhp-r4) 0 0; padding: 10px 22px calc(22px + env(safe-area-inset-bottom)); box-shadow: var(--qhp-sh3); transition: transform .45s var(--qhp-ease-spring); max-height: min(88dvh, 760px); box-sizing: border-box; display: flex; flex-direction: column; will-change: transform; }
 .qhp-sheet-entering .qhp-sheet-head,
-.qhp-sheet-entering .qhp-sheet-content > * { animation: qhpSheetRise .5s var(--qhp-ease-spring) both; }
+.qhp-sheet-entering .qhp-sheet-content > * { animation: qhpSheetRise .4s var(--qhp-ease-spring) both; }
 @keyframes qhpSheetRise { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
 .qhp-sheet-handle { width: 44px; height: 4px; border-radius: 3px; background: var(--qhp-hair-2); margin: 6px auto 16px; cursor: grab; touch-action: none; }
 .qhp-sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -882,7 +882,7 @@
 
 /* look sheet body */
 .qhp-look-body { display: flex; flex-direction: column; }
-.qhp-look-cover { position: relative; height: clamp(220px, 48dvh, 290px); min-height: 220px; border-radius: var(--qhp-r3); overflow: hidden; box-shadow: var(--qhp-sh2); background: var(--qhp-bg-2); }
+.qhp-look-cover { position: relative; height: clamp(220px, 48dvh, 290px); min-height: 220px; flex-shrink: 0; border-radius: var(--qhp-r3); overflow: hidden; box-shadow: var(--qhp-sh2); background: var(--qhp-bg-2); }
 .qhp-look-cover-open { width: 100%; height: 100%; object-fit: cover; animation: qhpImgIn .8s var(--qhp-ease-out) both; }
 @keyframes qhpImgIn { from { transform: scale(1.14); opacity: .5; } to { transform: scale(1); opacity: 1; } }
 .qhp-look-fallback { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; background: linear-gradient(160deg, var(--qhp-blush), #F1DCCB); color: var(--qhp-rose-2); }
