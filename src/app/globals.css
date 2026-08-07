@@ -715,8 +715,10 @@
    bottom sheets. Everything dies cleanly under prefers-reduced-motion.
    ================================================================ */
 
-.qhp-page {
-  /* Aliases into the global warm-paper set above — same names, single values. */
+/* Aliases into the global warm-paper set above — same names, single values.
+   Defined on :root (not .qhp-page) because the bottom sheet renders through
+   a portal directly under <body> and would otherwise inherit none of them. */
+:root {
   --qhp-serif: var(--qhp-serif-font, 'Markazi Text'), 'Markazi Text', 'Times New Roman', Georgia, serif;
   --qhp-bg: var(--qbf-bg);
   --qhp-bg-2: var(--qbf-bg-2);
@@ -744,7 +746,9 @@
   --qhp-ease-out: var(--qbf-ease-out);
   --qhp-ease-inout: var(--qbf-ease-inout);
   --qhp-ease-spring: var(--qbf-ease-spring);
+}
 
+.qhp-page {
   position: relative;
   max-width: 430px;
   margin: 0 auto;
@@ -868,7 +872,7 @@
 /* ================= SHEETS ================= */
 .qhp-sheet-wrap { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; }
 .qhp-sheet-scrim { position: absolute; inset: 0; background: rgba(24, 13, 7, .45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: opacity .4s; }
-.qhp-sheet { position: relative; width: 100%; max-width: 430px; background: var(--qhp-bg); border-radius: var(--qhp-r4) var(--qhp-r4) 0 0; padding: 10px 22px calc(22px + env(safe-area-inset-bottom)); box-shadow: var(--qhp-sh3); transition: transform .45s var(--qhp-ease-spring); max-height: min(88dvh, 760px); box-sizing: border-box; display: flex; flex-direction: column; will-change: transform; }
+.qhp-sheet { position: relative; width: 100%; max-width: 430px; background: var(--qhp-bg); color: var(--qhp-ink); font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif; border-radius: var(--qhp-r4) var(--qhp-r4) 0 0; padding: 10px 22px calc(22px + env(safe-area-inset-bottom)); box-shadow: var(--qhp-sh3); transition: transform .45s var(--qhp-ease-spring); max-height: min(88dvh, 760px); box-sizing: border-box; display: flex; flex-direction: column; will-change: transform; }
 .qhp-sheet-entering .qhp-sheet-head,
 .qhp-sheet-entering .qhp-sheet-content > * { animation: qhpSheetRise .4s var(--qhp-ease-spring) both; }
 @keyframes qhpSheetRise { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
@@ -937,8 +941,7 @@
 :root {
   /* Warm-paper tokens — single source of truth for the customer journey.
      Defined globally (not on .qbf-page) so the overlay-sheet variant, which
-     never renders .qbf-page, inherits them too. The scoped .qhp-page block
-     below aliases these values; change colors here only. */
+     never renders .qbf-page, inherits them too. Change colors here only. */
   --qbf-bg: #FDF6F0;
   --qbf-bg-2: #FBF1E8;
   --qbf-card: #FFFFFF;
