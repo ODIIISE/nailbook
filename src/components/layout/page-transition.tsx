@@ -25,11 +25,13 @@ type Direction = "forward" | "back";
  *
  * RTL-aware: in a right-to-left layout, "forward" (push) slides in from the
  * visual LEFT, "back" (pop) from the visual RIGHT. The slide is modest
- * (24% travel, iOS-style deceleration, 240 ms) so the fixed bottom
- * navigation on customer pages keeps working — the shell returns to
- * `transform: none` at rest, so fixed descendants resolve against the
- * viewport exactly as before. Falls back to a pure fade when
- * reduced-motion is on.
+ * (24% travel, iOS-style deceleration, 240 ms). The shell must NOT carry a
+ * persistent `will-change: transform` (nor a transform) at rest: either one
+ * creates a containing block that breaks `position: fixed` descendants (the
+ * bottom nav, bottom sheets), anchoring them to the page instead of the
+ * viewport. Framer Motion applies its own transient will-change during the
+ * animation and removes it afterwards, which is safe. Falls back to a pure
+ * fade when reduced-motion is on.
  */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -106,7 +108,6 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
         exit="exit"
         variants={variants}
         transition={transition}
-        style={{ willChange: "transform, opacity" }}
       >
         {children}
       </motion.div>

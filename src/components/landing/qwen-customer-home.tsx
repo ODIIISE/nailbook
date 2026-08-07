@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -657,7 +658,7 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
 
   const translateY = !visible ? "105%" : dragOffset > 0 ? `${dragOffset}px` : "0";
 
-  return (
+  const sheet = (
     <div className="qhp-sheet-wrap" role="presentation">
       <div className="qhp-sheet-scrim" aria-hidden="true"
         onClick={onClose}
@@ -699,4 +700,12 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
       </div>
     </div>
   );
+
+  // Render through a portal to <body>. Any transformed/filtered ancestor
+  // (PageTransition's motion.div applies a transient transform during the
+  // route slide; `will-change: transform` also works) becomes the containing
+  // block for fixed-positioned descendants, which previously anchored the
+  // sheet to the bottom of the whole page — the browser scrolled the homepage
+  // to its end to reveal it. A portal keeps the sheet bound to the viewport.
+  return createPortal(sheet, document.body);
 }
