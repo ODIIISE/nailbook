@@ -544,11 +544,18 @@ export function QwenCustomerHome() {
 // so its styles share the qhp-* layer.
 
 function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
+  // Keep mounting separate from visibility so the exit animation is never
+  // skipped when the parent closes the sheet.
+  const [mounted, setMounted] = useState(open);
   const [visible, setVisible] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const touchStartY = useRef(0);
+  const reducedMotionRef = useRef(false);
   const previousFocus = useRef<HTMLElement | null>(null);
   const closeTimer = useRef<number | null>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -557,22 +564,41 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
         closeTimer.current = null;
       }
       previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      const prevOverflow = document.body.style.overflow;
+      reducedMotionRef.current = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+      const previousOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";
-      const raf = window.requestAnimationFrame(() => setVisible(true));
+      let enterFrame = 0;
+      let visibleFrame = 0;
+      enterFrame = window.requestAnimationFrame(() => {
+        setMounted(true);
+        setDragOffset(0);
+        visibleFrame = window.requestAnimationFrame(() => {
+          setVisible(true);
+          closeButtonRef.current?.focus();
+        });
+      });
       return () => {
-        window.cancelAnimationFrame(raf);
-        document.body.style.overflow = prevOverflow;
+        window.cancelAnimationFrame(enterFrame);
+        window.cancelAnimationFrame(visibleFrame);
+        document.body.style.overflow = previousOverflow;
       };
     }
+
     if (closeTimer.current) window.clearTimeout(closeTimer.current);
-    queueMicrotask(() => setVisible(false));
+    const closeFrame = window.requestAnimationFrame(() => {
+      setVisible(false);
+      setDragOffset(0);
+      setIsDragging(false);
+    });
+    const exitDuration = reducedMotionRef.current ? 0 : 600;
     closeTimer.current = window.setTimeout(() => {
-      previousFocus.current?.focus();
+      setMounted(false);
+      if (previousFocus.current?.isConnected) previousFocus.current.focus();
       previousFocus.current = null;
       closeTimer.current = null;
-    }, 600);
+    }, exitDuration);
     return () => {
+      window.cancelAnimationFrame(closeFrame);
       if (closeTimer.current) {
         window.clearTimeout(closeTimer.current);
         closeTimer.current = null;
@@ -583,13 +609,40 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { e.preventDefault(); onClose(); }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab" || !sheetRef.current) return;
+      const focusable = Array.from(sheetRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ));
+      if (focusable.length === 0) {
+        e.preventDefault();
+        sheetRef.current.focus();
+        return;
+      }
+      if (!sheetRef.current.contains(document.activeElement)) {
+        e.preventDefault();
+        (e.shiftKey ? focusable[focusable.length - 1] : focusable[0]).focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
-  if (!open && !visible) return null;
+  if (!mounted) return null;
 
   const translateY = !visible ? "105%" : dragOffset > 0 ? `${dragOffset}px` : "0";
 
@@ -598,22 +651,28 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
       <div className="qhp-sheet-scrim" aria-hidden="true"
         onClick={onClose}
         style={{ opacity: visible ? 1 : 0 }} />
-      <div role="dialog" aria-modal="true" aria-label={title} tabIndex={-1}
+      <div ref={sheetRef} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1}
         className={`qhp-sheet${visible ? " qhp-sheet-entering" : ""}`}
-        style={{ transform: `translateY(${translateY})` }}>
-        <div className="qhp-sheet-handle" aria-hidden="true"
-          onTouchStart={(e) => { touchStartY.current = e.touches[0]?.clientY ?? 0; }}
+        style={{ transform: `translateY(${translateY})`, transitionDuration: isDragging ? "0ms" : undefined }}>
+        <div className="qhp-sheet-handle"
+          onTouchStart={(e) => {
+            touchStartY.current = e.touches[0]?.clientY ?? 0;
+            setIsDragging(true);
+          }}
           onTouchMove={(e) => {
             const delta = (e.touches[0]?.clientY ?? touchStartY.current) - touchStartY.current;
             if (delta > 0) setDragOffset(delta);
           }}
-          onTouchEnd={() => { if (dragOffset > 110) onClose(); else setDragOffset(0); }}
-        >
+          onTouchEnd={() => {
+            setIsDragging(false);
+            if (dragOffset > 110) onClose(); else setDragOffset(0);
+          }}
+          aria-hidden="true">
           <i />
         </div>
         <div className="qhp-sheet-head">
           <h3>{title}</h3>
-          <button type="button" className="qhp-sheet-close" onClick={onClose} aria-label="بستن">
+          <button ref={closeButtonRef} type="button" className="qhp-sheet-close" onClick={onClose} aria-label="بستن">
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
