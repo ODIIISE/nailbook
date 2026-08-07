@@ -397,13 +397,19 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleUpdateHighlight = useCallback(async (highlight: Highlight) => {
-    const prev = highlightsRef.current;
-    setHighlights((prev) => prev.map((h) => (h.id === highlight.id ? highlight : h)));
+    const previous = highlightsRef.current.find((item) => item.id === highlight.id);
+    setHighlights((current) => current.map((h) => (h.id === highlight.id ? highlight : h)));
     try {
       await upsertHighlight(highlight);
     } catch (e) {
       devLog("Failed to update highlight:", e);
-      setHighlights(prev);
+      // Roll back only if the same optimistic value is still present. A later
+      // rename/cover update must not be erased by this request's failure.
+      setHighlights((current) => current.map((h) => {
+        if (h.id !== highlight.id) return h;
+        const submitted = JSON.stringify(h) === JSON.stringify(highlight);
+        return submitted ? (previous ?? h) : h;
+      }));
     }
   }, []);
 
@@ -419,11 +425,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleAddHighlightImage = useCallback(async (image: HighlightImage) => {
-    const prev = highlightsRef.current;
-    setHighlights((prev) =>
-      prev.map((h) =>
+    setHighlights((current) =>
+      current.map((h) =>
         h.id === image.highlight_id
-          ? { ...h, images: [...h.images, image].sort((a, b) => a.sort_order - b.sort_order) }
+          ? { ...h, images: [...h.images, image].sort((a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id)) }
           : h
       )
     );
@@ -431,7 +436,13 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       await upsertHighlightImage(image);
     } catch (e) {
       devLog("Failed to add highlight image:", e);
-      setHighlights(prev);
+      // Remove only this failed optimistic image. Keep unrelated edits and
+      // other uploads that may have completed while the request was pending.
+      setHighlights((current) => current.map((h) =>
+        h.id === image.highlight_id
+          ? { ...h, images: h.images.filter((item) => item.id !== image.id) }
+          : h
+      ));
     }
   }, []);
 

@@ -877,12 +877,12 @@
 .qhp-sheet-head h3 { font-family: var(--qhp-serif); font-size: 24px; font-weight: 700; }
 .qhp-sheet-close { width: 40px; height: 40px; border: none; border-radius: 50%; background: var(--qhp-card); box-shadow: var(--qhp-sh1); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--qhp-ink); transition: all .25s var(--qhp-ease-spring); }
 .qhp-sheet-close:active { transform: scale(.86); }
-.qhp-sheet-content { overflow-y: auto; scrollbar-width: none; }
+.qhp-sheet-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
 .qhp-sheet-content::-webkit-scrollbar { display: none; }
 
 /* look sheet body */
 .qhp-look-body { display: flex; flex-direction: column; }
-.qhp-look-cover { position: relative; height: 290px; border-radius: var(--qhp-r3); overflow: hidden; box-shadow: var(--qhp-sh2); background: var(--qhp-bg-2); }
+.qhp-look-cover { position: relative; height: clamp(220px, 48dvh, 290px); min-height: 220px; border-radius: var(--qhp-r3); overflow: hidden; box-shadow: var(--qhp-sh2); background: var(--qhp-bg-2); }
 .qhp-look-cover-open { width: 100%; height: 100%; object-fit: cover; animation: qhpImgIn .8s var(--qhp-ease-out) both; }
 @keyframes qhpImgIn { from { transform: scale(1.14); opacity: .5; } to { transform: scale(1); opacity: 1; } }
 .qhp-look-fallback { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; background: linear-gradient(160deg, var(--qhp-blush), #F1DCCB); color: var(--qhp-rose-2); }
@@ -891,6 +891,7 @@
 .qhp-look-gallery::-webkit-scrollbar { display: none; }
 .qhp-look-thumb { position: relative; width: 64px; height: 64px; border-radius: var(--qhp-r2); overflow: hidden; border: 2px solid transparent; padding: 0; cursor: pointer; flex-shrink: 0; background: var(--qhp-bg-2); transition: border-color .25s var(--qhp-ease-out), transform .3s var(--qhp-ease-spring); }
 .qhp-look-thumb.active { border-color: var(--qhp-accent); box-shadow: 0 4px 14px rgba(42, 24, 16, .18); }
+.qhp-look-thumb:focus-visible { border-color: var(--qhp-rose-2); }
 .qhp-look-thumb:active { transform: scale(.92); }
 .qhp-look-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .qhp-look-title-row { display: flex; justify-content: space-between; align-items: baseline; margin: 18px 2px 6px; gap: 12px; }

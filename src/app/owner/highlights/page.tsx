@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,9 +19,14 @@ export default function OwnerHighlightsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingHighlightId, setUploadingHighlightId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const highlightsRef = useRef(highlights);
+  const imageInputHighlightIdRef = useRef<string | null>(null);
+  const coverInputHighlightIdRef = useRef<string | null>(null);
+  const uploadingRef = useRef(false);
 
   // Only active services are bookable on the customer side — never offer a
   // deactivated one as the look's linked service.
@@ -34,6 +39,10 @@ export default function OwnerHighlightsPage() {
   // booking flow will surface — restrict the picker to those so the owner can
   // never attach an addon that would silently never show for customers.
   const activeAddons = useMemo(() => addons.filter((a) => a.is_active).sort((a, b) => a.sort_order - b.sort_order), [addons]);
+
+  useEffect(() => {
+    highlightsRef.current = highlights;
+  }, [highlights]);
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -66,36 +75,59 @@ export default function OwnerHighlightsPage() {
 
   const handleAddImages = async (e: React.ChangeEvent<HTMLInputElement>, highlight: Highlight) => {
     const files = e.target.files;
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0 || uploadingRef.current) {
+      e.target.value = "";
+      return;
+    }
 
+    uploadingRef.current = true;
     setIsUploading(true);
-    for (let i = 0; i < files.length; i++) {
-      const url = await uploadHighlightImage(files[i]);
-      if (url) {
+    setUploadingHighlightId(highlight.id);
+    try {
+      const latest = highlightsRef.current.find((item) => item.id === highlight.id) ?? highlight;
+      let nextSortOrder = latest.images.reduce((max, image) => Math.max(max, image.sort_order), -1) + 1;
+      for (let i = 0; i < files.length; i++) {
+        const url = await uploadHighlightImage(files[i]);
+        if (!url) continue;
         const image: HighlightImage = {
           id: crypto.randomUUID(),
           highlight_id: highlight.id,
           image_url: url,
           caption: "",
-          sort_order: highlight.images.length + i,
+          sort_order: nextSortOrder++,
         };
         await addHighlightImage(image);
       }
+    } finally {
+      uploadingRef.current = false;
+      setIsUploading(false);
+      setUploadingHighlightId(null);
+      e.target.value = "";
     }
-    setIsUploading(false);
-    e.target.value = "";
   };
 
   const handleAddCover = async (e: React.ChangeEvent<HTMLInputElement>, highlight: Highlight) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    const url = await uploadHighlightImage(file);
-    if (url) {
-      const updated = { ...highlight, cover_url: url };
-      await updateHighlight(updated);
+    if (!file || isUploading || uploadingRef.current) {
+      e.target.value = "";
+      return;
     }
-    e.target.value = "";
+
+    uploadingRef.current = true;
+    setIsUploading(true);
+    setUploadingHighlightId(highlight.id);
+    try {
+      const url = await uploadHighlightImage(file);
+      if (url) {
+        const latest = highlightsRef.current.find((item) => item.id === highlight.id) ?? highlight;
+        await updateHighlight({ ...latest, cover_url: url });
+      }
+    } finally {
+      uploadingRef.current = false;
+      setIsUploading(false);
+      setUploadingHighlightId(null);
+      e.target.value = "";
+    }
   };
 
   const handleRemoveImage = async (imageId: string) => {
@@ -127,6 +159,7 @@ export default function OwnerHighlightsPage() {
   };
 
   const expandedHighlight = highlights.find((h) => h.id === expandedId);
+  const coverPreview = expandedHighlight?.cover_url || null;
 
   // Computed totals for the expanded look — the same math the customer sheet
   // and booking flow use (service + its offered addons), so the owner sees
@@ -188,7 +221,8 @@ export default function OwnerHighlightsPage() {
                 >
                   <div className="relative w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0">
                     {highlight.cover_url ? (
-                      <Image src={highlight.cover_url} alt={highlight.name} fill unoptimized className="object-cover" />
+                      <Image src={highlight.cover_url} alt={highlight.name} fill unoptimized className="object-cover"
+                        onError={(event) => { event.currentTarget.style.display = "none"; }} />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <span className="text-lg font-bold text-muted-foreground">
@@ -367,15 +401,23 @@ export default function OwnerHighlightsPage() {
                       <Label className="text-caption">کاور</Label>
                       <div className="mt-2 flex items-center gap-3">
                         <div className="relative w-14 h-14 rounded-full overflow-hidden bg-muted shrink-0">
-                          {expandedHighlight.cover_url ? (
-                            <Image src={expandedHighlight.cover_url} alt={expandedHighlight.name} fill unoptimized className="object-cover" />
+                          {coverPreview ? (
+                            <Image src={coverPreview} alt={expandedHighlight.name} fill unoptimized className="object-cover"
+                              onError={(event) => {
+                                event.currentTarget.style.display = "none";
+                              }} />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               <ImagePlus className="h-5 w-5 text-muted-foreground" />
                             </div>
                           )}
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => coverInputRef.current?.click()}>
+                        <Button variant="outline" size="sm"                          onClick={() => {
+                            if (isUploading) return;
+                            coverInputHighlightIdRef.current = expandedHighlight.id;
+                            coverInputRef.current?.click();
+                          }}
+                          disabled={isUploading}>
                           تغییر کاور
                         </Button>
                         <input
@@ -383,7 +425,11 @@ export default function OwnerHighlightsPage() {
                           type="file"
                           accept="image/*"
                           className="hidden"
-                          onChange={(e) => handleAddCover(e, expandedHighlight)}
+                          onChange={(e) => {
+                            const target = highlightsRef.current.find((h) => h.id === coverInputHighlightIdRef.current);
+                            if (target) void handleAddCover(e, target);
+                            else e.currentTarget.value = "";
+                          }}
                         />
                       </div>
                     </div>
@@ -395,11 +441,14 @@ export default function OwnerHighlightsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => fileInputRef.current?.click()}
+                          onClick={() => {
+                            imageInputHighlightIdRef.current = expandedHighlight.id;
+                            fileInputRef.current?.click();
+                          }}
                           disabled={isUploading}
                         >
                           <ImagePlus className="h-4 w-4 ml-1" />
-                          {isUploading ? "آپلود..." : "افزودن"}
+                          {isUploading && uploadingHighlightId === expandedHighlight.id ? "آپلود..." : "افزودن"}
                         </Button>
                         <input
                           ref={fileInputRef}
@@ -407,7 +456,11 @@ export default function OwnerHighlightsPage() {
                           accept="image/*"
                           multiple
                           className="hidden"
-                          onChange={(e) => handleAddImages(e, expandedHighlight)}
+                          onChange={(e) => {
+                            const target = highlightsRef.current.find((h) => h.id === imageInputHighlightIdRef.current);
+                            if (target) void handleAddImages(e, target);
+                            else e.currentTarget.value = "";
+                          }}
                         />
                       </div>
 

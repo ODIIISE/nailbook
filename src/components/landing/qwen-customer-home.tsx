@@ -70,6 +70,7 @@ export function QwenCustomerHome() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeLook, setActiveLook] = useState<Look | null>(null);
+  const [activeLookImage, setActiveLookImage] = useState<string | null>(null);
   const [failedImages, setFailedImages] = useState<string[]>([]);
 
   const openBooking = useCallback((opts?: { serviceId?: string | null; lookId?: string | null }) => {
@@ -79,9 +80,18 @@ export function QwenCustomerHome() {
     const qs = params.toString();
     router.push(qs ? `/book?${qs}` : "/book");
   }, [router]);
-  const closeActiveLook = useCallback(() => setActiveLook(null), []);
+  const openLook = useCallback((look: Look) => {
+    setActiveLook(look);
+    setActiveLookImage(look.images[0] ?? look.image ?? null);
+  }, []);
+  const closeActiveLook = useCallback(() => {
+    setActiveLook(null);
+    setActiveLookImage(null);
+  }, []);
   const markImageFailed = useCallback((url: string) => {
+    if (!url) return;
     setFailedImages((cur) => (cur.includes(url) ? cur : [...cur, url]));
+    setActiveLookImage((current) => current === url ? null : current);
   }, []);
 
   const live = liveLabel(workingHours);
@@ -109,21 +119,24 @@ export function QwenCustomerHome() {
   }, [addonById]);
 
   // Lookbook: real highlights first; when the salon hasn't added any yet,
-  // fall back to the active services so the gallery is never empty.
+  // fall back to the active services so the gallery is never empty. A highlight
+  // is visible when it has either a cover or uploaded images; the first image
+  // becomes its display cover when the owner has not selected one explicitly.
   const looks = useMemo<Look[]>(() => {
-    const withCovers = highlights.filter((h) => h.cover_url);
-    if (withCovers.length > 0) {
-      return withCovers.map((h) => {
+    const realLooks = highlights.filter((h) => h.cover_url || h.images.some((img) => Boolean(img.image_url)));
+    if (realLooks.length > 0) {
+      return realLooks.map((h) => {
         const svc = h.service_id ? serviceById.get(h.service_id) : undefined;
         const addons = lookAddons(h, svc);
         const addonPrice = addons.reduce((sum, a) => sum + Number(a.price), 0);
         const addonDur = addons.reduce((sum, a) => sum + Number(a.duration_minutes), 0);
-        const gallery = [h.cover_url, ...h.images.map((img) => img.image_url)]
+        const gallery = [...new Set([h.cover_url, ...h.images.map((img) => img.image_url)])]
           .filter((u): u is string => Boolean(u));
+        const image = gallery[0] ?? null;
         return {
           key: h.id,
           name: h.name,
-          image: h.cover_url,
+          image,
           images: gallery,
           price: svc ? Number(svc.price) + addonPrice : 0,
           durationMinutes: svc ? Number(svc.duration_minutes) + addonDur : 0,
@@ -143,6 +156,26 @@ export function QwenCustomerHome() {
       addons: [],
     }));
   }, [highlights, activeServices, serviceById, lookAddons]);
+
+  // Keep an open sheet synchronized with fresh owner data. Without this,
+  // refreshing salon data could leave stale service/addon totals or a removed
+  // image selected in the dialog.
+  useEffect(() => {
+    if (!activeLook) return;
+    const fresh = looks.find((look) => look.key === activeLook.key);
+    const timer = window.setTimeout(() => {
+      if (!fresh) {
+        setActiveLook(null);
+        setActiveLookImage(null);
+        return;
+      }
+      setActiveLook((current) => current && current.key === fresh.key ? fresh : current);
+      setActiveLookImage((current) => current && fresh.images.includes(current) && !failedImages.includes(current)
+        ? current
+        : fresh.images.find((url) => !failedImages.includes(url)) ?? null);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [activeLook, looks, failedImages]);
 
   const phoneValid = isValidIranianPhone(salon.phone);
   const igHandle = salon.instagram_handle || (salon.name.toLowerCase().includes("forehand") ? "forehand.nail" : "");
@@ -305,7 +338,7 @@ export function QwenCustomerHome() {
               const src = look.image && !failedImages.includes(look.image) ? look.image : null;
               return (
                 <button key={look.key} type="button" className="qhp-work-card"
-                  onClick={() => setActiveLook(look)} aria-label={`دیدن ${look.name}`}>
+                  onClick={() => openLook(look)} aria-label={`دیدن ${look.name}`}>
                   {src ? (
                     <Image src={src} alt={look.name} fill unoptimized loading="lazy"
                       sizes="190px" className="qhp-work-image"
@@ -400,8 +433,10 @@ export function QwenCustomerHome() {
       {/* LOOK SHEET — gallery, service + addons, computed price/duration, one CTA */}
       <Sheet open={activeLook !== null} onClose={closeActiveLook} title="نمونه‌کار">
         {activeLook && (() => {
-          const gallery = activeLook.images.filter((u) => !failedImages.includes(u));
-          const src = gallery[0] ?? null;
+          const gallery = [...new Set(activeLook.images)].filter((u) => !failedImages.includes(u));
+          const src = activeLookImage && gallery.includes(activeLookImage)
+            ? activeLookImage
+            : gallery[0] ?? null;
           return (
             <div className="qhp-look-body">
               <div className="qhp-look-cover">
@@ -422,15 +457,11 @@ export function QwenCustomerHome() {
                 <div className="qhp-look-gallery" role="tablist" aria-label="تصاویر این مدل">
                   {gallery.map((u, i) => (
                     <button key={u} type="button"
-                      className={`qhp-look-thumb${i === 0 ? " active" : ""}`}
+                      className={`qhp-look-thumb${u === src ? " active" : ""}`}
                       role="tab"
-                      aria-selected={i === 0}
+                      aria-selected={u === src}
                       aria-label={`تصویر ${toPersianDigits(i + 1)}`}
-                      onClick={() => {
-                        // Swap the chosen image into the hero slot of the rail.
-                        const reordered = [u, ...gallery.filter((x) => x !== u)];
-                        setActiveLook({ ...activeLook, images: reordered, image: u });
-                      }}>
+                      onClick={() => setActiveLookImage(u)}>
                       <Image src={u} alt="" fill unoptimized sizes="64px"
                         onError={() => markImageFailed(u)} />
                     </button>
@@ -521,6 +552,10 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
 
   useEffect(() => {
     if (open) {
+      if (closeTimer.current) {
+        window.clearTimeout(closeTimer.current);
+        closeTimer.current = null;
+      }
       previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       const prevOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";
@@ -537,7 +572,12 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
       previousFocus.current = null;
       closeTimer.current = null;
     }, 600);
-    return undefined;
+    return () => {
+      if (closeTimer.current) {
+        window.clearTimeout(closeTimer.current);
+        closeTimer.current = null;
+      }
+    };
   }, [open]);
 
   useEffect(() => {

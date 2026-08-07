@@ -42,11 +42,11 @@ export async function GET() {
     const salonId = getSalonId();
     // HIGHLIGHT_COLUMNS is a compile-time constant — safe to interpolate.
     const highlightsResult = salonId
-      ? await sql.query(`SELECT ${HIGHLIGHT_COLUMNS} FROM highlights WHERE salon_id = $1 ORDER BY sort_order`, [salonId])
-      : await sql.query(`SELECT ${HIGHLIGHT_COLUMNS} FROM highlights ORDER BY sort_order`);
+      ? await sql.query(`SELECT ${HIGHLIGHT_COLUMNS} FROM highlights WHERE salon_id = $1 ORDER BY sort_order, id`, [salonId])
+      : await sql.query(`SELECT ${HIGHLIGHT_COLUMNS} FROM highlights ORDER BY sort_order, id`);
     const imagesResult = salonId
-      ? await sql.query("SELECT id, highlight_id, image_url, caption, sort_order FROM highlight_images WHERE salon_id = $1 ORDER BY sort_order", [salonId])
-      : await sql`SELECT id, highlight_id, image_url, caption, sort_order FROM highlight_images ORDER BY sort_order`;
+      ? await sql.query("SELECT id, highlight_id, image_url, caption, sort_order FROM highlight_images WHERE salon_id = $1 ORDER BY sort_order, id", [salonId])
+      : await sql`SELECT id, highlight_id, image_url, caption, sort_order FROM highlight_images ORDER BY sort_order, id`;
     const { rows: highlights } = highlightsResult;
     const { rows: images } = imagesResult;
 
@@ -73,11 +73,11 @@ export async function GET() {
       try {
         const salonId = getSalonId();
         const highlightsResult = salonId
-          ? await sql.query("SELECT id, name, cover_url, sort_order FROM highlights WHERE salon_id = $1 ORDER BY sort_order", [salonId])
-          : await sql`SELECT id, name, cover_url, sort_order FROM highlights ORDER BY sort_order`;
+          ? await sql.query("SELECT id, name, cover_url, sort_order FROM highlights WHERE salon_id = $1 ORDER BY sort_order, id", [salonId])
+          : await sql`SELECT id, name, cover_url, sort_order FROM highlights ORDER BY sort_order, id`;
         const imagesResult = salonId
-          ? await sql.query("SELECT id, highlight_id, image_url, caption, sort_order FROM highlight_images WHERE salon_id = $1 ORDER BY sort_order", [salonId])
-          : await sql`SELECT id, highlight_id, image_url, caption, sort_order FROM highlight_images ORDER BY sort_order`;
+          ? await sql.query("SELECT id, highlight_id, image_url, caption, sort_order FROM highlight_images WHERE salon_id = $1 ORDER BY sort_order, id", [salonId])
+          : await sql`SELECT id, highlight_id, image_url, caption, sort_order FROM highlight_images ORDER BY sort_order, id`;
         const imageMap = new Map<string, unknown[]>();
         for (const img of imagesResult.rows) {
           if (!imageMap.has(img.highlight_id)) imageMap.set(img.highlight_id, []);

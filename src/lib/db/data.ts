@@ -130,19 +130,21 @@ function normalizeHighlight(value: unknown): Highlight | null {
   const images = Array.isArray(value.images)
     ? value.images.filter(isRecord).flatMap((image): HighlightImage[] => {
         if (typeof image.id !== "string" || typeof image.highlight_id !== "string" || typeof image.image_url !== "string") return [];
+        const imageUrl = image.image_url.trim();
+        if (!imageUrl) return [];
         return [{
           id: image.id,
           highlight_id: image.highlight_id,
-          image_url: image.image_url,
+          image_url: imageUrl,
           caption: typeof image.caption === "string" ? image.caption : "",
           sort_order: finiteNumber(image.sort_order),
         }];
-      })
+      }).sort((a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id))
     : [];
   return {
     id: value.id,
     name: value.name,
-    cover_url: typeof value.cover_url === "string" ? value.cover_url : null,
+    cover_url: typeof value.cover_url === "string" && value.cover_url.trim() ? value.cover_url.trim() : null,
     sort_order: finiteNumber(value.sort_order),
     service_id: typeof value.service_id === "string" ? value.service_id : null,
     addon_ids: normalizeTextArray(value.addon_ids),
