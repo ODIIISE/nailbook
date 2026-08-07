@@ -108,17 +108,6 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
   const anchoredSelection = useRef<string | null>(null);
 
 
-  // Preselect the look's service once highlights resolve (lookbook deep link
-  // such as /book?look=… — salon data loads asynchronously, so re-run until
-  // the selection is made or the look is gone).
-  useEffect(() => {
-    if (selectedServiceId) return;
-    const preselectId = highlights.find((h) => h.id === lookId)?.service_id;
-    if (preselectId) {
-      queueMicrotask(() => setSelectedServiceId(preselectId));
-    }
-  }, [highlights, lookId, selectedServiceId]);
-
   // ── Derived data (identical engine to the legacy flow) ──
   const activeServices = useMemo(
     () => services.filter((s) => s.is_active).sort((a, b) => a.sort_order - b.sort_order),
@@ -129,6 +118,40 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
     () => selectedService ? addons.filter((a) => selectedService.addon_ids.includes(a.id) && a.is_active) : [],
     [selectedService, addons],
   );
+
+  // Preselect the look's service + addons once highlights resolve (lookbook
+  // deep link /book?look=… — salon data loads asynchronously, so re-run until
+  // the selection is made or the look is gone). Applied exactly once per look:
+  // afterwards the user is free to switch service or tweak addons — nothing
+  // re-fights their choices.
+  //
+  // The customer sheet always links /book?service=X&look=Y where X is the
+  // look's own service — so an explicit ?service= only overrides when it
+  // *differs* from the look's service (a stale/mismatched deep link). The
+  // look's addons are always applied on top.
+  const lookPresetApplied = useRef<string | null>(null);
+  useEffect(() => {
+    if (lookPresetApplied.current === lookId) return;
+    const lookHighlight = highlights.find((h) => h.id === lookId);
+    if (!lookHighlight || !lookHighlight.service_id) return;
+    const svc = activeServices.find((s) => s.id === lookHighlight.service_id);
+    // Service deleted or deactivated owner-side: don't preselect — the banner
+    // still shows the look, the user picks any live service.
+    if (!svc) return;
+    // A different explicit service in the URL wins over the look's service.
+    if (initialServiceId && initialServiceId !== svc.id && activeServices.some((s) => s.id === initialServiceId)) return;
+    lookPresetApplied.current = lookId;
+    const offered = new Set(svc.addon_ids);
+    const presetAddons = (lookHighlight.addon_ids || [])
+      .filter((id) => offered.has(id) && addons.some((a) => a.id === id && a.is_active));
+    // Defer out of the effect body (react-hooks/set-state-in-effect).
+    // Setting the service to its current value is a no-op, so this is safe
+    // whether the URL already preselected the look's own service or not.
+    queueMicrotask(() => {
+      setSelectedServiceId(svc.id);
+      setSelectedAddons(presetAddons);
+    });
+  }, [highlights, lookId, initialServiceId, activeServices, addons]);
   const look = useMemo(() => {
     if (!lookId || lookCleared) return null;
     return highlights.find((h) => h.id === lookId) ?? null;
@@ -339,6 +362,15 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
     setSelectedAddons((prev) => (prev.includes(addonId) ? prev.filter((id) => id !== addonId) : [...prev, addonId]));
     haptic.tap();
   }, []);
+
+  // Dismissing the look removes its preselect too: the addons that came from
+  // the look no longer make sense without the look context.
+  const handleClearLook = useCallback(() => {
+    if (lookPresetApplied.current === lookId) {
+      setSelectedAddons([]);
+    }
+    setLookCleared(true);
+  }, [lookId]);
 
   const handleSelectDate = useCallback((date: Date) => {
     userPickedDate.current = true;
@@ -565,7 +597,7 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
                   <b>رزرو این مدل: {look.name}</b>
                   <span>خدمت مرتبط انتخاب شده؛ افزودنی‌ها را هرطور خواستی تغییر بده</span>
                 </div>
-                <button type="button" className="qbf-look-clear" onClick={() => setLookCleared(true)} aria-label="حذف مدل">✕</button>
+                <button type="button" className="qbf-look-clear" onClick={handleClearLook} aria-label="حذف مدل">✕</button>
               </div>
             )}
 
@@ -660,6 +692,7 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
         <section className={`qbf-step ${step === "review" ? `active enter-${dir === 1 ? "fwd" : "back"}` : ""}`}>
           <ReviewStep
             service={selectedService}
+            lookName={look && !lookCleared ? look.name : null}
             addons={selectedAddonItems}
             dateParts={selectedDateParts}
             time={selectedTime}
@@ -687,6 +720,7 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
         <section className={`qbf-step ${step === "success" ? "active enter-fwd" : ""}`}>
           <SuccessStep
             service={selectedService}
+            lookName={look && !lookCleared ? look.name : null}
             addons={selectedAddonItems}
             date={selectedDate}
             time={selectedTime ?? ""}
@@ -929,6 +963,7 @@ function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; o
 
 interface ReviewStepProps {
   service: { id: string; name: string } | null;
+  lookName?: string | null;
   addons: Addon[];
   dateParts: { day: number; month: string; year: number };
   time: string | null;
@@ -953,7 +988,7 @@ interface ReviewStepProps {
 }
 
 function ReviewStep(props: ReviewStepProps) {
-  const { service, addons, dateParts, time, endTime, totalDuration, totalPrice, onEditTime,
+  const { service, lookName, addons, dateParts, time, endTime, totalDuration, totalPrice, onEditTime,
     user, authName, onAuthName, authPhone, onAuthPhone, otpState, otpAttempt, authError,
     isAuthLoading, onSendOtp, onVerifyCode, onChangePhone, spamError, showSpam } = props;
 
@@ -965,7 +1000,7 @@ function ReviewStep(props: ReviewStepProps) {
         <div className="qbf-rev-top">
           <span className="qbf-rev-ic"><Clock className="h-4 w-4" aria-hidden="true" /></span>
           <span className="qbf-rev-meta">
-            <b>{service?.name ?? "—"}</b>
+            <b>{service?.name ?? "—"}{lookName ? ` · مدل ${lookName}` : ""}</b>
             <small>{toPersianDigits(totalDuration)} دقیقه · {compactToman(totalPrice)}</small>
           </span>
         </div>
@@ -1060,6 +1095,7 @@ function ReviewStep(props: ReviewStepProps) {
 
 interface SuccessStepProps {
   service: { id: string; name: string } | null;
+  lookName?: string | null;
   addons: Addon[];
   date: Date;
   time: string;
@@ -1077,18 +1113,19 @@ interface SuccessStepProps {
 }
 
 function SuccessStep(props: SuccessStepProps) {
-  const { service, addons, date, time, endTime, duration, price, servicePrice, customerName,
+  const { service, lookName, addons, date, time, endTime, duration, price, servicePrice, customerName,
     bookingId, bookingIdRaw, salonName, salonAddress, salonPhone, salonLogoUrl } = props;
   const [icsAdded, setIcsAdded] = useState(false);
 
   const dateKey = getTehranDateKey(date);
   const start = `${dateKey}T${time || "00:00"}`;
   const end = `${dateKey}T${endTime || "00:00"}`;
-  const eventTitle = `رزرو ${salonName} — ${service?.name ?? "نوبت"}`;
+  const displayServiceName = `${service?.name ?? "نوبت"}${lookName ? ` · مدل ${lookName}` : ""}`;
+  const eventTitle = `رزرو ${salonName} — ${displayServiceName}`;
   const eventLocation = salonAddress || undefined;
   const eventDescription = addons.length
     ? `افزودنی‌ها: ${addons.map((a) => a.name).join("، ")}`
-    : `رزرو ${service?.name ?? ""}`;
+    : `رزرو ${displayServiceName}`;
 
   return (
     <div className="qbf-success">
@@ -1113,7 +1150,7 @@ function SuccessStep(props: SuccessStepProps) {
       </div>
 
       <BookingConfirm
-        serviceName={service?.name ?? ""}
+        serviceName={displayServiceName}
         date={date}
         time={time || "00:00"}
         duration={duration}

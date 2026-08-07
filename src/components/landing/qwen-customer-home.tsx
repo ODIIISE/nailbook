@@ -12,7 +12,7 @@ import { toPersianDigits } from "@/lib/jalali";
 import { isValidIranianPhone } from "@/lib/digits";
 import { compactPrice, compactToman } from "@/lib/pricing";
 import { getServiceImage } from "@/lib/service-images";
-import type { Service } from "@/lib/types";
+import type { Addon, Service } from "@/lib/types";
 import type { WorkingHours } from "@/lib/slots";
 
 const DAY_LABELS: Record<string, string> = {
@@ -52,8 +52,12 @@ interface Look {
   key: string;
   name: string;
   image: string | null;
+  /** All gallery images of this highlight (cover first), for the sheet. */
+  images: string[];
   price: number;
+  durationMinutes: number;
   service?: Service;
+  addons: Addon[];
 }
 
 const FALLBACK_HERO = "https://images.unsplash.com/photo-1599948128020-9a44505b58b3?w=1400&q=80&auto=format&fit=crop";
@@ -61,7 +65,7 @@ const FALLBACK_PORTRAIT = "https://images.unsplash.com/photo-1610992015732-2449b
 
 export function QwenCustomerHome() {
   const router = useRouter();
-  const { salon, workingHours, services, highlights, loaded } = useSalon();
+  const { salon, workingHours, services, addons, highlights, loaded } = useSalon();
   const { user, logout } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -86,6 +90,23 @@ export function QwenCustomerHome() {
     [services],
   );
   const serviceById = useMemo(() => new Map(activeServices.map((s) => [s.id, s])), [activeServices]);
+  const activeAddons = useMemo(
+    () => addons.filter((a) => a.is_active).sort((a, b) => a.sort_order - b.sort_order),
+    [addons],
+  );
+  const addonById = useMemo(() => new Map(activeAddons.map((a) => [a.id, a])), [activeAddons]);
+
+  // Resolve the addons a look actually carries: only ones the linked service
+  // offers AND that still exist and are active. Stale ids (addon deleted, or
+  // the service changed owner-side) are dropped silently — never crash.
+  const lookAddons = useCallback((h: { addon_ids: string[] }, svc: Service | undefined): Addon[] => {
+    if (!svc) return [];
+    const offered = new Set(svc.addon_ids);
+    return h.addon_ids
+      .filter((id) => offered.has(id))
+      .map((id) => addonById.get(id))
+      .filter((a): a is Addon => Boolean(a));
+  }, [addonById]);
 
   // Lookbook: real highlights first; when the salon hasn't added any yet,
   // fall back to the active services so the gallery is never empty.
@@ -94,13 +115,34 @@ export function QwenCustomerHome() {
     if (withCovers.length > 0) {
       return withCovers.map((h) => {
         const svc = h.service_id ? serviceById.get(h.service_id) : undefined;
-        return { key: h.id, name: h.name, image: h.cover_url, price: svc?.price ?? 0, service: svc };
+        const addons = lookAddons(h, svc);
+        const addonPrice = addons.reduce((sum, a) => sum + Number(a.price), 0);
+        const addonDur = addons.reduce((sum, a) => sum + Number(a.duration_minutes), 0);
+        const gallery = [h.cover_url, ...h.images.map((img) => img.image_url)]
+          .filter((u): u is string => Boolean(u));
+        return {
+          key: h.id,
+          name: h.name,
+          image: h.cover_url,
+          images: gallery,
+          price: svc ? Number(svc.price) + addonPrice : 0,
+          durationMinutes: svc ? Number(svc.duration_minutes) + addonDur : 0,
+          service: svc,
+          addons,
+        };
       });
     }
     return activeServices.map((s) => ({
-      key: s.id, name: s.name, image: s.image_url || getServiceImage(s.name), price: s.price, service: s,
+      key: s.id,
+      name: s.name,
+      image: s.image_url || getServiceImage(s.name),
+      images: [s.image_url || getServiceImage(s.name)],
+      price: s.price,
+      durationMinutes: s.duration_minutes,
+      service: s,
+      addons: [],
     }));
-  }, [highlights, activeServices, serviceById]);
+  }, [highlights, activeServices, serviceById, lookAddons]);
 
   const phoneValid = isValidIranianPhone(salon.phone);
   const igHandle = salon.instagram_handle || (salon.name.toLowerCase().includes("forehand") ? "forehand.nail" : "");
@@ -355,15 +397,16 @@ export function QwenCustomerHome() {
         {salon.city && <span> — {salon.city}</span>}
       </footer>
 
-      {/* LOOK SHEET — image, price, chips, one CTA into the real booking flow */}
+      {/* LOOK SHEET — gallery, service + addons, computed price/duration, one CTA */}
       <Sheet open={activeLook !== null} onClose={closeActiveLook} title="نمونه‌کار">
         {activeLook && (() => {
-          const src = activeLook.image && !failedImages.includes(activeLook.image) ? activeLook.image : null;
+          const gallery = activeLook.images.filter((u) => !failedImages.includes(u));
+          const src = gallery[0] ?? null;
           return (
             <div className="qhp-look-body">
               <div className="qhp-look-cover">
                 {src ? (
-                  <Image key={activeLook.key} src={src} alt={activeLook.name} fill unoptimized
+                  <Image key={`${activeLook.key}-${src}`} src={src} alt={activeLook.name} fill unoptimized
                     sizes="430px" className="qhp-look-cover-open object-cover"
                     onError={() => markImageFailed(src)} />
                 ) : (
@@ -373,16 +416,41 @@ export function QwenCustomerHome() {
                   </span>
                 )}
               </div>
+
+              {/* Gallery rail — all images the owner uploaded for this look */}
+              {gallery.length > 1 && (
+                <div className="qhp-look-gallery" role="tablist" aria-label="تصاویر این مدل">
+                  {gallery.map((u, i) => (
+                    <button key={u} type="button"
+                      className={`qhp-look-thumb${i === 0 ? " active" : ""}`}
+                      role="tab"
+                      aria-selected={i === 0}
+                      aria-label={`تصویر ${toPersianDigits(i + 1)}`}
+                      onClick={() => {
+                        // Swap the chosen image into the hero slot of the rail.
+                        const reordered = [u, ...gallery.filter((x) => x !== u)];
+                        setActiveLook({ ...activeLook, images: reordered, image: u });
+                      }}>
+                      <Image src={u} alt="" fill unoptimized sizes="64px"
+                        onError={() => markImageFailed(u)} />
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div className="qhp-look-title-row">
                 <h4>{activeLook.name}</h4>
                 {activeLook.price > 0 && <span className="qhp-look-price">{compactToman(activeLook.price)}</span>}
               </div>
-              <p className="qhp-look-sub">این مدل را دوست داری؟ خدمت را همین حالا برای این مدل رزرو کن — بدون تماس تلفنی.</p>
+              <p className="qhp-look-sub">این مدل را دوست داری؟ خدمت و آپشن‌ها همین حالا برایت رزرو می‌شود — بدون تماس تلفنی.</p>
               <div className="qhp-look-chips">
                 {activeLook.service ? (
                   <>
                     <span className="qhp-chip primary">{activeLook.service.name}</span>
-                    <span className="qhp-chip">{toPersianDigits(activeLook.service.duration_minutes)} دقیقه</span>
+                    {activeLook.addons.map((a) => (
+                      <span key={a.id} className="qhp-chip">+ {a.name}</span>
+                    ))}
+                    <span className="qhp-chip">{toPersianDigits(activeLook.durationMinutes)} دقیقه</span>
                     {activeLook.service.description && <span className="qhp-chip">{activeLook.service.description}</span>}
                   </>
                 ) : (

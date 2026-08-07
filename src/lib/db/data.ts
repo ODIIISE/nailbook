@@ -145,6 +145,7 @@ function normalizeHighlight(value: unknown): Highlight | null {
     cover_url: typeof value.cover_url === "string" ? value.cover_url : null,
     sort_order: finiteNumber(value.sort_order),
     service_id: typeof value.service_id === "string" ? value.service_id : null,
+    addon_ids: normalizeTextArray(value.addon_ids),
     images,
   };
 }

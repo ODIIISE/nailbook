@@ -97,5 +97,6 @@ export interface Highlight {
   cover_url: string | null;
   sort_order: number;
   service_id?: string | null;
+  addon_ids: string[];
   images: HighlightImage[];
 }

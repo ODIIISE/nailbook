@@ -1,19 +1,20 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SalonGuard } from "@/components/ui/salon-guard";
-import { Plus, X, Trash2, ImagePlus, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, X, Trash2, ImagePlus, ChevronDown, ChevronUp, Check, Link2, Package } from "lucide-react";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useSalon } from "@/lib/salon-context";
+import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import type { Highlight, HighlightImage } from "@/lib/types";
 
 export default function OwnerHighlightsPage() {
-  const { highlights, addHighlight, updateHighlight, removeHighlight, addHighlightImage, removeHighlightImage, uploadHighlightImage } = useSalon();
+  const { highlights, addons, services, addHighlight, updateHighlight, removeHighlight, addHighlightImage, removeHighlightImage, uploadHighlightImage } = useSalon();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
@@ -22,6 +23,18 @@ export default function OwnerHighlightsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  // Only active services are bookable on the customer side — never offer a
+  // deactivated one as the look's linked service.
+  const activeServices = useMemo(
+    () => services.filter((s) => s.is_active).sort((a, b) => a.sort_order - b.sort_order),
+    [services],
+  );
+  const serviceById = useMemo(() => new Map(activeServices.map((s) => [s.id, s])), [activeServices]);
+  // Addons that actually belong to the selected service are the only ones the
+  // booking flow will surface — restrict the picker to those so the owner can
+  // never attach an addon that would silently never show for customers.
+  const activeAddons = useMemo(() => addons.filter((a) => a.is_active).sort((a, b) => a.sort_order - b.sort_order), [addons]);
+
   const handleCreate = async () => {
     if (!newName.trim()) return;
     const highlight: Highlight = {
@@ -29,6 +42,7 @@ export default function OwnerHighlightsPage() {
       name: newName.trim(),
       cover_url: null,
       sort_order: highlights.length,
+      addon_ids: [],
       images: [],
     };
     await addHighlight(highlight);
@@ -95,7 +109,46 @@ export default function OwnerHighlightsPage() {
     }
   };
 
+  // Link a service to the look. Changing the service drops any addons that the
+  // new service doesn't offer — keeping the stored selection always valid.
+  const handleLinkService = async (highlight: Highlight, serviceId: string) => {
+    const nextService = serviceById.get(serviceId);
+    const validAddons = nextService
+      ? highlight.addon_ids.filter((id) => nextService.addon_ids.includes(id))
+      : [];
+    const updated = { ...highlight, service_id: serviceId || null, addon_ids: validAddons };
+    await updateHighlight(updated);
+  };
+
+  const handleToggleLookAddon = async (highlight: Highlight, addonId: string) => {
+    const has = highlight.addon_ids.includes(addonId);
+    const updated = { ...highlight, addon_ids: has ? highlight.addon_ids.filter((id) => id !== addonId) : [...highlight.addon_ids, addonId] };
+    await updateHighlight(updated);
+  };
+
   const expandedHighlight = highlights.find((h) => h.id === expandedId);
+
+  // Computed totals for the expanded look — the same math the customer sheet
+  // and booking flow use (service + its offered addons), so the owner sees
+  // exactly what buyers see. Stale addon ids (deleted, or unlinked from the
+  // service) are dropped here too.
+  const preview = useMemo(() => {
+    if (!expandedHighlight) return null;
+    const svc = expandedHighlight.service_id ? serviceById.get(expandedHighlight.service_id) : undefined;
+    const offered = svc ? new Set(svc.addon_ids) : null;
+    const lookAddons = offered
+      ? expandedHighlight.addon_ids
+          .filter((id) => offered.has(id))
+          .map((id) => activeAddons.find((a) => a.id === id))
+          .filter((a): a is NonNullable<typeof a> => Boolean(a))
+      : [];
+    return {
+      service: svc,
+      addons: lookAddons,
+      price: (svc ? Number(svc.price) : 0) + lookAddons.reduce((sum, a) => sum + Number(a.price), 0),
+      duration: (svc ? Number(svc.duration_minutes) : 0) + lookAddons.reduce((sum, a) => sum + Number(a.duration_minutes), 0),
+    };
+  }, [expandedHighlight, serviceById, activeAddons]);
 
   return (
     <SalonGuard>
@@ -104,7 +157,7 @@ export default function OwnerHighlightsPage() {
         <div>
           <h2 className="text-lg font-bold text-foreground">هایلایت‌ها</h2>
           <p className="text-caption text-muted-foreground mt-0.5">
-            {highlights.length} هایلایت
+            {highlights.length} هایلایت · لینک خدمت و آپشن برای هر مدل
           </p>
         </div>
         <Button size="sm" onClick={() => setShowCreateModal(true)}>
@@ -125,6 +178,7 @@ export default function OwnerHighlightsPage() {
         <div className="space-y-3">
           {highlights.map((highlight) => {
             const isExpanded = expandedId === highlight.id;
+            const linkedService = highlight.service_id ? serviceById.get(highlight.service_id) : undefined;
             return (
               <Card key={highlight.id} className="overflow-hidden">
                 {/* Collapsed header — always visible */}
@@ -145,8 +199,14 @@ export default function OwnerHighlightsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-foreground truncate">{highlight.name}</p>
-                    <p className="text-caption text-muted-foreground">
+                    <p className="text-caption text-muted-foreground truncate">
                       {highlight.images.length} تصویر
+                      {linkedService && (
+                        <span className="text-primary/80"> · {linkedService.name}</span>
+                      )}
+                      {!linkedService && (
+                        <span className="text-muted-foreground/60"> · بدون خدمت</span>
+                      )}
                     </p>
                   </div>
                   <Button
@@ -188,6 +248,119 @@ export default function OwnerHighlightsPage() {
                         </Button>
                       </div>
                     </div>
+
+                    {/* Linked service */}
+                    <div>
+                      <Label className="text-caption flex items-center gap-1">
+                        <Link2 className="h-3.5 w-3.5" />
+                        خدمت مرتبط (قیمت و مدت از آن محاسبه می‌شود)
+                      </Label>
+                      <select
+                        value={expandedHighlight.service_id ?? ""}
+                        onChange={(e) => handleLinkService(expandedHighlight, e.target.value)}
+                        className="mt-1.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                      >
+                        <option value="">بدون خدمت — فقط نمایش مدل</option>
+                        {activeServices.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name} · {toPersianDigits(s.duration_minutes)} دقیقه · {formatPrice(Number(s.price))} تومان
+                          </option>
+                        ))}
+                      </select>
+                      {activeServices.length === 0 && (
+                        <p className="text-small text-muted-foreground mt-1">
+                          ابتدا در «خدمات و آپشن‌ها» یک خدمت فعال بسازید.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Linked addons — restricted to what the service actually offers */}
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-caption flex items-center gap-1">
+                          <Package className="h-3.5 w-3.5" />
+                          آپشن‌های این مدل (در مجموع قیمت و مدت محاسبه می‌شود)
+                        </Label>
+                        {expandedHighlight.addon_ids.length > 0 && (
+                          <button
+                            type="button"
+                            className="text-small text-muted-foreground hover:text-destructive transition-colors"
+                            onClick={() => {
+                              const updated = { ...expandedHighlight, addon_ids: [] };
+                              void updateHighlight(updated);
+                            }}
+                          >
+                            پاک کردن همه
+                          </button>
+                        )}
+                      </div>
+
+                      {(() => {
+                        const svc = expandedHighlight.service_id ? serviceById.get(expandedHighlight.service_id) : undefined;
+                        const offered = svc
+                          ? activeAddons.filter((a) => svc.addon_ids.includes(a.id))
+                          : [];
+                        if (!svc) {
+                          return (
+                            <p className="text-small text-muted-foreground mt-1.5">
+                              ابتدا یک خدمت مرتبط انتخاب کنید؛ سپس آپشن‌های آن خدمت را برای این مدل برمی‌گزینید.
+                            </p>
+                          );
+                        }
+                        if (offered.length === 0) {
+                          return (
+                            <p className="text-small text-muted-foreground mt-1.5">
+                              این خدمت آپشنی ندارد — در «خدمات و آپشن‌ها» آپشن به خدمت اضافه کنید.
+                            </p>
+                          );
+                        }
+                        return (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {offered.map((addon) => {
+                              const on = expandedHighlight.addon_ids.includes(addon.id);
+                              return (
+                                <button
+                                  key={addon.id}
+                                  type="button"
+                                  onClick={() => handleToggleLookAddon(expandedHighlight, addon.id)}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                    on
+                                      ? "bg-primary text-primary-foreground"
+                                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                                  }`}
+                                  aria-pressed={on}
+                                >
+                                  {on && <Check className="h-3 w-3" />}
+                                  {addon.name}
+                                  <span className={on ? "opacity-80" : "text-muted-foreground/60"}>
+                                    +{toPersianDigits(addon.duration_minutes)}د · +{formatPrice(Number(addon.price))}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    {/* What the customer will see — price & duration */}
+                    {preview && (preview.service || preview.addons.length > 0) && (
+                      <div className="rounded-xl bg-muted/60 border border-border/40 px-4 py-3 space-y-1">
+                        <p className="text-small text-muted-foreground">نمایش به مشتری هنگام رزرو این مدل</p>
+                        <p className="text-sm font-semibold text-foreground">
+                          {preview.service?.name ?? "بدون خدمت"}
+                          {preview.addons.length > 0 && (
+                            <span className="font-normal text-muted-foreground">
+                              {" "}· {preview.addons.map((a) => a.name).join("، ")}
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {toPersianDigits(preview.duration)} دقیقه ·{" "}
+                          <span className="font-bold text-foreground">{formatPrice(preview.price)} تومان</span>
+                        </p>
+                      </div>
+                    )}
 
                     {/* Cover */}
                     <div>
