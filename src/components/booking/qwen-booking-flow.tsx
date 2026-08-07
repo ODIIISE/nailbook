@@ -62,7 +62,7 @@ interface QwenBookingFlowProps {
 export function QwenBookingFlow({ initialServiceId = null, lookId = null }: QwenBookingFlowProps) {
   const router = useRouter();
   const { salon, workingHours, services, addons, highlights, bookings, blockedTimes, addBooking, refreshSalonData, refreshBookings, specificDaysOff, loaded } = useSalon();
-  const { user, sendOtp, verifyOtp } = useAuth();
+  const { user, sendOtp, verifyOtp, updateProfile } = useAuth();
 
   // ── Lifecycle ──
   useEffect(() => { refreshSalonData(); }, [refreshSalonData]);
@@ -88,10 +88,23 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
   // Verification
   const [authPhone, setAuthPhone] = useState("");
   const [authName, setAuthName] = useState("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [otpState, setOtpState] = useState<"idle" | "sent" | "verified">("idle");
   const [authError, setAuthError] = useState("");
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [otpAttempt, setOtpAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setAuthPhone(user.phone);
+      setAuthName(user.name.trim());
+      setOtpState("verified");
+    });
+    return () => { cancelled = true; };
+  }, [user]);
 
   const serviceCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const focusScrollTimer = useRef<number | null>(null);
@@ -425,12 +438,17 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
       const result = await verifyOtp(normalizeDigits(authPhone), code);
       if (result.success && result.user) {
         setOtpState("verified");
-        if (!result.user.name && authName.trim()) {
-          fetch("/api/auth/update-profile", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId: result.user.id, name: authName.trim() }),
-          }).catch(() => {});
+        const existingName = result.user.name.trim();
+        if (existingName) {
+          setAuthName(existingName);
+        } else if (authName.trim()) {
+          setIsSavingProfile(true);
+          const profileResult = await updateProfile(authName.trim(), result.user.id);
+          setIsSavingProfile(false);
+          if (!profileResult.success) {
+            setAuthError(profileResult.error || "ذخیره نام انجام نشد");
+            return;
+          }
         }
         haptic.success();
       } else {
@@ -443,7 +461,7 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
       setIsAuthLoading(false);
       isVerifyingOtpRef.current = false;
     }
-  }, [authPhone, authName, verifyOtp, isAuthLoading]);
+  }, [authPhone, authName, verifyOtp, updateProfile, isAuthLoading]);
 
   const changePhone = useCallback(() => {
     setOtpState("idle");
@@ -466,6 +484,20 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
     const normalizedPhone = normalizeDigits(user?.phone ?? authPhone);
     if (!user && otpState !== "verified") { setAuthError("ابتدا شماره را تأیید کنید"); return; }
     if (!isValidIranianPhone(normalizedPhone)) { setAuthError("شماره موبایل معتبر نیست"); return; }
+    const customerName = authName.trim();
+    if (!customerName) {
+      setAuthError("لطفاً نام خود را وارد کنید");
+      return;
+    }
+    if (!isSavingProfile && authName.trim() !== user?.name.trim()) {
+      setIsSavingProfile(true);
+      const profileResult = await updateProfile(authName.trim());
+      setIsSavingProfile(false);
+      if (!profileResult.success) {
+        setAuthError(profileResult.error || "ذخیره نام انجام نشد");
+        return;
+      }
+    }
 
     isSubmittingRef.current = true;
     setIsBookingLoading(true);
@@ -473,7 +505,6 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
     setAuthError("");
 
     const customerPhone = user?.phone ?? normalizedPhone;
-    const customerName = (user?.name || authName.trim() || "").trim();
     const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
     const id = crypto.randomUUID();
     setBookingId(`BK-${Date.now().toString(36).toUpperCase()}`);
@@ -518,7 +549,7 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
         setSpamError(result.error || "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید");
       }
     }
-  }, [selectedService, selectedDate, selectedTime, user, authPhone, authName, otpState, totalDuration, addBooking, validSelectedAddonIds, refreshBookings]);
+  }, [selectedService, selectedDate, selectedTime, user, authPhone, authName, otpState, totalDuration, addBooking, validSelectedAddonIds, refreshBookings, updateProfile, isSavingProfile]);
 
   // ── Sticky CTA state ──
   const ctaState = useMemo(() => {
@@ -531,11 +562,11 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
       return { ok, label: "ادامه", chips: ok ? `${toPersianDigits(selectedTime!)} · ${toPersianDigits(totalDuration)} دقیقه` : "" };
     }
     if (step === "review") {
-      const ok = Boolean(selectedService && selectedDate && selectedTime && verificationComplete);
+      const ok = Boolean(selectedService && selectedDate && selectedTime && verificationComplete && authName.trim() && !isSavingProfile);
       return { ok, label: isBookingLoading ? "در حال ثبت…" : "تأیید و رزرو", chips: compactToman(totalPrice) };
     }
     return { ok: false, label: "", chips: "" };
-  }, [step, selectedService, selectedTime, selectedDate, verificationComplete, isBookingLoading, totalPrice, totalDuration]);
+  }, [step, selectedService, selectedTime, selectedDate, verificationComplete, isBookingLoading, totalPrice, totalDuration, authName, isSavingProfile]);
 
   // ── Slot grouping (hybrid: time-of-day + suggested pins) ──
   const slotGroups = useMemo(() => {
@@ -993,6 +1024,9 @@ function ReviewStep(props: ReviewStepProps) {
     isAuthLoading, onSendOtp, onVerifyCode, onChangePhone, spamError, showSpam } = props;
 
   const phoneValid = isValidIranianPhone(normalizeDigits(authPhone));
+  const customerName = authName.trim();
+  const nameRequired = true;
+  const canContinue = Boolean(!nameRequired || customerName);
 
   return (
     <div className="qbf-step-body">
@@ -1036,9 +1070,9 @@ function ReviewStep(props: ReviewStepProps) {
         <p className="qbf-form-t">مشخصات شما</p>
 
         <div className="qbf-field">
-          <label htmlFor="qbf-name">نام (اختیاری)</label>
+          <label htmlFor="qbf-name">نام {nameRequired ? "(الزامی)" : "(قابل ویرایش)"}</label>
           <input id="qbf-name" type="text" className="qbf-inp" value={authName}
-            onChange={(e) => onAuthName(e.target.value)} placeholder="مثال: سارا احمدی" autoComplete="name" />
+            onChange={(e) => onAuthName(e.target.value)} placeholder="مثال: سارا احمدی" autoComplete="name" required={nameRequired} aria-required={nameRequired} />
         </div>
 
         {user ? (
@@ -1079,6 +1113,8 @@ function ReviewStep(props: ReviewStepProps) {
           </>
         )}
 
+        {nameRequired && !customerName && <p className="qbf-form-hint">برای ثبت رزرو، وارد کردن نام الزامی است.</p>}
+        {!canContinue && <p className="qbf-form-error">لطفاً نام خود را وارد کنید</p>}
         {authError && <p className="qbf-form-error">{authError}</p>}
       </div>
 

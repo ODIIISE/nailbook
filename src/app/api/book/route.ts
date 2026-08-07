@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sql } from "@vercel/postgres";
 import { verifyCustomerSessionWithVersion } from "@/lib/customer-auth";
+import { resolveSalonId } from "@/lib/multi-tenant";
 import { normalizeDigits } from "@/lib/digits";
 import { bookingRequestSchema } from "@/lib/booking/schema";
 import { createBooking } from "@/lib/booking/service";
@@ -57,7 +59,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(err.toJSON(), { status: err.status });
   }
 
-  // Step 4: create the booking via the service layer.
+  // Step 4: public bookings must come from a verified customer session.
+  // Owner-created bookings use /api/owner/bookings and intentionally follow
+  // the separate manual-booking rules.
+  if (!verifiedUserId) {
+    const err = createBookingError("UNAUTHORIZED");
+    return NextResponse.json(err.toJSON(), { status: err.status });
+  }
+
+  // Bind the request phone to the verified session. This prevents a caller
+  // from reusing a valid session to create a booking under another phone.
+  try {
+    const salonId = await resolveSalonId();
+    const result = salonId
+      ? await sql.query("SELECT phone FROM users WHERE id = $1 AND salon_id = $2 LIMIT 1", [verifiedUserId, salonId])
+      : await sql.query("SELECT phone FROM users WHERE id = $1 LIMIT 1", [verifiedUserId]);
+    const sessionPhone = normalizeDigits(String(result.rows[0]?.phone || ""));
+    if (!sessionPhone || sessionPhone !== phone) {
+      const err = createBookingError("UNAUTHORIZED");
+      return NextResponse.json(err.toJSON(), { status: err.status });
+    }
+  } catch {
+    const err = createBookingError("UNAUTHORIZED");
+    return NextResponse.json(err.toJSON(), { status: err.status });
+  }
+
+  // Step 5: create the booking via the service layer.
   try {
     const booking = await createBooking(input, verifiedUserId, phone);
 

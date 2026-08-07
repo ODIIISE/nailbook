@@ -15,6 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   sendOtp: (phone: string) => Promise<{ success: boolean; error?: string }>;
   verifyOtp: (phone: string, code: string) => Promise<{ success: boolean; error?: string; user?: AuthUser }>;
+  updateProfile: (name: string, userId?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isOwner: boolean;
   hasRole: (role: "customer" | "owner") => boolean;
@@ -121,6 +122,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const updateProfile = useCallback(async (name: string, userId?: string) => {
+    const trimmed = name.trim();
+    const targetUserId = userId ?? user?.id;
+    if (!trimmed) return { success: false, error: "نام الزامی است" };
+    if (!targetUserId) return { success: false, error: "ابتدا شماره را تأیید کنید" };
+
+    try {
+      const res = await fetch("/api/auth/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: targetUserId, name: trimmed }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return { success: false, error: data.error || "ذخیره نام انجام نشد" };
+      setUser((currentUser) => {
+        if (!currentUser || currentUser.id !== targetUserId) return currentUser;
+        const nextUser = { ...currentUser, name: trimmed };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
+        return nextUser;
+      });
+      return { success: true };
+    } catch {
+      return { success: false, error: "ذخیره نام انجام نشد" };
+    }
+  }, [user]);
+
   const logout = useCallback(async () => {
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
@@ -133,7 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasRole = useCallback((role: "customer" | "owner") => Boolean(user?.roles?.includes(role)), [user]);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, sendOtp, verifyOtp, logout, isOwner, hasRole }}>
+    <AuthContext.Provider value={{ user, isLoading, sendOtp, verifyOtp, updateProfile, logout, isOwner, hasRole }}>
       {children}
     </AuthContext.Provider>
   );
