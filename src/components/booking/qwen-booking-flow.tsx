@@ -15,6 +15,7 @@ import {
 import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
 import { generateTimeSlots, type TimeSlot } from "@/lib/slots";
 import { getTehranDateKey, parseGregorianDateKey } from "@/lib/time";
+import { compactToman } from "@/lib/pricing";
 import { haptic } from "@/lib/haptics";
 import { ServiceImage } from "@/components/ui/service-image";
 import { PinInput } from "@/components/booking/pin-input";
@@ -51,16 +52,6 @@ const TIME_OF_DAY_META = {
   noon: { label: "ظهر", icon: <circle cx="12" cy="12" r="5" /> },
   evening: { label: "عصر", icon: <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" /> },
 } as const;
-
-function compactToman(n: number): string {
-  if (n < 1000) return `${toPersianDigits(n)} تومان`;
-  if (n >= 1_000_000) {
-    const m = n / 1_000_000;
-    const s = m % 1 === 0 ? String(m) : m.toFixed(1).replace(".", "٫");
-    return `${toPersianDigits(s)} میلیون تومان`;
-  }
-  return `${toPersianDigits(Math.round(n / 1000))} هزار تومان`;
-}
 
 interface QwenBookingFlowProps {
   /** Standalone /book route page. */
@@ -580,9 +571,10 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
 
             <p className="qbf-sec-label">انتخاب خدمت</p>
             <div className="qbf-svc-list">
-              {activeServices.map((s) => {                  const isSelected = selectedService?.id === s.id;
-                  const isExpanded = expandedServiceId === s.id;
-                  const serviceAddons = addons.filter((a) => s.addon_ids.includes(a.id) && a.is_active);
+              {activeServices.map((s) => {
+                const isSelected = selectedService?.id === s.id;
+                const isExpanded = expandedServiceId === s.id;
+                const serviceAddons = addons.filter((a) => s.addon_ids.includes(a.id) && a.is_active);
                 const chosenAddons = serviceAddons.filter((a) => selectedAddons.includes(a.id));
                 const subtotal = Number(s.price) + chosenAddons.reduce((sum, a) => sum + Number(a.price), 0);
                 const subDur = Number(s.duration_minutes) + chosenAddons.reduce((sum, a) => sum + Number(a.duration_minutes), 0);
@@ -814,32 +806,43 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
           </button>
         </div>
       ) : (
-        slotGroups.map((g) => {
-          const meta = TIME_OF_DAY_META[g.key];
-          const available = g.slots.filter((s) => s.available);
-          const suggested = available.filter((s) => s.suggested);
-          const other = available.filter((s) => !s.suggested);
-          const taken = g.slots.filter((s) => !s.available);
-          return (
-            <div key={g.key} className="qbf-slot-group">
-              <div className="qbf-sg-label">
-                <svg viewBox="0 0 24 24" aria-hidden="true">{meta.icon}</svg>
-                {meta.label}
-              </div>
-              {(suggested.length > 0 || other.length > 0) && (
+        <>
+          {(() => {
+            const suggested = slotGroups.flatMap((g) => g.slots).filter((s) => s.available && s.suggested);
+            if (!suggested.length) return null;
+            return (
+              <section className="qbf-suggest-band" aria-label="پیشنهاد نوبت">
+                <div className="qbf-suggest-head">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z" /></svg>
+                  <span className="qbf-suggest-title">پیشنهاد نوبت</span>
+                  <span className="qbf-suggest-sub">بهترین زمان‌ها برای {serviceName}</span>
+                </div>
                 <div className="qbf-slot-grid">
                   {suggested.map((s) => <SlotChip key={s.time} slot={s} selected={selectedTime === s.time} onSelect={onSelectTime} suggest />)}
-                  {other.map((s) => <SlotChip key={s.time} slot={s} selected={selectedTime === s.time} onSelect={onSelectTime} />)}
                 </div>
-              )}
-              {taken.length > 0 && (
+              </section>
+            );
+          })()}
+          {slotGroups.map((g) => {
+            const meta = TIME_OF_DAY_META[g.key];
+            // Suggested slots live in the band above; the group keeps every
+            // other slot — available and taken together, in their own state,
+            // so nothing is hidden.
+            const slots = g.slots.filter((s) => !(s.available && s.suggested));
+            if (!slots.length) return null;
+            return (
+              <div key={g.key} className="qbf-slot-group">
+                <div className="qbf-sg-label">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">{meta.icon}</svg>
+                  {meta.label}
+                </div>
                 <div className="qbf-slot-grid">
-                  {taken.map((s) => <SlotChip key={s.time} slot={s} selected={false} onSelect={onSelectTime} />)}
+                  {slots.map((s) => <SlotChip key={s.time} slot={s} selected={selectedTime === s.time} onSelect={onSelectTime} />)}
                 </div>
-              )}
-            </div>
-          );
-        })
+              </div>
+            );
+          })}
+        </>
       )}
     </div>
   );

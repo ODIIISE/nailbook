@@ -1,8 +1,8 @@
 # Forehand Nail Studio — Design System
 
-> Clean Slate — a monochrome, mobile-first, Persian-first booking system with compact geometry and native-feeling surfaces.
+> Two systems coexist. The **customer journey** (homepage + booking flow) ships on the **warm-paper system** — the `--qhp-*`/`--qbf-*` tokens in `src/app/globals.css` (single source of truth: the `:root` `--qbf-*` block; `.qhp-page` aliases it). **Admin/owner/auth surfaces** use **Clean Slate**, a monochrome, mobile-first, Persian-first system with compact geometry and native-feeling surfaces.
 
-This document describes the implementation source of truth in `src/app/globals.css`, `src/lib/design-tokens.ts`, and the shared UI primitives. It intentionally supersedes the older paper-blue exploration.
+This document describes the implementation source of truth in `src/app/globals.css`, `src/lib/design-tokens.ts`, and the shared UI primitives, and supersedes the older paper-blue exploration.
 
 ---
 
@@ -25,8 +25,8 @@ This document describes the implementation source of truth in `src/app/globals.c
 | Primitive and semantic CSS tokens | `src/app/globals.css` |
 | Service/timeline palette helpers | `src/lib/design-tokens.ts` |
 | Shared button/card/sheet behavior | `src/components/ui/` |
-| Customer homepage composition | `src/app/page.tsx` and `src/components/landing/` |
-| Booking flow | `src/app/book/content.tsx` and `src/components/booking/` |
+| Customer homepage composition | `src/app/page.tsx` and `src/components/landing/qwen-customer-home.tsx` |
+| Booking flow | `src/app/book/route-shell.tsx` and `src/components/booking/qwen-booking-flow.tsx` |
 | Persian product and interaction guidance | `PRODUCT.md` and `AGENTS.md` |
 
 Do not add raw color or radius values to new components when an existing semantic or component token is available.
@@ -161,21 +161,11 @@ The customer homepage presents the salon identity, highlights, trust/contact inf
 
 ### Booking CTA
 
-- Outer radius: `--radius-booking-cta`.
-- One concise explanation and one primary `رزرو نوبت` action.
-- Located directly after contact actions in the homepage flow.
+- Outer radius: `--radius-booking-cta` (warm system: `--qbf-r3`).
+- One concise explanation and one primary `شروع رزرو` action.
+- Located directly after the profile block in the homepage flow.
 - Uses the shared foreground/background action contrast in both themes.
-- Opens the service picker as a bottom sheet with `aria-haspopup="dialog"` and `aria-expanded` state.
-
-### Service-selection sheet
-
-- Shows only active services in owner-defined `sort_order`.
-- Includes service image when available, service name, duration, and price.
-- Uses compact 10px service-row geometry and 8px thumbnail geometry.
-- Shows a skeleton while salon services load and an explicit empty state when none are active.
-- Selecting a service closes the sheet, then routes to `/book?service={id}` after the close transition completes.
-- Supports backdrop click, Escape, swipe-down from the drag handle, close control, focus trapping, body-scroll locking, and focus return to the trigger.
-- Uses `max-height: min(88dvh, 680px)` so long service lists remain scrollable without trapping the page.
+- Routes to `/book` (optionally `/book?service={id}` or `/book?look={id}`) as a standalone page; the booking flow renders `qwen-booking-flow.tsx`, which keeps the selection state across steps.
 
 ### Interaction states
 

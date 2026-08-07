@@ -10,24 +10,33 @@ function isCustomerRoute(pathname: string): boolean {
   return CUSTOMER_ROUTES.some((route) => pathname === route || (route !== "/" && pathname.startsWith(`${route}/`)));
 }
 
+type Direction = "forward" | "back";
+
 /**
- * Directional cross-route page transition.
+ * iOS-style directional page transition.
  *
- * On any pathname change, the previous page slides out and the new page
+ * On any pathname change the previous page slides out and the new page
  * slides in along the X axis, mirroring native iOS/Android push semantics.
- * Detects back-vs-forward by listening for `popstate` events (browser
- * back / OS swipe-back triggers a popstate; programmatic router.push does
- * not). This is RTL-aware: in a right-to-left layout, "forward" (push)
- * is the visual LEFT, "back" is the visual RIGHT.
+ * Direction comes from state: the `popstate` listener (browser back / OS
+ * swipe-back) sets "back" synchronously before the router commits the new
+ * pathname, so the exiting and entering pages both animate the right way on
+ * the first render. Programmatic router.push never fires popstate, so the
+ * direction stays "forward" (reset after each committed route).
  *
- * Uses the spring-decay easing token for a natural 280–320 ms motion feel.
- * Falls back to a subtle 6px vertical fade when reduced-motion is on.
+ * RTL-aware: in a right-to-left layout, "forward" (push) slides in from the
+ * visual LEFT, "back" (pop) from the visual RIGHT. The slide is modest
+ * (24% travel, iOS-style deceleration, 240 ms) so the fixed bottom
+ * navigation on customer pages keeps working — the shell returns to
+ * `transform: none` at rest, so fixed descendants resolve against the
+ * viewport exactly as before. Falls back to a pure fade when
+ * reduced-motion is on.
  */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [reduced, setReduced] = useState(() =>
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
+  const [direction, setDirection] = useState<Direction>("forward");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -38,38 +47,66 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
     return () => mq.removeEventListener("change", update);
   }, []);
 
+  // Browser back / OS swipe-back fires popstate before the router commits the
+  // new pathname; router.push does not. Keeping this in state means the render
+  // that mounts the new page already sees "back". The router commits the new
+  // pathname synchronously within the same event, so a 0ms timeout that runs
+  // on the next task resets the direction for the next push — the in-flight
+  // framer-motion animation already captured its variants object.
+  useEffect(() => {
+    const onPop = () => {
+      setDirection("back");
+      window.setTimeout(() => setDirection("forward"), 0);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   // Keep management surfaces unchanged; customer navigation gets the shared
-  // crossfade while the page-level components provide spatial entrance motion.
+  // directional transition while page-level components provide spatial motion.
   if (!isCustomerRoute(pathname)) return <>{children}</>;
 
-  // Use opacity-only shell transitions. A transformed ancestor would change
-  // the containing block of the customer's fixed bottom navigation.
+  // RTL mirror: in a right-to-left layout, pushing a new screen slides it in
+  // from the left (negative x) and popping returns it from the right.
+  const rtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
+
+  const slides: Record<Direction, { enter: { x: string; opacity: number }; exit: { x: string; opacity: number } }> = {
+    forward: {
+      enter: { x: rtl ? "-24%" : "24%", opacity: 0.4 },
+      exit: { x: rtl ? "12%" : "-12%", opacity: 0.6 },
+    },
+    back: {
+      enter: { x: rtl ? "24%" : "-24%", opacity: 0.4 },
+      exit: { x: rtl ? "-12%" : "12%", opacity: 0.6 },
+    },
+  };
+
   const variants = reduced
     ? {
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
+        enter: { opacity: 0 },
+        center: { x: "0%", opacity: 1 },
         exit: { opacity: 0 },
       }
     : {
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
+        enter: slides[direction].enter,
+        center: { x: "0%", opacity: 1 },
+        exit: slides[direction].exit,
       };
 
   const transition = reduced
     ? { duration: 0.01, ease: "linear" as const }
-    : { duration: 0.24, ease: [0.22, 1, 0.36, 1] as const };
+    : { duration: 0.24, ease: [0.32, 0.72, 0, 1] as const }; // iOS-style deceleration
 
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={pathname}
-        initial={variants.initial}
-        animate={variants.animate}
-        exit={variants.exit}
+        initial="enter"
+        animate="center"
+        exit="exit"
+        variants={variants}
         transition={transition}
-        style={{ willChange: "opacity" }}
+        style={{ willChange: "transform, opacity" }}
       >
         {children}
       </motion.div>

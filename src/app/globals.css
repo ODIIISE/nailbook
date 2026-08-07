@@ -716,33 +716,34 @@
    ================================================================ */
 
 .qhp-page {
+  /* Aliases into the global warm-paper set above — same names, single values. */
   --qhp-serif: var(--qhp-serif-font, 'Markazi Text'), 'Markazi Text', 'Times New Roman', Georgia, serif;
-  --qhp-bg: #FDF6F0;
-  --qhp-bg-2: #FBF1E8;
-  --qhp-card: #FFFFFF;
-  --qhp-ink: #2A1810;
-  --qhp-sub: #85705F;
-  --qhp-mut: #AC9A89;
-  --qhp-accent: #33221A;
-  --qhp-accent-2: #241511;
-  --qhp-blush: #F6E7DB;
-  --qhp-rose: #BE8A72;
-  --qhp-rose-2: #A97458;
-  --qhp-green: #2D7A3A;
-  --qhp-red: #C64949;
-  --qhp-gold: #C99B4C;
-  --qhp-hair: rgba(42, 24, 16, .07);
-  --qhp-hair-2: rgba(42, 24, 16, .12);
-  --qhp-r1: 10px;
-  --qhp-r2: 14px;
-  --qhp-r3: 20px;
-  --qhp-r4: 28px;
-  --qhp-sh1: 0 1px 2px rgba(42, 24, 16, .04), 0 6px 18px rgba(42, 24, 16, .06);
-  --qhp-sh2: 0 2px 6px rgba(42, 24, 16, .06), 0 14px 36px rgba(42, 24, 16, .10);
-  --qhp-sh3: 0 4px 12px rgba(42, 24, 16, .08), 0 28px 70px rgba(42, 24, 16, .18);
-  --qhp-ease-out: cubic-bezier(.22, 1, .36, 1);
-  --qhp-ease-inout: cubic-bezier(.65, 0, .35, 1);
-  --qhp-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --qhp-bg: var(--qbf-bg);
+  --qhp-bg-2: var(--qbf-bg-2);
+  --qhp-card: var(--qbf-card);
+  --qhp-ink: var(--qbf-ink);
+  --qhp-sub: var(--qbf-sub);
+  --qhp-mut: var(--qbf-mut);
+  --qhp-accent: var(--qbf-accent);
+  --qhp-accent-2: var(--qbf-accent-2);
+  --qhp-blush: var(--qbf-blush);
+  --qhp-rose: var(--qbf-rose);
+  --qhp-rose-2: var(--qbf-rose-2);
+  --qhp-green: var(--qbf-green);
+  --qhp-red: var(--qbf-red);
+  --qhp-gold: var(--qbf-gold);
+  --qhp-hair: var(--qbf-hair);
+  --qhp-hair-2: var(--qbf-hair-2);
+  --qhp-r1: var(--qbf-r1);
+  --qhp-r2: var(--qbf-r2);
+  --qhp-r3: var(--qbf-r3);
+  --qhp-r4: var(--qbf-r4);
+  --qhp-sh1: var(--qbf-sh1);
+  --qhp-sh2: var(--qbf-sh2);
+  --qhp-sh3: var(--qbf-sh3);
+  --qhp-ease-out: var(--qbf-ease-out);
+  --qhp-ease-inout: var(--qbf-ease-inout);
+  --qhp-ease-spring: var(--qbf-ease-spring);
 
   position: relative;
   max-width: 430px;
@@ -867,7 +868,10 @@
 /* ================= SHEETS ================= */
 .qhp-sheet-wrap { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; }
 .qhp-sheet-scrim { position: absolute; inset: 0; background: rgba(24, 13, 7, .45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: opacity .4s; }
-.qhp-sheet { position: relative; width: 100%; max-width: 430px; background: var(--qhp-bg); border-radius: var(--qhp-r4) var(--qhp-r4) 0 0; padding: 10px 22px calc(22px + env(safe-area-inset-bottom)); box-shadow: var(--qhp-sh3); transition: transform .55s var(--qhp-ease-out); max-height: 88dvh; display: flex; flex-direction: column; }
+.qhp-sheet { position: relative; width: 100%; max-width: 430px; background: var(--qhp-bg); border-radius: var(--qhp-r4) var(--qhp-r4) 0 0; padding: 10px 22px calc(22px + env(safe-area-inset-bottom)); box-shadow: var(--qhp-sh3); transition: transform .6s var(--qhp-ease-spring); max-height: 88dvh; display: flex; flex-direction: column; }
+.qhp-sheet-entering .qhp-sheet-head,
+.qhp-sheet-entering .qhp-sheet-content > * { animation: qhpSheetRise .5s var(--qhp-ease-spring) both; }
+@keyframes qhpSheetRise { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
 .qhp-sheet-handle { width: 44px; height: 4px; border-radius: 3px; background: var(--qhp-hair-2); margin: 6px auto 16px; cursor: grab; touch-action: none; }
 .qhp-sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .qhp-sheet-head h3 { font-family: var(--qhp-serif); font-size: 24px; font-weight: 700; }
@@ -924,8 +928,10 @@
    ================================================================ */
 
 :root {
-  /* QBF — booking-flow tokens. Defined globally (not on .qbf-page) so the
-     overlay-sheet variant, which never renders .qbf-page, inherits them too. */
+  /* Warm-paper tokens — single source of truth for the customer journey.
+     Defined globally (not on .qbf-page) so the overlay-sheet variant, which
+     never renders .qbf-page, inherits them too. The scoped .qhp-page block
+     below aliases these values; change colors here only. */
   --qbf-bg: #FDF6F0;
   --qbf-bg-2: #FBF1E8;
   --qbf-card: #FFFFFF;
@@ -939,6 +945,7 @@
   --qbf-rose-2: #A97458;
   --qbf-green: #2D7A3A;
   --qbf-red: #C64949;
+  --qbf-gold: #C99B4C;
   --qbf-hair: rgba(42, 24, 16, .07);
   --qbf-hair-2: rgba(42, 24, 16, .12);
   --qbf-r1: 10px;
@@ -947,7 +954,9 @@
   --qbf-r4: 28px;
   --qbf-sh1: 0 1px 2px rgba(42, 24, 16, .04), 0 6px 18px rgba(42, 24, 16, .06);
   --qbf-sh2: 0 2px 6px rgba(42, 24, 16, .06), 0 14px 36px rgba(42, 24, 16, .10);
+  --qbf-sh3: 0 4px 12px rgba(42, 24, 16, .08), 0 28px 70px rgba(42, 24, 16, .18);
   --qbf-ease-out: cubic-bezier(.22, 1, .36, 1);
+  --qbf-ease-inout: cubic-bezier(.65, 0, .35, 1);
   --qbf-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
 }
 
@@ -1067,6 +1076,21 @@
 .qbf-selected-date svg { width: 15px; height: 15px; color: var(--qbf-rose-2); }
 
 /* ---- Slot groups ---- */
+/* ---- Suggested-time band (best picks up top, rest grouped below) ---- */
+.qbf-suggest-band {
+  margin-bottom: 18px;
+  padding: 14px;
+  border-radius: var(--qbf-r3);
+  background: linear-gradient(160deg, rgba(201, 155, 76, .12), rgba(201, 155, 76, .05) 55%, transparent);
+  border: 1px solid rgba(201, 155, 76, .28);
+  box-shadow: var(--qbf-sh1);
+}
+.qbf-suggest-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+.qbf-suggest-head svg { width: 15px; height: 15px; fill: var(--qbf-gold); align-self: center; flex-shrink: 0; }
+.qbf-suggest-title { font-size: 13px; font-weight: 800; color: var(--qbf-accent); }
+.qbf-suggest-sub { font-size: 11px; color: var(--qbf-mut); font-weight: 600; }
+.qbf-suggest-band .qbf-slot-grid { gap: 8px; }
+
 .qbf-slot-group { margin-bottom: 14px; }
 .qbf-sg-label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: var(--qbf-sub); margin: 12px 0 8px; }
 .qbf-sg-label svg { width: 14px; height: 14px; stroke: var(--qbf-rose); fill: none; stroke-width: 2; stroke-linecap: round; }
@@ -1075,10 +1099,104 @@
 .qbf-slot:active { transform: scale(.9); }
 .qbf-slot.sel { background: var(--qbf-accent); color: #fff; border-color: var(--qbf-accent); box-shadow: 0 8px 20px rgba(42, 24, 16, .3); animation: qbfSlotPop .4s var(--qbf-ease-spring) forwards; }
 .qbf-slot.off { opacity: .35; text-decoration: line-through; pointer-events: none; box-shadow: none; }
-.qbf-slot.suggest { border-color: rgba(201, 155, 76, .55); }
+.qbf-slot.suggest { border-color: rgba(201, 155, 76, .55); background: linear-gradient(180deg, #fff, var(--qbf-bg-2)); }
+.qbf-suggest-band .qbf-slot.suggest { border-color: var(--qbf-gold); }
 .qbf-slot-time { line-height: 1.2; }
 .qbf-slot-pin { position: absolute; top: -7px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 8.5px; font-weight: 800; color: #fff; background: var(--qbf-rose-2); padding: 1px 7px; border-radius: 10px; white-space: nowrap; }
 @keyframes qbfSlotPop { 0% { transform: scale(.9); } 60% { transform: scale(1.09); } 100% { transform: scale(1.05); } }
+
+/* ---- Date step: staggered entrance (replays each time the step opens) ----
+   Longhand animation props (no shorthand) so the nth-child animation-delay
+   rules below actually apply — a shorthand would reset delay to 0s and win
+   on specificity. */
+.qbf-step.active.enter-fwd .qbf-strip-head,
+.qbf-step.active.enter-back .qbf-strip-head,
+.qbf-step.active.enter-fwd .qbf-date-scroll .qbf-date-chip,
+.qbf-step.active.enter-back .qbf-date-scroll .qbf-date-chip,
+.qbf-step.active.enter-fwd .qbf-selected-date,
+.qbf-step.active.enter-back .qbf-selected-date,
+.qbf-step.active.enter-fwd .qbf-sg-label,
+.qbf-step.active.enter-back .qbf-sg-label,
+.qbf-step.active.enter-fwd .qbf-slot-grid .qbf-slot,
+.qbf-step.active.enter-back .qbf-slot-grid .qbf-slot,
+.qbf-step.active.enter-fwd .qbf-empty,
+.qbf-step.active.enter-back .qbf-empty,
+.qbf-step.active.enter-fwd .qbf-suggest-band,
+.qbf-step.active.enter-back .qbf-suggest-band {
+  animation-name: qbfRiseIn;
+  animation-duration: .5s;
+  animation-timing-function: var(--qbf-ease-out);
+  animation-fill-mode: both;
+}
+.qbf-suggest-band { animation-delay: 20ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(1) { animation-delay: 0ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(2) { animation-delay: 28ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(3) { animation-delay: 56ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(4) { animation-delay: 84ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(5) { animation-delay: 112ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(6) { animation-delay: 140ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(7) { animation-delay: 168ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(8) { animation-delay: 196ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(9) { animation-delay: 224ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(10) { animation-delay: 252ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(11) { animation-delay: 280ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(12) { animation-delay: 308ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(13) { animation-delay: 336ms; }
+.qbf-date-scroll .qbf-date-chip:nth-child(14) { animation-delay: 364ms; }
+.qbf-slot-grid .qbf-slot:nth-child(1) { animation-delay: 60ms; }
+.qbf-slot-grid .qbf-slot:nth-child(2) { animation-delay: 110ms; }
+.qbf-slot-grid .qbf-slot:nth-child(3) { animation-delay: 160ms; }
+.qbf-slot-grid .qbf-slot:nth-child(4) { animation-delay: 210ms; }
+.qbf-slot-grid .qbf-slot:nth-child(5) { animation-delay: 260ms; }
+.qbf-slot-grid .qbf-slot:nth-child(6) { animation-delay: 310ms; }
+.qbf-slot-grid .qbf-slot:nth-child(7) { animation-delay: 360ms; }
+.qbf-slot-grid .qbf-slot:nth-child(8) { animation-delay: 410ms; }
+.qbf-slot-grid .qbf-slot:nth-child(9) { animation-delay: 460ms; }
+.qbf-slot-grid .qbf-slot:nth-child(10) { animation-delay: 510ms; }
+.qbf-slot-grid .qbf-slot:nth-child(11) { animation-delay: 560ms; }
+.qbf-slot-grid .qbf-slot:nth-child(12) { animation-delay: 610ms; }
+.qbf-selected-date { animation-delay: 130ms; }
+.qbf-empty { animation-delay: 100ms; }
+.qbf-strip-head { animation-delay: 0ms; }
+.qbf-sg-label { animation-delay: 40ms; }
+@keyframes qbfRiseIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* Selected chips keep their pop feedback (wins over the entrance stagger). */
+.qbf-step.active.enter-fwd .qbf-date-chip.sel,
+.qbf-step.active.enter-back .qbf-date-chip.sel { animation: qbfChipPop .45s var(--qbf-ease-spring) both; }
+.qbf-step.active.enter-fwd .qbf-slot.sel,
+.qbf-step.active.enter-back .qbf-slot.sel { animation: qbfSlotPop .4s var(--qbf-ease-spring) forwards; }
+
+/* Disabled days / taken slots must keep their dimmed look — the entrance
+   animation's `both` fill would otherwise hold them at full opacity. */
+.qbf-step.active.enter-fwd .qbf-date-chip.off,
+.qbf-step.active.enter-back .qbf-date-chip.off { animation: none; opacity: .4; }
+.qbf-step.active.enter-fwd .qbf-slot.off,
+.qbf-step.active.enter-back .qbf-slot.off { animation: none; opacity: .35; }
+
+/* ---- Step 1 & 3: light stagger for service cards / review rows ---- */
+.qbf-step.active.enter-fwd .qbf-svc-card,
+.qbf-step.active.enter-back .qbf-svc-card,
+.qbf-step.active.enter-fwd .qbf-review-card,
+.qbf-step.active.enter-back .qbf-review-card,
+.qbf-step.active.enter-fwd .qbf-form-card,
+.qbf-step.active.enter-back .qbf-form-card,
+.qbf-step.active.enter-fwd .qbf-policy,
+.qbf-step.active.enter-back .qbf-policy {
+  animation-name: qbfRiseIn;
+  animation-duration: .5s;
+  animation-timing-function: var(--qbf-ease-out);
+  animation-fill-mode: both;
+}
+.qbf-svc-list .qbf-svc-card:nth-child(1) { animation-delay: 30ms; }
+.qbf-svc-list .qbf-svc-card:nth-child(2) { animation-delay: 90ms; }
+.qbf-svc-list .qbf-svc-card:nth-child(3) { animation-delay: 150ms; }
+.qbf-svc-list .qbf-svc-card:nth-child(4) { animation-delay: 210ms; }
+.qbf-svc-list .qbf-svc-card:nth-child(5) { animation-delay: 270ms; }
+.qbf-svc-list .qbf-svc-card:nth-child(6) { animation-delay: 330ms; }
+.qbf-review-card { animation-delay: 40ms; }
+.qbf-form-card { animation-delay: 120ms; }
+.qbf-policy { animation-delay: 200ms; }
 
 /* ---- Empty state ---- */
 .qbf-empty { text-align: center; padding: 34px 20px; background: var(--qbf-card); border: 1px solid var(--qbf-hair); border-radius: var(--qbf-r3); box-shadow: var(--qbf-sh1); }
@@ -1091,8 +1209,9 @@
 
 /* ---- Month modal ---- */
 .qbf-modal-wrap { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; padding: 24px; }
-.qbf-modal-scrim { position: absolute; inset: 0; background: rgba(24, 13, 7, .45); backdrop-filter: blur(4px); }
-.qbf-modal { position: relative; width: 100%; max-width: 340px; background: var(--qbf-bg); border-radius: var(--qbf-r4, 24px); padding: 18px 16px 16px; box-shadow: var(--qbf-sh2); animation: qbfModalIn .35s var(--qbf-ease-spring); }
+.qbf-modal-scrim { position: absolute; inset: 0; background: rgba(24, 13, 7, .45); backdrop-filter: blur(4px); animation: qbfScrimIn .3s var(--qbf-ease-out) both; }
+@keyframes qbfScrimIn { from { opacity: 0; } to { opacity: 1; } }
+.qbf-modal { position: relative; width: 100%; max-width: 340px; background: var(--qbf-bg); border-radius: var(--qbf-r4, 24px); padding: 18px 16px 16px; box-shadow: var(--qbf-sh2); animation: qbfModalIn .45s var(--qbf-ease-spring); }
 @keyframes qbfModalIn { from { opacity: 0; transform: scale(.94) translateY(10px); } to { opacity: 1; transform: none; } }
 .qbf-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .qbf-modal-title { text-align: center; }

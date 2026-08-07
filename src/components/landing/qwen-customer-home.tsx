@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
 import { toPersianDigits } from "@/lib/jalali";
 import { isValidIranianPhone } from "@/lib/digits";
+import { compactPrice, compactToman } from "@/lib/pricing";
 import { getServiceImage } from "@/lib/service-images";
 import type { Service } from "@/lib/types";
 import type { WorkingHours } from "@/lib/slots";
@@ -47,20 +48,6 @@ function formatHours(txt: string, h: WorkingHours) {
     .map(([d, v]) => `${DAY_LABELS[d]} ${toPersianDigits(v!.open)} تا ${toPersianDigits(v!.close)}`)
     .join(" · ") || "اطلاعات ثبت نشده";
 }
-/** Compact Persian money, e.g. 350000 → "۳۵۰ هزار", 1500000 → "۱٫۵ میلیون". */
-function compactPrice(n: number): string {
-  if (n < 1000) return toPersianDigits(n);
-  if (n >= 1_000_000) {
-    const m = n / 1_000_000;
-    const s = m % 1 === 0 ? String(m) : m.toFixed(1).replace(".", "٫");
-    return `${toPersianDigits(s)} میلیون`;
-  }
-  return `${toPersianDigits(Math.round(n / 1000))} هزار`;
-}
-function compactToman(n: number): string {
-  return `${compactPrice(n)} تومان`;
-}
-
 interface Look {
   key: string;
   name: string;
@@ -504,7 +491,7 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
         onClick={onClose}
         style={{ opacity: visible ? 1 : 0 }} />
       <div role="dialog" aria-modal="true" aria-label={title} tabIndex={-1}
-        className="qhp-sheet"
+        className={`qhp-sheet${visible ? " qhp-sheet-entering" : ""}`}
         style={{ transform: `translateY(${translateY})` }}>
         <div className="qhp-sheet-handle" aria-hidden="true"
           onTouchStart={(e) => { touchStartY.current = e.touches[0]?.clientY ?? 0; }}
