@@ -8,6 +8,7 @@ interface PinInputProps {
   length?: number;
   onComplete: (pin: string) => void;
   disabled?: boolean;
+  className?: string;
 }
 
 /**
@@ -38,7 +39,7 @@ export function applyPinInputValue(
   return next;
 }
 
-export function PinInput({ length = 4, onComplete, disabled }: PinInputProps) {
+export function PinInput({ length = 4, onComplete, disabled, className }: PinInputProps) {
   const inputLength = Number.isFinite(length) ? Math.max(1, Math.floor(length)) : 4;
   const [digits, setDigits] = useState<string[]>(() => Array(inputLength).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -102,7 +103,7 @@ export function PinInput({ length = 4, onComplete, disabled }: PinInputProps) {
 
   return (
     <div
-      className="grid w-full max-w-full gap-1 sm:gap-3"
+      className={cn("grid w-full max-w-full gap-1 sm:gap-3", className)}
       style={{ gridTemplateColumns: `repeat(${inputLength}, minmax(0, 1fr))`, direction: "ltr" }}
       dir="ltr"
       role="group"
@@ -132,8 +133,8 @@ export function PinInput({ length = 4, onComplete, disabled }: PinInputProps) {
             "bg-background border-2 outline-none",
             "focus:border-primary focus:ring-4 focus:ring-primary/10",
             digit
-              ? "border-primary bg-primary/[0.03] text-foreground shadow-sm"
-              : "border-border text-foreground",
+              ? "qbf-pin-filled border-primary bg-primary/[0.03] text-foreground shadow-sm"
+              : "qbf-pin-empty border-border text-foreground",
             disabled && "opacity-50 cursor-not-allowed"
           )}
         />

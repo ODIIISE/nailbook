@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  ArrowRight, Calendar, Check, Clock, LogOut, Pencil, Phone, Sparkles, User, X,
+  ArrowLeft, ArrowRight, Calendar, Check, Clock, LogOut, Pencil, Phone, Sparkles, User, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
@@ -203,8 +203,14 @@ export default function ProfilePage() {
       <div className="qbp-body">
         <div className="qbp-avatar" aria-hidden="true">{initial}</div>
 
-        <div className="qbf-form-card" style={{ padding: 0 }}>
-          <p className="qbf-form-t" style={{ padding: "16px 16px 4px" }}>مشخصات شما</p>
+        <section className="qbp-profile-card" aria-labelledby="profile-details-title">
+          <div className="qbp-section-heading">
+            <div>
+              <span className="qbp-section-kicker">حساب کاربری</span>
+              <h3 id="profile-details-title">مشخصات شما</h3>
+            </div>
+            <User className="qbp-section-heading-icon" aria-hidden="true" />
+          </div>
 
           <div className="qbp-row">
             <span className="qbf-rev-ic"><User className="h-4 w-4" aria-hidden="true" /></span>
@@ -226,18 +232,17 @@ export default function ProfilePage() {
               )}
             </div>
             {editing ? (
-              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                <button type="button" className="qbf-rev-edit" onClick={saveEdit} disabled={saving}>
-                  {saving ? "…" : <Check className="h-4 w-4" aria-hidden="true" />}
+              <div className="qbp-icon-actions">
+                <button type="button" className="qbp-icon-btn primary" onClick={saveEdit} disabled={saving} aria-label="ذخیره نام" title="ذخیره نام">
+                  {saving ? <span className="qbp-action-spinner" aria-hidden="true" /> : <Check aria-hidden="true" />}
                 </button>
-                <button type="button" className="qbf-rev-edit" onClick={cancelEdit} aria-label="انصراف">
-                  <X className="h-4 w-4" aria-hidden="true" />
+                <button type="button" className="qbp-icon-btn" onClick={cancelEdit} aria-label="انصراف از ویرایش نام" title="انصراف">
+                  <X aria-hidden="true" />
                 </button>
               </div>
             ) : (
-              <button type="button" className="qbf-rev-edit" onClick={startEdit}>
-                <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-                ویرایش
+              <button type="button" className="qbp-icon-btn" onClick={startEdit} aria-label="ویرایش نام" title="ویرایش نام">
+                <Pencil aria-hidden="true" />
               </button>
             )}
           </div>
@@ -250,8 +255,7 @@ export default function ProfilePage() {
                 <input
                   type="tel"
                   dir="ltr"
-                  className="qbp-edit-input"
-                  style={{ textAlign: "left" }}
+                  className="qbp-edit-input qbp-phone-input"
                   value={editPhone}
                   onChange={(e) => setEditPhone(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !savingPhone && savePhone()}
@@ -260,37 +264,40 @@ export default function ProfilePage() {
                   aria-label="شماره موبایل"
                 />
               ) : (
-                <b dir="ltr">{displayDigits(user.phone)}</b>
+                <b className="qbp-phone-value" dir="ltr">{displayDigits(user.phone)}</b>
               )}
               {!editingPhone && (
                 <span className="qbp-row-note">این شماره هویت ورود شماست؛ نوبت‌های قبلی با تغییر شماره به‌صورت خودکار منتقل می‌شوند.</span>
               )}
             </div>
             {editingPhone ? (
-              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                <button type="button" className="qbf-rev-edit" onClick={savePhone} disabled={savingPhone}>
-                  {savingPhone ? "…" : <Check className="h-4 w-4" aria-hidden="true" />}
+              <div className="qbp-icon-actions">
+                <button type="button" className="qbp-icon-btn primary" onClick={savePhone} disabled={savingPhone} aria-label="ذخیره شماره موبایل" title="ذخیره شماره موبایل">
+                  {savingPhone ? <span className="qbp-action-spinner" aria-hidden="true" /> : <Check aria-hidden="true" />}
                 </button>
-                <button type="button" className="qbf-rev-edit" onClick={cancelPhoneEdit} aria-label="انصراف">
-                  <X className="h-4 w-4" aria-hidden="true" />
+                <button type="button" className="qbp-icon-btn" onClick={cancelPhoneEdit} aria-label="انصراف از ویرایش شماره" title="انصراف">
+                  <X aria-hidden="true" />
                 </button>
               </div>
             ) : (
-              <button type="button" className="qbf-rev-edit" onClick={startPhoneEdit}>
-                <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-                ویرایش
+              <button type="button" className="qbp-icon-btn" onClick={startPhoneEdit} aria-label="ویرایش شماره موبایل" title="ویرایش شماره موبایل">
+                <Pencil aria-hidden="true" />
               </button>
             )}
           </div>
-        </div>
+        </section>
 
-        <div className="qbp-sec-head" style={{ marginTop: 24 }}>
-          <h3>نوبت‌های من</h3>
-          <button type="button" className="qbp-view-all" onClick={() => router.push("/bookings")}>
-            همه نوبت‌ها
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
-        </div>
+        <section className="qbp-history-section" aria-labelledby="profile-history-title">
+          <div className="qbp-sec-head">
+            <div>
+              <span className="qbp-section-kicker">رزروها</span>
+              <h3 id="profile-history-title">نوبت‌های من</h3>
+            </div>
+            <button type="button" className="qbp-view-all" onClick={() => router.push("/bookings")}>
+              همه نوبت‌ها
+              <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          </div>
 
         {recentBookings.length === 0 ? (
           <div className="qbf-empty" style={{ marginTop: 4, padding: "24px 20px" }}>
@@ -304,7 +311,7 @@ export default function ProfilePage() {
             </button>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="qbp-recent-list">
             {recentBookings.map((booking) => {
               const status = STATUS_MAP[booking.status] || STATUS_MAP.pending;
               const time = booking.start_time.slice(0, 5);
@@ -362,6 +369,7 @@ export default function ProfilePage() {
             })}
           </div>
         )}
+        </section>
 
         <button type="button" className="qbp-logout" onClick={handleLogout}>
           <LogOut aria-hidden="true" />

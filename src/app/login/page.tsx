@@ -119,7 +119,7 @@ export default function LoginPage() {
         <span className="qbf-head-spacer" />
       </header>
 
-      <div className="qbp-body">
+      <div className="qbp-body qbp-auth-body">
         {step === "phone" && (
           <div className="qbf-form-card">
             <p className="qbf-form-t">شماره موبایل خود را وارد کنید</p>
@@ -152,15 +152,15 @@ export default function LoginPage() {
         )}
 
         {step === "otp" && (
-          <div className="qbf-form-card">
+          <div className="qbf-form-card qbp-auth-card">
             <p className="qbf-form-t">کد ۶ رقمی پیامک‌شده را وارد کنید</p>
-            <div className="qbf-verified-row" style={{ marginBottom: 16 }}>
+            <div className="qbf-verified-row">
               <span className="qbf-verified-ic">✓</span>
               <span><b>شماره</b><small dir="ltr">{displayDigits(phone)}</small></span>
             </div>
-            <PinInput length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
+            <PinInput className="qbf-pin-input" length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
             {error && <p className="qbf-form-error" role="alert" style={{ display: "flex", alignItems: "center", gap: 6 }}><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
-            <div className="qbf-otp-actions">
+            <div className="qbf-otp-actions" aria-label="گزینه‌های کد ورود">
               <ResendOtpButton
                 onResend={async () => {
                   const result = await sendOtp(normalizeDigits(phone));

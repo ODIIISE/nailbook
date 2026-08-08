@@ -136,7 +136,16 @@ export default function BookingsPage() {
         <span className="qbf-head-spacer" />
       </header>
 
-      <div className="qbp-body">
+      <div className="qbp-body qbp-history-body">
+        <section className="qbp-history-hero" aria-labelledby="booking-history-title">
+          <div className="qbp-history-hero-icon"><Calendar aria-hidden="true" /></div>
+          <div className="qbp-history-hero-copy">
+            <span className="qbp-section-kicker">سوابق رزرو</span>
+            <h3 id="booking-history-title">تاریخچه نوبت‌ها</h3>
+            <p>{toPersianDigits(myBookings.length)} نوبت ثبت‌شده</p>
+          </div>
+          <span className="qbp-history-hero-mark" aria-hidden="true">{toPersianDigits(myBookings.length)}</span>
+        </section>
         <PullToRefresh onRefresh={refreshBookings}>
           {myBookings.length === 0 ? (
             <div className="qbf-empty" style={{ marginTop: 12 }}>

@@ -1588,3 +1588,179 @@
 .qbp-cancel { border: none; background: var(--qbf-blush); color: var(--qbf-rose-2); font: 800 11px 'Vazirmatn'; padding: 7px 14px; border-radius: 20px; cursor: pointer; flex-shrink: 0; transition: all .2s var(--qbf-ease-spring); }
 .qbp-cancel:active { transform: scale(.9); }
 .qbp-cancel.confirm { background: var(--qbf-red); color: #fff; }
+
+/* ============ Customer account rebuild ============
+   Keep account screens as a real viewport shell: the header stays fixed in
+   the flow and only the content surface scrolls. This prevents OTP actions
+   and long booking histories from escaping below the canvas. */
+.qbf-page {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+.qbp-body {
+  flex: 1 1 0;
+  height: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+.qbp-auth-body {
+  padding-top: clamp(18px, 7dvh, 64px);
+  padding-bottom: max(34px, calc(34px + env(safe-area-inset-bottom)));
+}
+.qbp-auth-card {
+  width: 100%;
+  margin-inline: auto;
+}
+.qbf-otp-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--qbf-hair);
+}
+.qbf-otp-actions > * {
+  width: 100% !important;
+  min-height: 40px;
+}
+.qbf-otp-actions .qbf-otp-change {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--qbf-rose-2);
+  background: transparent;
+}
+.qbf-pin-input {
+  gap: clamp(5px, 2vw, 10px) !important;
+  direction: ltr;
+}
+.qbf-pin-input input {
+  height: clamp(48px, 14vw, 58px) !important;
+  border-radius: var(--qbf-r2) !important;
+  border: 1.5px solid var(--qbf-hair-2) !important;
+  background: var(--qbf-bg) !important;
+  color: var(--qbf-ink) !important;
+  box-shadow: none !important;
+  font-size: clamp(21px, 6vw, 27px) !important;
+  transition: border-color .16s var(--qbf-ease-out), background-color .16s, box-shadow .16s, transform .16s var(--qbf-ease-spring) !important;
+}
+.qbf-pin-input input.qbf-pin-empty { background: var(--qbf-card) !important; }
+.qbf-pin-input input.qbf-pin-filled {
+  background: var(--qbf-blush) !important;
+  border-color: var(--qbf-rose) !important;
+  color: var(--qbf-accent) !important;
+}
+.qbf-pin-input input:focus {
+  border-color: var(--qbf-accent) !important;
+  background: var(--qbf-card) !important;
+  box-shadow: 0 0 0 3px rgba(190, 138, 114, .16) !important;
+  transform: translateY(-1px);
+}
+.qbf-verified-row { margin-bottom: 16px; }
+.qbf-verified-row small[dir="ltr"] { direction: ltr; text-align: right; }
+
+/* Profile hierarchy and compact controls */
+.qbp-profile-card {
+  background: var(--qbf-card);
+  border: 1px solid var(--qbf-hair);
+  border-radius: var(--qbf-r3);
+  box-shadow: var(--qbf-sh1);
+  overflow: hidden;
+}
+.qbp-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  background: linear-gradient(135deg, var(--qbf-card), var(--qbf-bg-2));
+  border-bottom: 1px solid var(--qbf-hair);
+}
+.qbp-section-heading > div { min-width: 0; }
+.qbp-section-kicker {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--qbf-rose-2);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.qbp-section-heading h3,
+.qbp-sec-head h3 { margin: 0; font-size: 16px; font-weight: 800; }
+.qbp-section-heading-icon { width: 22px; height: 22px; color: var(--qbf-rose-2); flex-shrink: 0; }
+.qbp-row { min-width: 0; }
+.qbp-row-meta { text-align: right; }
+.qbp-row-meta b { text-align: right; }
+.qbp-phone-value { display: block; direction: ltr; text-align: right; letter-spacing: .02em; }
+.qbp-phone-input { direction: ltr; text-align: right !important; }
+.qbp-icon-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.qbp-icon-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid var(--qbf-hair-2);
+  border-radius: 50%;
+  background: var(--qbf-card);
+  color: var(--qbf-sub);
+  cursor: pointer;
+  transition: transform .16s var(--qbf-ease-spring), background-color .16s, color .16s, border-color .16s;
+}
+.qbp-icon-btn:hover { background: var(--qbf-bg-2); color: var(--qbf-accent); border-color: var(--qbf-rose); }
+.qbp-icon-btn:active { transform: scale(.86); }
+.qbp-icon-btn.primary { background: var(--qbf-accent); border-color: var(--qbf-accent); color: #fff; }
+.qbp-icon-btn:disabled { opacity: .55; cursor: wait; }
+.qbp-icon-btn svg { width: 16px; height: 16px; stroke-width: 2.2; }
+.qbp-action-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: qbpSpin .65s linear infinite; }
+@keyframes qbpSpin { to { transform: rotate(360deg); } }
+.qbp-history-section { margin-top: 24px; }
+.qbp-sec-head { display: flex; align-items: end; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.qbp-sec-head > div { min-width: 0; }
+.qbp-sec-head::after { display: none; }
+.qbp-view-all { gap: 5px; padding: 6px 0 6px 8px; }
+.qbp-view-all svg { flex-shrink: 0; }
+.qbp-recent-list { display: flex; flex-direction: column; gap: 10px; }
+.qbp-recent-list .qbp-book { margin-bottom: 0; border-radius: var(--qbf-r2); box-shadow: 0 2px 10px rgba(42,24,16,.05); }
+.qbp-recent-list .qbp-book::before { content: ''; position: absolute; inset-inline-start: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 4px 4px 0; background: var(--qbf-rose); }
+.qbp-recent-list .qbp-book { position: relative; }
+
+/* Full history gets its own identity instead of looking like another form card. */
+.qbp-history-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 86px;
+  margin: 4px 0 8px;
+  padding: 16px;
+  overflow: hidden;
+  border-radius: var(--qbf-r3);
+  color: #fff;
+  background: linear-gradient(135deg, #3E2A1F, var(--qbf-accent-2));
+  box-shadow: 0 12px 28px rgba(42,24,16,.18);
+}
+.qbp-history-hero-icon { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 15px; background: rgba(255,255,255,.12); }
+.qbp-history-hero-icon svg { width: 23px; height: 23px; }
+.qbp-history-hero-copy { min-width: 0; }
+.qbp-history-hero-copy .qbp-section-kicker { color: #E5BC85; }
+.qbp-history-hero-copy h3 { margin: 0; font-size: 18px; font-weight: 800; }
+.qbp-history-hero-copy p { margin: 3px 0 0; color: rgba(255,255,255,.64); font-size: 11.5px; font-weight: 500; }
+.qbp-history-hero-mark { position: absolute; inset-inline-end: -7px; bottom: -24px; color: rgba(255,255,255,.08); font-family: var(--qhp-serif); font-size: 116px; font-weight: 700; line-height: 1; pointer-events: none; }
+.qbp-history-body > .relative { min-height: 0; }
+
+@media (max-width: 360px) {
+  .qbp-body { padding-inline: 16px; }
+  .qbf-head { padding-inline: 10px; }
+  .qbf-pin-input { gap: 4px !important; }
+  .qbp-row { padding-inline: 12px; gap: 8px; }
+  .qbp-row .qbf-rev-ic { width: 32px; height: 32px; }
+  .qbp-icon-btn { width: 32px; height: 32px; }
+}
