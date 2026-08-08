@@ -92,6 +92,10 @@
 
 :root {
   color-scheme: light;
+  /* Phone-frame width: fill narrow phones fully, cap on wide phones/desktop.
+     min(100vw, …) makes it fluid on every device; bumping the cap widens the
+     frame everywhere (homepage, booking flow, bottom sheet stay in sync). */
+  --frame-max-w: min(100vw, 480px);
   /* ── Clean Slate: Light Mode ── */
   --background: #FFFFFF;
   --foreground: #0A0A0A;
@@ -750,7 +754,7 @@
 
 .qhp-page {
   position: relative;
-  max-width: 430px;
+  max-width: var(--frame-max-w);
   margin: 0 auto;
   min-height: 100dvh;
   background: var(--qhp-bg);
@@ -872,7 +876,7 @@
 /* ================= SHEETS ================= */
 .qhp-sheet-wrap { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; }
 .qhp-sheet-scrim { position: absolute; inset: 0; background: rgba(24, 13, 7, .45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: opacity .4s; }
-.qhp-sheet { position: relative; width: 100%; max-width: 430px; background: var(--qhp-bg); color: var(--qhp-ink); font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif; border-radius: var(--qhp-r4) var(--qhp-r4) 0 0; padding: 10px 22px calc(22px + env(safe-area-inset-bottom)); box-shadow: var(--qhp-sh3); transition: transform .45s var(--qhp-ease-spring); max-height: min(88dvh, 760px); box-sizing: border-box; display: flex; flex-direction: column; will-change: transform; }
+.qhp-sheet { position: relative; width: 100%; max-width: var(--frame-max-w); background: var(--qhp-bg); color: var(--qhp-ink); font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif; border-radius: var(--qhp-r4) var(--qhp-r4) 0 0; padding: 10px 22px calc(22px + env(safe-area-inset-bottom)); box-shadow: var(--qhp-sh3); transition: transform .45s var(--qhp-ease-spring); max-height: min(88dvh, 760px); box-sizing: border-box; display: flex; flex-direction: column; will-change: transform; }
 .qhp-sheet-entering .qhp-sheet-head,
 .qhp-sheet-entering .qhp-sheet-content > * { animation: qhpSheetRise .4s var(--qhp-ease-spring) both; }
 @keyframes qhpSheetRise { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
@@ -972,7 +976,7 @@
 
 .qbf-page {
   min-height: 100dvh;
-  max-width: 430px;
+  max-width: var(--frame-max-w);
   margin: 0 auto;
   display: flex;
   flex-direction: column;

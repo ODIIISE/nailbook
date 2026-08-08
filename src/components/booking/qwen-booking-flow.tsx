@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, CalendarDays, Check, ChevronDown, Clock, Images, Loader2,
+  ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, Clock, Images, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
@@ -310,6 +310,9 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
 
   const handleBack = useCallback(() => {
     if (step === "service") {
+      // Tell the page transition this is a back action so the homepage slides
+      // in from the back (right) side rather than the forward (left) side.
+      window.dispatchEvent(new Event("nailbook:back"));
       router.push("/");
       return;
     }
@@ -590,7 +593,8 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
       {/* Header */}
       <header className="qbf-head">
         <button type="button" className="qbf-round-btn" onClick={handleBack} aria-label="بازگشت" style={{ visibility: step === "success" ? "hidden" : "visible" }}>
-          <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+          {/* RTL: back points right (toward the previous screen) */}
+          <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </button>
         <div className="qbf-mid">
           <span className="qbf-kicker">{STEP_KICKER[step]}</span>
