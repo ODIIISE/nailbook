@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
+import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
 
 export interface AuthUser {
   id: string;
@@ -15,7 +16,7 @@ interface AuthContextType {
   isLoading: boolean;
   sendOtp: (phone: string) => Promise<{ success: boolean; error?: string }>;
   verifyOtp: (phone: string, code: string) => Promise<{ success: boolean; error?: string; user?: AuthUser }>;
-  updateProfile: (name: string, userId?: string) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (name: string, userId?: string, phone?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isOwner: boolean;
   hasRole: (role: "customer" | "owner") => boolean;
@@ -122,29 +123,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const updateProfile = useCallback(async (name: string, userId?: string) => {
+  const updateProfile = useCallback(async (name: string, userId?: string, phone?: string) => {
     const trimmed = name.trim();
     const targetUserId = userId ?? user?.id;
     if (!trimmed) return { success: false, error: "نام الزامی است" };
     if (!targetUserId) return { success: false, error: "ابتدا شماره را تأیید کنید" };
+    const cleanPhone = phone === undefined ? undefined : normalizeDigits(phone);
+    if (cleanPhone !== undefined && !isValidIranianPhone(cleanPhone)) {
+      return { success: false, error: "شماره موبایل نامعتبر است" };
+    }
 
     try {
       const res = await fetch("/api/auth/update-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: targetUserId, name: trimmed }),
+        body: JSON.stringify({
+          userId: targetUserId,
+          name: trimmed,
+          ...(cleanPhone !== undefined ? { phone: cleanPhone } : {}),
+        }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) return { success: false, error: data.error || "ذخیره نام انجام نشد" };
+      if (!res.ok) return { success: false, error: data.error || "ذخیره تغییرات انجام نشد" };
       setUser((currentUser) => {
         if (!currentUser || currentUser.id !== targetUserId) return currentUser;
-        const nextUser = { ...currentUser, name: trimmed };
+        const nextUser = {
+          ...currentUser,
+          name: trimmed,
+          ...(cleanPhone !== undefined ? { phone: cleanPhone } : {}),
+        };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
         return nextUser;
       });
       return { success: true };
     } catch {
-      return { success: false, error: "ذخیره نام انجام نشد" };
+      return { success: false, error: "ذخیره تغییرات انجام نشد" };
     }
   }, [user]);
 

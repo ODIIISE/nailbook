@@ -5,7 +5,8 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, CalendarDays, Clock, Images, MapPin, MessageCircle, Phone, Sparkles, X,
+  ArrowLeft, CalendarDays, Clock, History, Home, Images, LogIn, LogOut, MapPin,
+  Menu, MessageCircle, Phone, Sparkles, User, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
@@ -69,7 +70,7 @@ export function QwenCustomerHome() {
   const { salon, workingHours, services, addons, highlights, loaded } = useSalon();
   const { user, logout } = useAuth();
 
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeLook, setActiveLook] = useState<Look | null>(null);
   const [activeLookImage, setActiveLookImage] = useState<string | null>(null);
   const [failedImages, setFailedImages] = useState<string[]>([]);
@@ -252,6 +253,20 @@ export function QwenCustomerHome() {
 
   return (
     <main className="qhp-page">
+      {/* TOP CHROME — hamburger menu (top-right) + profile (top-left), pinned to the frame.
+          In RTL the first flex child sits at the visual right, so the menu button
+          comes first in the DOM to land on the right and profile on the left. */}
+      <div className="qhp-topbar">
+        <button type="button" className="qhp-top-btn" onClick={() => setDrawerOpen(true)}
+          aria-label="منو" aria-expanded={drawerOpen} title="منو">
+          <Menu aria-hidden="true" />
+        </button>
+        <button type="button" className="qhp-top-btn" onClick={() => router.push("/profile")}
+          aria-label="پروفایل من" title="پروفایل من">
+          <User aria-hidden="true" />
+        </button>
+      </div>
+
       {/* HERO — full-bleed cover with slow breathe + scroll parallax */}
       <div className="qhp-hero" aria-hidden="true">
         <div ref={heroRef} className="qhp-hero-par">
@@ -269,10 +284,9 @@ export function QwenCustomerHome() {
         <div className="qhp-hero-fade" />
       </div>
 
-      {/* PROFILE — gold-ring portrait (tap = salon menu), editorial brand block */}
+      {/* PROFILE — gold-ring portrait (decorative), editorial brand block */}
       <section className="qhp-profile" aria-label={salon.name || "سالن"}>
-        <button type="button" className="qhp-ring" onClick={() => setMenuOpen(true)}
-          aria-label="منوی سالن" aria-haspopup="dialog">
+        <div className="qhp-ring" aria-hidden="true">
           <span className="qhp-ring-swatch" aria-hidden="true" />
           <span className="qhp-ring-inner">
             {(() => {
@@ -289,7 +303,7 @@ export function QwenCustomerHome() {
               );
             })()}
           </span>
-        </button>
+        </div>
 
         <span className="qhp-mask" style={{ "--md": ".08s" } as CSSProperties}>
           <span className="qhp-kicker">NAIL · CARE · RITUAL</span>
@@ -503,42 +517,53 @@ export function QwenCustomerHome() {
         })()}
       </Sheet>
 
-      {/* MENU SHEET — keeps login / profile / owner access one tap away */}
-      <Sheet open={menuOpen} onClose={() => setMenuOpen(false)} title={salon.name || "منو"}>
-        <nav className="qhp-home-menu" aria-label="منوی سالن">
-          <button type="button" onClick={() => { setMenuOpen(false); openBooking(); }}>
+      {/* SIDE MENU — home / booking / history / profile / auth / owner access */}
+      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={salon.name || "منو"}>
+        <nav className="qhp-drawer-nav" aria-label="منوی سالن">
+          <button type="button" className="qhp-drawer-item" onClick={() => { setDrawerOpen(false); router.push("/"); }}>
+            <Home aria-hidden="true" />
+            <span>خانه</span>
+            <ArrowLeft aria-hidden="true" />
+          </button>
+          <button type="button" className="qhp-drawer-item" onClick={() => { setDrawerOpen(false); openBooking(); }}>
             <CalendarDays aria-hidden="true" />
             <span>رزرو نوبت</span>
             <ArrowLeft aria-hidden="true" />
           </button>
           {user ? (
             <>
-              <button type="button" onClick={() => { setMenuOpen(false); router.push("/bookings"); }}>
-                <CalendarDays aria-hidden="true" />
+              <button type="button" className="qhp-drawer-item" onClick={() => { setDrawerOpen(false); router.push("/bookings"); }}>
+                <History aria-hidden="true" />
                 <span>نوبت‌های من</span>
                 <ArrowLeft aria-hidden="true" />
               </button>
-              <button type="button" onClick={() => { setMenuOpen(false); router.push("/profile"); }}>
+              <button type="button" className="qhp-drawer-item" onClick={() => { setDrawerOpen(false); router.push("/profile"); }}>
+                <User aria-hidden="true" />
                 <span>پروفایل من</span>
                 <ArrowLeft aria-hidden="true" />
               </button>
-              <button type="button" onClick={async () => { await logout(); setMenuOpen(false); }}>
+              <button type="button" className="qhp-drawer-item destructive" onClick={async () => { await logout(); setDrawerOpen(false); }}>
+                <LogOut aria-hidden="true" />
                 <span>خروج از حساب</span>
                 <ArrowLeft aria-hidden="true" />
               </button>
             </>
           ) : (
-            <button type="button" onClick={() => { setMenuOpen(false); router.push("/login"); }}>
+            <button type="button" className="qhp-drawer-item" onClick={() => { setDrawerOpen(false); router.push("/login"); }}>
+              <LogIn aria-hidden="true" />
               <span>ورود به حساب</span>
               <ArrowLeft aria-hidden="true" />
             </button>
           )}
-          <button type="button" onClick={() => { setMenuOpen(false); router.push("/owner/login"); }}>
+        </nav>
+
+        <div className="qhp-drawer-foot">
+          <button type="button" className="qhp-drawer-item subtle" onClick={() => { setDrawerOpen(false); router.push("/owner/login"); }}>
             <span>ورود مدیر</span>
             <ArrowLeft aria-hidden="true" />
           </button>
-        </nav>
-      </Sheet>
+        </div>
+      </Drawer>
 
     </main>
   );
@@ -713,4 +738,99 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
   // sheet to the bottom of the whole page — the browser scrolled the homepage
   // to its end to reveal it. A portal keeps the sheet bound to the viewport.
   return createPortal(sheet, document.body);
+}
+
+// ---- Side drawer primitive ----
+// Right-side slide-in menu (RTL) with the same lifecycle hardening as Sheet:
+// portal to <body> so no transformed ancestor can re-anchor it, scrim +
+// Escape + focus restore, html/body scroll lock, and a real exit animation.
+function Drawer({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
+  const [mounted, setMounted] = useState(open);
+  const [visible, setVisible] = useState(false);
+  const reducedMotionRef = useRef(false);
+  const previousFocus = useRef<HTMLElement | null>(null);
+  const closeTimer = useRef<number | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      if (closeTimer.current) {
+        window.clearTimeout(closeTimer.current);
+        closeTimer.current = null;
+      }
+      previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      reducedMotionRef.current = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+      const previousHtmlOverflow = document.documentElement.style.overflow;
+      const previousBodyOverflow = document.body.style.overflow;
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+      let enterFrame = 0;
+      let visibleFrame = 0;
+      enterFrame = window.requestAnimationFrame(() => {
+        setMounted(true);
+        visibleFrame = window.requestAnimationFrame(() => {
+          setVisible(true);
+          closeButtonRef.current?.focus({ preventScroll: true });
+        });
+      });
+      return () => {
+        window.cancelAnimationFrame(enterFrame);
+        window.cancelAnimationFrame(visibleFrame);
+        document.documentElement.style.overflow = previousHtmlOverflow;
+        document.body.style.overflow = previousBodyOverflow;
+      };
+    }
+
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    const closeFrame = window.requestAnimationFrame(() => setVisible(false));
+    const exitDuration = reducedMotionRef.current ? 0 : 420;
+    closeTimer.current = window.setTimeout(() => {
+      setMounted(false);
+      if (previousFocus.current?.isConnected) previousFocus.current.focus({ preventScroll: true });
+      previousFocus.current = null;
+      closeTimer.current = null;
+    }, exitDuration);
+    return () => {
+      window.cancelAnimationFrame(closeFrame);
+      if (closeTimer.current) {
+        window.clearTimeout(closeTimer.current);
+        closeTimer.current = null;
+      }
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open, onClose]);
+
+  if (!mounted || typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="qhp-drawer-wrap" role="dialog" aria-modal="true" aria-label={title}>
+      <div
+        className="qhp-drawer-scrim"
+        style={{ opacity: visible ? 1 : 0 }}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div className="qhp-drawer" style={{ transform: visible ? "none" : "translateX(105%)" }}>
+        <div className="qhp-drawer-head">
+          <b>{title}</b>
+          <button ref={closeButtonRef} type="button" className="qhp-drawer-close" onClick={onClose} aria-label="بستن منو">
+            <X aria-hidden="true" />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>,
+    document.body
+  );
 }
