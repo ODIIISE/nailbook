@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, CalendarDays, Clock, History, Home, Images, LogIn, LogOut, MapPin,
@@ -261,10 +262,12 @@ export function QwenCustomerHome() {
           aria-label="منو" aria-expanded={drawerOpen} title="منو">
           <Menu aria-hidden="true" />
         </button>
-        <button type="button" className="qhp-top-btn" onClick={() => router.push("/profile")}
-          aria-label="پروفایل من" title="پروفایل من">
+        {/* Prefetching Link (not router.push): the profile route is fetched on
+            hover/load, so the first tap feels instant instead of waiting on a
+            network roundtrip before the transition can start. */}
+        <Link href="/profile" className="qhp-top-btn" aria-label="پروفایل من" title="پروفایل من">
           <User aria-hidden="true" />
-        </button>
+        </Link>
       </div>
 
       {/* HERO — full-bleed cover with slow breathe + scroll parallax */}

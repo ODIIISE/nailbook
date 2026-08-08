@@ -30,13 +30,14 @@ type Direction = "forward" | "back";
  * reset after each committed route.
  *
  * RTL-aware: in a right-to-left layout, "forward" (push) slides in from the
- * visual LEFT, "back" (pop) from the visual RIGHT. The slide is modest
- * (24% travel, iOS-style deceleration, 240 ms). `initial={false}` on
- * AnimatePresence keeps the very first page load from animating. The shell
- * must NOT carry a persistent `will-change: transform` (nor a transform) at
- * rest: either one creates a containing block that breaks `position: fixed`
- * descendants (the bottom nav, bottom sheets), anchoring them to the page
- * instead of the viewport. Falls back to a pure fade when reduced-motion is on.
+ * visual LEFT, "back" (pop) from the visual RIGHT. The slide is deliberately
+ * light — 12% travel, iOS-style deceleration, 180 ms — so navigation reads as
+ * fast and smooth rather than heavy. `initial={false}` on AnimatePresence
+ * keeps the very first page load from animating. The shell must NOT carry a
+ * persistent `will-change: transform` (nor a transform) at rest: either one
+ * creates a containing block that breaks `position: fixed` descendants (the
+ * bottom nav, bottom sheets), anchoring them to the page instead of the
+ * viewport. Falls back to a pure fade when reduced-motion is on.
  */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -89,7 +90,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   // from the left (negative x) and popping returns it from the right.
   const rtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
 
-  const enterX = direction === "back" ? (rtl ? "24%" : "-24%") : rtl ? "-24%" : "24%";
+  const enterX = direction === "back" ? (rtl ? "12%" : "-12%") : rtl ? "-12%" : "12%";
 
   const variants = reduced
     ? {
@@ -97,13 +98,13 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
         center: { x: "0%", opacity: 1 },
       }
     : {
-        enter: { x: enterX, opacity: 0.4 },
+        enter: { x: enterX, opacity: 0.55 },
         center: { x: "0%", opacity: 1 },
       };
 
   const transition = reduced
     ? { duration: 0.01, ease: "linear" as const }
-    : { duration: 0.24, ease: [0.32, 0.72, 0, 1] as const }; // iOS-style deceleration
+    : { duration: 0.18, ease: [0.32, 0.72, 0, 1] as const }; // iOS-style deceleration
 
   return (
     <AnimatePresence initial={false}>

@@ -917,10 +917,10 @@
 /* menu sheet */
 /* ================= TOP CHROME ================= */
 .qhp-topbar { position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: var(--frame-max-w); z-index: 40; display: flex; align-items: center; justify-content: space-between; padding: calc(10px + env(safe-area-inset-top, 0px)) 22px 0; pointer-events: none; }
-.qhp-top-btn { pointer-events: auto; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(253, 246, 240, .55); background: rgba(253, 246, 240, .82); color: var(--qhp-ink); box-shadow: 0 2px 10px rgba(42, 24, 16, .12), inset 0 1px 0 rgba(255, 255, 255, .7); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); cursor: pointer; transition: transform .25s var(--qhp-ease-spring), background .2s, box-shadow .2s; }
-.qhp-top-btn svg { width: 20px; height: 20px; }
-.qhp-top-btn:hover { background: rgba(253, 246, 240, .95); }
-.qhp-top-btn:active { transform: scale(.88); }
+.qhp-top-btn { pointer-events: auto; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(253, 246, 240, .7); background: rgba(253, 246, 240, .66); color: var(--qhp-ink); box-shadow: 0 1px 5px rgba(42, 24, 16, .09), inset 0 1px 0 rgba(255, 255, 255, .85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); cursor: pointer; text-decoration: none; transition: transform .13s var(--qhp-ease-spring), background-color .15s, box-shadow .15s; }
+.qhp-top-btn svg { width: 18px; height: 18px; }
+.qhp-top-btn:hover { background: rgba(253, 246, 240, .9); }
+.qhp-top-btn:active { transform: scale(.86); }
 
 /* ================= SIDE DRAWER ================= */
 .qhp-drawer-wrap { position: fixed; inset: 0; z-index: 80; }
