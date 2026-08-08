@@ -1155,6 +1155,7 @@ interface SuccessStepProps {
 function SuccessStep(props: SuccessStepProps) {
   const { service, lookName, addons, date, time, endTime, duration, price, servicePrice, customerName,
     bookingId, bookingIdRaw, salonName, salonAddress, salonPhone, salonLogoUrl } = props;
+  const router = useRouter();
   const [icsAdded, setIcsAdded] = useState(false);
 
   const dateKey = getTehranDateKey(date);
@@ -1205,6 +1206,16 @@ function SuccessStep(props: SuccessStepProps) {
         salonLogoUrl={salonLogoUrl}
         addons={addons}
       />
+
+      <div className="qbf-suc-links">
+        <button type="button" className="qbf-cal-btn solid" onClick={() => { haptic.tap(); router.push("/bookings"); }}>
+          <CalendarDays className="h-4 w-4" aria-hidden="true" />
+          مشاهده نوبت‌های من
+        </button>
+        <button type="button" className="qbf-cal-btn outline" onClick={() => { haptic.tap(); router.push("/"); }}>
+          بازگشت به خانه
+        </button>
+      </div>
     </div>
   );
 }

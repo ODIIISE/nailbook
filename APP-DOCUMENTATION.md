@@ -286,7 +286,7 @@ Three blurred gradient blobs (rose, gold, rose) positioned behind all content vi
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | UUID | Primary key |
-| `user_id` | UUID | FK to users (nullable for guests) |
+| `user_id` | UUID | FK to users (auto-created hidden user on first booking; nullable only for legacy rows) |
 | `service_id` | UUID | FK to services |
 | `selected_addons` | text[] | Chosen addon IDs |
 | `customer_name` | text | Customer display name |

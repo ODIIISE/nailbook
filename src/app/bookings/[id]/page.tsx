@@ -2,24 +2,21 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { sql } from "@vercel/postgres";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
-import { CalendarDays, Clock, MapPin, Phone, ArrowLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { formatPrice, gregorianToJalali, toPersianDigits, formatJalaliDate } from "@/lib/jalali";
+import { CalendarDays, Clock, MapPin, Phone, ArrowRight } from "lucide-react";
+import { compactToman } from "@/lib/pricing";
+import { gregorianToJalali, toPersianDigits, formatJalaliDate } from "@/lib/jalali";
 import { parseGregorianDateKey } from "@/lib/time";
 
 export const metadata = {
   title: "تأیید نوبت",
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  reserved: "ثبت شده",
-  confirmed: "تایید شده",
-  pending: "در انتظار",
-  completed: "انجام شده",
-  cancelled: "لغو شده",
+const STATUS_MAP: Record<string, { label: string; cls: string }> = {
+  reserved: { label: "ثبت شده", cls: "reserved" },
+  confirmed: { label: "تایید شده", cls: "confirmed" },
+  pending: { label: "در انتظار", cls: "pending" },
+  completed: { label: "انجام شده", cls: "completed" },
+  cancelled: { label: "لغو شده", cls: "cancelled" },
 };
 
 interface BookingVerifyPageProps {
@@ -66,106 +63,87 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
   const displayId = String(booking.id).slice(-6).toUpperCase();
 
   const statusKey = String(booking.status || "pending");
-  const statusLabel = STATUS_LABELS[statusKey] || statusKey;
-  const isActive = statusKey === "reserved" || statusKey === "confirmed";
-  const isCancelled = statusKey === "cancelled";
+  const status = STATUS_MAP[statusKey] || STATUS_MAP.pending;
 
   return (
-    <div className="min-h-screen bg-background p-4 animate-fade">
-      <div className="mx-auto max-w-md pt-8 animate-slideUp">
-        <Card className="overflow-hidden border-border shadow-card">
-          <CardHeader className="bg-muted/30 pb-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-bold">تأیید نوبت</CardTitle>
-              <Badge variant={isCancelled ? "destructive" : isActive ? "default" : "secondary"}>{statusLabel}</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-4">
-            {/* Salon */}
-            <div className="flex items-center gap-3">
-              {booking.salon_logo_url ? (
-                <Image
-                  src={booking.salon_logo_url}
-                  alt={booking.salon_name}
-                  width={48}
-                  height={48}
-                  unoptimized
-                  className="h-12 w-12 rounded-xl object-cover"
-                />
-              ) : (
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
-                  <span className="text-xs font-bold text-foreground">
-                    {booking.salon_name?.slice(0, 2) || "FN"}
-                  </span>
-                </div>
-              )}
-              <div>
-                <p className="text-sm font-bold text-foreground">{booking.salon_name}</p>
-                {booking.salon_address && (
-                  <div className="flex items-start gap-1 text-xs text-muted-foreground">
-                    <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
-                    <span className="leading-4">{booking.salon_address}</span>
-                  </div>
-                )}
-              </div>
-            </div>
+    <div className="qbf-page">
+      <header className="qbf-head">
+        <Link href="/" className="qbf-round-btn" style={{ textDecoration: "none" }} aria-label="بازگشت">
+          <ArrowRight className="h-5 w-5" aria-hidden="true" />
+        </Link>
+        <div className="qbf-mid">
+          <span className="qbf-kicker">نوبت شما</span>
+          <h2 className="qbf-title">تأیید نوبت</h2>
+        </div>
+        <span className="qbf-head-spacer" />
+      </header>
 
-            {/* Service */}
-            <div className="rounded-xl bg-muted/40 p-3">
-              <p className="text-xs font-medium text-muted-foreground">خدمت</p>
-              <p className="text-sm font-bold text-foreground">{booking.service_name}</p>
-              {booking.service_price != null && (
-                <p className="mt-1 text-xs font-bold text-foreground">
-                  {formatPrice(Number(booking.service_price))} تومان
-                </p>
-              )}
+      <div className="qbp-body">
+        <div className="qbf-form-card" style={{ padding: 0 }}>
+          {/* Salon */}
+          <div className="qbp-detail-row" style={{ alignItems: "center" }}>
+            {booking.salon_logo_url ? (
+              <Image
+                src={booking.salon_logo_url}
+                alt={booking.salon_name}
+                width={44}
+                height={44}
+                unoptimized
+                className="h-11 w-11 rounded-xl object-cover"
+              />
+            ) : (
+              <span className="qbf-rev-ic">
+                {String(booking.salon_name || "FN").slice(0, 2)}
+              </span>
+            )}
+            <span className="qbp-dlabel" style={{ fontWeight: 800, color: "var(--qbf-ink)", fontSize: 14 }}>
+              {booking.salon_name}
+            </span>
+            <span className={`qbp-status ${status.cls}`}><i aria-hidden="true" />{status.label}</span>
+          </div>
+          {booking.salon_address && (
+            <div className="qbp-detail-row">
+              <span className="qbp-dlabel"><MapPin className="h-4 w-4" style={{ verticalAlign: -3, marginInlineEnd: 4 }} aria-hidden="true" />آدرس</span>
+              <span className="qbp-dvalue small" style={{ textAlign: "left" }}>{booking.salon_address}</span>
             </div>
+          )}
 
-            {/* Date / Time */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-muted/40 p-3">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                  <CalendarDays className="h-3.5 w-3.5" />
-                  <span>تاریخ</span>
-                </div>
-                <p className="mt-1 text-sm font-bold text-foreground">
-                  {formatJalaliDate(jalali.jy, jalali.jm, jalali.jd)}
-                </p>
-              </div>
-              <div className="rounded-xl bg-muted/40 p-3">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>ساعت</span>
-                </div>
-                <p className="mt-1 text-sm font-bold text-foreground" dir="ltr">
-                  {toPersianDigits(booking.start_time.slice(0, 5))} - {toPersianDigits(booking.end_time.slice(0, 5))}
-                </p>
-              </div>
+          <div className="qbp-detail-row">
+            <span className="qbp-dlabel">خدمت</span>
+            <span className="qbp-dvalue">{booking.service_name}</span>
+          </div>
+          {booking.service_price != null && (
+            <div className="qbp-detail-row">
+              <span className="qbp-dlabel">هزینه</span>
+              <span className="qbp-dvalue">{compactToman(Number(booking.service_price))}</span>
             </div>
-
-            {/* Tracking id */}
-            <div className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2.5">
-              <span className="text-xs font-medium text-muted-foreground">کد رهگیری</span>
-              <span className="text-sm font-bold tabular-nums text-foreground" dir="ltr">
-                #{displayId}
+          )}
+          <div className="qbp-detail-row">
+            <span className="qbp-dlabel"><CalendarDays className="h-4 w-4" style={{ verticalAlign: -3, marginInlineEnd: 4 }} aria-hidden="true" />تاریخ</span>
+            <span className="qbp-dvalue">{formatJalaliDate(jalali.jy, jalali.jm, jalali.jd)}</span>
+          </div>
+          <div className="qbp-detail-row">
+            <span className="qbp-dlabel"><Clock className="h-4 w-4" style={{ verticalAlign: -3, marginInlineEnd: 4 }} aria-hidden="true" />ساعت</span>
+            <span className="qbp-dvalue" dir="ltr">
+              {toPersianDigits(booking.start_time.slice(0, 5))} - {toPersianDigits(booking.end_time.slice(0, 5))}
+            </span>
+          </div>
+          <div className="qbp-detail-row">
+            <span className="qbp-dlabel">کد رهگیری</span>
+            <span className="qbp-dvalue small" dir="ltr">#{displayId}</span>
+          </div>
+          {booking.salon_phone && (
+            <div className="qbp-detail-row" style={{ justifyContent: "center" }}>
+              <span className="qbp-dvalue small" style={{ textAlign: "center" }} dir="ltr">
+                <Phone className="h-4 w-4" style={{ verticalAlign: -3, marginInlineEnd: 6 }} aria-hidden="true" />
+                {booking.salon_phone}
               </span>
             </div>
+          )}
+        </div>
 
-            {booking.salon_phone && (
-              <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-                <Phone className="h-3 w-3 shrink-0" />
-                <span dir="ltr">{booking.salon_phone}</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="mt-4 text-center">
-          <Link
-            href="/"
-            className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
-          >
-            <ArrowLeft className="h-4 w-4" />
+        <div style={{ marginTop: 16 }}>
+          <Link href="/" className="qbf-empty-cta" style={{ width: "100%", justifyContent: "center", textDecoration: "none" }}>
             رزرو نوبت جدید
           </Link>
         </div>

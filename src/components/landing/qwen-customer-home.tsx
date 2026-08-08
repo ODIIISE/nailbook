@@ -513,6 +513,11 @@ export function QwenCustomerHome() {
           </button>
           {user ? (
             <>
+              <button type="button" onClick={() => { setMenuOpen(false); router.push("/bookings"); }}>
+                <CalendarDays aria-hidden="true" />
+                <span>نوبت‌های من</span>
+                <ArrowLeft aria-hidden="true" />
+              </button>
               <button type="button" onClick={() => { setMenuOpen(false); router.push("/profile"); }}>
                 <span>پروفایل من</span>
                 <ArrowLeft aria-hidden="true" />

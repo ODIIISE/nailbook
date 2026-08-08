@@ -1,27 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { AppHeader } from "@/components/layout/app-header";
-import { AppNavbar } from "@/components/layout/app-navbar";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { User, Phone, LogOut, ArrowLeft, Pencil, Check, X } from "lucide-react";
+import { toast } from "sonner";
+import { ArrowRight, Check, LogOut, Pencil, Phone, User, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { toPersianDigits } from "@/lib/jalali";
+import { displayDigits } from "@/lib/digits";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, updateProfile } = useAuth();
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const handleLogout = async () => {
-    await logout();
-    window.location.href = "/";
+  const goBack = () => {
+    window.dispatchEvent(new Event("nailbook:back"));
+    router.push("/");
   };
 
   const startEdit = () => {
@@ -29,124 +24,131 @@ export default function ProfilePage() {
     setEditing(true);
   };
 
+  const cancelEdit = () => {
+    setEditing(false);
+    setEditName(user?.name || "");
+  };
+
   const saveEdit = async () => {
-    if (!editName.trim() || !user) return;
+    const name = editName.trim();
+    if (!name || !user) return;
     setSaving(true);
-    try {
-      const res = await fetch("/api/auth/update-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, name: editName.trim() }),
-      });
-      if (res.ok) {
-        const updated = { ...user, name: editName.trim() };
-        localStorage.setItem("nailbook_user", JSON.stringify(updated));
-        window.location.reload();
-      }
-    } catch {
-      toast.error("خطا در بروزرسانی پروفایل");
-    }
+    const result = await updateProfile(name);
     setSaving(false);
+    if (result.success) {
+      setEditing(false);
+      toast.success("نام با موفقیت به‌روزرسانی شد");
+    } else {
+      toast.error(result.error || "خطا در به‌روزرسانی پروفایل");
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = "/";
   };
 
   if (!user) {
     return (
-      <div className="min-h-screen">
-        <AppHeader title="پروفایل" />
-        <div className="px-4 pt-6 pb-24">
-          <div className="mx-auto max-w-lg">
-            <div className="text-center py-16">
-              <div className="h-16 w-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
-                <User className="h-8 w-8 text-muted-foreground/50" />
-              </div>
-              <h2 className="text-h3 text-foreground mb-2">وارد شوید</h2>
-              <p className="text-caption text-muted-foreground mb-6 max-w-xs mx-auto">
-                برای مشاهده پروفایل و اطلاعات حساب کاربری وارد شوید
-              </p>
-              <Button onClick={() => router.push("/login")} className="gap-2">
-                ورود
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
+      <div className="qbf-page">
+        <header className="qbf-head">
+          <button type="button" className="qbf-round-btn" onClick={goBack} aria-label="بازگشت">
+            <ArrowRight className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <div className="qbf-mid">
+            <span className="qbf-kicker">حساب کاربری</span>
+            <h2 className="qbf-title">پروفایل</h2>
+          </div>
+          <span className="qbf-head-spacer" />
+        </header>
+        <div className="qbp-body">
+          <div className="qbf-empty">
+            <div className="qbf-empty-icon">
+              <User className="h-7 w-7" aria-hidden="true" />
             </div>
+            <h3>وارد شوید</h3>
+            <p>برای مشاهده پروفایل و نوبت‌های خود، با شماره موبایل وارد شوید.</p>
+            <button type="button" className="qbf-empty-cta" onClick={() => router.push("/login")}>
+              ورود
+            </button>
           </div>
         </div>
-        <AppNavbar />
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen animate-fade">
-      <AppHeader title="پروفایل" />
+  const initial = (user.name || user.phone || "م").trim().charAt(0);
 
-      <div className="px-4 pt-6 pb-24">
-        <div className="mx-auto max-w-lg space-y-4">
-          <div className="flex justify-center mb-6">
-            <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="h-10 w-10 text-primary" />
+  return (
+    <div className="qbf-page">
+      <header className="qbf-head">
+        <button type="button" className="qbf-round-btn" onClick={goBack} aria-label="بازگشت">
+          <ArrowRight className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <div className="qbf-mid">
+          <span className="qbf-kicker">حساب کاربری</span>
+          <h2 className="qbf-title">پروفایل</h2>
+        </div>
+        <span className="qbf-head-spacer" />
+      </header>
+
+      <div className="qbp-body">
+        <div className="qbp-avatar" aria-hidden="true">{initial}</div>
+
+        <div className="qbf-form-card" style={{ padding: 0 }}>
+          <p className="qbf-form-t" style={{ padding: "16px 16px 4px" }}>مشخصات شما</p>
+
+          <div className="qbp-row">
+            <span className="qbf-rev-ic"><User className="h-4 w-4" aria-hidden="true" /></span>
+            <div className="qbp-row-meta">
+              <small>نام</small>
+              {editing ? (
+                <input
+                  type="text"
+                  className="qbp-edit-input"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !saving && saveEdit()}
+                  placeholder="نام خود را وارد کنید"
+                  autoFocus
+                  aria-label="نام"
+                />
+              ) : (
+                <b>{user.name || "بدون نام"}</b>
+              )}
             </div>
+            {editing ? (
+              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                <button type="button" className="qbf-rev-edit" onClick={saveEdit} disabled={saving}>
+                  {saving ? "…" : <Check className="h-4 w-4" aria-hidden="true" />}
+                </button>
+                <button type="button" className="qbf-rev-edit" onClick={cancelEdit} aria-label="انصراف">
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+            ) : (
+              <button type="button" className="qbf-rev-edit" onClick={startEdit}>
+                <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                ویرایش
+              </button>
+            )}
           </div>
 
-          <Card className="glass p-4 shadow-card animate-slideUp">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-muted">
-                  <User className="h-4 w-4 text-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">نام</p>
-                  {editing ? (
-                    <Input
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      className="mt-1 h-9 text-body font-bold"
-                      placeholder="نام خود را وارد کنید"
-                    />
-                  ) : (
-                    <p className="text-body font-bold text-foreground">{user.name || "بدون نام"}</p>
-                  )}
-                </div>
-                {editing ? (
-                  <div className="flex gap-1">
-                    <Button size="sm" variant="ghost" onClick={saveEdit} disabled={saving}>
-                      <Check className="h-4 w-4 text-success" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
-                      <X className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                ) : (
-                  <Button size="sm" variant="ghost" onClick={startEdit}>
-                    <Pencil className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-muted">
-                  <Phone className="h-4 w-4 text-foreground" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">شماره موبایل</p>
-                  <p className="text-body font-bold text-foreground" dir="ltr">
-                    {toPersianDigits(user.phone)}
-                  </p>
-                </div>
-              </div>
+          <div className="qbp-row">
+            <span className="qbf-rev-ic"><Phone className="h-4 w-4" aria-hidden="true" /></span>
+            <div className="qbp-row-meta">
+              <small>شماره موبایل</small>
+              <b dir="ltr">{displayDigits(user.phone)}</b>
+              <span className="qbp-row-note">شماره موبایل هویت ورود شماست؛ برای تغییر آن با سالن در تماس باشید.</span>
             </div>
-          </Card>
-
-          <Button
-            variant="outline"
-            className="w-full h-12 text-destructive border-destructive/30 hover:bg-destructive/5"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4 ms-2" />
-            خروج از حساب
-          </Button>
+          </div>
         </div>
-      </div>
 
-      <AppNavbar />
+        <button type="button" className="qbp-logout" onClick={handleLogout}>
+          <LogOut aria-hidden="true" />
+          خروج از حساب
+        </button>
+      </div>
     </div>
   );
 }

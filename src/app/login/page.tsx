@@ -2,16 +2,11 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { AppHeader } from "@/components/layout/app-header";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { ArrowRight, AlertCircle } from "lucide-react";
 import { PinInput } from "@/components/booking/pin-input";
-import { AuthCard, AuthCardRoot, AuthError } from "@/components/auth/auth-card";
 import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { useAuth } from "@/lib/auth-context";
 import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
-import { LogIn, User, Smartphone, ArrowRight } from "lucide-react";
 
 type Step = "phone" | "otp" | "name";
 
@@ -28,6 +23,11 @@ export default function LoginPage() {
   useEffect(() => {
     if (user) router.replace("/");
   }, [user, router]);
+
+  const goBack = () => {
+    window.dispatchEvent(new Event("nailbook:back"));
+    router.push("/");
+  };
 
   const handlePhoneSubmit = useCallback(async () => {
     const normalized = normalizeDigits(phone);
@@ -103,118 +103,111 @@ export default function LoginPage() {
 
   if (user) return null;
 
+  const title = step === "phone" ? "ورود" : step === "otp" ? "کد ورود" : "نام شما";
+  const kicker = step === "name" ? "ثبت‌نام" : "حساب کاربری";
+
   return (
-    <div className="min-h-screen">
-      <AppHeader showBack title="ورود" />
-      <div className="mx-auto max-w-lg px-4 py-6 sm:py-10">
-        <AuthCardRoot className="animate-scale">
-          {/* Phone entry */}
-          {step === "phone" && (
-            <AuthCard
-              icon={<Smartphone className="h-6 w-6" />}
-              title="ورود"
-              subtitle="شماره موبایل خود را وارد کنید"
-            >
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-caption text-muted-foreground mb-1.5 block">
-                    شماره موبایل
-                  </Label>
-                  <Input
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handlePhoneSubmit()}
-                    placeholder="۰۹۱۲۱۲۳۴۵۶۷"
-                    dir="ltr"
-                    className="h-14 text-left text-lg rounded-2xl"
-                    autoFocus
-                  />
-                </div>
-                <AuthError error={error} />
-                <Button
-                  size="xl"
-                  className="w-full rounded-2xl bg-foreground text-background hover:bg-foreground/90"
-                  onClick={handlePhoneSubmit}
-                  disabled={isLoading || !isValidIranianPhone(normalizeDigits(phone))}
-                >
-                  {isLoading ? "در حال ارسال..." : "دریافت کد"}
-                </Button>
-              </div>
-            </AuthCard>
-          )}
+    <div className="qbf-page">
+      <header className="qbf-head">
+        <button type="button" className="qbf-round-btn" onClick={goBack} aria-label="بازگشت">
+          <ArrowRight className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <div className="qbf-mid">
+          <span className="qbf-kicker">{kicker}</span>
+          <h2 className="qbf-title">{title}</h2>
+        </div>
+        <span className="qbf-head-spacer" />
+      </header>
 
-          {/* OTP entry */}
-          {step === "otp" && (
-            <AuthCard
-              icon={<LogIn className="h-6 w-6" />}
-              title="کد ورود"
-              subtitle="کد ۶ رقمی پیامک‌شده را وارد کنید"
+      <div className="qbp-body">
+        {step === "phone" && (
+          <div className="qbf-form-card">
+            <p className="qbf-form-t">شماره موبایل خود را وارد کنید</p>
+            <div className="qbf-field">
+              <label htmlFor="login-phone">شماره موبایل</label>
+              <input
+                id="login-phone"
+                type="tel"
+                inputMode="numeric"
+                className="qbf-inp ltr"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !isLoading && handlePhoneSubmit()}
+                placeholder="۰۹۱۲۱۲۳۴۵۶۷"
+                autoComplete="tel"
+                autoFocus
+              />
+            </div>
+            {error && <p className="qbf-form-error" role="alert" style={{ display: "flex", alignItems: "center", gap: 6 }}><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
+            <button
+              type="button"
+              className="qbf-otp-send"
+              onClick={handlePhoneSubmit}
+              disabled={isLoading || !isValidIranianPhone(normalizeDigits(phone))}
+              style={{ marginTop: 14 }}
             >
-              <div className="space-y-5">
-                <div className="text-center">
-                  <p
-                    className="inline-block text-body text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-full"
-                    dir="ltr"
-                  >
-                    {displayDigits(phone)}
-                  </p>
-                </div>
-                <PinInput length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
-                <AuthError error={error} />                  <ResendOtpButton
-                    onResend={async () => {
-                      const result = await sendOtp(normalizeDigits(phone));
-                      if (!result.success) {
-                        setError(result.error || "خطا در ارسال مجدد کد");
-                      }
-                    }}
-                  disabled={isLoading}
-                />
-                <Button
-                  variant="ghost"
-                  className="w-full"
-                  onClick={() => { setStep("phone"); setError(""); }}
-                >
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                  تغییر شماره
-                </Button>
-              </div>
-            </AuthCard>
-          )}
+              {isLoading ? "در حال ارسال…" : "دریافت کد"}
+            </button>
+          </div>
+        )}
 
-          {/* Name entry for new users */}
-          {step === "name" && (
-            <AuthCard
-              icon={<User className="h-6 w-6" />}
-              title="نام شما"
-              subtitle="نام و نام خانوادگی خود را وارد کنید"
+        {step === "otp" && (
+          <div className="qbf-form-card">
+            <p className="qbf-form-t">کد ۶ رقمی پیامک‌شده را وارد کنید</p>
+            <div className="qbf-verified-row" style={{ marginBottom: 16 }}>
+              <span className="qbf-verified-ic">✓</span>
+              <span><b>شماره</b><small dir="ltr">{displayDigits(phone)}</small></span>
+            </div>
+            <PinInput length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
+            {error && <p className="qbf-form-error" role="alert" style={{ display: "flex", alignItems: "center", gap: 6 }}><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
+            <div className="qbf-otp-actions">
+              <ResendOtpButton
+                onResend={async () => {
+                  const result = await sendOtp(normalizeDigits(phone));
+                  if (!result.success) setError(result.error || "خطا در ارسال مجدد کد");
+                }}
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                className="qbf-otp-change"
+                onClick={() => { setStep("phone"); setError(""); }}
+              >
+                تغییر شماره
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === "name" && (
+          <div className="qbf-form-card">
+            <p className="qbf-form-t">نام و نام خانوادگی خود را وارد کنید</p>
+            <div className="qbf-field">
+              <label htmlFor="login-name">نام و نام خانوادگی</label>
+              <input
+                id="login-name"
+                type="text"
+                className="qbf-inp"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !isLoading && handleNameSubmit()}
+                placeholder="مثال: سارا احمدی"
+                autoComplete="name"
+                autoFocus
+              />
+            </div>
+            {error && <p className="qbf-form-error" role="alert" style={{ display: "flex", alignItems: "center", gap: 6 }}><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
+            <button
+              type="button"
+              className="qbf-otp-send"
+              onClick={handleNameSubmit}
+              disabled={isLoading || !name.trim()}
+              style={{ marginTop: 14 }}
             >
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-caption text-muted-foreground mb-1.5 block">
-                    نام و نام خانوادگی
-                  </Label>
-                  <Input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
-                    placeholder="مثال: سارا احمدی"
-                    className="h-14 text-lg rounded-2xl"
-                    autoFocus
-                  />
-                </div>
-                <AuthError error={error} />
-                <Button
-                  size="xl"
-                  className="w-full rounded-2xl bg-foreground text-background hover:bg-foreground/90"
-                  onClick={handleNameSubmit}
-                  disabled={isLoading || !name.trim()}
-                >
-                  {isLoading ? "در حال ثبت..." : "تکمیل ثبت‌نام"}
-                </Button>
-              </div>
-            </AuthCard>
-          )}
-        </AuthCardRoot>
+              {isLoading ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
