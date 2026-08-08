@@ -15,23 +15,27 @@ type Direction = "forward" | "back";
 /**
  * iOS-style directional page transition.
  *
- * On any pathname change the previous page slides out and the new page
- * slides in along the X axis, mirroring native iOS/Android push semantics.
+ * The App Router swaps the previous page's content out of the tree the moment
+ * the route commits, so an exit animation has nothing left to animate — a
+ * cross-fade/push exit from the root layout would just leave a blank gap
+ * while AnimatePresence waits. Instead the new page mounts immediately and
+ * slides in from the side (direction-aware), which reads as a clean push with
+ * no blank flash.
+ *
  * Direction comes from state: the `popstate` listener (browser back / OS
  * swipe-back) sets "back" synchronously before the router commits the new
- * pathname, so the exiting and entering pages both animate the right way on
- * the first render. Programmatic router.push never fires popstate, so the
- * direction stays "forward" (reset after each committed route).
+ * pathname, so the entering page picks the right side on first render.
+ * Programmatic router.push never fires popstate, so the direction stays
+ * "forward" (reset after each committed route).
  *
  * RTL-aware: in a right-to-left layout, "forward" (push) slides in from the
  * visual LEFT, "back" (pop) from the visual RIGHT. The slide is modest
- * (24% travel, iOS-style deceleration, 240 ms). The shell must NOT carry a
- * persistent `will-change: transform` (nor a transform) at rest: either one
- * creates a containing block that breaks `position: fixed` descendants (the
- * bottom nav, bottom sheets), anchoring them to the page instead of the
- * viewport. Framer Motion applies its own transient will-change during the
- * animation and removes it afterwards, which is safe. Falls back to a pure
- * fade when reduced-motion is on.
+ * (24% travel, iOS-style deceleration, 240 ms). `initial={false}` on
+ * AnimatePresence keeps the very first page load from animating. The shell
+ * must NOT carry a persistent `will-change: transform` (nor a transform) at
+ * rest: either one creates a containing block that breaks `position: fixed`
+ * descendants (the bottom nav, bottom sheets), anchoring them to the page
+ * instead of the viewport. Falls back to a pure fade when reduced-motion is on.
  */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -72,27 +76,16 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   // from the left (negative x) and popping returns it from the right.
   const rtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
 
-  const slides: Record<Direction, { enter: { x: string; opacity: number }; exit: { x: string; opacity: number } }> = {
-    forward: {
-      enter: { x: rtl ? "-24%" : "24%", opacity: 0.4 },
-      exit: { x: rtl ? "12%" : "-12%", opacity: 0.6 },
-    },
-    back: {
-      enter: { x: rtl ? "24%" : "-24%", opacity: 0.4 },
-      exit: { x: rtl ? "-12%" : "12%", opacity: 0.6 },
-    },
-  };
+  const enterX = direction === "back" ? (rtl ? "24%" : "-24%") : rtl ? "-24%" : "24%";
 
   const variants = reduced
     ? {
         enter: { opacity: 0 },
         center: { x: "0%", opacity: 1 },
-        exit: { opacity: 0 },
       }
     : {
-        enter: slides[direction].enter,
+        enter: { x: enterX, opacity: 0.4 },
         center: { x: "0%", opacity: 1 },
-        exit: slides[direction].exit,
       };
 
   const transition = reduced
@@ -100,12 +93,11 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
     : { duration: 0.24, ease: [0.32, 0.72, 0, 1] as const }; // iOS-style deceleration
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence initial={false}>
       <motion.div
         key={pathname}
         initial="enter"
         animate="center"
-        exit="exit"
         variants={variants}
         transition={transition}
       >
