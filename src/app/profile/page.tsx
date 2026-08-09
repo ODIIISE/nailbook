@@ -57,9 +57,23 @@ export default function ProfilePage() {
     };
   }, []);
 
+  useEffect(() => {
+    // Keep the fallback navigation warm for direct visits to /profile. When
+    // the user arrived from the homepage, router.back() below reuses the
+    // already-rendered route and avoids a second RSC fetch altogether.
+    router.prefetch("/");
+  }, [router]);
+
   const goBack = () => {
     window.dispatchEvent(new Event("nailbook:back"));
-    router.push("/");
+    // In-app navigation already has the homepage in the browser history. Use
+    // that entry rather than pushing/reloading the homepage, which avoids the
+    // blank transition while the App Router requests the same route again.
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.replace("/");
+    }
   };
 
   const startEdit = () => {

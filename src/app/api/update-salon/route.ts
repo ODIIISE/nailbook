@@ -78,7 +78,10 @@ export async function POST(request: NextRequest) {
     const configuredSalonId = getSalonId();
     const settingsTable = getSettingsTable();
     const existing = configuredSalonId
-      ? await sql.query(`SELECT id FROM ${settingsTable} WHERE id = $1 LIMIT 1`, [configuredSalonId])
+      ? await sql.query(
+          `SELECT id FROM ${settingsTable} WHERE id::text = $1 OR slug = $1 LIMIT 1`,
+          [configuredSalonId]
+        )
       : await sql.query(`SELECT id FROM ${settingsTable} LIMIT 1`);
     if (!existing.rows[0]) {
       return NextResponse.json({ error: "Salon not found" }, { status: 404 });

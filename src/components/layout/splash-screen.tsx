@@ -49,6 +49,7 @@ export function SplashScreen() {
   const [visible, setVisible] = useState(true);
   const [minimumTimeElapsed, setMinimumTimeElapsed] = useState(false);
   const [exiting, setExiting] = useState(false);
+  const [failedLogoUrl, setFailedLogoUrl] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(() =>
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
@@ -78,17 +79,17 @@ export function SplashScreen() {
     return () => window.clearTimeout(exitTimer);
   }, [loaded, minimumTimeElapsed, reducedMotion]);
 
-  if (!visible) return null;
-
   const title = salon.splash_title?.trim() || SPLASH_DEFAULTS.title;
   const slogan = salon.splash_slogan?.trim() || SPLASH_DEFAULTS.slogan;
-  const logoUrl = salon.splash_logo_url || null;
+  const logoUrl = salon.splash_logo_url?.trim() || null;
+
+  if (!visible) return null;
 
   return (
     <div className={`splash-screen ${exiting ? "splash-screen-exit" : ""}`}>
       <div className="splash-logo flex flex-col items-center gap-5">
         <div className="relative w-[72px] h-[72px]">
-          {logoUrl ? (
+          {logoUrl && failedLogoUrl !== logoUrl ? (
             <div className="absolute inset-0 rounded-2xl bg-card border border-border overflow-hidden flex items-center justify-center shadow-elevated">
               <Image
                 src={logoUrl}
@@ -98,6 +99,7 @@ export function SplashScreen() {
                 unoptimized
                 priority
                 className="w-full h-full object-cover"
+                onError={() => setFailedLogoUrl(logoUrl)}
               />
             </div>
           ) : (

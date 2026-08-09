@@ -75,14 +75,12 @@ export default function OwnerSettingsPage() {
       const formData = new FormData();
       formData.append("file", blob, "logo.jpg");
       const res = await fetch("/api/upload-logo", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("upload");
       const data = await res.json();
-      if (data.url) {
-        setAvatarUrl(data.url);
-        await updateSalon({ logo_url: data.url });
-        toast.success("لوگو ذخیره شد");
-      } else {
-        toast.error("خطا در آپلود تصویر");
-      }
+      if (!data.url) throw new Error("upload");
+      await updateSalon({ logo_url: data.url });
+      setAvatarUrl(data.url);
+      toast.success("لوگو ذخیره شد");
     } catch {
       toast.error("خطا در آپلود تصویر");
     }
@@ -110,10 +108,11 @@ export default function OwnerSettingsPage() {
       const formData = new FormData();
       formData.append("file", blob, "portrait.jpg");
       const res = await fetch("/api/upload-logo", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("upload");
       const data = await res.json();
       if (!data.url) throw new Error("upload");
-      setPortraitUrl(data.url);
       await updateSalon({ portrait_image_url: data.url });
+      setPortraitUrl(data.url);
       toast.success("تصویر پروفایل ذخیره شد");
     } catch {
       toast.error("خطا در آپلود تصویر");
@@ -143,14 +142,14 @@ export default function OwnerSettingsPage() {
       const formData = new FormData();
       formData.append("file", blob, "splash-logo.jpg");
       const res = await fetch("/api/upload-logo", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("upload");
       const data = await res.json();
-      if (data.url) {
-        setSplashLogoUrl(data.url);
-        await updateSalon({ splash_logo_url: data.url });
-        toast.success("لوگوی اسپلش ذخیره شد");
-      } else {
-        toast.error("خطا در آپلود تصویر");
-      }
+      if (!data.url) throw new Error("upload");
+      // Persist first. If the settings update fails, do not show an image in
+      // the local preview that the customer page cannot actually load later.
+      await updateSalon({ splash_logo_url: data.url });
+      setSplashLogoUrl(data.url);
+      toast.success("لوگوی اسپلش ذخیره شد");
     } catch {
       toast.error("خطا در آپلود تصویر");
     }
@@ -209,10 +208,11 @@ export default function OwnerSettingsPage() {
       const formData = new FormData();
       formData.append("file", blob, "hero.jpg");
       const res = await fetch("/api/upload-logo", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("upload");
       const data = await res.json();
       if (!data.url) throw new Error("upload");
-      setHeroUrl(data.url);
       await updateSalon({ hero_image_url: data.url });
+      setHeroUrl(data.url);
       toast.success("تصویر پس‌زمینه ذخیره شد");
     } catch {
       toast.error("خطا در آپلود تصویر");
