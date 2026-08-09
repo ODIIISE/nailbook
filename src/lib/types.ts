@@ -21,6 +21,11 @@ export interface SalonInfo {
   splash_title: string;
   splash_slogan: string;
   splash_logo_url: string | null;
+  homepage_kicker: string;
+  homepage_cta_label: string;
+  homepage_micro: string;
+  lookbook_title: string;
+  booking_success_title: string;
   working_hours_text: string;
   working_hours: {
     [key: string]: { open: string; close: string } | null;

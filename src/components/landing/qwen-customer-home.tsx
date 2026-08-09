@@ -309,7 +309,7 @@ export function QwenCustomerHome() {
         </div>
 
         <span className="qhp-mask" style={{ "--md": ".08s" } as CSSProperties}>
-          <span className="qhp-kicker">NAIL · CARE · RITUAL</span>
+          <span className="qhp-kicker">{salon.homepage_kicker || "NAIL · CARE · RITUAL"}</span>
         </span>
         <span className="qhp-mask" style={{ "--md": ".16s" } as CSSProperties}>
           <h1 className="qhp-name">{salon.name || "استودیو ناخن"}</h1>
@@ -339,16 +339,16 @@ export function QwenCustomerHome() {
       <button type="button" className="qhp-cta magnetic" onClick={() => openBooking()}
         disabled={!loaded || activeServices.length === 0}>
         <CalendarDays aria-hidden="true" />
-        <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? "شروع رزرو" : "رزرو موقتاً بسته است"}</span>
+        <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? (salon.homepage_cta_label || "شروع رزرو") : "رزرو موقتاً بسته است"}</span>
         <ArrowLeft className="qhp-cta-chev" aria-hidden="true" />
       </button>
-      <p className="qhp-micro">بدون تماس تلفنی · زمان‌های آزاد همین‌جا</p>
+      <p className="qhp-micro">{salon.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا"}</p>
 
       {/* LOOKBOOK — story-style rail */}
       {looks.length > 0 && (
         <section className="qhp-section qhp-reveal" aria-labelledby="qhp-work-title">
           <div className="qhp-sec-head">
-            <h2 id="qhp-work-title">نمونه‌کارها</h2>
+            <h2 id="qhp-work-title">{salon.lookbook_title || "نمونه‌کارها"}</h2>
             <span className="qhp-sec-kicker">LOOKBOOK</span>
           </div>
           <div className="qhp-works">

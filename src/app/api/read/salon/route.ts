@@ -25,7 +25,8 @@ export async function GET() {
                     early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
                     allow_overflow, overflow_minutes, specific_days_off,
                     optimization_mode, suggestion_limit, min_useful_gap_minutes,
-                    splash_title, splash_slogan, splash_logo_url
+                    splash_title, splash_slogan, splash_logo_url,
+                    homepage_kicker, homepage_cta_label, homepage_micro, lookbook_title, booking_success_title
              FROM salons ${whereClause}`,
             [salonId]
           )
@@ -35,7 +36,8 @@ export async function GET() {
                    early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
                    allow_overflow, overflow_minutes, specific_days_off,
                    optimization_mode, suggestion_limit, min_useful_gap_minutes,
-                   splash_title, splash_slogan, splash_logo_url
+                   splash_title, splash_slogan, splash_logo_url,
+                   homepage_kicker, homepage_cta_label, homepage_micro, lookbook_title, booking_success_title
             FROM salon_info LIMIT 1
           `;
       rows = result.rows;
@@ -115,6 +117,11 @@ export async function GET() {
       splash_title: hasSplashFields ? (s.splash_title || "Forehand Nail") : "Forehand Nail",
       splash_slogan: hasSplashFields ? (s.splash_slogan || "Nail Art Studio") : "Nail Art Studio",
       splash_logo_url: hasSplashFields ? (s.splash_logo_url || null) : null,
+      homepage_kicker: s.homepage_kicker || "NAIL · CARE · RITUAL",
+      homepage_cta_label: s.homepage_cta_label || "شروع رزرو",
+      homepage_micro: s.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا",
+      lookbook_title: s.lookbook_title || "نمونه‌کارها",
+      booking_success_title: s.booking_success_title || "به‌زودی می‌بینیمت!",
       working_hours_text: s.working_hours_text || "شنبه تا پنج شنبه . ۱۰ تا ۱۸",
       working_hours: s.working_hours,
       slot_buffer_minutes: s.slot_buffer_minutes ?? 0,

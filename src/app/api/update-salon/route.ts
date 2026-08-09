@@ -24,7 +24,9 @@ export async function POST(request: NextRequest) {
     // Allowlist: only accept known fields
     const ALLOWED_FIELDS = new Set([
       "name", "description", "slogan", "phone", "address", "city", "instagram_handle", "portrait_image_url",
-      "hero_image_url", "logo_url", "splash_title", "splash_slogan", "splash_logo_url", "working_hours_text",
+      "hero_image_url", "logo_url", "splash_title", "splash_slogan", "splash_logo_url",
+      "homepage_kicker", "homepage_cta_label", "homepage_micro", "lookbook_title", "booking_success_title",
+      "working_hours_text",
       "working_hours", "specific_days_off",
       "slot_buffer_minutes", "slot_interval_minutes",
       "early_extra_hours", "late_extra_hours",
@@ -125,13 +127,21 @@ export async function POST(request: NextRequest) {
         await client.query(updateSql("logo_url"), [safeUpdates.logo_url, salonId]);
       }
       if (safeUpdates.splash_title !== undefined) {
-        await client.query("UPDATE salon_info SET splash_title = $1 WHERE id = $2", [safeUpdates.splash_title, salonId]);
+        await client.query(updateSql("splash_title"), [safeUpdates.splash_title, salonId]);
       }
       if (safeUpdates.splash_slogan !== undefined) {
-        await client.query("UPDATE salon_info SET splash_slogan = $1 WHERE id = $2", [safeUpdates.splash_slogan, salonId]);
+        await client.query(updateSql("splash_slogan"), [safeUpdates.splash_slogan, salonId]);
       }
       if (safeUpdates.splash_logo_url !== undefined) {
-        await client.query("UPDATE salon_info SET splash_logo_url = $1 WHERE id = $2", [safeUpdates.splash_logo_url, salonId]);
+        await client.query(updateSql("splash_logo_url"), [safeUpdates.splash_logo_url, salonId]);
+      }
+      // Customer-facing text (single-table update works for both salon_info and
+      // the multi-tenant salons table — the column names are identical).
+      const textFields = ["homepage_kicker", "homepage_cta_label", "homepage_micro", "lookbook_title", "booking_success_title"] as const;
+      for (const field of textFields) {
+        if (safeUpdates[field] !== undefined) {
+          await client.query(updateSql(field), [String(safeUpdates[field]), salonId]);
+        }
       }
       if (safeUpdates.working_hours_text !== undefined) {
         await client.query(updateSql("working_hours_text"), [safeUpdates.working_hours_text, salonId]);

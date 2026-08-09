@@ -29,11 +29,20 @@ export default function OwnerSettingsPage() {
   const [splashSlogan, setSplashSlogan] = useState(salon.splash_slogan || "Nail Art Studio");
   const [splashLogoUrl, setSplashLogoUrl] = useState(salon.splash_logo_url || "");
   const [portraitUrl, setPortraitUrl] = useState(salon.portrait_image_url || "");
+  const [heroUrl, setHeroUrl] = useState(salon.hero_image_url || "");
   const [portraitUploading, setPortraitUploading] = useState(false);
+  const [heroUploading, setHeroUploading] = useState(false);
   const [splashUploading, setSplashUploading] = useState(false);
   const [splashCropImage, setSplashCropImage] = useState<string | null>(null);
   const splashFileInputRef = useRef<HTMLInputElement>(null);
   const portraitFileInputRef = useRef<HTMLInputElement>(null);
+  const heroFileInputRef = useRef<HTMLInputElement>(null);
+  // ── Customer-facing text (brand copy shown to customers) ──
+  const [homepageKicker, setHomepageKicker] = useState(salon.homepage_kicker || "NAIL · CARE · RITUAL");
+  const [homepageCtaLabel, setHomepageCtaLabel] = useState(salon.homepage_cta_label || "شروع رزرو");
+  const [homepageMicro, setHomepageMicro] = useState(salon.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا");
+  const [lookbookTitle, setLookbookTitle] = useState(salon.lookbook_title || "نمونه‌کارها");
+  const [bookingSuccessTitle, setBookingSuccessTitle] = useState(salon.booking_success_title || "به‌زودی می‌بینیمت!");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -149,20 +158,67 @@ export default function OwnerSettingsPage() {
   };
 
   const handleSave = async () => {
+    if (!name.trim()) {
+      toast.error("نام سالن نمی‌تواند خالی باشد");
+      return;
+    }
+    if (homepageCtaLabel.trim().length < 2) {
+      toast.error("متن دکمه رزرو را وارد کنید");
+      return;
+    }
     setSaving(true);
     try {
       await updateSalon({
-        name, slogan, description, phone, address, city,
+        name: name.trim(), slogan, description, phone: phone.trim(), address, city,
         instagram_handle: instagramHandle.replace(/^@/, "").trim(),
         working_hours_text: workingHoursText,
         splash_title: splashTitle,
         splash_slogan: splashSlogan,
+        homepage_kicker: homepageKicker.trim() || "NAIL · CARE · RITUAL",
+        homepage_cta_label: homepageCtaLabel.trim() || "شروع رزرو",
+        homepage_micro: homepageMicro.trim() || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا",
+        lookbook_title: lookbookTitle.trim() || "نمونه‌کارها",
+        booking_success_title: bookingSuccessTitle.trim() || "به‌زودی می‌بینیمت!",
       });
       toast.success("تغییرات ذخیره شد");
     } catch {
       toast.error("خطا در ذخیره تغییرات");
     }
     setSaving(false);
+  };
+
+  // ─── Hero background image (full-bleed cover behind the homepage profile) ───
+  const handleHeroFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("حجم فایل بیشتر از ۵ مگابایت است");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setHeroCropImage(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const [heroCropImage, setHeroCropImage] = useState<string | null>(null);
+  const handleHeroCropComplete = async (blob: Blob) => {
+    setHeroCropImage(null);
+    setHeroUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", blob, "hero.jpg");
+      const res = await fetch("/api/upload-logo", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!data.url) throw new Error("upload");
+      setHeroUrl(data.url);
+      await updateSalon({ hero_image_url: data.url });
+      toast.success("تصویر پس‌زمینه ذخیره شد");
+    } catch {
+      toast.error("خطا در آپلود تصویر");
+    } finally {
+      setHeroUploading(false);
+    }
   };
 
   return (
@@ -291,6 +347,65 @@ export default function OwnerSettingsPage() {
       </Card>
 
       {/* Splash Screen section */}
+      {/* Hero background image — full-bleed cover behind the homepage profile */}
+      <Card className="p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Camera className="h-4 w-4 text-primary" />
+          <h3 className="font-semibold text-foreground">تصویر پس‌زمینه صفحه اصلی</h3>
+        </div>
+        <p className="text-small text-muted-foreground">تصویر پس‌زمینه بالای صفحه اصلی (پشت عکس پروفایل). افقی و با کیفیت بالا.</p>
+        <div className="flex items-center gap-4">
+          <div className="relative h-24 w-36 overflow-hidden rounded-2xl bg-muted">
+            <input ref={heroFileInputRef} type="file" accept="image/*" onChange={handleHeroFileSelect} className="hidden" />
+            {heroUrl ? <Image src={heroUrl} alt="تصویر پس‌زمینه" fill unoptimized className="object-cover" /> : <div className="flex h-full w-full items-center justify-center"><Sparkles className="h-6 w-6 text-muted-foreground" /></div>}
+            <button type="button" onClick={() => heroFileInputRef.current?.click()} disabled={heroUploading} aria-label="تغییر تصویر پس‌زمینه" className="absolute bottom-1 left-1 grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-50"><Camera className="h-3.5 w-3.5" /></button>
+          </div>
+          <div className="text-small text-muted-foreground">افقی، حداکثر ۵ مگابایت. بدون این تصویر، رنگ گرم پیش‌فرض نمایش داده می‌شود.</div>
+        </div>
+        {heroUrl && <button type="button" onClick={async () => { setHeroUrl(""); await updateSalon({ hero_image_url: null }); toast.success("تصویر حذف شد"); }} className="text-small text-destructive hover:underline">حذف تصویر</button>}
+      </Card>
+
+      {/* Customer-facing text — every brand string shown to customers */}
+      <Card className="p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <FileText className="h-4 w-4 text-primary" />
+          <h3 className="font-semibold text-foreground">متن‌های نمایشی مشتریان</h3>
+        </div>
+        <p className="text-small text-muted-foreground -mt-2">
+          این متن‌ها همان‌هایی هستند که مشتری در صفحه اصلی و روند رزرو می‌بیند.
+        </p>
+
+        <div>
+          <Label className="text-caption">نوشته بالای نام برند (انگلیسی)</Label>
+          <Input value={homepageKicker} onChange={(e) => setHomepageKicker(e.target.value)} className="mt-1" dir="ltr" placeholder="NAIL · CARE · RITUAL" maxLength={40} />
+          <p className="text-small text-muted-foreground mt-1">در بالای نام سالن در صفحه اصلی.</p>
+        </div>
+
+        <div>
+          <Label className="text-caption">متن دکمه اصلی رزرو</Label>
+          <Input value={homepageCtaLabel} onChange={(e) => setHomepageCtaLabel(e.target.value)} className="mt-1" placeholder="شروع رزرو" maxLength={40} />
+          <p className="text-small text-muted-foreground mt-1">دکمه بزرگ «رزرو نوبت» در صفحه اصلی.</p>
+        </div>
+
+        <div>
+          <Label className="text-caption">متن زیر دکمه رزرو</Label>
+          <Input value={homepageMicro} onChange={(e) => setHomepageMicro(e.target.value)} className="mt-1" placeholder="بدون تماس تلفنی · زمان‌های آزاد همین‌جا" maxLength={80} />
+          <p className="text-small text-muted-foreground mt-1">یک خط توضیحی کوچک زیر دکمه اصلی.</p>
+        </div>
+
+        <div>
+          <Label className="text-caption">عنوان بخش نمونه‌کارها</Label>
+          <Input value={lookbookTitle} onChange={(e) => setLookbookTitle(e.target.value)} className="mt-1" placeholder="نمونه‌کارها" maxLength={40} />
+          <p className="text-small text-muted-foreground mt-1">عنوان گالری نمونه‌کارها در صفحه اصلی.</p>
+        </div>
+
+        <div>
+          <Label className="text-caption">متن موفقیت رزرو</Label>
+          <Input value={bookingSuccessTitle} onChange={(e) => setBookingSuccessTitle(e.target.value)} className="mt-1" placeholder="به‌زودی می‌بینیمت!" maxLength={40} />
+          <p className="text-small text-muted-foreground mt-1">تیتر صفحه تأیید نوبت در پایان روند رزرو.</p>
+        </div>
+      </Card>
+
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Sparkles className="h-4 w-4 text-primary" />
@@ -470,6 +585,15 @@ export default function OwnerSettingsPage() {
           onCropComplete={handlePortraitCropComplete}
           onCancel={() => setPortraitCropImage(null)}
           aspect={1}
+        />
+      )}
+      {/* Crop Modal (hero background) */}
+      {heroCropImage && (
+        <ImageCrop
+          image={heroCropImage}
+          onCropComplete={handleHeroCropComplete}
+          onCancel={() => setHeroCropImage(null)}
+          aspect={16 / 9}
         />
       )}
       {splashCropImage && (

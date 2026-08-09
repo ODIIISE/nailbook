@@ -27,12 +27,15 @@ import type { Addon, Booking } from "@/lib/types";
 type Step = "service" | "time" | "review" | "success";
 
 const STEP_ORDER: Step[] = ["service", "time", "review", "success"];
+// Success title is owner-editable via /owner/settings → booking_success_title;
+// resolved inside the component because it needs the salon context.
 const STEP_TITLES: Record<Step, string> = {
   service: "خدمتت را انتخاب کن",
   time: "زمانت را پیدا کن",
   review: "مرور و تأیید",
   success: "به‌زودی می‌بینیمت!",
 };
+const SUCCESS_TITLE_DEFAULT = STEP_TITLES.success;
 const STEP_KICKER: Record<Step, string> = {
   service: "مرحله ۱ از ۳",
   time: "مرحله ۲ از ۳",
@@ -598,7 +601,7 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
         </button>
         <div className="qbf-mid">
           <span className="qbf-kicker">{STEP_KICKER[step]}</span>
-          <h2 key={step} className="qbf-title">{STEP_TITLES[step]}</h2>
+          <h2 key={step} className="qbf-title">{(step === "success" ? (salon.booking_success_title || SUCCESS_TITLE_DEFAULT) : STEP_TITLES[step])}</h2>
         </div>
         <span className="qbf-head-spacer" />
       </header>
