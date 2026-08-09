@@ -1,15 +1,25 @@
 /**
  * One-time helper to set the super admin password.
- * Run with: POSTGRES_URL=<url> npx tsx scripts/seed-super-admin-password.ts
  *
- * The default phone is "09121234567" — change PHONE below to match the
- * actual super admin you want to update.
+ * SECURITY: both env vars are REQUIRED — this script deliberately fails
+ * instead of falling back to a default credential, so a known password can
+ * never be written to the database by accident.
+ *
+ * Run with:
+ *   SUPER_ADMIN_PHONE=<phone> SUPER_ADMIN_PASSWORD=<password> \
+ *     POSTGRES_URL=<url> npx tsx scripts/seed-super-admin-password.ts
  */
 import crypto from "crypto";
 import { sql } from "@vercel/postgres";
 
-const PHONE = process.env.SUPER_ADMIN_PHONE || "09121234567";
-const PASSWORD = process.env.SUPER_ADMIN_PASSWORD || "ODIIISE7149901";
+const PHONE = process.env.SUPER_ADMIN_PHONE ?? "";
+const PASSWORD = process.env.SUPER_ADMIN_PASSWORD ?? "";
+
+if (!PHONE || !PASSWORD) {
+  console.error("❌ SUPER_ADMIN_PHONE and SUPER_ADMIN_PASSWORD env vars are required.");
+  console.error("   Refusing to run with a default/empty credential.");
+  process.exit(1);
+}
 
 if (!process.env.POSTGRES_URL && !process.env.POSTGRES_PRISMA_URL && !process.env.POSTGRES_URL_NON_POOLING) {
   console.warn("⚠️  No POSTGRES_URL env var detected. Vercel Postgres env vars are required.");
