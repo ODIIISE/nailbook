@@ -11,6 +11,10 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toPersianDigits } from "@/lib/jalali";
 import { isValidIranianPhone } from "@/lib/digits";
 import { compactPrice, compactToman } from "@/lib/pricing";
@@ -72,6 +76,7 @@ export function QwenCustomerHome() {
   const { user, logout } = useAuth();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const [activeLook, setActiveLook] = useState<Look | null>(null);
   const [activeLookImage, setActiveLookImage] = useState<string | null>(null);
   const [failedImages, setFailedImages] = useState<string[]>([]);
@@ -545,7 +550,7 @@ export function QwenCustomerHome() {
                 <span>پروفایل من</span>
                 <ArrowLeft aria-hidden="true" />
               </button>
-              <button type="button" className="qhp-drawer-item destructive" onClick={async () => { await logout(); setDrawerOpen(false); }}>
+              <button type="button" className="qhp-drawer-item destructive" onClick={() => setConfirmLogout(true)}>
                 <LogOut aria-hidden="true" />
                 <span>خروج از حساب</span>
                 <ArrowLeft aria-hidden="true" />
@@ -567,6 +572,21 @@ export function QwenCustomerHome() {
           </button>
         </div>
       </Drawer>
+
+      <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
+        <AlertDialogContent className="max-w-[300px] rounded-2xl p-5 ring-0 border-border shadow-elevated">
+          <AlertDialogHeader>
+            <AlertDialogTitle>خروج از حساب</AlertDialogTitle>
+            <AlertDialogDescription>
+              مطمئن هستید که می‌خواهید از حساب خود خارج شوید؟ نوبت‌های شما محفوظ می‌ماند.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>انصراف</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={async () => { await logout(); setDrawerOpen(false); }}>خروج</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </main>
   );

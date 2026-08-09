@@ -6,6 +6,10 @@ import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, Calendar, Check, Clock, LogOut, Pencil, Phone, Sparkles, User, X,
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
 import { displayDigits, normalizeDigits, isValidIranianPhone } from "@/lib/digits";
@@ -45,6 +49,7 @@ export default function ProfilePage() {
 
   const [confirmingCancel, setConfirmingCancel] = useState<string | null>(null);
   const cancelTimer = useRef<number | null>(null);
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -371,11 +376,26 @@ export default function ProfilePage() {
         )}
         </section>
 
-        <button type="button" className="qbp-logout" onClick={handleLogout}>
+        <button type="button" className="qbp-logout" onClick={() => setConfirmLogout(true)}>
           <LogOut aria-hidden="true" />
           خروج از حساب
         </button>
       </div>
+
+      <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
+        <AlertDialogContent className="max-w-[300px] rounded-2xl p-5 ring-0 border-border shadow-elevated">
+          <AlertDialogHeader>
+            <AlertDialogTitle>خروج از حساب</AlertDialogTitle>
+            <AlertDialogDescription>
+              مطمئن هستید که می‌خواهید از حساب خود خارج شوید؟ نوبت‌های شما محفوظ می‌ماند.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>انصراف</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={handleLogout}>خروج</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

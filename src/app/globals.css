@@ -1290,14 +1290,22 @@
 .qbf-rev-total { display: flex; justify-content: space-between; align-items: center; padding: 15px 16px; background: var(--qbf-bg-2); font-size: 13.5px; font-weight: 600; }
 .qbf-rev-total b { font-size: 15.5px; font-weight: 800; }
 
+/* Base-UI AlertDialog must stack above the homepage drawer (z-80) and
+   look sheet (z-70), which render through portals directly under <body>.
+   Default z-50 would otherwise open the confirm behind an open drawer. */
+[data-slot="alert-dialog-overlay"],
+[data-slot="alert-dialog-content"] {
+  z-index: 100;
+}
+
 /* ---- Contact form + OTP ---- */
 .qbf-form-card { background: var(--qbf-card); border-radius: var(--qbf-r3); box-shadow: var(--qbf-sh1); border: 1px solid var(--qbf-hair); padding: 18px; margin-bottom: 14px; }
 .qbf-form-t { font-size: 14px; font-weight: 800; margin-bottom: 14px; }
 .qbf-field { margin-bottom: 12px; }
 .qbf-field label { display: block; font-size: 11.5px; font-weight: 800; color: var(--qbf-mut); margin-bottom: 6px; transition: color .2s; }
 .qbf-field:focus-within label { color: var(--qbf-rose-2); }
-.qbf-inp { width: 100%; border: 1.5px solid var(--qbf-hair); border-radius: var(--qbf-r2); padding: 13px 15px; font: 600 14px 'Vazirmatn'; color: var(--qbf-ink); background: var(--qbf-bg); outline: none; transition: all .25s var(--qbf-ease-out); }
-.qbf-inp:focus { border-color: var(--qbf-rose); background: #fff; box-shadow: 0 0 0 4px rgba(190, 138, 114, .13); }
+.qbf-inp { width: 100%; border: 1.5px solid var(--qbf-hair); border-radius: var(--qbf-r2); padding: 13px 15px; font: 600 14px 'Vazirmatn'; color: var(--qbf-ink); background: var(--qbf-bg); outline: none; transition: border-color .18s var(--qbf-ease-out), box-shadow .18s var(--qbf-ease-out), background-color .18s var(--qbf-ease-out); }
+.qbf-inp:focus { border-color: var(--qbf-accent); background: #fff; box-shadow: 0 0 0 3px rgba(51, 34, 26, .12); }
 .qbf-inp.ltr { direction: ltr; text-align: right; }
 .qbf-otp-send { width: 100%; padding: 15px; border: none; border-radius: var(--qbf-r2); background: var(--qbf-accent); color: #fff; font: 800 14px 'Vazirmatn'; cursor: pointer; transition: all .25s var(--qbf-ease-spring); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09), 0 10px 26px rgba(42, 24, 16, .2); }
 .qbf-otp-send:disabled { background: #D9CCC0; box-shadow: none; cursor: not-allowed; }
@@ -1407,9 +1415,9 @@
   color: var(--qbf-ink);
   background: var(--qbf-bg);
   outline: none;
-  transition: all .25s var(--qbf-ease-out);
+  transition: border-color .18s var(--qbf-ease-out), box-shadow .18s var(--qbf-ease-out), background-color .18s var(--qbf-ease-out);
 }
-.qbp-edit-input:focus { border-color: var(--qbf-rose); background: #fff; box-shadow: 0 0 0 4px rgba(190, 138, 114, .13); }
+.qbp-edit-input:focus { border-color: var(--qbf-accent); background: #fff; box-shadow: 0 0 0 3px rgba(51, 34, 26, .12); }
 .qbp-logout {
   display: flex;
   align-items: center;
@@ -1666,8 +1674,7 @@
 .qbf-pin-input input:focus {
   border-color: var(--qbf-accent) !important;
   background: var(--qbf-card) !important;
-  box-shadow: 0 0 0 3px rgba(190, 138, 114, .16) !important;
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px rgba(51, 34, 26, .14) !important;
 }
 .qbf-verified-row { margin-bottom: 16px; }
 .qbf-verified-row small[dir="ltr"] { direction: ltr; text-align: right; }

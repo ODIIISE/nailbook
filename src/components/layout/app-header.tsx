@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -22,6 +22,10 @@ import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "./menu-context";
 import { haptic } from "@/lib/haptics";
 import { ThemeToggle, ThemeModeMenu } from "@/components/ui/theme-toggle";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface MenuItem {
   icon: ReactNode;
@@ -56,6 +60,8 @@ export function AppHeader({
   const { user, logout } = useAuth();
   const { open: menuOpen, openMenu, closeMenu } = useMenu();
 
+  const [confirmLogout, setConfirmLogout] = useState(false);
+
   const isHome = pathname === "/";
   const isOwner = pathname.startsWith("/owner");
 
@@ -72,10 +78,7 @@ export function AppHeader({
         icon: <LogOut className="h-4 w-4" />,
         label: "خروج",
         destructive: true,
-        onClick: async () => {
-          await logout();
-          window.location.href = "/";
-        },
+        onClick: () => setConfirmLogout(true),
       });
     } else {
       // Not logged in
@@ -235,6 +238,21 @@ export function AppHeader({
           </div>
         </div>
       )}
+
+      <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
+        <AlertDialogContent className="max-w-[300px] rounded-2xl p-5 ring-0 border-border shadow-elevated">
+          <AlertDialogHeader>
+            <AlertDialogTitle>خروج از حساب</AlertDialogTitle>
+            <AlertDialogDescription>
+              مطمئن هستید که می‌خواهید از حساب خود خارج شوید؟ نوبت‌های شما محفوظ می‌ماند.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>انصراف</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={async () => { await logout(); window.location.href = "/"; }}>خروج</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
