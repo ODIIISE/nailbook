@@ -237,26 +237,6 @@ export function QwenCustomerHome() {
     };
   }, []);
 
-  // Scroll-reveal for below-the-fold sections.
-  useEffect(() => {
-    const root = document.querySelector<HTMLElement>(".qhp-page");
-    if (!root) return;
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-      root.querySelectorAll<HTMLElement>(".qhp-reveal").forEach((el) => el.classList.add("is-in"));
-      return;
-    }
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-in");
-          io.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.12 });
-    root.querySelectorAll<HTMLElement>(".qhp-reveal").forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [loaded, looks.length, activeServices.length]);
-
   return (
     <main className="qhp-page">
       {/* TOP CHROME — hamburger menu (top-right) + profile (top-left), pinned to the frame.
