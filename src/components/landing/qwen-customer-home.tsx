@@ -293,14 +293,14 @@ export function QwenCustomerHome() {
           </span>
         </div>
 
-        <span className="qhp-mask" style={{ "--md": ".08s" } as CSSProperties}>
+        <span className="qhp-mask" style={{ "--md": ".04s" } as CSSProperties}>
           <span className="qhp-kicker">{salon.homepage_kicker || "NAIL · CARE · RITUAL"}</span>
         </span>
-        <span className="qhp-mask" style={{ "--md": ".16s" } as CSSProperties}>
+        <span className="qhp-mask" style={{ "--md": ".09s" } as CSSProperties}>
           <h1 className="qhp-name">{salon.name || "استودیو ناخن"}</h1>
         </span>
         {salon.slogan && (
-          <span className="qhp-mask" style={{ "--md": ".24s" } as CSSProperties}>
+          <span className="qhp-mask" style={{ "--md": ".14s" } as CSSProperties}>
             <span className="qhp-tagline">{salon.slogan}</span>
           </span>
         )}
