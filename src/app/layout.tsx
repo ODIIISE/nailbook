@@ -46,8 +46,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // suppressHydrationWarning: the inline theme script below toggles the
+  // `dark` class on <html> before React hydrates (it must, to avoid a theme
+  // flash). That intentional pre-hydration mutation makes React's
+  // class-attribute diff a false positive, so it is suppressed here — the
+  // official Next.js pattern for theme scripts.
   return (
-    <html lang="fa" dir="rtl" className={`${playfair.variable} h-full antialiased`}>
+    <html lang="fa" dir="rtl" className={`${playfair.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
