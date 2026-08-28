@@ -49,3 +49,6 @@ next-env.d.ts
 # research / design docs (not needed in production)
 research/
 docs/compose/
+
+# local AI tooling (kept on disk, not in version control)
+.claude/
