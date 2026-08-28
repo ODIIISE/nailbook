@@ -21,8 +21,16 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://forehand.vercel.app"),
   title: "Forehand Nail Studio | رزرو آنلاین",
   description: "Forehand Nail Studio — رزرو آنلاین نوبت ناخن",
+  openGraph: {
+    title: "Forehand Nail Studio | رزرو آنلاین",
+    description: "رزرو آنلاین نوبت ناخن — بدون تماس تلفنی، زمان‌های آزاد همین‌جا",
+    type: "website",
+    locale: "fa_IR",
+    siteName: "Forehand Nail Studio",
+  },
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.svg",

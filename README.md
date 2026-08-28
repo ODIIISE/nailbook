@@ -6,7 +6,7 @@ A Persian-language online booking platform for nail salons, built with Next.js 1
 
 - **Framework**: Next.js 16 (App Router, Turbopack)
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS v4 + shadcn/ui (Radix UI + Base UI)
+- **Styling**: Tailwind CSS v4 + shadcn/ui (Base UI)
 - **Database**: Vercel Postgres (`@vercel/postgres` — Neon-backed)
 - **File Storage**: Vercel Blob
 - **Hosting**: Vercel (serverless functions)
@@ -131,7 +131,7 @@ Push to `main` branch — Vercel auto-deploys.
 | `/api/owner/blocked-times` | GET/PUT | Owner (PUT) | Manage blocked times |
 | `/api/owner/reset-pin` | POST | Owner | Reset a user's PIN |
 | `/api/update-salon` | POST | Owner | Update salon info + config |
-| `/api/read/salon` | GET | None | Public salon info (auto-migrates) |
+| `/api/read/salon` | GET | None | Public salon info |
 | `/api/read/services` | GET | None | Public services list |
 | `/api/read/addons` | GET | None | Public addons list |
 | `/api/read/bookings` | GET | None | List bookings |

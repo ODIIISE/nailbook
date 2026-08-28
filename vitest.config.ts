@@ -11,6 +11,14 @@ export default defineConfig({
       reporter: ["text", "html"],
       include: ["src/lib/**/*.ts"],
       exclude: ["src/lib/**/*.test.ts"],
+      // Floor slightly below current levels so regressions fail CI while
+      // new untested files don't immediately break the gate.
+      thresholds: {
+        lines: 38,
+        functions: 40,
+        branches: 35,
+        statements: 38,
+      },
     },
   },
   resolve: {

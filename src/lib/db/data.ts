@@ -365,23 +365,6 @@ export async function cancelBooking(bookingId: string) {
   }
 }
 
-export async function fetchWorkingHours() {
-  try {
-    const res = await fetch("/api/read/salon");
-    if (!res.ok) return null;
-    const data = await readJson(res);
-    if (!isRecord(data) || !isRecord(data.working_hours)) return null;
-    return {
-      working_hours: data.working_hours as Record<string, { open: string; close: string } | null>,
-      specific_days_off: Array.isArray(data.specific_days_off)
-        ? data.specific_days_off.filter((day): day is string => typeof day === "string")
-        : [],
-    };
-  } catch {
-    return null;
-  }
-}
-
 export async function updateWorkingHours(workingHours: Record<string, unknown>, specificDaysOff: string[]) {
   const res = await fetch("/api/update-salon", {
     method: "POST",
