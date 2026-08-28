@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated test coverage report
+    "coverage/**",
     // External AI tooling copied into the repo (not application code)
     ".agents/**",
     ".claude/**",
