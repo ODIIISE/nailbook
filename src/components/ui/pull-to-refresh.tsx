@@ -33,15 +33,18 @@ export function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     const el = containerRef.current;
-    if (!el || el.scrollTop > 0 || refreshing) return;
+    // The page (document) scrolls, not the container — containerRef.scrollTop
+    // is always 0, which armed the pull anywhere on the page. Arm only when
+    // the window itself is at the very top.
+    if ((el && el.scrollTop > 0) || (window.scrollY || 0) > 0 || refreshing) return;
     startY.current = e.touches[0].clientY;
     pulling.current = true;
   }, [refreshing]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!pulling.current) return;
-    // Abort if the container scrolled during the pull (child scroll)
-    if (containerRef.current && containerRef.current.scrollTop > 0) {
+    // Abort if the container or page scrolled during the pull
+    if ((containerRef.current && containerRef.current.scrollTop > 0) || (window.scrollY || 0) > 0) {
       pulling.current = false;
       setPullDistance(0);
       return;

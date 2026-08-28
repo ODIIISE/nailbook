@@ -3,9 +3,9 @@ import { logActivity } from "@/lib/db/activity-log";
 import { checkAntiSpam } from "@/lib/anti-spam";
 import { BookingError, createBookingError } from "./errors";
 import { gregorianToJalali } from "@/lib/jalali";
-import { parseGregorianDateKey } from "@/lib/time";
+import { parseGregorianDateKey, getTehranNow } from "@/lib/time";
 import type { BookingRequestInput } from "./schema";
-import { getSalonId } from "@/lib/multi-tenant";
+import { resolveSalonId } from "@/lib/multi-tenant";
 
 export interface CreateBookingResult {
   id: string;
@@ -51,14 +51,14 @@ async function fetchService(
   client: VercelPoolClient,
   serviceId: string,
   salonId: string | null
-): Promise<{ durationMinutes: number; addonIds: string[] }> {
+): Promise<{ durationMinutes: number; addonIds: string[]; name: string; price: number }> {
   const result = salonId
     ? await client.query(
-        `SELECT duration_minutes, addon_ids FROM services WHERE id = $1 AND salon_id = $2 AND is_active = true`,
+        `SELECT duration_minutes, addon_ids, name, price FROM services WHERE id = $1 AND salon_id = $2 AND is_active = true`,
         [serviceId, salonId]
       )
     : await client.query(
-        `SELECT duration_minutes, addon_ids FROM services WHERE id = $1 AND is_active = true`,
+        `SELECT duration_minutes, addon_ids, name, price FROM services WHERE id = $1 AND is_active = true`,
         [serviceId]
       );
   const { rows } = result;
@@ -71,7 +71,12 @@ async function fetchService(
     : typeof rawAddonIds === "string"
       ? rawAddonIds.replace(/^\{|\}$/g, "").split(",").map((id: string) => id.replace(/^"|"$/g, "").trim()).filter(Boolean)
       : [];
-  return { durationMinutes: Number(rows[0].duration_minutes), addonIds };
+  return {
+    durationMinutes: Number(rows[0].duration_minutes),
+    addonIds,
+    name: String(rows[0].name || ""),
+    price: Number(rows[0].price || 0),
+  };
 }
 
 async function fetchAddonsDuration(
@@ -79,19 +84,19 @@ async function fetchAddonsDuration(
   selectedAddons: string[],
   allowedAddonIds: string[],
   salonId: string | null
-): Promise<number> {
-  if (selectedAddons.length === 0) return 0;
+): Promise<{ durationMinutes: number; priceTotal: number }> {
+  if (selectedAddons.length === 0) return { durationMinutes: 0, priceTotal: 0 };
   if (selectedAddons.some((id) => !allowedAddonIds.includes(id))) {
     throw createBookingError("INVALID_ADDONS");
   }
 
   const addonResult = salonId
     ? await client.query(
-        `SELECT id, duration_minutes FROM addons WHERE id = ANY($1) AND salon_id = $2 AND is_active = true`,
+        `SELECT id, duration_minutes, price FROM addons WHERE id = ANY($1) AND salon_id = $2 AND is_active = true`,
         [selectedAddons, salonId]
       )
     : await client.query(
-        `SELECT id, duration_minutes FROM addons WHERE id = ANY($1) AND is_active = true`,
+        `SELECT id, duration_minutes, price FROM addons WHERE id = ANY($1) AND is_active = true`,
         [selectedAddons]
       );
   const { rows: addonRows } = addonResult;
@@ -101,14 +106,16 @@ async function fetchAddonsDuration(
   }
 
   return addonRows.reduce(
-    (sum: number, r: { duration_minutes?: string | number }) =>
-      sum + Number(r.duration_minutes || 0),
-    0
+    (acc: { durationMinutes: number; priceTotal: number }, r: { duration_minutes?: string | number; price?: string | number }) => ({
+      durationMinutes: acc.durationMinutes + Number(r.duration_minutes || 0),
+      priceTotal: acc.priceTotal + Number(r.price || 0),
+    }),
+    { durationMinutes: 0, priceTotal: 0 }
   );
 }
 
 async function fetchSalonInfo(client: VercelPoolClient): Promise<SalonInfo> {
-  const salonId = getSalonId();
+  const salonId = await resolveSalonId();
   const result = salonId
     ? await client.query(
         `SELECT working_hours, specific_days_off, allow_overflow, overflow_minutes, slot_buffer_minutes, slot_interval_minutes
@@ -256,7 +263,9 @@ async function insertBooking(
   phone: string,
   normStart: string,
   normEnd: string,
-  salonId: string | null
+  salonId: string | null,
+  serviceName: string,
+  priceTotal: number
 ): Promise<CreateBookingResult> {
   const parsedDate = parseGregorianDateKey(input.date_gregorian);
   const jalali = gregorianToJalali(parsedDate);
@@ -266,20 +275,20 @@ async function insertBooking(
     ? `INSERT INTO bookings (
         user_id, salon_id, customer_phone, customer_name, service_id,
         selected_addons, date, date_gregorian, start_time, end_time,
-        status, phone_verified, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::date, ($9 || ':00')::time, ($10 || ':00')::time, 'reserved', true, NOW())`
+        status, phone_verified, created_at, service_name, price_total
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::date, ($9 || ':00')::time, ($10 || ':00')::time, 'reserved', true, NOW(), $11, $12)`
     : `INSERT INTO bookings (
         user_id, customer_phone, customer_name, service_id,
         selected_addons, date, date_gregorian, start_time, end_time,
-        status, phone_verified, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, ($8 || ':00')::time, ($9 || ':00')::time, 'reserved', true, NOW())`;
+        status, phone_verified, created_at, service_name, price_total
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, ($8 || ':00')::time, ($9 || ':00')::time, 'reserved', true, NOW(), $10, $11)`;
   const result = await client.query(
     `${insertSql}
      ON CONFLICT DO NOTHING
      RETURNING id, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time`,
     salonId
-      ? [userId, salonId, phone, input.customer_name || "", input.service_id, JSON.stringify(input.selected_addons || []), jalaliDate, input.date_gregorian, normStart, normEnd]
-      : [userId, phone, input.customer_name || "", input.service_id, JSON.stringify(input.selected_addons || []), jalaliDate, input.date_gregorian, normStart, normEnd]
+      ? [userId, salonId, phone, input.customer_name || "", input.service_id, JSON.stringify(input.selected_addons || []), jalaliDate, input.date_gregorian, normStart, normEnd, serviceName, Math.round(priceTotal)]
+      : [userId, phone, input.customer_name || "", input.service_id, JSON.stringify(input.selected_addons || []), jalaliDate, input.date_gregorian, normStart, normEnd, serviceName, Math.round(priceTotal)]
   );
 
   if (result.rows.length === 0) {
@@ -304,15 +313,33 @@ export async function createBooking(
     throw createBookingError("INVALID_DATE");
   }
 
-  if (normEnd >= "24:00") {
+  // Compare minutes numerically: the schema allows a single-digit hour
+  // ("9:30"), where string ordering would call a valid 9:00→10:00 booking
+  // an invalid range ("10:00" sorts before "9:00").
+  if (parseMinutes(normEnd) >= 24 * 60) {
     throw createBookingError("TIME_INVALID");
   }
 
-  if (normEnd <= normStart) {
+  if (parseMinutes(normEnd) <= parseMinutes(normStart)) {
     throw createBookingError("TIME_RANGE_INVALID");
   }
 
-  const spamCheck = await checkAntiSpam(phone);
+  // Server-side past-time rejection (spec §9). The client filters past slots
+  // using the device clock; this is the authoritative check. Compare minutes
+  // numerically since the schema permits a single-digit hour ("9:30").
+  const tehranNow = getTehranNow();
+  if (
+    input.date_gregorian < tehranNow.dateKey
+    || (input.date_gregorian === tehranNow.dateKey && parseMinutes(normStart) < tehranNow.minutes)
+  ) {
+    throw createBookingError("TIME_IN_PAST");
+  }
+
+  // Resolve the canonical tenant UUID once — every query and the advisory
+  // lock key below must use the same value (SALON_ID may be a legacy slug).
+  const salonId = await resolveSalonId();
+
+  const spamCheck = await checkAntiSpam(phone, salonId);
   if (!spamCheck.allowed) {
     throw createBookingError("SPAM_DETECTED", spamCheck.error);
   }
@@ -322,12 +349,16 @@ export async function createBooking(
   try {
     await client.query("BEGIN");
 
-    const salonId = getSalonId();
     const service = await fetchService(client, input.service_id, salonId);
-    const [addonsDuration, salonInfo] = await Promise.all([
+    const [addons, salonInfo] = await Promise.all([
       fetchAddonsDuration(client, input.selected_addons, service.addonIds, salonId),
       fetchSalonInfo(client),
     ]);
+    const addonsDuration = addons.durationMinutes;
+    // Snapshot what the customer agreed to at booking time — later price
+    // edits or service deletion must not rewrite history.
+    const priceTotal = service.price + addons.priceTotal;
+    const serviceName = service.name;
 
     validateEndTimeMatchesService(
       normStart,
@@ -348,7 +379,9 @@ export async function createBooking(
       phone,
       normStart,
       normEnd,
-      salonId
+      salonId,
+      serviceName,
+      priceTotal
     );
 
     await client.query("COMMIT");

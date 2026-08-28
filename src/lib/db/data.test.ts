@@ -70,7 +70,9 @@ describe("client data readers", () => {
       .mockResolvedValueOnce(jsonResponse({ error: "خطای سرور" }, { status: 500 }))
       .mockResolvedValueOnce(jsonResponse({ id: "salon-1", name: null, working_hours: null })));
 
-    await expect(fetchServices()).resolves.toEqual([]);
+    // Failed fetches resolve to null so consumers can keep their last-known
+    // data instead of blanking the UI with an empty list.
+    await expect(fetchServices()).resolves.toBeNull();
     await expect(fetchSalonInfo()).resolves.toEqual(expect.objectContaining({
       id: "salon-1",
       name: "",

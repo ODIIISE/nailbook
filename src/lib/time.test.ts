@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getTehranDateKey, getTehranNow, isTehranToday, parseGregorianDateKey } from "./time";
+import { getTehranDateKey, getTehranNow, getTehranDayStartUtc, isTehranToday, parseGregorianDateKey } from "./time";
 
 describe("getTehranDateKey", () => {
   it("should return YYYY-MM-DD format in Tehran timezone", () => {
@@ -69,5 +69,26 @@ describe("isTehranToday", () => {
     const now = new Date("2026-07-14T12:00:00Z");
     const tomorrow = new Date("2026-07-15T10:00:00Z"); // Different Tehran day
     expect(isTehranToday(tomorrow, now)).toBe(false);
+  });
+});
+
+describe("getTehranDayStartUtc", () => {
+  it("returns 20:30 UTC of the previous instant (Tehran = UTC+03:30)", () => {
+    // 2026-07-14 12:00 UTC = 15:30 Tehran → day starts 2026-07-13 20:30 UTC
+    const dayStart = getTehranDayStartUtc(new Date("2026-07-14T12:00:00Z"));
+    expect(dayStart.toISOString()).toBe("2026-07-13T20:30:00.000Z");
+  });
+
+  it("anchors the Tehran calendar day the instant falls in, even after midnight", () => {
+    // 2026-07-14 20:31 UTC = 00:01 Tehran on 2026-07-15 → day starts 20:30 UTC
+    const dayStart = getTehranDayStartUtc(new Date("2026-07-14T20:31:00Z"));
+    expect(dayStart.toISOString()).toBe("2026-07-14T20:30:00.000Z");
+  });
+
+  it("is exactly midnight in Tehran terms", () => {
+    const dayStart = getTehranDayStartUtc(new Date("2026-07-14T12:00:00Z"));
+    const now = getTehranNow(dayStart);
+    expect(now.minutes).toBe(0);
+    expect(now.dateKey).toBe(getTehranDateKey(new Date("2026-07-14T12:00:00Z")));
   });
 });

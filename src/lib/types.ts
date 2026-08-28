@@ -86,6 +86,9 @@ export interface Booking {
   paid: boolean;
   created_at: string;
   service?: Service;
+  /** Snapshot fields (migration 022): what the booking was worth at creation. */
+    service_name?: string | null;
+    price_total?: number | null;
 }
 
 export interface HighlightImage {

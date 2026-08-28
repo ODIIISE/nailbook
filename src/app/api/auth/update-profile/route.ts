@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
 
     const salonId = getSalonId();
     const currentResult = salonId
-      ? await sql.query("SELECT name, phone FROM users WHERE id = $1 AND salon_id = $2", [userId, salonId])
-      : await sql`SELECT name, phone FROM users WHERE id = ${userId}`;
+      ? await sql.query("SELECT name, phone, salon_id FROM users WHERE id = $1 AND salon_id = $2", [userId, salonId])
+      : await sql`SELECT name, phone, salon_id FROM users WHERE id = ${userId}`;
     const current = currentResult.rows;
     if (!current[0]) return NextResponse.json({ error: "کاربر یافت نشد" }, { status: 404 });
     const oldName = current[0].name || "";
@@ -64,13 +64,23 @@ export async function POST(request: NextRequest) {
     }
 
     if (cleanPhone && oldPhone && cleanPhone !== oldPhone) {
-      if (salonId) {
+      // Bookings that belong to this user follow the phone change. Guest
+      // bookings (user_id IS NULL) can only be matched by phone, so they must
+      // be scoped to the user's own salon — otherwise a phone match would
+      // rewrite other tenants' bookings in a shared database.
+      const userSalonId = typeof current[0].salon_id === "string" ? current[0].salon_id : null;
+      if (userSalonId) {
         await sql.query(
-          "UPDATE bookings SET customer_phone = $1 WHERE customer_phone = $2 AND (user_id = $3 OR user_id IS NULL)",
-          [cleanPhone, oldPhone, userId]
+          "UPDATE bookings SET customer_phone = $1 WHERE customer_phone = $2 AND (user_id = $3 OR (user_id IS NULL AND salon_id = $4))",
+          [cleanPhone, oldPhone, userId, userSalonId]
         );
       } else {
-        await sql`UPDATE bookings SET customer_phone = ${cleanPhone} WHERE customer_phone = ${oldPhone} AND (user_id = ${userId} OR user_id IS NULL)`;
+        // User has no salon (legacy/admin mode): only rewrite bookings the
+        // user owns; unattributed guest bookings cannot be matched safely.
+        await sql.query(
+          "UPDATE bookings SET customer_phone = $1 WHERE customer_phone = $2 AND user_id = $3",
+          [cleanPhone, oldPhone, userId]
+        );
       }
     }
 

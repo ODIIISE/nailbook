@@ -63,3 +63,17 @@ export function isValidSpecificDaysOff(value: unknown): value is string[] {
   return Array.isArray(value)
     && value.every((day) => typeof day === "string" && isValidIsoDate(day));
 }
+
+/** Slot grid interval in minutes. Out-of-range or corrupt values fall back to
+ * 15 — the single clamp every consumer (customer engine, owner booking route,
+ * manual-reserve modal) must share so duration rules never diverge. */
+export function resolveSlotInterval(configured: unknown): number {
+  const value = Number(configured);
+  return Number.isFinite(value) && value >= 5 && value <= 60 ? value : 15;
+}
+
+/** Mandatory gap after each booking, clamped to the range update-salon allows. */
+export function resolveSlotBuffer(configured: unknown): number {
+  const value = Number(configured);
+  return Number.isFinite(value) && value > 0 ? Math.min(Math.floor(value), 120) : 0;
+}

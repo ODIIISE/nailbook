@@ -45,6 +45,19 @@ const ALL_STATUS_OPTIONS: { value: string; label: string; color: string; Icon: t
 
 export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, onStatusChange, onDelete, onClose }: BookingModalProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
+  // In-flight flag: disables status/paid controls while a write runs so a
+  // double-tap cannot queue opposite writes for a net no-op.
+  const [isMutating, setIsMutating] = useState(false);
+
+  const runMutation = async (action: () => void | Promise<void>) => {
+    if (isMutating) return;
+    setIsMutating(true);
+    try {
+      await action();
+    } finally {
+      setIsMutating(false);
+    }
+  };
   const currentStatus = booking.status;
   const allowedTransitions = useMemo(() => VALID_TRANSITIONS[currentStatus] || [], [currentStatus]);
   const statusOptions = useMemo(
@@ -89,7 +102,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
             <h2 className="text-body-lg font-bold">جزئیات نوبت</h2>
             <span className={`text-small font-semibold text-muted-foreground ${subtleBg2} px-2 py-0.5 rounded-md`} dir="ltr">{shortId}</span>
           </div>
-          <button onClick={onClose} className={`w-7 h-7 rounded-lg ${subtleBg2} flex items-center justify-center`}>
+          <button onClick={onClose} aria-label="بستن" className={`w-7 h-7 rounded-lg ${subtleBg2} flex items-center justify-center`}>
             <svg className="h-3.5 w-3.5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </button>
         </div>
@@ -107,10 +120,12 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
           </div>
           <div className="flex gap-1">
             <button onClick={() => window.open(`sms:${booking.customer_phone}`, "_self")}
+              aria-label={`ارسال پیامک به ${booking.customer_name || booking.customer_phone}`}
               className={`w-8 h-8 rounded-lg border ${subtleBorder} bg-card flex items-center justify-center`}>
               <MessageSquare className={`h-3.5 w-3.5 ${addonColor}`} />
             </button>
             <button onClick={() => window.open(`tel:${booking.customer_phone}`, "_self")}
+              aria-label={`تماس با ${booking.customer_name || booking.customer_phone}`}
               className={`w-8 h-8 rounded-lg border ${subtleBorder} bg-card flex items-center justify-center`}>
               <Phone className={`h-3.5 w-3.5 ${phoneColor}`} />
             </button>
@@ -150,7 +165,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
               <span className="text-small text-muted-foreground mx-1">•</span>
               <Clock className="h-3 w-3 text-muted-foreground" />
               <span className="text-small text-muted-foreground">{toPersianDigits(booking.start_time.slice(0, 5))} – {toPersianDigits(booking.end_time.slice(0, 5))}</span>
-              <span className="text-small text-muted-foreground/60 mr-auto">{toPersianDigits(duration)} دقیقه</span>
+              <span className="text-small text-muted-foreground/60 ml-auto">{toPersianDigits(duration)} دقیقه</span>
             </div>
           </div>
 
@@ -181,7 +196,12 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
                   <span className="text-muted-foreground text-small">بدون تغییر وضعیت</span>
                 </DropdownMenuItem>
               ) : statusOptions.map((opt) => (
-                <DropdownMenuItem key={opt.value} onClick={() => onStatusChange(opt.value)} className="gap-2">
+                <DropdownMenuItem
+                  key={opt.value}
+                  disabled={isMutating}
+                  onClick={() => runMutation(() => onStatusChange(opt.value))}
+                  className="gap-2"
+                >
                   <opt.Icon className="h-3.5 w-3.5" style={{ color: opt.color }} />
                   <span style={{ color: opt.color }}>{opt.label}</span>
                 </DropdownMenuItem>
@@ -189,7 +209,13 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <button onClick={onTogglePaid} className="flex items-center gap-2">
+          <button
+            onClick={() => runMutation(onTogglePaid)}
+            disabled={isMutating}
+            aria-busy={isMutating}
+            aria-label={isPaid ? "علامت‌گذاری به عنوان پرداخت‌نشده" : "علامت‌گذاری به عنوان پرداخت‌شده"}
+            className="flex items-center gap-2 disabled:opacity-50"
+          >
             <span className={`text-small font-medium ${isPaid ? paidColor : "text-muted-foreground"}`}>{isPaid ? "پرداخت شده" : "پرداخت نشده"}</span>
             <div className={`w-9 h-5 rounded-full relative transition-colors`} style={{ backgroundColor: isPaid ? paidColor as string : "var(--muted)" }}>
               <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-background shadow transition-transform ${isPaid ? "right-0.5" : "right-[18px]"}`} />
@@ -211,8 +237,8 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
 
         {/* Created at */}
         {createdAtTime && (
-          <p className="text-small text-muted-foreground/50 text-center mt-2" dir="ltr">
-            Created at {createdAtTime}
+          <p className="text-small text-muted-foreground/50 text-center mt-2">
+            ثبت‌شده در ساعت {createdAtTime}
           </p>
         )}
       </DialogContent>
@@ -226,7 +252,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
               حذف نوبت
             </AlertDialogTitle>
             <AlertDialogDescription className="text-small" style={{ color: `${deleteColor}B3` }}>
-              آیا مطمئن هستید؟ این عمل غیرقابل بازگشت است.
+              نوبت لغو می‌شود. در صورت نیاز می‌توانید بعداً آن را دوباره فعال کنید.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

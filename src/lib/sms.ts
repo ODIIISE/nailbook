@@ -78,7 +78,17 @@ class FarazSmsProvider implements SmsProvider {
     const config = getFarazSmsConfig();
     const client = getFarazClient();
     if (!config || !client) {
-      // Fallback to console when credentials are missing so local/dev flows don't crash.
+      // Fail loud in production: a silent console fallback previously made
+      // sendOtp report success while no SMS was ever delivered. Set
+      // SMS_PROVIDER=console to intentionally skip real delivery (dev/tests).
+      if (process.env.NODE_ENV === "production" && process.env.SMS_PROVIDER !== "console") {
+        console.error(
+          "[SMS] OTP delivery failed: FarazSMS credentials missing in production "
+          + "(FARAZSMS_API_KEY, FARAZSMS_LINE_NUMBER, FARAZSMS_PATTERN_CODE). "
+          + "Set them in the deployment environment, or set SMS_PROVIDER=console to intentionally disable delivery."
+        );
+        return { success: false, error: "سرویس پیامک پیکربندی نشده است" };
+      }
       console.log(`[SMS] OTP for ${phone}: ${code}`);
       return { success: true };
     }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
-import { getSalonId } from "@/lib/multi-tenant";
+import { resolveSalonId } from "@/lib/multi-tenant";
 
 interface BackupService {
   id: string;
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     const [salonInfo, services, addons, bookings, blockedTimes, users, highlights] = await Promise.all(
       salonId
         ? [
@@ -135,7 +135,10 @@ function validateBooking(b: unknown): b is BackupBooking {
   if (!booking.date_gregorian || !/^\d{4}-\d{2}-\d{2}$/.test(booking.date_gregorian)) return false;
   if (!booking.start_time || !/^\d{2}:\d{2}/.test(booking.start_time)) return false;
   if (!booking.end_time || !/^\d{2}:\d{2}/.test(booking.end_time)) return false;
-  const validStatuses = ["pending", "reserved", "confirmed", "completed", "cancelled", "in_progress", "no_show"];
+  // "no_show" is intentionally absent: the bookings_status_check constraint
+  // on production does not allow it, so restoring such a row would fail the
+  // whole transaction. Map it to the closest supported state instead.
+  const validStatuses = ["pending", "reserved", "confirmed", "completed", "cancelled", "in_progress"];
   if (booking.status && !validStatuses.includes(booking.status)) return false;
   return true;
 }
@@ -163,7 +166,7 @@ export async function POST(request: NextRequest) {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     const { data, mode = "merge", confirmDelete = false } = await request.json() as { data?: BackupData; mode?: string; confirmDelete?: boolean };
     if (!data || typeof data !== "object") return NextResponse.json({ error: "داده‌ای ارسال نشد" }, { status: 400 });
 

@@ -29,6 +29,8 @@ import { Ban, ChevronLeft, Plus } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey, parseGregorianDateKey } from "@/lib/time";
+import { getIranWeekDay } from "@/lib/slots";
+import type { Service } from "@/lib/types";
 import { calculateEarnings, calculateBookingPrice } from "@/lib/pricing";
 import { toast } from "sonner";
 
@@ -36,7 +38,7 @@ function OwnerDashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, isLoading: authLoading, hasRole } = useAuth();
-  const { loaded, bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addOwnerBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
+  const { salon, loaded, bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addOwnerBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
@@ -104,7 +106,11 @@ function OwnerDashboardContent() {
       })
       .map((b) => ({
         ...b,
-        service: services.find((s) => s.id === b.service_id),
+        // Deleted services NULL service_id server-side; fall back to the
+        // creation-time name snapshot so the timeline stays readable.
+        service: services.find((s) => s.id === b.service_id) ?? (b.service_name
+          ? ({ id: b.service_id || "", name: b.service_name, description: "", price: 0, duration_minutes: 0, is_active: true, sort_order: 0, addon_ids: [], priority_score: 5, best_for: [] } as Service)
+          : undefined),
       }));
   }, [currentDate, bookings, services]);
 
@@ -115,6 +121,32 @@ function OwnerDashboardContent() {
       return blockDate === dateStr;
     });
   }, [currentDate, blockedTimes]);
+
+  // Derive the visible hour window from the selected day's working hours and
+  // blocked times. The previous hardcoded 8-22 clipped early-morning and
+  // late-evening bookings out of the timeline entirely (overflow-hidden).
+  const timelineRange = useMemo(() => {
+    const toMinutes = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return (h || 0) * 60 + (m || 0);
+    };
+    const dayHours = workingHours[getIranWeekDay(currentDate)];
+    let start = dayHours ? Math.floor(toMinutes(dayHours.open) / 60) : 8;
+    let end = dayHours ? Math.ceil(toMinutes(dayHours.close) / 60) : 22;
+    for (const block of dayBlockedTimes) {
+      start = Math.min(start, Math.floor(toMinutes(block.start_time) / 60));
+      end = Math.max(end, Math.ceil(toMinutes(block.end_time) / 60));
+    }
+    start = Math.max(0, Math.min(start, 23));
+    end = Math.min(24, Math.max(end, start + 1));
+    // Keep a workable minimum span so a short day stays readable.
+    if (end - start < 6) {
+      const pad = Math.ceil((6 - (end - start)) / 2);
+      start = Math.max(0, start - pad);
+      end = Math.min(24, end + pad);
+    }
+    return { startHour: start, endHour: end };
+  }, [currentDate, workingHours, dayBlockedTimes]);
 
   const accounting = useMemo(() => {
     const today = parseGregorianDateKey(getTehranDateKey(currentDate));
@@ -145,13 +177,11 @@ function OwnerDashboardContent() {
       { date_gregorian: dateStr, start_time: startTime, end_time: endTime },
     ]);
 
-    if (saved) {
+    if (saved.success) {
       toast.success("زمان استراحت اضافه شد");
       setShowBlockTime(false);
     } else {
-      toast.error("زمان استراحت ذخیره نشد", {
-        description: "ممکن است با یک نوبت موجود تداخل داشته باشد",
-      });
+      toast.error(saved.error || "زمان استراحت ذخیره نشد");
     }
   };
 
@@ -164,10 +194,10 @@ function OwnerDashboardContent() {
     const globalIndex = blockedTimes.indexOf(target);
     if (globalIndex < 0) return;
     const saved = await updateBlockedTimes(blockedTimes.filter((_, i) => i !== globalIndex));
-    if (saved) {
+    if (saved.success) {
       toast.success("زمان استراحت حذف شد");
     } else {
-      toast.error("حذف زمان استراحت انجام نشد");
+      toast.error(saved.error || "حذف زمان استراحت انجام نشد");
     }
   };
 
@@ -254,7 +284,14 @@ function OwnerDashboardContent() {
         {/* Today overview: revenue + count + next appointment, all in one compact strip. */}
         <Card className="p-4 surface-interactive">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-caption font-bold text-foreground">نمای کلی امروز</h2>
+            <h2 className="text-caption font-bold text-foreground">
+              {(() => {
+                const selectedKey = getTehranDateKey(currentDate);
+                if (selectedKey === getTehranDateKey(new Date())) return "نمای کلی امروز";
+                const j = gregorianToJalali(currentDate);
+                return `نمای کلی ${formatJalaliDate(j.jy, j.jm, j.jd)}`;
+              })()}
+            </h2>
             <Button
               variant="ghost"
               size="sm"
@@ -343,6 +380,8 @@ function OwnerDashboardContent() {
         <Timeline
           bookings={dayBookings}
           blockedTimes={dayBlockedTimes}
+          startHour={timelineRange.startHour}
+          endHour={timelineRange.endHour}
           onSelectBooking={(booking) => setSelectedBookingId(booking?.id || null)}
           onRemoveBlock={handleRemoveBlock}
           addons={addons}
@@ -365,6 +404,8 @@ function OwnerDashboardContent() {
           date={currentDate}
           services={services}
           workingHours={workingHours}
+          slotIntervalMinutes={salon?.slot_interval_minutes}
+          slotBufferMinutes={salon?.slot_buffer_minutes}
           onReserve={handleManualReserve}
           onClose={() => setShowManualReserve(false)}
         />
@@ -376,11 +417,11 @@ function OwnerDashboardContent() {
           services={services}
           addons={addons}
           isPaid={selectedBooking.paid}
-          onTogglePaid={() => {
-            toggleBookingPaid(selectedBooking.id, !selectedBooking.paid);
+          onTogglePaid={async () => {
+            await toggleBookingPaid(selectedBooking.id, !selectedBooking.paid);
           }}
-          onStatusChange={(status) => {
-            updateBookingStatus(selectedBooking.id, status);
+          onStatusChange={async (status) => {
+            await updateBookingStatus(selectedBooking.id, status);
           }}
           onDelete={async (id) => {
             const success = await cancelBooking(id);

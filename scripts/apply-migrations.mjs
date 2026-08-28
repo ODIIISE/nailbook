@@ -34,6 +34,18 @@ async function main() {
     const { rows } = await client.query("SELECT name FROM schema_migrations ORDER BY id");
     const done = new Set(rows.map((r) => r.name));
 
+    // Older admin builds tracked applied migrations in `_migrations`. Merge
+    // those names so this script does not re-run files the app already
+    // applied (several early migrations are not idempotent).
+    try {
+      const legacy = await client.query("SELECT filename FROM _migrations");
+      for (const row of legacy.rows) {
+        if (typeof row.filename === "string") done.add(row.filename);
+      }
+    } catch {
+      // table does not exist — nothing to merge
+    }
+
     for (const file of files) {
       if (done.has(file)) {
         console.log(`✓ already applied: ${file}`);

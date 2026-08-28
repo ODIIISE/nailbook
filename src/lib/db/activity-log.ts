@@ -1,5 +1,6 @@
 import { sql } from "@vercel/postgres";
-import { getSalonId } from "@/lib/multi-tenant";
+import { waitUntil } from "@vercel/functions";
+import { resolveSalonId } from "@/lib/multi-tenant";
 
 export type EventType =
   | "booking_created"
@@ -30,7 +31,8 @@ export type EventType =
   | "salon_updated"
   | "database_migrated"
   | "owner_login"
-  | "owner_login_denied";
+  | "owner_login_denied"
+  | "login_blocked";
 
 export interface ActivityLog {
   id: string;
@@ -81,13 +83,31 @@ let tableEnsured = false;
  * Safe to call — errors are caught and logged, never thrown.
  */
 export async function logActivity(params: LogEventParams): Promise<void> {
+  // Fire-and-forget call sites (`void logActivity(...)`) can be frozen by the
+  // serverless runtime right after the response is sent, silently dropping
+  // the write. waitUntil keeps the invocation alive until the insert settles.
+  const write = writeActivityLog(params);
+  try {
+    waitUntil(write);
+  } catch {
+    // waitUntil unavailable outside a request scope — callers awaiting the
+    // returned promise still keep the write alive.
+  }
+  try {
+    await write;
+  } catch {
+    // already logged inside writeActivityLog
+  }
+}
+
+async function writeActivityLog(params: LogEventParams): Promise<void> {
   try {
     if (!tableEnsured) {
       await ensureTable();
       tableEnsured = true;
     }
 
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     if (salonId) {
       await sql`
         INSERT INTO activity_logs (event_type, entity_type, entity_id, description, metadata, salon_id)
@@ -109,22 +129,28 @@ export async function logActivity(params: LogEventParams): Promise<void> {
  * Returns newest first, limited to 200 most recent.
  */
 export async function fetchActivityLogs(
-  eventType?: string
+  eventType?: string,
+  before?: string,
+  limit = 200
 ): Promise<ActivityLog[]> {
   try {
-    const salonId = getSalonId();
-    const where = salonId
-      ? eventType && eventType !== "all"
-        ? "salon_id = $1 AND event_type = $2"
-        : "salon_id = $1"
-      : eventType && eventType !== "all"
-        ? "event_type = $1"
-        : "TRUE";
-    const values = salonId
-      ? eventType && eventType !== "all" ? [salonId, eventType] : [salonId]
-      : eventType && eventType !== "all" ? [eventType] : [];
+    const salonId = await resolveSalonId();
+    const values: unknown[] = [];
+    const conditions: string[] = [];
+    if (salonId) {
+      values.push(salonId);
+      conditions.push(`salon_id = $${values.length}`);
+    }
+    if (eventType && eventType !== "all") {
+      values.push(eventType);
+      conditions.push(`event_type = $${values.length}`);
+    }
+    if (before && !Number.isNaN(Date.parse(before))) {
+      values.push(before);
+      conditions.push(`created_at < $${values.length}`);
+    }
     const { rows } = await sql.query(
-      `SELECT * FROM activity_logs WHERE ${where} ORDER BY created_at DESC LIMIT 200`,
+      `SELECT * FROM activity_logs WHERE ${conditions.join(" AND ")} ORDER BY created_at DESC LIMIT ${Math.min(Math.max(1, Math.floor(limit)), 500)}`,
       values
     );
     return rows as ActivityLog[];
@@ -139,7 +165,7 @@ export async function fetchActivityLogs(
  */
 export async function getActivityCounts(): Promise<Record<string, number>> {
   try {
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     const result = salonId
       ? await sql.query("SELECT event_type, COUNT(*) as count FROM activity_logs WHERE salon_id = $1 GROUP BY event_type", [salonId])
       : await sql`SELECT event_type, COUNT(*) as count FROM activity_logs GROUP BY event_type`;

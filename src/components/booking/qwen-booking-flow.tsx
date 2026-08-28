@@ -64,11 +64,10 @@ interface QwenBookingFlowProps {
 
 export function QwenBookingFlow({ initialServiceId = null, lookId = null }: QwenBookingFlowProps) {
   const router = useRouter();
-  const { salon, workingHours, services, addons, highlights, bookings, blockedTimes, addBooking, refreshSalonData, refreshBookings, specificDaysOff, loaded } = useSalon();
+  const { salon, workingHours, services, addons, highlights, bookings, blockedTimes, addBooking, refreshBookings, specificDaysOff, loaded } = useSalon();
   const { user, sendOtp, verifyOtp, updateProfile } = useAuth();
 
   // ── Lifecycle ──
-  useEffect(() => { refreshSalonData(); }, [refreshSalonData]);
   useEffect(() => {
     const interval = setInterval(() => { refreshBookings(); }, 60_000);
     return () => clearInterval(interval);
@@ -232,7 +231,12 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
     if (!selectedDate || !selectedService) return [];
     const dateStr = getTehranDateKey(selectedDate);
     const dayBookings = bookings
-      .filter((b) => b.date_gregorian.split("T")[0] === dateStr && (b.status === "reserved" || b.status === "confirmed"))
+      .filter((b) => {
+        if (b.date_gregorian.split("T")[0] !== dateStr) return false;
+        // Must match the server's conflict-check status list, otherwise a slot
+        // the server will reject renders as free.
+        return b.status === "reserved" || b.status === "confirmed" || b.status === "in_progress" || b.status === "pending";
+      })
       .map((b) => ({ start_time: b.start_time, end_time: b.end_time }));
     const dayBlocked = blockedTimes.filter((b) => b.date_gregorian.split("T")[0] === dateStr);
     const addonsDuration = selectedAddons.reduce((sum, id) => {
@@ -261,7 +265,12 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
       let isFullyBooked = false;
       if (selectedService && workingHours && !isOff) {
         const dayBookings = bookings
-          .filter((b) => b.date_gregorian.split("T")[0] === dateStr && (b.status === "reserved" || b.status === "confirmed"))
+          .filter((b) => {
+        if (b.date_gregorian.split("T")[0] !== dateStr) return false;
+        // Must match the server's conflict-check status list, otherwise a slot
+        // the server will reject renders as free.
+        return b.status === "reserved" || b.status === "confirmed" || b.status === "in_progress" || b.status === "pending";
+      })
           .map((b) => ({ start_time: b.start_time, end_time: b.end_time }));
         const dayBlocked = blockedTimes.filter((b) => b.date_gregorian.split("T")[0] === dateStr);
         const addonsDuration = selectedAddons.reduce((sum, id) => {
@@ -545,12 +554,18 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
       setStep("success");
     } else {
       haptic.warning();
-      const isConflict = result.error?.includes("قبلاً رزرو شده") || result.error?.includes("همین الان رزرو شد") || result.error?.includes("مسدود شده");
+      const isPast = result.error?.includes("گذشته است") ?? false;
+      const isConflict = isPast
+        || result.error?.includes("قبلاً رزرو شده")
+        || result.error?.includes("همین الان رزرو شد")
+        || result.error?.includes("مسدود شده");
       if (isConflict) {
         await refreshBookings();
         setSelectedTime(null);
         setStep("time");
-        setSpamError("این زمان در لحظه قبل رزرو شد — لطفاً زمان دیگری انتخاب کنید");
+        setSpamError(isPast
+          ? "این زمان گذشته است — لطفاً زمان دیگری انتخاب کنید"
+          : "این زمان در لحظه قبل رزرو شد — لطفاً زمان دیگری انتخاب کنید");
       } else {
         setSpamError(result.error || "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید");
       }
@@ -936,6 +951,20 @@ function SlotChip({ slot, selected, onSelect, suggest = false }: { slot: TimeSlo
 }
 
 function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; onSelect: (d: Date) => void; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  // Match the app's other dialogs: Escape closes, background scroll locks,
+  // and focus lands inside so keyboard/SR users are not stranded behind it.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialogRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
   const today = parseGregorianDateKey(getTehranDateKey(new Date()));
   const jalaliToday = gregorianToJalali(today);
   const [viewMonth, setViewMonth] = useState(jalaliToday.jm);
@@ -965,7 +994,7 @@ function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; o
   return (
     <div className="qbf-modal-wrap">
       <div className="qbf-modal-scrim" onClick={onClose} />
-      <div className="qbf-modal" role="dialog" aria-modal="true" aria-label="تقویم">
+      <div ref={dialogRef} tabIndex={-1} className="qbf-modal" role="dialog" aria-modal="true" aria-label="تقویم">
         <div className="qbf-modal-head">
           <button type="button" className="qbf-round-btn sm" onClick={() => shiftMonth(-1)} aria-label="ماه قبل">
             <ArrowLeft className="h-4 w-4 rotate-180" aria-hidden="true" />

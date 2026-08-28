@@ -56,7 +56,9 @@ CREATE TABLE IF NOT EXISTS services (
   price INTEGER NOT NULL DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   sort_order INTEGER DEFAULT 0,
-  addon_ids TEXT[] DEFAULT '{}',
+-- JSONB in production (realigned by 021; originally declared TEXT[] — the
+-- writer serializes with JSON.stringify, which is not an array literal).
+  addon_ids JSONB DEFAULT '[]'::jsonb,
   priority_score INTEGER DEFAULT 5
 );
 

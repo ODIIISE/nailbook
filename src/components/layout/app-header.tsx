@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -59,6 +59,12 @@ export function AppHeader({
   const { salon } = useSalon();
   const { user, logout } = useAuth();
   const { open: menuOpen, openMenu, closeMenu } = useMenu();
+
+  // Move focus into the open menu panel so keyboard/SR users land inside it.
+  const menuPanelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (menuOpen) menuPanelRef.current?.focus();
+  }, [menuOpen]);
 
   const [confirmLogout, setConfirmLogout] = useState(false);
 
@@ -157,6 +163,8 @@ export function AppHeader({
             onClick={closeMenu}
           />
           <div
+            ref={menuPanelRef}
+            tabIndex={-1}
             className="absolute top-0 right-0 h-full w-[280px] bg-background border-l border-border shadow-floating animate-slideUp flex flex-col"
             role="dialog"
             aria-modal="true"

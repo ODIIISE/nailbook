@@ -108,8 +108,17 @@ export async function runMigrations(): Promise<MigrationResult[]> {
       // The connection may already have been closed by the database.
     }
 
+    // The run is a single transaction: everything "successful" above was
+    // rolled back together with the failing file. Reporting those rows as
+    // applied made the admin UI lie about the database state.
+    const message = error instanceof Error ? error.message : String(error);
+    for (const result of pendingResults) {
+      if (result.success) {
+        result.success = false;
+        result.error = "rolled back (migration run failed atomically)";
+      }
+    }
     if (pendingResults.length === 0 || pendingResults[pendingResults.length - 1]?.success !== false) {
-      const message = error instanceof Error ? error.message : String(error);
       pendingResults.push({ name: "migration-run", success: false, error: message });
     }
     return pendingResults;

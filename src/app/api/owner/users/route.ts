@@ -247,6 +247,19 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // Another owner's login identity (phone), display name, and lock state are
+    // off-limits: changing the phone would let this owner OTP-login as them.
+    if (userId !== owner.id && isOwnerRole(target)
+      && (body.phone !== undefined || body.name !== undefined || body.locked !== undefined)) {
+      return NextResponse.json({ error: "تغییر اطلاعات مدیر دیگر مجاز نیست" }, { status: 403 });
+    }
+
+    // No self-lockout: blocking your own account is irreversible in-app
+    // (locked owners cannot OTP-login to unblock themselves).
+    if (userId === owner.id && body.locked === true) {
+      return NextResponse.json({ error: "نمی‌توانید حساب خود را قفل کنید" }, { status: 400 });
+    }
+
     const phone = body.phone !== undefined
       ? typeof body.phone === "string" ? normalizeDigits(body.phone.trim()) : ""
       : null;
@@ -287,7 +300,11 @@ export async function PUT(request: NextRequest) {
       entityType: "user",
       entityId: userId,
       description: "کاربر به‌روزرسانی شد",
-      metadata: { userId, fields: Object.keys(body).filter((key) => key !== "userId") },
+      metadata: {
+        userId,
+        fields: Object.keys(body).filter((key) => key !== "userId"),
+        updatedBy: owner.id,
+      },
     });
     return NextResponse.json({ success: true });
   } catch (error) {

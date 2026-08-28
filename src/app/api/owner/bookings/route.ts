@@ -3,7 +3,16 @@ import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { normalizeDigits } from "@/lib/digits";
 import { logActivity } from "@/lib/db/activity-log";
-import { getSalonId } from "@/lib/multi-tenant";
+import { resolveSalonId } from "@/lib/multi-tenant";
+import { parseGregorianDateKey } from "@/lib/time";
+import { resolveSlotInterval, resolveSlotBuffer } from "@/lib/salon-settings";
+
+/** "HH:MM" (or "H:MM") → minutes since midnight. Numeric comparison is
+ * required: string ordering mis-sorts single-digit hours ("10:00" < "9:00"). */
+function toMinutes(value: string): number {
+  const [hours, minutes] = value.slice(0, 5).split(":").map(Number);
+  return hours * 60 + minutes;
+}
 
 /**
  * POST /api/owner/bookings
@@ -40,14 +49,26 @@ export async function POST(request: NextRequest) {
     const normStart = start_time.slice(0, 5);
     const normEnd = end_time.slice(0, 5);
 
-    if (normEnd <= normStart) {
+    // Compare numerically — string compare rejects valid single-digit-hour
+    // ranges ("10:00" sorts before "9:00").
+    if (toMinutes(normEnd) <= toMinutes(normStart)) {
       return NextResponse.json({ error: "ساعت پایان باید بعد از ساعت شروع باشد" }, { status: 400 });
     }
 
+    // Validate the date before it reaches Postgres ::date casts (garbage
+    // previously surfaced as an unhandled 500).
+    const parsedDate = parseGregorianDateKey(String(date_gregorian));
+    if (
+      !Number.isFinite(parsedDate.getTime())
+      || parsedDate.toISOString().slice(0, 10) !== String(date_gregorian)
+    ) {
+      return NextResponse.json({ error: "تاریخ نامعتبر است" }, { status: 400 });
+    }
+
     // Validate service exists
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     const serviceResult = salonId
-      ? await sql.query("SELECT id, addon_ids, duration_minutes FROM services WHERE id = $1 AND salon_id = $2 AND is_active = true", [service_id, salonId])
+      ? await sql.query("SELECT id, addon_ids, duration_minutes, name, price FROM services WHERE id = $1 AND salon_id = $2 AND is_active = true", [service_id, salonId])
       : await sql`SELECT id, addon_ids, duration_minutes FROM services WHERE id = ${service_id} AND is_active = true`;
     const svcRows = serviceResult.rows;
     if (svcRows.length === 0) {
@@ -79,15 +100,20 @@ export async function POST(request: NextRequest) {
     const settings = settingsResult.rows[0] || {};
     const addonDurationResult = selectedAddonIds.length > 0
       ? salonId
-        ? await sql.query("SELECT duration_minutes FROM addons WHERE id = ANY($1) AND salon_id = $2 AND is_active = true", [selectedAddonIds, salonId])
-        : await sql.query("SELECT duration_minutes FROM addons WHERE id = ANY($1) AND is_active = true", [selectedAddonIds])
-      : { rows: [] as Array<{ duration_minutes: number | string }> };
+        ? await sql.query("SELECT duration_minutes, price FROM addons WHERE id = ANY($1) AND salon_id = $2 AND is_active = true", [selectedAddonIds, salonId])
+        : await sql.query("SELECT duration_minutes, price FROM addons WHERE id = ANY($1) AND is_active = true", [selectedAddonIds])
+      : { rows: [] as Array<{ duration_minutes: number | string; price?: number | string }> };
     const rawDuration = Number(svcRows[0].duration_minutes || 0)
       + addonDurationResult.rows.reduce((sum, row) => sum + Number(row.duration_minutes || 0), 0);
-    const interval = Math.max(1, Number(settings.slot_interval_minutes || 15));
-    const buffer = Math.max(0, Number(settings.slot_buffer_minutes || 0));
+    // Price snapshot: what this manual booking was worth at creation time.
+    const priceTotal = Number(svcRows[0].price || 0)
+      + addonDurationResult.rows.reduce((sum, row) => sum + Number(row.price || 0), 0);
+    const serviceName = String(svcRows[0].name || "");
+    // Shared clamps — the customer engine clamps the same settings the same
+    // way, so owner and customer bookings can never disagree on durations.
+    const interval = resolveSlotInterval(settings.slot_interval_minutes);
+    const buffer = resolveSlotBuffer(settings.slot_buffer_minutes);
     const expectedDuration = Math.ceil((rawDuration + buffer) / interval) * interval;
-    const toMinutes = (value: string) => Number(value.slice(0, 2)) * 60 + Number(value.slice(3, 5));
     const startMinutes = toMinutes(normStart);
     const endMinutes = toMinutes(normEnd);
     if (!Number.isFinite(startMinutes) || !Number.isFinite(endMinutes) || endMinutes - startMinutes !== expectedDuration) {
@@ -130,17 +156,27 @@ export async function POST(request: NextRequest) {
     if (existingUser.length > 0) {
       userId = existingUser[0].id;
     } else {
-      const newUserResult = salonId
-        ? await client.query(
-            `INSERT INTO users (phone, name, role, salon_id) VALUES ($1, $2, 'customer', $3) RETURNING id`,
-            [phone, customer_name || "مشتری", salonId]
-          )
-        : await client.query(
-            `INSERT INTO users (phone, name, role) VALUES ($1, $2, 'customer') RETURNING id`,
-            [phone, customer_name || "مشتری"]
-          );
-      const newUser = newUserResult.rows;
-      userId = newUser[0].id;
+      try {
+        const newUserResult = salonId
+          ? await client.query(
+              `INSERT INTO users (phone, name, role, salon_id) VALUES ($1, $2, 'customer', $3) RETURNING id`,
+              [phone, customer_name || "مشتری", salonId]
+            )
+          : await client.query(
+              `INSERT INTO users (phone, name, role) VALUES ($1, $2, 'customer') RETURNING id`,
+              [phone, customer_name || "مشتری"]
+            );
+        userId = newUserResult.rows[0].id;
+      } catch (insertError) {
+        // A concurrent owner booking (or users-page create) may have inserted
+        // the same phone after our SELECT — adopt that row instead of 500ing.
+        if ((insertError as { code?: string }).code !== "23505") throw insertError;
+        const raced = salonId
+          ? await client.query(`SELECT id FROM users WHERE phone = $1 AND salon_id = $2 LIMIT 1`, [phone, salonId])
+          : await client.query(`SELECT id FROM users WHERE phone = $1 LIMIT 1`, [phone]);
+        if (!raced.rows[0]) throw insertError;
+        userId = raced.rows[0].id;
+      }
     }
 
     // Check for time conflicts with existing bookings
@@ -189,19 +225,19 @@ export async function POST(request: NextRequest) {
       ? `INSERT INTO bookings (
           user_id, salon_id, customer_phone, customer_name, service_id,
           selected_addons, date, date_gregorian, start_time, end_time,
-          status, phone_verified, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::date, ($9 || ':00')::time, ($10 || ':00')::time, 'reserved', true, NOW())`
+          status, phone_verified, created_at, service_name, price_total
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::date, ($9 || ':00')::time, ($10 || ':00')::time, 'reserved', true, NOW(), $11, $12)`
       : `INSERT INTO bookings (
           user_id, customer_phone, customer_name, service_id,
           selected_addons, date, date_gregorian, start_time, end_time,
-          status, phone_verified, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, ($8 || ':00')::time, ($9 || ':00')::time, 'reserved', true, NOW())`;
+          status, phone_verified, created_at, service_name, price_total
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, ($8 || ':00')::time, ($9 || ':00')::time, 'reserved', true, NOW(), $10, $11)`;
     const { rows: inserted } = await client.query(
       `${insertSql}
        RETURNING id, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time`,
       salonId
-        ? [userId, salonId, phone, customer_name || "", service_id, JSON.stringify(selectedAddonIds), jalaliDate, date_gregorian, normStart, normEnd]
-        : [userId, phone, customer_name || "", service_id, JSON.stringify(selectedAddonIds), jalaliDate, date_gregorian, normStart, normEnd]
+        ? [userId, salonId, phone, customer_name || "", service_id, JSON.stringify(selectedAddonIds), jalaliDate, date_gregorian, normStart, normEnd, serviceName, Math.round(priceTotal)]
+        : [userId, phone, customer_name || "", service_id, JSON.stringify(selectedAddonIds), jalaliDate, date_gregorian, normStart, normEnd, serviceName, Math.round(priceTotal)]
     );
 
     await client.query("COMMIT");

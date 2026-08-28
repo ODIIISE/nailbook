@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useSalon } from "@/lib/salon-context";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import type { Highlight, HighlightImage } from "@/lib/types";
+import { toast } from "sonner";
 
 export default function OwnerHighlightsPage() {
   const { highlights, addons, services, addHighlight, updateHighlight, removeHighlight, addHighlightImage, removeHighlightImage, uploadHighlightImage } = useSalon();
@@ -86,9 +87,10 @@ export default function OwnerHighlightsPage() {
     try {
       const latest = highlightsRef.current.find((item) => item.id === highlight.id) ?? highlight;
       let nextSortOrder = latest.images.reduce((max, image) => Math.max(max, image.sort_order), -1) + 1;
+      let failedUploads = 0;
       for (let i = 0; i < files.length; i++) {
         const url = await uploadHighlightImage(files[i]);
-        if (!url) continue;
+        if (!url) { failedUploads++; continue; }
         const image: HighlightImage = {
           id: crypto.randomUUID(),
           highlight_id: highlight.id,
@@ -97,6 +99,9 @@ export default function OwnerHighlightsPage() {
           sort_order: nextSortOrder++,
         };
         await addHighlightImage(image);
+      }
+      if (failedUploads > 0) {
+        toast.error(`${failedUploads} تصویر آپلود نشد`, { description: "لطفاً دوباره تلاش کنید" });
       }
     } finally {
       uploadingRef.current = false;

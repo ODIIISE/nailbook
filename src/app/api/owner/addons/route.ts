@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
-import { getSalonId } from "@/lib/multi-tenant";
+import { resolveSalonId } from "@/lib/multi-tenant";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -31,7 +31,7 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     const incomingIds = addons.map((a) => a.id);
     if (salonId && incomingIds.length > 0) {
       const foreignIds = await sql.query(

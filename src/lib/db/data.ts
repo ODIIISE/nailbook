@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "../types";
 
 // All reads go through API routes (Vercel Postgres is server-side only)
@@ -122,6 +123,12 @@ function normalizeBooking(value: unknown): Booking | null {
     phone_verified: normalizeBoolean(value.phone_verified),
     paid: normalizeBoolean(value.paid),
     created_at: typeof value.created_at === "string" ? value.created_at : "",
+    // Price snapshot (migration 022) — absent on legacy rows and on the
+    // public availability payload.
+    service_name: typeof value.service_name === "string" ? value.service_name : null,
+    price_total: Number.isFinite(Number(value.price_total)) && value.price_total !== null && value.price_total !== ""
+      ? Number(value.price_total)
+      : null,
   };
 }
 
@@ -195,6 +202,22 @@ function normalizeSalon(value: unknown): SalonInfo | null {
   };
 }
 
+/**
+ * Owner-session expiry handling: every owner write goes through here. Without
+ * it an expired session fails silently with generic toasts while the owner
+ * retries endlessly. Redirect must be a full navigation (owner auth relies on
+ * a fresh server render + cookie state).
+ */
+export function handleAuthExpiry(res: Response): boolean {
+  if (res.status !== 401) return false;
+  toast.error("نشست شما منقضی شده است", {
+    description: "در حال انتقال به صفحه ورود…",
+    duration: 2500,
+  });
+  setTimeout(() => { window.location.href = "/owner/login"; }, 900);
+  return true;
+}
+
 export async function fetchSalonInfo(): Promise<SalonInfo | null> {
   try {
     const res = await fetch("/api/read/salon");
@@ -205,25 +228,25 @@ export async function fetchSalonInfo(): Promise<SalonInfo | null> {
   }
 }
 
-export async function fetchServices(): Promise<Service[]> {
+export async function fetchServices(): Promise<Service[] | null> {
   try {
     const res = await fetch("/api/read/services");
-    if (!res.ok) return [];
+    if (!res.ok) return null;
     const data = await readJson(res);
     return Array.isArray(data) ? data.map(normalizeService).filter((item): item is Service => item !== null) : [];
   } catch {
-    return [];
+    return null;
   }
 }
 
-export async function fetchAddons(): Promise<Addon[]> {
+export async function fetchAddons(): Promise<Addon[] | null> {
   try {
     const res = await fetch("/api/read/addons");
-    if (!res.ok) return [];
+    if (!res.ok) return null;
     const data = await readJson(res);
     return Array.isArray(data) ? data.map(normalizeAddon).filter((item): item is Addon => item !== null) : [];
   } catch {
-    return [];
+    return null;
   }
 }
 
@@ -240,14 +263,14 @@ export async function fetchBookings(scope: "owner" | "default" = "default"): Pro
   }
 }
 
-export async function fetchHighlights(): Promise<Highlight[]> {
+export async function fetchHighlights(): Promise<Highlight[] | null> {
   try {
     const res = await fetch("/api/read/highlights");
-    if (!res.ok) return [];
+    if (!res.ok) return null;
     const data = await readJson(res);
     return Array.isArray(data) ? data.map(normalizeHighlight).filter((item): item is Highlight => item !== null) : [];
   } catch {
-    return [];
+    return null;
   }
 }
 
@@ -257,6 +280,7 @@ export async function saveServices(services: Service[]) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ services }),
   });
+  if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
   const body = await res.json();
   if (!res.ok) throw new Error(body.error || "Failed to save services");
 }
@@ -267,6 +291,7 @@ export async function saveAddons(addons: Addon[]) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ addons }),
   });
+  if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
   const body = await res.json();
   if (!res.ok) throw new Error(body.error || "Failed to save addons");
 }
@@ -311,6 +336,7 @@ export async function insertOwnerBooking(booking: Booking): Promise<{ id: string
       selected_addons: booking.selected_addons,
     }),
   });
+  if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
   const body = await res.json().catch(() => null);
   if (!res.ok) {
     throw new Error(isRecord(body) && typeof body.error === "string" ? body.error : "Failed to save booking");
@@ -362,7 +388,9 @@ export async function updateWorkingHours(workingHours: Record<string, unknown>, 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ working_hours: workingHours, specific_days_off: specificDaysOff }),
   });
-  if (!res.ok) throw new Error("Failed to update working hours");
+  if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || "Failed to update working hours");
 }
 
 export async function upsertHighlight(highlight: Highlight) {
@@ -371,11 +399,13 @@ export async function upsertHighlight(highlight: Highlight) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(highlight),
   });
+  if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
   if (!res.ok) throw new Error("Failed to save highlight");
 }
 
 export async function deleteHighlight(id: string) {
   const res = await fetch(`/api/read/highlights?id=${id}`, { method: "DELETE" });
+  if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
   if (!res.ok) throw new Error("Failed to delete highlight");
 }
 
@@ -385,11 +415,13 @@ export async function upsertHighlightImage(image: HighlightImage) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(image),
   });
+  if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
   if (!res.ok) throw new Error("Failed to save highlight image");
 }
 
 export async function deleteHighlightImage(id: string) {
   const res = await fetch(`/api/read/highlight-images?id=${id}`, { method: "DELETE" });
+  if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
   if (!res.ok) throw new Error("Failed to delete highlight image");
 }
 
@@ -398,6 +430,7 @@ export async function uploadHighlightImage(file: File): Promise<string | null> {
     const formData = new FormData();
     formData.append("file", file);
     const res = await fetch("/api/upload-highlight", { method: "POST", body: formData });
+    if (handleAuthExpiry(res)) return null;
     if (!res.ok) return null;
     const data = await readJson(res);
     return isRecord(data) && typeof data.url === "string" ? data.url : null;

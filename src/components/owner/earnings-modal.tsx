@@ -4,7 +4,8 @@ import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
-import { formatPrice, toPersianDigits } from "@/lib/jalali";
+import { formatPrice, toPersianDigits, getJalaliDate, jalaliToGregorian } from "@/lib/jalali";
+import { parseGregorianDateKey, getTehranDateKey } from "@/lib/time";
 import { calculateEarnings } from "@/lib/pricing";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Booking, Service, Addon } from "@/lib/types";
@@ -17,26 +18,38 @@ interface EarningsModalProps {
   onClose: () => void;
 }
 
+// All ranges are anchored on UTC-noon date keys (what booking rows compare
+// with) so a booking on the period's last day is never excluded by a
+// time-of-day mismatch — the old local-midnight ranges dropped today's
+// bookings whenever "now" was before noon UTC.
 function getPeriodRange(currentDate: Date, period: "day" | "week" | "month") {
-  const now = new Date(currentDate);
+  const today = parseGregorianDateKey(getTehranDateKey(currentDate));
 
   if (period === "day") {
-    const start = new Date(now);
-    start.setHours(0, 0, 0, 0);
-    return { start, end: now };
+    return { start: today, end: today };
   }
 
   if (period === "week") {
-    const start = new Date(now);
-    const dayOfWeek = start.getDay();
-    const daysSinceSaturday = (dayOfWeek + 1) % 7;
-    start.setDate(start.getDate() - daysSinceSaturday);
-    start.setHours(0, 0, 0, 0);
-    return { start, end: now };
+    // Iranian week starts on Saturday.
+    const start = new Date(today);
+    while (start.getUTCDay() !== 6) {
+      start.setUTCDate(start.getUTCDate() - 1);
+    }
+    const endOfPeriod = new Date(start);
+    endOfPeriod.setUTCDate(endOfPeriod.getUTCDate() + 6);
+    const end = endOfPeriod.getTime() > today.getTime() ? today : endOfPeriod;
+    return { start, end };
   }
 
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  return { start, end: now };
+  // Jalali month of the anchor date — a Gregorian month boundary meant
+  // "این ماه" disagreed with the owner's calendar.
+  const { year, month } = getJalaliDate(currentDate);
+  const start = jalaliToGregorian(year, month, 1);
+  const nextMonthStart = jalaliToGregorian(month === 12 ? year + 1 : year, month === 12 ? 1 : month + 1, 1);
+  const lastDay = new Date(nextMonthStart);
+  lastDay.setUTCDate(lastDay.getUTCDate() - 1);
+  const end = lastDay.getTime() > today.getTime() ? today : lastDay;
+  return { start, end };
 }
 
 export function EarningsModal({
@@ -72,7 +85,7 @@ export function EarningsModal({
                   : "border border-border text-foreground hover:bg-muted"
               }`}
             >
-              {p === "day" ? "امروز" : p === "week" ? "این هفته" : "این ماه"}
+              {p === "day" ? "این روز" : p === "week" ? "این هفته" : "این ماه"}
             </button>
           ))}
         </div>

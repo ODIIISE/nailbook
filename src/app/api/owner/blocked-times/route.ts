@@ -2,7 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
-import { getSalonId } from "@/lib/multi-tenant";
+import { resolveSalonId } from "@/lib/multi-tenant";
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const HH_MM = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
+
+function isValidBlockedTime(b: unknown): b is BlockedTimeItem {
+  const item = b as BlockedTimeItem;
+  return !!item
+    && typeof item.date_gregorian === "string" && ISO_DATE.test(item.date_gregorian)
+    && typeof item.start_time === "string" && HH_MM.test(item.start_time)
+    && typeof item.end_time === "string" && HH_MM.test(item.end_time)
+    && item.end_time > item.start_time;
+}
 
 interface BlockedTimeItem {
   date_gregorian: string;
@@ -15,7 +27,7 @@ export async function GET(request: NextRequest) {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     const result = salonId
       ? await sql.query("SELECT date_gregorian, start_time, end_time FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian", [salonId])
       : await sql`SELECT date_gregorian, start_time, end_time FROM blocked_times ORDER BY date_gregorian`;
@@ -32,10 +44,20 @@ export async function PUT(request: NextRequest) {
     const owner = await verifyOwner(request);
     if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
-    const { blockedTimes }: { blockedTimes: BlockedTimeItem[] } = await request.json();
+    const { blockedTimes }: { blockedTimes?: BlockedTimeItem[] } = await request.json();
+    if (!Array.isArray(blockedTimes)) {
+      return NextResponse.json({ error: "داده ناقص است" }, { status: 400 });
+    }
+    // Validate before anything reaches Postgres casts — garbage previously
+    // surfaced as an unhandled 500 and rolled back the whole list.
+    for (const b of blockedTimes) {
+      if (!isValidBlockedTime(b)) {
+        return NextResponse.json({ error: "یکی از زمان‌های ارسالی نامعتبر است" }, { status: 400 });
+      }
+    }
 
     // Validate no overlapping blocks within the same day
-    if (blockedTimes && blockedTimes.length > 1) {
+    if (blockedTimes.length > 1) {
       const sorted = [...blockedTimes].sort((a, b) => {
         if (a.date_gregorian !== b.date_gregorian) return a.date_gregorian.localeCompare(b.date_gregorian);
         return a.start_time.localeCompare(b.start_time);
@@ -51,9 +73,21 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     client = await sql.connect();
     await client.query("BEGIN");
+
+    // Serialize against the booking paths: they lock per tenant/day before
+    // checking overlaps, so a concurrent customer booking and this PUT could
+    // otherwise interleave (booking lands inside a just-saved block).
+    const touchedDays = [...new Set(blockedTimes.map((b) => b.date_gregorian))].sort();
+    for (const day of touchedDays) {
+      await client.query(
+        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+        [`${salonId ?? "legacy"}:${day}`]
+      );
+    }
+
     await client.query(
       salonId ? "DELETE FROM blocked_times WHERE salon_id = $1" : "DELETE FROM blocked_times",
       salonId ? [salonId] : []

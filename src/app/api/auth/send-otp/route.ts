@@ -87,10 +87,10 @@ export async function POST(request: NextRequest) {
       roleContext: roleContext || "customer",
     });
 
-    // Owner flow gate: "check the table before sending otp message." Only
-    // send OTP if the phone is already registered with the owner role.
-    // Returns a uniform error so the endpoint can't be used to enumerate
-    // which phones have owner privileges.
+    // Owner flow gate: only actually send an OTP when the phone already has
+    // the owner role. The RESPONSE is uniform with the eligible path (same
+    // status and body shape) so this endpoint cannot be used to enumerate
+    // which Iranian phone numbers are salon owners.
     if (roleContext === "owner") {
       const ownerEligible = await phoneHasOwnerRole(normalized);
       if (!ownerEligible) {
@@ -104,10 +104,7 @@ export async function POST(request: NextRequest) {
         console.warn("[send-otp] owner flow blocked for phone (not registered or not owner)", {
           phone: normalized,
         });
-        return NextResponse.json(
-          { error: "شماره ثبت نشده یا دسترسی ندارد" },
-          { status: 403 }
-        );
+        return NextResponse.json({ success: true });
       }
     }
 

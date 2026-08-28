@@ -24,10 +24,15 @@ export function isSalonMode(): boolean {
  * Resolve the configured tenant to the canonical salons.id UUID.
  * Older deployments sometimes store SALON_ID as a salon slug; auth and OTP
  * queries must use the UUID when comparing against UUID-typed columns.
+ * Resolved values are cached per configured key — every caller in a request
+ * (and across requests on the same serverless instance) shares one lookup.
  */
+let cachedResolution: { key: string; value: string } | null = null;
+
 export async function resolveSalonId(): Promise<string | null> {
   const configured = getSalonId();
   if (!configured) return null;
+  if (cachedResolution?.key === configured) return cachedResolution.value;
 
   const { sql } = await import("@vercel/postgres");
   const { rows } = await sql.query(
@@ -40,6 +45,7 @@ export async function resolveSalonId(): Promise<string | null> {
     // Callers will fail closed through their normal error handling.
     throw new Error(`Configured SALON_ID does not match a salon: ${configured}`);
   }
+  cachedResolution = { key: configured, value: resolved };
   return resolved;
 }
 

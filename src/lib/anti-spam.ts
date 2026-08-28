@@ -1,5 +1,5 @@
 import { sql } from "@vercel/postgres";
-import { getTehranDateKey } from "./time";
+import { getTehranDayStartUtc } from "./time";
 
 const MAX_BOOKINGS_PER_DAY = 3;
 const COOLDOWN_MINUTES = 5;
@@ -9,18 +9,32 @@ export interface AntiSpamResult {
   error?: string;
 }
 
-export async function checkAntiSpam(phone: string): Promise<AntiSpamResult> {
+export async function checkAntiSpam(
+  phone: string,
+  salonId: string | null = null
+): Promise<AntiSpamResult> {
   try {
     const now = new Date();
-    const todayStr = getTehranDateKey(now);
-
-    const { rows } = await sql`
-      SELECT COUNT(*) as count FROM bookings
-      WHERE customer_phone = ${phone}
-      AND date_gregorian = ${todayStr}::date
-      AND status IN ('reserved', 'confirmed', 'pending')
-    `;
-    const todayBookings = parseInt(rows[0]?.count || "0");
+    // Count bookings *made* today (Tehran calendar day), not appointments
+    // scheduled for today — a customer with appointments today must still be
+    // able to book future dates. Scoped to the tenant in salon mode so the
+    // shared admin database does not cross-count between salons.
+    const dayStart = getTehranDayStartUtc(now);
+    const countResult = salonId
+      ? await sql`
+          SELECT COUNT(*) as count FROM bookings
+          WHERE customer_phone = ${phone}
+          AND created_at >= ${dayStart.toISOString()}
+          AND status IN ('reserved', 'confirmed', 'pending')
+          AND (salon_id = ${salonId} OR salon_id IS NULL)
+        `
+      : await sql`
+          SELECT COUNT(*) as count FROM bookings
+          WHERE customer_phone = ${phone}
+          AND created_at >= ${dayStart.toISOString()}
+          AND status IN ('reserved', 'confirmed', 'pending')
+        `;
+    const todayBookings = parseInt(countResult.rows[0]?.count || "0");
 
     if (todayBookings >= MAX_BOOKINGS_PER_DAY) {
       return {
@@ -31,17 +45,27 @@ export async function checkAntiSpam(phone: string): Promise<AntiSpamResult> {
 
     const cooldownTime = new Date(now.getTime() - COOLDOWN_MINUTES * 60_000);
 
-    const { rows: recentRows } = await sql`
-      SELECT created_at FROM bookings
-      WHERE customer_phone = ${phone}
-      AND created_at >= ${cooldownTime.toISOString()}
-      AND status IN ('reserved', 'confirmed', 'pending')
-      ORDER BY created_at DESC
-      LIMIT 1
-    `;
+    const recentResult = salonId
+      ? await sql`
+          SELECT created_at FROM bookings
+          WHERE customer_phone = ${phone}
+          AND created_at >= ${cooldownTime.toISOString()}
+          AND status IN ('reserved', 'confirmed', 'pending')
+          AND (salon_id = ${salonId} OR salon_id IS NULL)
+          ORDER BY created_at DESC
+          LIMIT 1
+        `
+      : await sql`
+          SELECT created_at FROM bookings
+          WHERE customer_phone = ${phone}
+          AND created_at >= ${cooldownTime.toISOString()}
+          AND status IN ('reserved', 'confirmed', 'pending')
+          ORDER BY created_at DESC
+          LIMIT 1
+        `;
 
-    if (recentRows[0]) {
-      const lastBookingTime = new Date(recentRows[0].created_at);
+    if (recentResult.rows[0]) {
+      const lastBookingTime = new Date(recentResult.rows[0].created_at);
       const minutesSince = Math.floor((Date.now() - lastBookingTime.getTime()) / 60_000);
 
       if (minutesSince >= COOLDOWN_MINUTES) return { allowed: true };

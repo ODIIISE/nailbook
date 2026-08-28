@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { toPersianDigits } from "@/lib/jalali";
 import { normalizeDigits } from "@/lib/digits";
+import { handleAuthExpiry } from "@/lib/db/data";
 
 interface User {
   id: string;
@@ -58,8 +59,10 @@ export default function OwnerUsersPage() {
     fetchUsers();
   }, [fetchUsers]);
 
+  // Normalize Persian/Arabic digits so searching "۰۹۱۲" matches stored "0912".
+  const normalizedSearch = normalizeDigits(search);
   const filteredUsers = users.filter(
-    (u) => u.phone.includes(search) || u.name.includes(search)
+    (u) => u.phone.includes(normalizedSearch) || u.name.includes(search)
   );
 
   const resetForm = () => {
@@ -183,8 +186,15 @@ export default function OwnerUsersPage() {
         credentials: "include",
         body: JSON.stringify({ userId: user.id, locked: !user.locked_until }),
       });
+      if (handleAuthExpiry(res)) return;
       const data = await res.json();
-      if (data.success) fetchUsers();
+      if (data.success) {
+        fetchUsers();
+      } else {
+        // The block icon previously did nothing on failure — the owner kept
+        // tapping a control that never worked (expired session, self-lock).
+        toast.error(data.error || "خطا در تغییر وضعیت کاربر");
+      }
     } catch {
       toast.error("خطا در تغییر وضعیت کاربر");
     }

@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { safeEqual, createRateLimiter, clientIpFrom } from "@/lib/http-security";
+
+// One-shot deployment operation: a small hourly budget per IP is generous.
+const bootstrapLimiter = createRateLimiter({ maxAttempts: 10, windowMs: 60 * 60 * 1000, blockMs: 60 * 60 * 1000 });
 import { sql } from "@vercel/postgres";
 import { signCustomerSession } from "@/lib/customer-auth";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
@@ -50,9 +54,17 @@ export async function POST(request: NextRequest) {
       if (!configuredSetupSecret) {
         return NextResponse.json({ error: "کلید راه‌اندازی در تنظیمات سرور وجود ندارد" }, { status: 503 });
       }
-      if (suppliedSetupSecret !== configuredSetupSecret) {
+      // Timing-safe + throttled: a wrong-guess loop against this endpoint
+      // previously hit an unthrottled === comparison on the deployment secret.
+      const gate = bootstrapLimiter.check(`bootstrap-owner:${clientIpFrom(request)}`);
+      if (!gate.allowed) {
+        return NextResponse.json({ error: "تعداد تلاش‌ها بیش از حد مجاز" }, { status: 429 });
+      }
+      if (!safeEqual(suppliedSetupSecret, configuredSetupSecret)) {
+        bootstrapLimiter.record(`bootstrap-owner:${clientIpFrom(request)}`, false);
         return NextResponse.json({ error: "کلید راه‌اندازی اشتباه است" }, { status: 403 });
       }
+      bootstrapLimiter.record(`bootstrap-owner:${clientIpFrom(request)}`, true);
     }
 
     client = await sql.connect();

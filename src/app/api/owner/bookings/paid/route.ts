@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
-import { getSalonId } from "@/lib/multi-tenant";
+import { resolveSalonId } from "@/lib/multi-tenant";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,8 +13,12 @@ export async function POST(request: NextRequest) {
     if (!bookingId || typeof paid !== "boolean") {
       return NextResponse.json({ error: "داده ناقص" }, { status: 400 });
     }
+    // Guard the UUID cast: garbage ids previously surfaced as a 22P02 500.
+    if (typeof bookingId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(bookingId)) {
+      return NextResponse.json({ error: "شناسه نوبت نامعتبر است" }, { status: 400 });
+    }
 
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     const bookingResult = salonId
       ? await sql.query("SELECT customer_name, customer_phone FROM bookings WHERE id = $1 AND salon_id = $2", [bookingId, salonId])
       : await sql`SELECT customer_name, customer_phone FROM bookings WHERE id = ${bookingId}`;

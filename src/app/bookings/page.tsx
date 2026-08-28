@@ -88,9 +88,14 @@ export default function BookingsPage() {
 
   // Cancel + toast only; the sheet owns its own close lifecycle (slide-out
   // before unmount) so the cancel confirm keeps its exit animation.
+  // cancelBooking catches its own errors and returns false on failure —
+  // only claim success when the server actually cancelled the booking.
   const handleCancel = useCallback(async (id: string) => {
-    await cancelBooking(id);
-    toast.success("نوبت لغو شد");
+    if (await cancelBooking(id)) {
+      toast.success("نوبت لغو شد");
+    } else {
+      toast.error("خطا در لغو نوبت — لطفاً دوباره تلاش کنید");
+    }
   }, [cancelBooking]);
 
   if (!user) {

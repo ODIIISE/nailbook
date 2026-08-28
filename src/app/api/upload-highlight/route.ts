@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { verifyOwner } from "@/lib/owner-auth";
+import { resolveSalonId } from "@/lib/multi-tenant";
+import { detectImageType, extensionFor } from "@/lib/upload-security";
 import { logActivity } from "@/lib/db/activity-log";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -28,12 +30,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "حجم فایل بیشتر از ۱۰ مگابایت است" }, { status: 400 });
     }
 
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const path = `highlights/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    // Trust the file's magic bytes, not the client's declared type or
+    // filename; namespace blobs per salon so tenants can't collide or read
+    // each other's images by guessing paths.
+    const buffer = await file.arrayBuffer();
+    const sniffed = detectImageType(buffer);
+    if (!sniffed) {
+      return NextResponse.json({ error: "محتوای فایل تصویر معتبر نیست" }, { status: 400 });
+    }
+    const salonId = await resolveSalonId();
+    const ext = extensionFor(sniffed);
+    const path = `highlights/${salonId ?? "shared"}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
     const blob = await put(path, file, {
       access: "public",
-      contentType: file.type,
+      contentType: sniffed,
     });
 
     logActivity({

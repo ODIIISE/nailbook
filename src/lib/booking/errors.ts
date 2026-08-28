@@ -12,6 +12,7 @@ export type BookingErrorCode =
   | "MISSING_FIELDS"
   | "TIME_INVALID"
   | "TIME_RANGE_INVALID"
+  | "TIME_IN_PAST"
   | "TIME_OUTSIDE_WORKING_HOURS"
   | "DAY_OFF"
   | "SPAM_DETECTED"
@@ -59,6 +60,7 @@ export function createBookingError(code: BookingErrorCode, messageOverride?: str
     MISSING_FIELDS: { message: "اطلاعات ناقص است", status: 400 },
     TIME_INVALID: { message: "ساعت پایان نامعتبر است", status: 400 },
     TIME_RANGE_INVALID: { message: "ساعت پایان باید بعد از ساعت شروع باشد", status: 400 },
+    TIME_IN_PAST: { message: "این زمان گذشته است. لطفاً زمان دیگری انتخاب کنید", status: 409, conflict: true },
     TIME_OUTSIDE_WORKING_HOURS: { message: "ساعت رزرو خارج از ساعات کاری است", status: 409, conflict: true },
     DAY_OFF: { message: "این روز تعطیل است", status: 409, conflict: true },
     SPAM_DETECTED: { message: "", status: 429 },

@@ -3,15 +3,19 @@ import { sql, type VercelPoolClient } from "@vercel/postgres";
 import { signSuperAdminSession, hashPin } from "@/lib/super-admin-auth";
 import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-config";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
+import { safeEqual, createRateLimiter, clientIpFrom } from "@/lib/http-security";
+
+const bootstrapLimiter = createRateLimiter({ maxAttempts: 10, windowMs: 60 * 60 * 1000, blockMs: 60 * 60 * 1000 });
 
 function isConfiguredSecretValid(request: NextRequest): boolean {
   const configured = process.env.BOOTSTRAP_SUPER_ADMIN_SECRET?.trim();
-  const supplied = request.headers.get("x-setup-secret") || "";
+  const supplied = request.headers.get("x-setup-secret")?.trim() || "";
 
   // Local development may intentionally bootstrap without a secret. Every
   // deployed environment must have an operator-provided secret.
   if (!configured) return process.env.NODE_ENV === "development";
-  return supplied === configured;
+  if (supplied === "") return false;
+  return safeEqual(supplied, configured);
 }
 
 export async function POST(request: NextRequest) {
@@ -24,7 +28,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "شماره و رمز الزامی است" }, { status: 400 });
     }
 
+    if (process.env.NODE_ENV !== "development") {
+      const gate = bootstrapLimiter.check(`bootstrap-sa:${clientIpFrom(request)}`);
+      if (!gate.allowed) {
+        return NextResponse.json({ error: "تعداد تلاش‌ها بیش از حد مجاز" }, { status: 429 });
+      }
+    }
     if (!isConfiguredSecretValid(request)) {
+      if (process.env.NODE_ENV !== "development") {
+        bootstrapLimiter.record(`bootstrap-sa:${clientIpFrom(request)}`, false);
+      }
       return NextResponse.json({ error: "راه‌اندازی اولیه نیاز به کلید محرمانه دارد" }, { status: 403 });
     }
 

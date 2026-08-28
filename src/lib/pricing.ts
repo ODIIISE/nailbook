@@ -24,6 +24,12 @@ export function calculateBookingPrice(
   services: Service[],
   addons: Addon[]
 ): number {
+  // Prefer the creation-time snapshot (migration 022): later price edits or a
+  // deleted service must not rewrite historical revenue. Legacy rows without
+  // a snapshot keep the re-pricing behavior.
+  if (booking.price_total !== null && booking.price_total !== undefined) {
+    return booking.price_total;
+  }
   const service = services.find((s) => s.id === booking.service_id);
   const servicePrice = Number(service?.price) || 0;
 
@@ -43,7 +49,9 @@ export function calculateEarnings(
   endDate: Date
 ) {
   const filtered = bookings.filter((b) => {
-    if (b.status === "cancelled") return false;
+    // Cancelled is dead revenue; pending was never verified (pre-OTP) and
+    // counting it inflates "طلب" with spam attempts.
+    if (b.status === "cancelled" || b.status === "pending") return false;
     const d = parseGregorianDateKey(b.date_gregorian.split("T")[0]);
     return d >= startDate && d <= endDate;
   });

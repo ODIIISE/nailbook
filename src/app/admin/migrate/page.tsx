@@ -57,24 +57,6 @@ export default function AdminMigratePage() {
     setIsLoading(false);
   };
 
-  const runMigration = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/admin/migrate", { method: "POST" });
-      const data = await res.json();
-      if (data.results) {
-        setResults(data.results);
-        setStep("done");
-        toast.success("مایگریشن با موفقیت اجرا شد");
-      } else {
-        setError(data.error || "خطا در مایگریشن");
-      }
-    } catch {
-      setError("خطای سرور");
-    }
-    setIsLoading(false);
-  };
-
   const runFileMigrations = async () => {
     setIsLoading(true);
     try {
@@ -135,21 +117,13 @@ export default function AdminMigratePage() {
             <div className="space-y-4">
               <Button
                 className="w-full"
-                onClick={runMigration}
-                disabled={isLoading}
-              >
-                {isLoading ? "در حال اجرا..." : "ایجاد جداول اصلی (salons, super_admins, salon_id)"}
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full"
                 onClick={runFileMigrations}
                 disabled={isLoading}
               >
-                اجرای فایل‌های مایگریشن (OTP, session_version, ...)
+                {isLoading ? "در حال اجرا..." : "اجرای مایگریشن‌ها"}
               </Button>
               <p className="text-small text-muted-foreground text-center leading-relaxed">
-                اگر خطای سرور هنگام دریافت کد OTP دارید، دکمهٔ دوم را بزنید تا جدول otps ساخته شود.
+                همهٔ فایل‌های مایگریشن هنوز اعمال‌نشده را در یک تراکنش اجرا می‌کند.
               </p>
             </div>
           )}

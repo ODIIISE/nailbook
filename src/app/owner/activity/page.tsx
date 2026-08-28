@@ -22,6 +22,9 @@ export default function ActivityPage() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   const fetchLogs = useCallback(async (type: string) => {
     setLoading(true);
     try {
@@ -32,6 +35,8 @@ export default function ActivityPage() {
         const data = await res.json();
         setLogs(data.logs || []);
         setCounts(data.counts || { all: 0 });
+        // A full page means older history may exist behind the server cap.
+        setHasMore((data.logs || []).length >= 200);
       }
     } catch {
       toast.error("خطا در دریافت لاگ‌ها");
@@ -39,6 +44,30 @@ export default function ActivityPage() {
       setLoading(false);
     }
   }, []);
+
+  // Cursor pagination: older history was previously unreachable beyond the
+  // server's 200-row page.
+  const loadMore = useCallback(async () => {
+    const oldest = logs[logs.length - 1];
+    if (!oldest || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const res = await fetch(
+        `/api/owner/activity-logs?type=${activeFilter}&before=${encodeURIComponent(oldest.created_at)}`,
+        { credentials: "include" }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const more: ActivityLogEntry[] = data.logs || [];
+        setLogs((prev) => [...prev, ...more]);
+        setHasMore(more.length >= 200);
+      }
+    } catch {
+      toast.error("خطا در دریافت لاگ‌های قدیمی‌تر");
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [logs, activeFilter, loadingMore]);
 
   useEffect(() => {
     // Fetching initial/filtered data is the standard data-loading pattern.
@@ -60,12 +89,24 @@ export default function ActivityPage() {
             ))}
           </div>
         ) : (
-          <ActivityLog
-            logs={logs}
-            counts={counts}
-            onFilterChange={handleFilterChange}
-            activeFilter={activeFilter}
-          />
+          <>
+            <ActivityLog
+              logs={logs}
+              counts={counts}
+              onFilterChange={handleFilterChange}
+              activeFilter={activeFilter}
+            />
+            {hasMore && (
+              <button
+                type="button"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="w-full py-2.5 mt-3 rounded-xl border border-border text-caption font-bold text-muted-foreground hover:bg-muted disabled:opacity-50"
+              >
+                {loadingMore ? "در حال بارگذاری…" : "نمایش لاگ‌های قدیمی‌تر"}
+              </button>
+            )}
+          </>
         )}
       </div>
     </SalonGuard>

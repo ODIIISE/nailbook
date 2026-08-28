@@ -9,9 +9,11 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const eventType = searchParams.get("type") || "all";
+    const before = searchParams.get("before") || undefined;
+    const limit = Number(searchParams.get("limit")) || 200;
 
     const [logs, counts] = await Promise.all([
-      fetchActivityLogs(eventType),
+      fetchActivityLogs(eventType, before, limit),
       getActivityCounts(),
     ]);
 

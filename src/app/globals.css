@@ -1418,7 +1418,7 @@
   border: 1.5px solid var(--qbf-hair);
   border-radius: var(--qbf-r1);
   padding: 9px 12px;
-  font: 600 14px 'Vazirmatn';
+  font: 600 16px 'Vazirmatn'; /* 16px: <16px triggers Safari focus zoom */
   color: var(--qbf-ink);
   background: var(--qbf-bg);
   outline: none;

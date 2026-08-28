@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { calculateBookingPrice, calculateEarnings } from "./pricing";
+import { parseGregorianDateKey } from "./time";
 import type { Booking, Service, Addon } from "./types";
 
 describe("calculateBookingPrice", () => {
@@ -64,6 +65,29 @@ describe("calculateBookingPrice", () => {
     expect(calculateBookingPrice(booking, services, addons)).toBe(430000);
   });
 
+  it("prefers the creation-time price snapshot when present", () => {
+    const booking: Booking = {
+      id: "b-snap",
+      service_id: "nonexistent-deleted-service",
+      selected_addons: [],
+      customer_name: "Old Customer",
+      customer_phone: "09121234567",
+      date: "1404/01/10",
+      date_gregorian: "2025-03-30",
+      start_time: "10:00",
+      end_time: "10:45",
+      status: "confirmed",
+      phone_verified: true,
+      paid: true,
+      created_at: new Date().toISOString(),
+      service_name: "خدمت حذف‌شده",
+      price_total: 500000,
+    };
+
+    // Service no longer exists (would re-price to 0) — the snapshot wins.
+    expect(calculateBookingPrice(booking, [], [])).toBe(500000);
+  });
+
   it("should handle missing service gracefully", () => {
     const booking: Booking = {
       id: "b3",
@@ -102,6 +126,33 @@ describe("calculateEarnings", () => {
   ];
 
   const addons: Addon[] = [];
+
+  it("excludes pending bookings from revenue (unverified spam must not inflate طلب)", () => {
+    const pendingBooking: Booking = {
+      id: "b-pending",
+      service_id: "s1",
+      selected_addons: [],
+      customer_name: "Spam",
+      customer_phone: "09121234567",
+      date: "1405/04/15",
+      date_gregorian: "2026-07-14",
+      start_time: "12:00",
+      end_time: "12:45",
+      status: "pending",
+      phone_verified: false,
+      paid: false,
+      created_at: new Date().toISOString(),
+    };
+    const result = calculateEarnings(
+      [pendingBooking],
+      services,
+      addons,
+      parseGregorianDateKey("2026-07-14"),
+      parseGregorianDateKey("2026-07-14")
+    );
+    expect(result.total).toBe(0);
+    expect(result.count).toBe(0);
+  });
 
   const bookings: Booking[] = [
     {

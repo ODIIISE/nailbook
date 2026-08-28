@@ -72,7 +72,11 @@ export async function GET(request: NextRequest) {
       headers.join(","),
       ...data.map((row) =>
         headers.map((h) => {
-          const val = String(row[h] ?? "");
+          // Neutralize spreadsheet formula injection: customer-controlled
+          // name/phone fields previously could start with = + - @ and execute
+          // as a formula when the super-admin opened the CSV in Excel/Sheets.
+          const raw = String(row[h] ?? "");
+          const val = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
           return val.includes(",") || val.includes('"') || val.includes("\n")
             ? `"${val.replace(/"/g, '""')}"`
             : val;

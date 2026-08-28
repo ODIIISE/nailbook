@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
-import { getSalonId } from "@/lib/multi-tenant";
+import { resolveSalonId } from "@/lib/multi-tenant";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -31,7 +31,7 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     const incomingIds = services.map((s) => s.id);
     if (salonId && incomingIds.length > 0) {
       const foreignIds = await sql.query(
@@ -73,22 +73,27 @@ export async function PUT(request: NextRequest) {
       }
 
       for (const [i, s] of services.entries()) {
+        // image_url/best_for (migration 015) were silently dropped before —
+        // every save erased the service photo the owner had just uploaded.
+        // image_url: null (client sends "" to clear). best_for: TEXT[] param.
         await client.query(
           salonId
-            ? `INSERT INTO services (id, salon_id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, icon_key, is_popular)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            ? `INSERT INTO services (id, salon_id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, icon_key, is_popular, image_url, best_for)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11, $12, $13, $14::text[])
                ON CONFLICT (id) DO UPDATE SET
                  name = $3, description = $4, duration_minutes = $5, price = $6,
-                 is_active = $7, sort_order = $8, addon_ids = $9, priority_score = $10, icon_key = $11, is_popular = $12
+                 is_active = $7, sort_order = $8, addon_ids = $9::jsonb, priority_score = $10, icon_key = $11, is_popular = $12,
+                 image_url = $13, best_for = $14::text[]
                WHERE services.salon_id = EXCLUDED.salon_id`
-            : `INSERT INTO services (id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, icon_key, is_popular)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            : `INSERT INTO services (id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, icon_key, is_popular, image_url, best_for)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11, $12, $13::text[])
                ON CONFLICT (id) DO UPDATE SET
                  name = $2, description = $3, duration_minutes = $4, price = $5,
-                 is_active = $6, sort_order = $7, addon_ids = $8, priority_score = $9, icon_key = $10, is_popular = $11`,
+                 is_active = $6, sort_order = $7, addon_ids = $8::jsonb, priority_score = $9, icon_key = $10, is_popular = $11,
+                 image_url = $12, best_for = $13::text[]`,
           salonId
-            ? [s.id, salonId, s.name, s.description || "", s.duration_minutes, s.price, s.is_active !== false, s.sort_order || i + 1, JSON.stringify(s.addon_ids || []), s.priority_score || 5, s.icon_key || null, s.is_popular === true]
-            : [s.id, s.name, s.description || "", s.duration_minutes, s.price, s.is_active !== false, s.sort_order || i + 1, JSON.stringify(s.addon_ids || []), s.priority_score || 5, s.icon_key || null, s.is_popular === true]
+            ? [s.id, salonId, s.name, s.description || "", s.duration_minutes, s.price, s.is_active !== false, s.sort_order || i + 1, JSON.stringify(s.addon_ids || []), s.priority_score || 5, s.icon_key || null, s.is_popular === true, s.image_url || null, Array.isArray(s.best_for) ? s.best_for : []]
+            : [s.id, s.name, s.description || "", s.duration_minutes, s.price, s.is_active !== false, s.sort_order || i + 1, JSON.stringify(s.addon_ids || []), s.priority_score || 5, s.icon_key || null, s.is_popular === true, s.image_url || null, Array.isArray(s.best_for) ? s.best_for : []]
         );
       }
 

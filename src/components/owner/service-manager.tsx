@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { Plus, Edit2, Trash2, X, Check, ChevronUp, ChevronDown, Upload, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
@@ -127,7 +129,7 @@ function ServicesTab({
     setPending(
       pending.map((s) =>
         s.id === editingId
-          ? { ...s, ...form, image_url: form.image_url || s.image_url, best_for: form.best_for, icon_key: form.icon_key || null, is_popular: form.is_popular }
+          ? { ...s, ...form, image_url: form.image_url, best_for: form.best_for, icon_key: form.icon_key || null, is_popular: form.is_popular }
           : s
       )
     );
@@ -136,8 +138,20 @@ function ServicesTab({
     markChanged();
   };
 
+  // Deleting a service NULLs its bookings' service_id server-side, which
+  // blanks those bookings' name and re-prices them to 0 in earnings. Warn
+  // before that, and require an explicit confirm (was one accidental tap).
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+
   const handleDelete = (id: string) => {
-    setPending(pending.filter((s) => s.id !== id).map((s, i) => ({ ...s, sort_order: i + 1 })));
+    const service = pending.find((s) => s.id === id);
+    setConfirmDelete({ id, name: service?.name || "" });
+  };
+
+  const confirmDeleteTarget = () => {
+    if (!confirmDelete) return;
+    setPending(pending.filter((s) => s.id !== confirmDelete.id).map((s, i) => ({ ...s, sort_order: i + 1 })));
+    setConfirmDelete(null);
     markChanged();
   };
 
@@ -213,6 +227,7 @@ function ServicesTab({
 
   return (
     <div className="space-y-4 mt-4">
+      <DeleteConfirmDialog target={confirmDelete} kind="service" onCancel={() => setConfirmDelete(null)} onConfirm={confirmDeleteTarget} />
       {!isAdding && !editingId && (
         <Button
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
@@ -388,8 +403,17 @@ function AddonsTab({
     markChanged();
   };
 
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+
   const handleDelete = (id: string) => {
-    setPending(pending.filter((a) => a.id !== id).map((a, i) => ({ ...a, sort_order: i + 1 })));
+    const addon = pending.find((a) => a.id === id);
+    setConfirmDelete({ id, name: addon?.name || "" });
+  };
+
+  const confirmDeleteTarget = () => {
+    if (!confirmDelete) return;
+    setPending(pending.filter((a) => a.id !== confirmDelete.id).map((a, i) => ({ ...a, sort_order: i + 1 })));
+    setConfirmDelete(null);
     markChanged();
   };
 
@@ -445,6 +469,7 @@ function AddonsTab({
 
   return (
     <div className="space-y-4 mt-4">
+      <DeleteConfirmDialog target={confirmDelete} kind="addon" onCancel={() => setConfirmDelete(null)} onConfirm={confirmDeleteTarget} />
       {!isAdding && !editingId && (
         <Button
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
@@ -562,7 +587,7 @@ function ServiceForm({
       setForm({ ...form, image_url: data.url });
     } catch (error) {
       console.error("Upload error:", error);
-      alert("خطا در آپلود تصویر");
+      toast.error(error instanceof Error && error.message ? error.message : "خطا در آپلود تصویر");
     } finally {
       setIsUploading(false);
     }
@@ -843,5 +868,36 @@ function SaveBar({
         </Button>
       </div>
     </div>
+  );
+}
+
+// ── Shared delete confirm ──
+
+function DeleteConfirmDialog({ target, kind, onCancel, onConfirm }: {
+  target: { id: string; name: string } | null;
+  kind: "service" | "addon";
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <AlertDialog open={!!target} onOpenChange={(open) => { if (!open) onCancel(); }}>
+      <AlertDialogContent className="max-w-[340px]">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{kind === "service" ? "حذف خدمت" : "حذف آپشن"}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {kind === "service"
+              ? `«${target?.name || "این خدمت"}» حذف می‌شود. نوبت‌های قبلیِ این خدمت بدون نام و قیمت خواهند شد و از گزارش درآمد حذف می‌شوند.`
+              : `«${target?.name || "این آپشن"}» حذف می‌شود و از همهٔ خدمات برداشته خواهد شد.`}
+            {" "}تغییر پس از ذخیره اعمال می‌شود.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>انصراف</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-white hover:bg-destructive/90">
+            حذف
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

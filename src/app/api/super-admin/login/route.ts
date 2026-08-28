@@ -3,47 +3,16 @@ import { verifySuperAdminPin, signSuperAdminSession } from "@/lib/super-admin-au
 import { logActivity } from "@/lib/db/activity-log";
 import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-config";
 
-// Simple in-memory rate limiter for PIN brute-force protection.
-// Resets on cold starts (serverless) — sufficient for Vercel edge cases.
-const loginAttempts = new Map<string, { count: number; blockedUntil: number }>();
-const MAX_ATTEMPTS = 5;
-const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+// Rate limiting for PIN brute-force protection. Two keys per attempt:
+// per-phone (rotating the spoofable x-forwarded-for cannot reset it) and
+// per-IP+phone. Bounded map with sweep — no unbounded memory growth.
+import { createRateLimiter, clientIpFrom } from "@/lib/http-security";
 
-function checkRateLimit(key: string): { allowed: boolean; retryAfter?: number } {
-  const now = Date.now();
-  const entry = loginAttempts.get(key);
-
-  if (entry) {
-    // Check if currently blocked
-    if (entry.blockedUntil > now) {
-      return { allowed: false, retryAfter: Math.ceil((entry.blockedUntil - now) / 1000) };
-    }
-    // Reset if block expired
-    if (entry.blockedUntil > 0 && entry.blockedUntil <= now) {
-      loginAttempts.delete(key);
-      return { allowed: true };
-    }
-  }
-  return { allowed: true };
-}
-
-function recordAttempt(key: string, success: boolean) {
-  const now = Date.now();
-  const entry = loginAttempts.get(key);
-  if (success) {
-    loginAttempts.delete(key);
-    return;
-  }
-
-  if (!entry || entry.blockedUntil <= now) {
-    const count = ((!entry || entry.blockedUntil <= now) ? 0 : entry.count) + 1;
-    if (count >= MAX_ATTEMPTS) {
-      loginAttempts.set(key, { count: 0, blockedUntil: now + BLOCK_DURATION_MS });
-    } else {
-      loginAttempts.set(key, { count, blockedUntil: 0 });
-    }
-  }
-}
+const attemptLimiter = createRateLimiter({
+  maxAttempts: 5,
+  windowMs: 15 * 60 * 1000,
+  blockMs: 15 * 60 * 1000,
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,24 +22,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
 
-    // Rate limit by IP + phone combination
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const rateKey = `${ip}:${String(phone).trim()}`;
-    const rateCheck = checkRateLimit(rateKey);
-    if (!rateCheck.allowed) {
+    // Rate limit per phone AND per IP+phone combination
+    const cleanPhone = String(phone).trim();
+    const ip = clientIpFrom(request);
+    const phoneKey = `p:${cleanPhone}`;
+    const comboKey = `i:${ip}:${cleanPhone}`;
+    const gate = attemptLimiter.check(phoneKey).allowed ? attemptLimiter.check(comboKey) : attemptLimiter.check(phoneKey);
+    if (!gate.allowed) {
       return NextResponse.json(
-        { error: `تعداد تلاش‌ها بیش از حد مجاز. ${Math.ceil(rateCheck.retryAfter! / 60)} دقیقه دیگر تلاش کنید.` },
+        { error: `تعداد تلاش‌ها بیش از حد مجاز. ${Math.max(1, Math.ceil((gate.retryAfter || 0) / 60))} دقیقه دیگر تلاش کنید.` },
         { status: 429 }
       );
     }
 
-    const userId = await verifySuperAdminPin(String(phone).trim(), String(pin).trim());
+    const userId = await verifySuperAdminPin(cleanPhone, String(pin).trim());
     if (!userId) {
-      recordAttempt(rateKey, false);
+      attemptLimiter.record(phoneKey, false);
+      attemptLimiter.record(comboKey, false);
       return NextResponse.json({ error: "شماره یا رمز عبور اشتباه است" }, { status: 401 });
     }
 
-    recordAttempt(rateKey, true);
+    attemptLimiter.record(phoneKey, true);
+    attemptLimiter.record(comboKey, true);
 
     logActivity({
       eventType: "owner_login",

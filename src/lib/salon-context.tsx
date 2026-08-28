@@ -19,13 +19,13 @@ import {
   insertOwnerBooking,
   cancelBooking as cancelBookingApi,
   updateWorkingHours as saveWorkingHours,
-  fetchWorkingHours,
   fetchHighlights,
   upsertHighlight,
   deleteHighlight,
   upsertHighlightImage,
   deleteHighlightImage,
   uploadHighlightImage as uploadImage,
+  handleAuthExpiry,
 } from "@/lib/db/data";
 
 interface SalonContextType {
@@ -44,7 +44,7 @@ interface SalonContextType {
   updateServices: (services: Service[]) => Promise<string | null>;
   updateAddons: (addons: Addon[]) => Promise<string | null>;
   updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
-  updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => Promise<boolean>;
+  updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => Promise<{ success: boolean; error?: string }>;
   addBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   addOwnerBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   cancelBooking: (bookingId: string) => Promise<boolean>;
@@ -88,7 +88,7 @@ const EMPTY_SALON_CONTEXT: SalonContextType = {
   updateServices: async () => null,
   updateAddons: async () => null,
   updateSalon: async () => {},
-  updateBlockedTimes: async () => false,
+  updateBlockedTimes: async () => ({ success: false }),
   addBooking: async () => ({ success: false }),
   addOwnerBooking: async () => ({ success: false }),
   cancelBooking: async () => false,
@@ -126,6 +126,9 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   const specificDaysOffRef = useRef(specificDaysOff);
   const authSyncKeyRef = useRef<string | null>(null);
   const bookingsRequestRef = useRef(0);
+  // Late-bound handle so mutation handlers can reconcile immediately after a
+  // successful write without reordering hook declarations.
+  const refreshBookingsRef = useRef<((scope?: "owner" | "default") => Promise<void>) | null>(null);
 
   // Sync refs with state after render to avoid mutating them during render
   useEffect(() => {
@@ -144,24 +147,33 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     async function load() {
       try {
         const signal = controller.signal;
-        const [salonData, servicesData, addonsData, hoursData, highlightsData, blockedData] = await Promise.all([
+        const [salonData, servicesData, addonsData, highlightsData, blockedData] = await Promise.all([
           fetchSalonInfo(),
           fetchServices(),
           fetchAddons(),
-          fetchWorkingHours(),
           fetchHighlights(),
-          fetch("/api/read/blocked-times", { signal }).then((r) => r.json()).catch(() => ({ blockedTimes: [] })),
+          fetch("/api/read/blocked-times", { signal })
+            .then(async (r) => (r.ok ? await r.json() : null))
+            .catch(() => null),
         ]);
         if (signal.aborted) return;
-        if (salonData) setSalon(salonData);
-        if (servicesData.length) setServices(servicesData);
-        if (addonsData.length) setAddons(addonsData);
-        if (highlightsData.length) setHighlights(highlightsData);
-        if (hoursData) {
-          setWorkingHours(hoursData.working_hours);
-          setSpecificDaysOff(hoursData.specific_days_off || []);
+        // Adopt results whenever the fetch SUCCEEDED — including empty lists.
+        // The old `if (arr.length)` guard kept stale data after "delete the
+        // last item" and, worse, left blockedTimes as [] after a failed fetch
+        // so the next full-replace PUT silently wiped every saved block.
+        if (salonData) {
+          setSalon(salonData);
+          // Derive hours from the SAME response — the provider previously hit
+          // /api/read/salon twice per load (once via fetchWorkingHours).
+          if (salonData.working_hours && Object.keys(salonData.working_hours).length > 0) {
+            setWorkingHours(salonData.working_hours);
+          }
+          setSpecificDaysOff(salonData.specific_days_off || []);
         }
-        if (blockedData.blockedTimes?.length) {
+        if (servicesData !== null) setServices(servicesData);
+        if (addonsData !== null) setAddons(addonsData);
+        if (highlightsData !== null) setHighlights(highlightsData);
+        if (blockedData !== null && Array.isArray(blockedData.blockedTimes)) {
           setBlockedTimes(blockedData.blockedTimes);
         }
       } catch (e) {
@@ -241,7 +253,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const handleUpdateBlockedTimes = useCallback(async (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>): Promise<boolean> => {
+  const handleUpdateBlockedTimes = useCallback(async (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>): Promise<{ success: boolean; error?: string }> => {
     // Capture previous state from functional update to avoid stale closure
     let prevBlocks: typeof blockedTimes = [];
     setBlockedTimes((prev) => {
@@ -254,16 +266,22 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ blockedTimes: blocks }),
       });
-      if (!res.ok) {
-        devLog("Failed to save blocked times");
+      if (handleAuthExpiry(res)) {
         setBlockedTimes(prevBlocks);
-        return false;
+        return { success: false, error: "نشست منقضی شده" };
       }
-      return true;
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        const error = body.error || "خطا در ذخیره زمان‌های استراحت";
+        devLog("Failed to save blocked times:", error);
+        setBlockedTimes(prevBlocks);
+        return { success: false, error };
+      }
+      return { success: true };
     } catch (e) {
       devLog("Failed to save blocked times:", e);
       setBlockedTimes(prevBlocks);
-      return false;
+      return { success: false, error: "خطا در ذخیره زمان‌های استراحت" };
     }
   }, []);
 
@@ -330,6 +348,9 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     // occupied slots while the next poll is still pending.
     if (data !== null) setBookings(data);
   }, []);
+  useEffect(() => {
+    refreshBookingsRef.current = refreshBookings;
+  }, [refreshBookings]);
 
   // The provider mounts before OTP/session validation finishes. Refresh once
   // when auth settles (and again when the user changes) so a newly signed-in
@@ -347,14 +368,13 @@ export function SalonProvider({ children }: { children: ReactNode }) {
 
   const refreshSalonData = useCallback(async () => {
     try {
-      const [salonData, hoursData] = await Promise.all([
-        fetchSalonInfo(),
-        fetchWorkingHours(),
-      ]);
-      if (salonData) setSalon(salonData);
-      if (hoursData) {
-        setWorkingHours(hoursData.working_hours);
-        setSpecificDaysOff(hoursData.specific_days_off || []);
+      const salonData = await fetchSalonInfo();
+      if (salonData) {
+        setSalon(salonData);
+        if (salonData.working_hours && Object.keys(salonData.working_hours).length > 0) {
+          setWorkingHours(salonData.working_hours);
+        }
+        setSpecificDaysOff(salonData.specific_days_off || []);
       }
     } catch (e) {
       devLog("Failed to refresh salon data:", e);
@@ -371,9 +391,12 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
       });
+      if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده است");
       if (!res.ok) {
-        devLog("Failed to update salon");
-        throw new Error("Failed to update salon");
+        const body = await res.json().catch(() => ({}));
+        // Surface the server's precise validation message (e.g. close < open)
+        // instead of a generic failure the owner cannot act on.
+        throw new Error(body.error || "خطا در ذخیره تنظیمات");
       }
 
       if (updates.working_hours) setWorkingHours(updates.working_hours);
@@ -393,6 +416,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       devLog("Failed to add highlight:", e);
       setHighlights(prev);
+      toast.error(e instanceof Error && e.message.includes("نشست") ? e.message : "ذخیره هایلایت انجام نشد");
     }
   }, []);
 
@@ -421,6 +445,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       devLog("Failed to remove highlight:", e);
       setHighlights(prev);
+      toast.error(e instanceof Error && e.message.includes("نشست") ? e.message : "حذف هایلایت انجام نشد");
     }
   }, []);
 
@@ -443,6 +468,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           ? { ...h, images: h.images.filter((item) => item.id !== image.id) }
           : h
       ));
+      toast.error("آپلود یکی از تصاویر انجام نشد");
     }
   }, []);
 
@@ -466,7 +492,12 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     return uploadImage(file);
   }, []);
 
+  // In-flight guard: a mobile double-tap otherwise sends paid=true then
+  // paid=false (the second read sees the optimistic flip) for a net no-op.
+  const paidInFlightRef = useRef(new Set<string>());
   const handleToggleBookingPaid = useCallback(async (bookingId: string, paid: boolean) => {
+    if (paidInFlightRef.current.has(bookingId)) return;
+    paidInFlightRef.current.add(bookingId);
     setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, paid } : b)));
     try {
       const res = await fetch("/api/owner/bookings/paid", {
@@ -474,17 +505,32 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId, paid }),
       });
+      if (handleAuthExpiry(res)) {
+        setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, paid: !paid } : b)));
+        return;
+      }
       if (!res.ok) {
         setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, paid: !paid } : b)));
-        toast.error("خطا در تغییر وضعیت پرداخت");
+        const body = await res.json().catch(() => ({}));
+        toast.error(body.error || "خطا در تغییر وضعیت پرداخت");
+      } else {
+        // Reconcile immediately so the 10s poll cannot flash the old value back.
+        await refreshBookingsRef.current?.("owner");
       }
     } catch {
       setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, paid: !paid } : b)));
       toast.error("خطا در تغییر وضعیت پرداخت");
+    } finally {
+      paidInFlightRef.current.delete(bookingId);
     }
   }, []);
 
+  // Same double-tap guard as paid: rapid repeats 400 with "completed به
+  // completed مجاز نیست" after the first write already succeeded.
+  const statusInFlightRef = useRef(new Set<string>());
   const handleUpdateBookingStatus = useCallback(async (bookingId: string, status: string) => {
+    if (statusInFlightRef.current.has(bookingId)) return;
+    statusInFlightRef.current.add(bookingId);
     const originalStatus = bookingsRef.current.find((b) => b.id === bookingId)?.status;
     setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: status as Booking["status"] } : b)));
     try {
@@ -493,18 +539,28 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId, status }),
       });
+      if (handleAuthExpiry(res)) {
+        if (originalStatus) {
+          setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: originalStatus as Booking["status"] } : b)));
+        }
+        return;
+      }
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         if (originalStatus) {
           setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: originalStatus as Booking["status"] } : b)));
         }
         toast.error(body.error || "خطا در تغییر وضعیت");
+      } else {
+        await refreshBookingsRef.current?.("owner");
       }
     } catch {
       if (originalStatus) {
         setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: originalStatus as Booking["status"] } : b)));
       }
       toast.error("خطا در تغییر وضعیت");
+    } finally {
+      statusInFlightRef.current.delete(bookingId);
     }
   }, []);
 

@@ -24,6 +24,9 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
         destructive: true,
         onClick: async () => {
           await fetch("/api/owner-logout", { method: "POST", credentials: "include" });
+          // Drop the cached identity before navigating — otherwise /api/auth/me
+          // round-trip briefly renders the signed-in UI after logout.
+          try { localStorage.removeItem("nailbook_user"); } catch { /* private mode */ }
           window.location.href = "/owner/login";
         },
       },

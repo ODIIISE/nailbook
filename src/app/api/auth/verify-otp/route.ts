@@ -7,6 +7,12 @@ import { logActivity } from "@/lib/db/activity-log";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
 import { SESSION_MAX_AGE_SECONDS } from "@/lib/session-config";
 import { resolveSalonId } from "@/lib/multi-tenant";
+import { createRateLimiter, clientIpFrom } from "@/lib/http-security";
+
+// Throttle code entry per IP+phone. Brute force is already bounded by the
+// OTP attempt counter, but without this anyone who knows a victim's phone
+// could repeatedly burn 5 attempts and keep the victim locked out of login.
+const verifyLimiter = createRateLimiter({ maxAttempts: 10, windowMs: 15 * 60 * 1000, blockMs: 15 * 60 * 1000 });
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,13 +33,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "شماره موبایل معتبر نیست" }, { status: 400 });
     }
 
+    const verifyGate = verifyLimiter.check(`${clientIpFrom(request)}:${normalized}`);
+    if (!verifyGate.allowed) {
+      return NextResponse.json(
+        { error: `تعداد تلاش‌ها بیش از حد مجاز. ${Math.max(1, Math.ceil((verifyGate.retryAfter || 0) / 60))} دقیقه دیگر تلاش کنید.` },
+        { status: 429 }
+      );
+    }
+
     const otpResult = await verifyOtp(normalized, String(code).trim());
+    verifyLimiter.record(`${clientIpFrom(request)}:${normalized}`, otpResult.valid);
     if (!otpResult.valid) {
       return NextResponse.json({ error: otpResult.error || "کد نامعتبر است" }, { status: otpResult.locked ? 423 : 401 });
     }
 
     type OtpUser = { id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number };
     let user: OtpUser | null = await getUserByPhone(normalized);
+
+    // Blocked accounts (owner "block user" sets locked_until) cannot sign in,
+    // for either flow. Without this gate the block was cosmetic — worse, the
+    // successful-login cleanup below actively cleared the block.
+    if (user) {
+      const locked = await getLockedUntil(user.id);
+      if (locked) {
+        void logActivity({
+          eventType: "login_blocked",
+          entityType: "user",
+          entityId: user.id,
+          description: `ورود "${user.name || user.phone}" به دلیل مسدودی حساب رد شد`,
+          metadata: { phone: normalized, lockedUntil: locked.toISOString() },
+        });
+        return NextResponse.json(
+          { error: "حساب شما مسدود شده است. لطفاً با سالن تماس بگیرید." },
+          { status: 423 }
+        );
+      }
+    }
 
     // Owner-flow gate: refuse to auto-create a row when /owner/login is
     // the source. The pre-OTP table check in send-otp already rejected
@@ -197,8 +232,24 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function getUserByPhone(phone: string): Promise<{ id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number } | null> {
-  // "role" is a Postgres reserved keyword — must be double-quoted in SELECT.
+/** Active lock deadline for a user, or null when unlocked/unblocked.
+ * Tolerates pre-migration schemas where the column does not exist yet. */
+async function getLockedUntil(userId: string): Promise<Date | null> {
+  try {
+    const { rows } = await sql`SELECT locked_until FROM users WHERE id = ${userId} LIMIT 1`;
+    const raw = rows[0]?.locked_until;
+    if (!raw) return null;
+    const until = new Date(raw);
+    return Number.isNaN(until.getTime()) || until.getTime() <= Date.now() ? null : until;
+  } catch (error) {
+    const code = (error as { code?: string })?.code;
+    const message = String((error as { message?: string })?.message || "");
+    if (code === "42703" || /column .* does not exist/i.test(message)) return null;
+    throw error;
+  }
+}
+
+async function getUserByPhone(phone: string): Promise<{ id: string; phone: string; name: string; role: string; roles: string[]; session_version?: number } | null> {  // "role" is a Postgres reserved keyword — must be double-quoted in SELECT.
   // In salon mode the lookup is scoped to the tenant's salon_id; legacy
   // single-salon deployments (salon_id IS NULL) keep the global lookup.
   const salonId = await resolveSalonId();

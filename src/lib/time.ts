@@ -66,3 +66,12 @@ export function getTehranNow(now: Date = new Date()): TehranNow {
 export function isTehranToday(date: Date, now: Date = new Date()): boolean {
   return getTehranDateKey(date) === getTehranNow(now).dateKey;
 }
+
+/** UTC instant of midnight that starts `date`'s Tehran calendar day.
+ * Tehran has been a fixed UTC+03:30 offset since Iran abolished DST in 2022,
+ * so Tehran midnight is 20:30 UTC — computed from the observed Tehran parts
+ * so it stays correct even if the offset ever changes. */
+export function getTehranDayStartUtc(date: Date): Date {
+  const { year, month, day } = tehranParts(date);
+  return new Date(Date.UTC(year, month - 1, day) - 210 * 60_000);
+}

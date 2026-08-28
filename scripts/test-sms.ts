@@ -1,16 +1,16 @@
 /**
- * Test script: send a one-time OTP via SMS.ir.
+ * Test script: send a one-time OTP through the app's SMS provider (FarazSMS).
  *
  * Usage:
  *   cd nailbook
- *   npx tsx scripts/test-sms.ts <phone> [templateId]
+ *   npx tsx scripts/test-sms.ts <phone>
  *
  * Examples:
  *   npx tsx scripts/test-sms.ts +989357149901
  *   npx tsx scripts/test-sms.ts 09357149901
  */
 
-import { getSmsProvider, toSmsIrMobile } from "../src/lib/sms";
+import { getSmsProvider, toIranianMobile } from "../src/lib/sms";
 
 async function main() {
   const phone = process.argv[2];
@@ -19,30 +19,36 @@ async function main() {
     process.exit(1);
   }
 
-  const apiKey = process.env.SMS_IR_API_KEY;
-  const templateId = process.env.SMS_IR_TEMPLATE_ID;
+  const apiKey = process.env.FARAZSMS_API_KEY;
+  const lineNumber = process.env.FARAZSMS_LINE_NUMBER;
+  const patternCode = process.env.FARAZSMS_PATTERN_CODE;
+  const consoleProvider = process.env.SMS_PROVIDER === "console";
 
-  if (!apiKey || !templateId) {
-    console.error("Missing SMS_IR_API_KEY or SMS_IR_TEMPLATE_ID");
+  if (!consoleProvider && (!apiKey || !lineNumber || !patternCode)) {
+    console.error(
+      "Missing FARAZSMS_API_KEY, FARAZSMS_LINE_NUMBER, or FARAZSMS_PATTERN_CODE "
+      + "(or set SMS_PROVIDER=console for a dry run)"
+    );
     process.exit(1);
   }
 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
 
   console.log("Phone (input):", phone);
-  console.log("Phone (SMS.ir format):", toSmsIrMobile(phone));
+  console.log("Phone (provider format):", toIranianMobile(phone));
   console.log("Code:", code);
   console.log("API key present:", apiKey ? "yes" : "no");
-  console.log("Template ID:", templateId);
+  console.log("Line number:", lineNumber || "(unset)");
+  console.log("Pattern code:", patternCode || "(unset)");
   console.log("Sending...");
 
   const provider = getSmsProvider();
-  const ok = await provider.sendOTP(phone, code);
+  const result = await provider.sendOTP(phone, code);
 
-  if (ok) {
-    console.log("✅ SMS sent successfully (provider returned true)");
+  if (result.success) {
+    console.log("✅ SMS sent successfully (provider returned success)");
   } else {
-    console.error("❌ SMS provider returned false");
+    console.error("❌ SMS provider returned failure:", result.error);
     process.exit(1);
   }
 }

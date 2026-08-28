@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { normalizeDigits } from "@/lib/digits";
 import { toPersianDigits } from "@/lib/jalali";
 import { getIranWeekDay } from "@/lib/slots";
+import { resolveSlotInterval, resolveSlotBuffer } from "@/lib/salon-settings";
 import type { Service } from "@/lib/types";
 import type { WorkingHours } from "@/lib/slots";
 
@@ -82,14 +83,23 @@ export function ManualReserveModal({
 
   // Round the end time up to the salon's slot grid, honoring the configured
   // slot buffer so manual reservations respect the salon's scheduling rules.
+  // Shared clamps — identical to what the server enforces, so a valid form can
+  // never be rejected with "مدت زمان با تنظیمات سالن مطابقت ندارد".
   const getEffectiveDuration = useCallback((duration: number) =>
-    Math.ceil((duration + slotBufferMinutes) / Math.max(1, slotIntervalMinutes)) * Math.max(1, slotIntervalMinutes),
+    Math.ceil((duration + resolveSlotBuffer(slotBufferMinutes)) / resolveSlotInterval(slotIntervalMinutes)) * resolveSlotInterval(slotIntervalMinutes),
     [slotBufferMinutes, slotIntervalMinutes]
   );
 
   // Auto-calculate end time from start time + service duration (grid-aware)
   const [endTime, setEndTime] = useState(() =>
     selectedService ? calculateEndTime(startTime, getEffectiveDuration(selectedService.duration_minutes)) : ""
+  );
+
+  // The server accepts exactly start + effectiveDuration. Anything else is a
+  // guaranteed 400, so the form gates on it and offers one-tap correction.
+  const expectedEndTime = useMemo(
+    () => selectedService ? calculateEndTime(startTime, getEffectiveDuration(selectedService.duration_minutes)) : "",
+    [selectedService, startTime, getEffectiveDuration]
   );
 
   const lastResolvedServiceIdRef = useRef(resolvedServiceId);
@@ -128,7 +138,8 @@ export function ManualReserveModal({
     /^(09|۰۹)[۰-۹0-9]{9}$/.test(normalizeDigits(phone)) &&
     /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(startTime) &&
     /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(endTime) &&
-    endTime > startTime
+    endTime > startTime &&
+    (!expectedEndTime || endTime === expectedEndTime)
   );
 
   const handleSubmit = async () => {
@@ -228,6 +239,19 @@ export function ManualReserveModal({
             />
           </div>
         </div>
+
+        {selectedService && expectedEndTime && endTime !== expectedEndTime && (
+          <div className="rounded-xl border border-border bg-muted/40 px-3 py-2 text-small text-muted-foreground flex items-center justify-between gap-2">
+            <span>برای رعایت تنظیمات سالن، ساعت پایان باید {toPersianDigits(expectedEndTime)} باشد</span>
+            <button
+              type="button"
+              onClick={() => setEndTime(expectedEndTime)}
+              className="text-caption font-bold text-primary shrink-0"
+            >
+              اصلاح
+            </button>
+          </div>
+        )}
 
         {endTime && startTime && endTime <= startTime && (
           <p className="text-small text-destructive text-center">ساعت پایان باید بعد از ساعت شروع باشد</p>
