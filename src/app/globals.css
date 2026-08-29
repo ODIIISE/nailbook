@@ -824,6 +824,10 @@
 
 /* ================= SECTION HEADS ================= */
 .qhp-section { position: relative; z-index: 1; margin-bottom: 26px; }
+/* Lookbook is the conversion engine — pull the first card above the fold on
+   typical phones so scrolling into it feels inevitable rather than hidden. */
+.qhp-section.qhp-lookbook { margin-top: -58px; }
+@media (min-height: 800px) { .qhp-section.qhp-lookbook { margin-top: -34px; } }
 .qhp-sec-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
 .qhp-sec-head h2 { font-size: 15px; font-weight: 800; color: var(--qhp-ink); }
 .qhp-sec-kicker { font-size: 9px; font-weight: 800; color: var(--qhp-mut); direction: ltr; letter-spacing: .24em; }

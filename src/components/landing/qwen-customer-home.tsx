@@ -67,8 +67,11 @@ interface Look {
   addons: Addon[];
 }
 
-const FALLBACK_HERO = "https://images.unsplash.com/photo-1599948128020-9a44505b58b3?w=1400&q=80&auto=format&fit=crop";
-const FALLBACK_PORTRAIT = "https://images.unsplash.com/photo-1610992015732-2449b76311bc?w=600&q=80&auto=format&fit=crop";
+// Bundled local hero — zero network dependency, instant first paint.
+// (The previous remote fallback went 404 silently and the hero degraded
+// to a flat gradient for salons without their own image.)
+const FALLBACK_HERO = "/hero-default.jpg";
+const FALLBACK_PORTRAIT = "https://images.unsplash.com/photo-1630843599725-32ead7671867?w=600&q=80&auto=format&fit=crop";
 
 export function QwenCustomerHome() {
   const router = useRouter();
@@ -331,7 +334,7 @@ export function QwenCustomerHome() {
 
       {/* LOOKBOOK — story-style rail */}
       {looks.length > 0 && (
-        <section className="qhp-section qhp-reveal" aria-labelledby="qhp-work-title">
+        <section className="qhp-section qhp-reveal qhp-lookbook" aria-labelledby="qhp-work-title">
           <div className="qhp-sec-head">
             <h2 id="qhp-work-title">{salon.lookbook_title || "نمونه‌کارها"}</h2>
             <span className="qhp-sec-kicker">LOOKBOOK</span>

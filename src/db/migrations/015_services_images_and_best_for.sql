@@ -15,11 +15,11 @@ ALTER TABLE services ADD COLUMN IF NOT EXISTS best_for TEXT[] NOT NULL DEFAULT '
 DO $$
 DECLARE
   img_manicure   TEXT := 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&q=80&auto=format&fit=crop';
-  img_pedicure   TEXT := 'https://images.unsplash.com/photo-1610992015732-2449b76311bc?w=800&q=80&auto=format&fit=crop';
+  img_pedicure   TEXT := 'https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=800&q=80&auto=format&fit=crop';
   img_gel        TEXT := 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?w=800&q=80&auto=format&fit=crop';
   img_design     TEXT := 'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=800&q=80&auto=format&fit=crop';
-  img_extension TEXT := 'https://images.unsplash.com/photo-1571290277304-66a1eea3a8ac?w=800&q=80&auto=format&fit=crop';
-  img_polish     TEXT := 'https://images.unsplash.com/photo-1599948128020-9a44505b58b3?w=800&q=80&auto=format&fit=crop';
+  img_extension TEXT := 'https://images.unsplash.com/photo-1610992015762-45dca7fa3a85?w=800&q=80&auto=format&fit=crop';
+  img_polish     TEXT := 'https://images.unsplash.com/photo-1636019411401-82485711b6ba?w=800&q=80&auto=format&fit=crop';
   img_default    TEXT := 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&q=80&auto=format&fit=crop';
 BEGIN
   UPDATE services SET image_url = img_manicure
