@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { getSalonId } from "@/lib/multi-tenant";
+import { resolveSalonId } from "@/lib/multi-tenant";
 
 function normalizeTextArray(value: unknown): string[] {
   if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string");
@@ -38,7 +38,7 @@ function serializeServices(rows: Array<Record<string, unknown>>) {
 
 export async function GET() {
   try {
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     const scoped = salonId
       ? sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, image_url, best_for, icon_key, is_popular
            FROM services WHERE salon_id = ${salonId} ORDER BY sort_order`

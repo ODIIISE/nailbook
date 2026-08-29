@@ -150,7 +150,7 @@ export async function fetchActivityLogs(
       conditions.push(`created_at < $${values.length}`);
     }
     const { rows } = await sql.query(
-      `SELECT * FROM activity_logs WHERE ${conditions.join(" AND ")} ORDER BY created_at DESC LIMIT ${Math.min(Math.max(1, Math.floor(limit)), 500)}`,
+      `SELECT * FROM activity_logs WHERE ${conditions.join(" AND ")} ORDER BY created_at DESC, id DESC LIMIT ${Math.min(Math.max(1, Math.floor(limit)), 500)}`,
       values
     );
     return rows as ActivityLog[];

@@ -862,6 +862,7 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
               className={`qbf-date-chip ${d.isSelected ? "sel" : ""} ${blocked && !d.isSelected ? "off" : ""}`}
               onClick={() => { if (!blocked) onSelectDate(d.date); }}
               disabled={blocked}
+              aria-pressed={d.isSelected}
               aria-label={`${d.isToday ? "امروز" : d.isTomorrow ? "فردا" : d.weekday} ${toPersianDigits(d.jalaliDay)} ${d.jalaliMonth}`}>
               <span className="qbf-dc-d">{d.isToday ? "امروز" : d.isTomorrow ? "فردا" : d.weekday}</span>
               <span className="qbf-dc-n">{toPersianDigits(d.jalaliDay)}</span>
@@ -942,6 +943,7 @@ function SlotChip({ slot, selected, onSelect, suggest = false }: { slot: TimeSlo
     <button type="button"
       className={`qbf-slot ${selected ? "sel" : ""} ${!available ? "off" : ""} ${suggest ? "suggest" : ""}`}
       disabled={!available}
+      aria-pressed={selected}
       onClick={() => { if (available) onSelect(slot.time); }}
       aria-label={`${formatted} ${available ? "موجود" : slot.booked || slot.locked ? "رزرو شده" : "غیرقابل رزرو"}`}>
       <span className="qbf-slot-time">{formatted}</span>
@@ -954,8 +956,15 @@ function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; o
   const dialogRef = useRef<HTMLDivElement>(null);
   // Match the app's other dialogs: Escape closes, background scroll locks,
   // and focus lands inside so keyboard/SR users are not stranded behind it.
+  // onLockCallbacks is an inline arrow at the call site — a dep array on it
+  // would tear down/re-arm this effect (and re-steal focus) on every parent
+  // render. Mount-once with a ref instead.
+  const onCloseRef = useRef(onClose);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    onCloseRef.current = onClose;
+  }, [onClose]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onCloseRef.current(); };
     document.addEventListener("keydown", onKey);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -964,7 +973,7 @@ function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; o
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
     };
-  }, [onClose]);
+  }, []);
   const today = parseGregorianDateKey(getTehranDateKey(new Date()));
   const jalaliToday = gregorianToJalali(today);
   const [viewMonth, setViewMonth] = useState(jalaliToday.jm);
@@ -1128,7 +1137,7 @@ function ReviewStep(props: ReviewStepProps) {
               <label htmlFor="qbf-phone">شماره موبایل</label>
               <input id="qbf-phone" type="tel" inputMode="numeric" className="qbf-inp ltr" value={authPhone}
                 onChange={(e) => onAuthPhone(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && phoneValid && !isAuthLoading && onSendOtp()}
+                onKeyDown={(e) => e.key === "Enter" && phoneValid && !isAuthLoading && otpState === "idle" && onSendOtp()}
                 placeholder="۰۹۱۲۱۲۳۴۵۶۷" autoComplete="tel" />
             </div>
             {otpState === "idle" && (
@@ -1151,7 +1160,7 @@ function ReviewStep(props: ReviewStepProps) {
 
         {nameRequired && !customerName && <p className="qbf-form-hint">برای ثبت رزرو، وارد کردن نام الزامی است.</p>}
         {!canContinue && <p className="qbf-form-error">لطفاً نام خود را وارد کنید</p>}
-        {authError && <p className="qbf-form-error">{authError}</p>}
+        {authError && <p className="qbf-form-error" role="alert">{authError}</p>}
       </div>
 
       <div className="qbf-policy">

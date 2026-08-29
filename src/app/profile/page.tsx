@@ -167,13 +167,14 @@ export default function ProfilePage() {
     }
     setConfirmingCancel(null);
     try {
-      // cancelBooking catches its own errors and returns false on failure —
-      // only claim success when the server actually cancelled the booking.
-      if (await cancelBooking(id)) {
+      // cancelBooking catches its own errors and returns the server's guard
+      // text on failure — show it instead of an endless-retry generic message.
+      const result = await cancelBooking(id);
+      if (result.success) {
         toast.success("نوبت لغو شد");
         void refreshBookings();
       } else {
-        toast.error("خطا در لغو نوبت — لطفاً دوباره تلاش کنید");
+        toast.error(result.error || "خطا در لغو نوبت — لطفاً دوباره تلاش کنید");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "خطا در لغو نوبت");

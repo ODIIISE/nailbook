@@ -282,18 +282,18 @@ export default function OwnerSettingsPage() {
         </div>
 
         <div>
-          <Label className="text-caption">نام سالن</Label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" placeholder="نام سالن" />
+          <Label className="text-caption" htmlFor="settings-field-1">نام سالن</Label>
+          <Input id="settings-field-1" value={name} onChange={(e) => setName(e.target.value)} className="mt-1" placeholder="نام سالن" />
         </div>
 
         <div>
-          <Label className="text-caption">شعار تبلیغاتی</Label>
-          <Input value={slogan} onChange={(e) => setSlogan(e.target.value)} className="mt-1" placeholder="مثلاً: زیبایی ناخن، اعتماد به نفس شما" />
+          <Label className="text-caption" htmlFor="settings-field-2">شعار تبلیغاتی</Label>
+          <Input id="settings-field-2" value={slogan} onChange={(e) => setSlogan(e.target.value)} className="mt-1" placeholder="مثلاً: زیبایی ناخن، اعتماد به نفس شما" />
         </div>
 
         <div>
-          <Label className="text-caption">توضیحات</Label>
-          <Input value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" placeholder="توضیح کوتاه درباره سالن" />
+          <Label className="text-caption" htmlFor="settings-field-3">توضیحات</Label>
+          <Input id="settings-field-3" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" placeholder="توضیح کوتاه درباره سالن" />
         </div>
       </Card>
 
@@ -304,28 +304,28 @@ export default function OwnerSettingsPage() {
         </div>
 
         <div>
-          <Label className="text-caption">شماره موبایل</Label>
-          <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" dir="ltr" placeholder="09121234567" />
+          <Label className="text-caption" htmlFor="settings-field-4">شماره موبایل</Label>
+          <Input id="settings-field-4" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" dir="ltr" placeholder="09121234567" />
         </div>
 
         <div>
-          <Label className="text-caption">آدرس</Label>
-          <Input value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1" placeholder="آدرس سالن" />
+          <Label className="text-caption" htmlFor="settings-field-5">آدرس</Label>
+          <Input id="settings-field-5" value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1" placeholder="آدرس سالن" />
         </div>
 
         <div>
-          <Label className="text-caption">شهر</Label>
-          <Input value={city} onChange={(e) => setCity(e.target.value)} className="mt-1" placeholder="مثلاً مشهد" />
+          <Label className="text-caption" htmlFor="settings-field-6">شهر</Label>
+          <Input id="settings-field-6" value={city} onChange={(e) => setCity(e.target.value)} className="mt-1" placeholder="مثلاً مشهد" />
         </div>
 
         <div>
-          <Label className="text-caption">آیدی اینستاگرام</Label>
-          <Input value={instagramHandle} onChange={(e) => setInstagramHandle(e.target.value)} className="mt-1" dir="ltr" placeholder="forehand.nail" />
+          <Label className="text-caption" htmlFor="settings-field-7">آیدی اینستاگرام</Label>
+          <Input id="settings-field-7" value={instagramHandle} onChange={(e) => setInstagramHandle(e.target.value)} className="mt-1" dir="ltr" placeholder="forehand.nail" />
         </div>
 
         <div>
-          <Label className="text-caption">ساعت کار</Label>
-          <Input value={workingHoursText} onChange={(e) => setWorkingHoursText(e.target.value)} className="mt-1" placeholder="مثلاً: شنبه تا پنج شنبه . ۱۰ تا ۱۸" />
+          <Label className="text-caption" htmlFor="settings-field-8">ساعت کار</Label>
+          <Input id="settings-field-8" value={workingHoursText} onChange={(e) => setWorkingHoursText(e.target.value)} className="mt-1" placeholder="مثلاً: شنبه تا پنج شنبه . ۱۰ تا ۱۸" />
         </div>
       </Card>
 
@@ -376,32 +376,32 @@ export default function OwnerSettingsPage() {
         </p>
 
         <div>
-          <Label className="text-caption">نوشته بالای نام برند (انگلیسی)</Label>
-          <Input value={homepageKicker} onChange={(e) => setHomepageKicker(e.target.value)} className="mt-1" dir="ltr" placeholder="NAIL · CARE · RITUAL" maxLength={40} />
+          <Label className="text-caption" htmlFor="settings-field-9">نوشته بالای نام برند (انگلیسی)</Label>
+          <Input id="settings-field-9" value={homepageKicker} onChange={(e) => setHomepageKicker(e.target.value)} className="mt-1" dir="ltr" placeholder="NAIL · CARE · RITUAL" maxLength={40} />
           <p className="text-small text-muted-foreground mt-1">در بالای نام سالن در صفحه اصلی.</p>
         </div>
 
         <div>
-          <Label className="text-caption">متن دکمه اصلی رزرو</Label>
-          <Input value={homepageCtaLabel} onChange={(e) => setHomepageCtaLabel(e.target.value)} className="mt-1" placeholder="شروع رزرو" maxLength={40} />
+          <Label className="text-caption" htmlFor="settings-field-10">متن دکمه اصلی رزرو</Label>
+          <Input id="settings-field-10" value={homepageCtaLabel} onChange={(e) => setHomepageCtaLabel(e.target.value)} className="mt-1" placeholder="شروع رزرو" maxLength={40} />
           <p className="text-small text-muted-foreground mt-1">دکمه بزرگ «رزرو نوبت» در صفحه اصلی.</p>
         </div>
 
         <div>
-          <Label className="text-caption">متن زیر دکمه رزرو</Label>
-          <Input value={homepageMicro} onChange={(e) => setHomepageMicro(e.target.value)} className="mt-1" placeholder="بدون تماس تلفنی · زمان‌های آزاد همین‌جا" maxLength={80} />
+          <Label className="text-caption" htmlFor="settings-field-11">متن زیر دکمه رزرو</Label>
+          <Input id="settings-field-11" value={homepageMicro} onChange={(e) => setHomepageMicro(e.target.value)} className="mt-1" placeholder="بدون تماس تلفنی · زمان‌های آزاد همین‌جا" maxLength={80} />
           <p className="text-small text-muted-foreground mt-1">یک خط توضیحی کوچک زیر دکمه اصلی.</p>
         </div>
 
         <div>
-          <Label className="text-caption">عنوان بخش نمونه‌کارها</Label>
-          <Input value={lookbookTitle} onChange={(e) => setLookbookTitle(e.target.value)} className="mt-1" placeholder="نمونه‌کارها" maxLength={40} />
+          <Label className="text-caption" htmlFor="settings-field-12">عنوان بخش نمونه‌کارها</Label>
+          <Input id="settings-field-12" value={lookbookTitle} onChange={(e) => setLookbookTitle(e.target.value)} className="mt-1" placeholder="نمونه‌کارها" maxLength={40} />
           <p className="text-small text-muted-foreground mt-1">عنوان گالری نمونه‌کارها در صفحه اصلی.</p>
         </div>
 
         <div>
-          <Label className="text-caption">متن موفقیت رزرو</Label>
-          <Input value={bookingSuccessTitle} onChange={(e) => setBookingSuccessTitle(e.target.value)} className="mt-1" placeholder="به‌زودی می‌بینیمت!" maxLength={40} />
+          <Label className="text-caption" htmlFor="settings-field-13">متن موفقیت رزرو</Label>
+          <Input id="settings-field-13" value={bookingSuccessTitle} onChange={(e) => setBookingSuccessTitle(e.target.value)} className="mt-1" placeholder="به‌زودی می‌بینیمت!" maxLength={40} />
           <p className="text-small text-muted-foreground mt-1">تیتر صفحه تأیید نوبت در پایان روند رزرو.</p>
         </div>
       </Card>

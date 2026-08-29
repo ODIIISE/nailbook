@@ -91,10 +91,15 @@ function ServicesTab({
   });
 
   useEffect(() => {
-    // Sync local editing state with fresh prop data when the parent re-fetches.
+    // Sync local editing state with fresh prop data when the parent re-fetches
+    // — but never while the owner has unsaved edits: a failed save rolls the
+    // props back, and unconditional syncing here would silently erase every
+    // pending change. (schedule-manager has the same guard.)
+    if (hasChanges) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPending(services);
     setHasChanges(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [services]);
 
   const markChanged = () => setHasChanges(true);
@@ -221,7 +226,7 @@ function ServicesTab({
       image_url: service.image_url || "",
       best_for: Array.isArray(service.best_for) ? service.best_for : [],
       icon_key: service.icon_key || "",
-      is_popular: service.is_popular === true || service.name.includes("ترمیم"),
+      is_popular: service.is_popular === true,
     });
   };
 
@@ -364,10 +369,12 @@ function AddonsTab({
   const [form, setForm] = useState({ name: "", price: 0, duration_minutes: 5 });
 
   useEffect(() => {
-    // Sync local editing state with fresh prop data when the parent re-fetches.
+    // Same unsaved-edits guard as the services tab.
+    if (hasChanges) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPending(addons);
     setHasChanges(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addons]);
 
   const markChanged = () => setHasChanges(true);

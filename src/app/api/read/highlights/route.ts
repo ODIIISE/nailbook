@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
-import { getSalonId } from "@/lib/multi-tenant";
+import { resolveSalonId } from "@/lib/multi-tenant";
 
 // Mirrors read/services: addon_ids is a TEXT[] whose element is a JSON array
 // string, so tolerate both that and a plain array of strings.
@@ -39,7 +39,7 @@ function serializeHighlight(h: Record<string, unknown>) {
 
 export async function GET() {
   try {
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     // HIGHLIGHT_COLUMNS is a compile-time constant — safe to interpolate.
     const highlightsResult = salonId
       ? await sql.query(`SELECT ${HIGHLIGHT_COLUMNS} FROM highlights WHERE salon_id = $1 ORDER BY sort_order, id`, [salonId])
@@ -71,7 +71,7 @@ export async function GET() {
     // applied. Fall back to the base columns so the lookbook still renders.
     if (isMissingColumn(error)) {
       try {
-        const salonId = getSalonId();
+        const salonId = await resolveSalonId();
         const highlightsResult = salonId
           ? await sql.query("SELECT id, name, cover_url, sort_order FROM highlights WHERE salon_id = $1 ORDER BY sort_order, id", [salonId])
           : await sql`SELECT id, name, cover_url, sort_order FROM highlights ORDER BY sort_order, id`;
@@ -106,7 +106,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const h = await request.json();
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     const name = typeof h.name === "string" ? h.name : "";
     if (!name) return NextResponse.json({ error: "نام الزامی است" }, { status: 400 });
     // Keep stale references from poisoning the FK: only persist UUID-shaped
@@ -170,7 +170,7 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
 
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     const highlightResult = salonId
       ? await sql.query("SELECT name FROM highlights WHERE id = $1 AND salon_id = $2", [id, salonId])
       : await sql`SELECT name FROM highlights WHERE id = ${id}`;

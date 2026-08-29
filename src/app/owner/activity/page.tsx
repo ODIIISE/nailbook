@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { ActivityLog } from "@/components/owner/activity-log";
 import { SalonGuard } from "@/components/ui/salon-guard";
@@ -46,16 +46,21 @@ export default function ActivityPage() {
   }, []);
 
   // Cursor pagination: older history was previously unreachable beyond the
-  // server's 200-row page.
+  // server's 200-row page. The request-id ref discards stale responses so a
+  // slow loadMore for a previous filter cannot append wrong-filter rows.
+  const loadMoreRequestRef = useRef(0);
   const loadMore = useCallback(async () => {
     const oldest = logs[logs.length - 1];
     if (!oldest || loadingMore) return;
+    const requestId = ++loadMoreRequestRef.current;
+    const filterAtStart = activeFilter;
     setLoadingMore(true);
     try {
       const res = await fetch(
-        `/api/owner/activity-logs?type=${activeFilter}&before=${encodeURIComponent(oldest.created_at)}`,
+        `/api/owner/activity-logs?type=${filterAtStart}&before=${encodeURIComponent(oldest.created_at)}`,
         { credentials: "include" }
       );
+      if (requestId !== loadMoreRequestRef.current || activeFilter !== filterAtStart) return;
       if (res.ok) {
         const data = await res.json();
         const more: ActivityLogEntry[] = data.logs || [];
@@ -63,9 +68,9 @@ export default function ActivityPage() {
         setHasMore(more.length >= 200);
       }
     } catch {
-      toast.error("خطا در دریافت لاگ‌های قدیمی‌تر");
+      if (requestId === loadMoreRequestRef.current) toast.error("خطا در دریافت لاگ‌های قدیمی‌تر");
     } finally {
-      setLoadingMore(false);
+      if (requestId === loadMoreRequestRef.current) setLoadingMore(false);
     }
   }, [logs, activeFilter, loadingMore]);
 

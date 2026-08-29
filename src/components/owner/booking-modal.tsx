@@ -8,7 +8,7 @@ import { STATUS_CONFIG, VALID_TRANSITIONS } from "@/lib/constants";
 import { statusColors, themeColor } from "@/lib/design-tokens";
 import { useIsDark } from "@/lib/hooks/use-is-dark";
 import { parseGregorianDateKey } from "@/lib/time";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Booking, Service, Addon } from "@/lib/types";
@@ -99,7 +99,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
         {/* Header */}
         <div className="flex items-center justify-between mb-3.5">
           <div className="flex items-center gap-2">
-            <h2 className="text-body-lg font-bold">جزئیات نوبت</h2>
+            <DialogTitle className="text-body-lg font-bold">جزئیات نوبت</DialogTitle>
             <span className={`text-small font-semibold text-muted-foreground ${subtleBg2} px-2 py-0.5 rounded-md`} dir="ltr">{shortId}</span>
           </div>
           <button onClick={onClose} aria-label="بستن" className={`w-7 h-7 rounded-lg ${subtleBg2} flex items-center justify-center`}>

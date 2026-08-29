@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifyOwner } from "@/lib/owner-auth";
-import { getSalonId } from "@/lib/multi-tenant";
+import { resolveSalonId } from "@/lib/multi-tenant";
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     const img = await request.json();
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     if (salonId) {
       const highlight = await sql.query("SELECT id FROM highlights WHERE id = $1 AND salon_id = $2", [img.highlight_id, salonId]);
       if (!highlight.rows[0]) return NextResponse.json({ error: "هایلایت یافت نشد" }, { status: 404 });
@@ -45,7 +45,7 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     if (salonId) {
       await sql.query("DELETE FROM highlight_images WHERE id = $1 AND salon_id = $2", [id, salonId]);
     } else {

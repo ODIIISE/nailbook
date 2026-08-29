@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { getSalonId } from "@/lib/multi-tenant";
+import { resolveSalonId } from "@/lib/multi-tenant";
 
 export async function GET() {
   try {
-    const salonId = getSalonId();
+    const salonId = await resolveSalonId();
     const { rows } = salonId
       ? await sql.query(
           `SELECT date_gregorian, start_time, end_time

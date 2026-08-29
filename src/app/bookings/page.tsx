@@ -91,10 +91,11 @@ export default function BookingsPage() {
   // cancelBooking catches its own errors and returns false on failure —
   // only claim success when the server actually cancelled the booking.
   const handleCancel = useCallback(async (id: string) => {
-    if (await cancelBooking(id)) {
+    const result = await cancelBooking(id);
+    if (result.success) {
       toast.success("نوبت لغو شد");
     } else {
-      toast.error("خطا در لغو نوبت — لطفاً دوباره تلاش کنید");
+      toast.error(result.error || "خطا در لغو نوبت — لطفاً دوباره تلاش کنید");
     }
   }, [cancelBooking]);
 

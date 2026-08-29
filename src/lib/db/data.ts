@@ -208,8 +208,14 @@ function normalizeSalon(value: unknown): SalonInfo | null {
  * retries endlessly. Redirect must be a full navigation (owner auth relies on
  * a fresh server render + cookie state).
  */
+// Several owner writes can be in flight when the session dies — without this
+// guard each one stacks its own toast and schedules its own redirect.
+let authExpiryHandled = false;
+
 export function handleAuthExpiry(res: Response): boolean {
   if (res.status !== 401) return false;
+  if (authExpiryHandled) return true;
+  authExpiryHandled = true;
   toast.error("نشست شما منقضی شده است", {
     description: "در حال انتقال به صفحه ورود…",
     duration: 2500,
@@ -281,8 +287,8 @@ export async function saveServices(services: Service[]) {
     body: JSON.stringify({ services }),
   });
   if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
-  const body = await res.json();
-  if (!res.ok) throw new Error(body.error || "Failed to save services");
+  const body = await readJson(res);
+  if (!res.ok) throw new Error((isRecord(body) && typeof body.error === "string" && body.error) || "خطا در ذخیره خدمات");
 }
 
 export async function saveAddons(addons: Addon[]) {
@@ -292,8 +298,8 @@ export async function saveAddons(addons: Addon[]) {
     body: JSON.stringify({ addons }),
   });
   if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
-  const body = await res.json();
-  if (!res.ok) throw new Error(body.error || "Failed to save addons");
+  const body = await readJson(res);
+  if (!res.ok) throw new Error((isRecord(body) && typeof body.error === "string" && body.error) || "خطا در ذخیره آپشن‌ها");
 }
 
 export async function insertBooking(booking: Booking): Promise<{ id: string; start_time: string; end_time: string }> {
@@ -312,9 +318,12 @@ export async function insertBooking(booking: Booking): Promise<{ id: string; sta
       user_id: booking.user_id,
     }),
   });
-  const body = await res.json();
-  if (!res.ok) {
-    throw new Error(body.error || "Failed to save booking");
+  const body = await readJson(res);
+  if (!res.ok || !isRecord(body)
+    || typeof body.booking_id !== "string"
+    || typeof body.start_time !== "string"
+    || typeof body.end_time !== "string") {
+    throw new Error((isRecord(body) && typeof body.error === "string" && body.error) || "خطا در ذخیره رزرو");
   }
   return { id: body.booking_id, start_time: body.start_time, end_time: body.end_time };
 }

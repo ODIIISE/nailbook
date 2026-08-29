@@ -328,10 +328,27 @@ function CalendarModal({
     }
   };
 
+  // Dialog semantics: Escape closes, background scroll locks, focus enters
+  // the panel (and returns on close) — parity with the other modals.
+  const panelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const previous = document.activeElement as HTMLElement | null;
+    panelRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+      previous?.focus?.();
+    };
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="انتخاب تاریخ">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-sm bg-card rounded-3xl p-5 animate-scale">
+      <div ref={panelRef} tabIndex={-1} className="relative w-full max-w-sm bg-card rounded-3xl p-5 animate-scale">
         <div className="flex items-center justify-between mb-2">
           <Button variant="ghost" size="icon-sm" onClick={prevMonth}>
             <ChevronRight className="h-5 w-5" />

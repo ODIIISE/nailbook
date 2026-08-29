@@ -34,14 +34,18 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
       b.start_time,
       b.end_time,
       b.status,
-      s.name AS service_name,
-      s.price AS service_price,
+      b.customer_phone,
+      -- Snapshot (migration 022) first: a renamed/repriced/deleted service
+      -- must not change what the customer's shared receipt says. The live
+      -- service row is only a fallback for legacy bookings.
+      COALESCE(b.service_name, s.name) AS service_name,
+      COALESCE(b.price_total, s.price) AS service_price,
       salon.name AS salon_name,
       salon.phone AS salon_phone,
       salon.address AS salon_address,
       salon.logo_url AS salon_logo_url
     FROM bookings b
-    JOIN services s ON s.id = b.service_id
+    LEFT JOIN services s ON s.id = b.service_id
     CROSS JOIN salon_info salon
     WHERE b.id = ${id}
     LIMIT 1

@@ -47,7 +47,7 @@ interface SalonContextType {
   updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => Promise<{ success: boolean; error?: string }>;
   addBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   addOwnerBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
-  cancelBooking: (bookingId: string) => Promise<boolean>;
+  cancelBooking: (bookingId: string) => Promise<{ success: boolean; error?: string }>;
   refreshBookings: (scope?: "owner" | "default") => Promise<void>;
   refreshSalonData: () => Promise<void>;
   addHighlight: (highlight: Highlight) => Promise<void>;
@@ -91,7 +91,7 @@ const EMPTY_SALON_CONTEXT: SalonContextType = {
   updateBlockedTimes: async () => ({ success: false }),
   addBooking: async () => ({ success: false }),
   addOwnerBooking: async () => ({ success: false }),
-  cancelBooking: async () => false,
+  cancelBooking: async () => ({ success: false }),
   refreshBookings: async () => {},
   refreshSalonData: async () => {},
   addHighlight: async () => {},
@@ -147,7 +147,9 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     async function load() {
       try {
         const signal = controller.signal;
-        const [salonData, servicesData, addonsData, highlightsData, blockedData] = await Promise.all([
+        // Bookings load WITH everything else — fetching them only after
+        // `loaded` flipped made cold opens flash every slot as free.
+        const [salonData, servicesData, addonsData, highlightsData, blockedData, bookingsData] = await Promise.all([
           fetchSalonInfo(),
           fetchServices(),
           fetchAddons(),
@@ -155,6 +157,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           fetch("/api/read/blocked-times", { signal })
             .then(async (r) => (r.ok ? await r.json() : null))
             .catch(() => null),
+          fetchBookings("default"),
         ]);
         if (signal.aborted) return;
         // Adopt results whenever the fetch SUCCEEDED — including empty lists.
@@ -176,6 +179,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         if (blockedData !== null && Array.isArray(blockedData.blockedTimes)) {
           setBlockedTimes(blockedData.blockedTimes);
         }
+        if (bookingsData !== null) setBookings(bookingsData);
       } catch (e) {
         if (!controller.signal.aborted) {
           devLog("Failed to load salon data:", e);
@@ -318,7 +322,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const handleCancelBooking = useCallback(async (bookingId: string): Promise<boolean> => {
+  const handleCancelBooking = useCallback(async (bookingId: string): Promise<{ success: boolean; error?: string }> => {
     // Read the snapshot from a ref before the optimistic write. A state
     // updater may run later (or more than once) under concurrent rendering,
     // so capturing the value inside it can lose the rollback status.
@@ -326,13 +330,15 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: "cancelled" } : b));
     try {
       await cancelBookingApi(bookingId);
-      return true;
+      return { success: true };
     } catch (e) {
       devLog("Failed to cancel booking:", e);
       if (originalStatus) {
         setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: originalStatus } : b));
       }
-      return false;
+      // Surface the server's precise guard text ("نوبت‌های گذشته قابل لغو
+      // نیستند" etc.) — a generic retry-inviting message caused endless taps.
+      return { success: false, error: e instanceof Error ? e.message : undefined };
     }
   }, []);
 
@@ -346,7 +352,26 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     // Keep the last known-good bookings during a transient network/API error.
     // Replacing the timeline with [] makes a live app look empty and can hide
     // occupied slots while the next poll is still pending.
-    if (data !== null) setBookings(data);
+    if (data === null) return;
+    // A poll already in flight when an optimistic flip happened carries the
+    // OLD server value — preserve in-flight fields instead of letting the
+    // timeline visibly flicker back until the post-success reconcile.
+    const inFlightPaid = paidInFlightRef.current;
+    const inFlightStatus = statusInFlightRef.current;
+    if (inFlightPaid.size === 0 && inFlightStatus.size === 0) {
+      setBookings(data);
+      return;
+    }
+    setBookings((prev) => {
+      const prevById = new Map(prev.map((b) => [b.id, b]));
+      return data.map((b) => {
+        const old = prevById.get(b.id);
+        if (!old) return b;
+        if (inFlightPaid.has(b.id)) return { ...b, paid: old.paid };
+        if (inFlightStatus.has(b.id)) return { ...b, status: old.status };
+        return b;
+      });
+    });
   }, []);
   useEffect(() => {
     refreshBookingsRef.current = refreshBookings;

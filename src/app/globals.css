@@ -1311,7 +1311,7 @@
 .qbf-field { margin-bottom: 12px; }
 .qbf-field label { display: block; font-size: 11.5px; font-weight: 800; color: var(--qbf-mut); margin-bottom: 6px; transition: color .2s; }
 .qbf-field:focus-within label { color: var(--qbf-rose-2); }
-.qbf-inp { width: 100%; border: 1.5px solid var(--qbf-hair); border-radius: var(--qbf-r2); padding: 13px 15px; font: 600 14px 'Vazirmatn'; color: var(--qbf-ink); background: var(--qbf-bg); outline: none; transition: border-color .18s var(--qbf-ease-out), box-shadow .18s var(--qbf-ease-out), background-color .18s var(--qbf-ease-out); }
+.qbf-inp { width: 100%; border: 1.5px solid var(--qbf-hair); border-radius: var(--qbf-r2); padding: 13px 15px; font: 600 16px 'Vazirmatn'; color: var(--qbf-ink); background: var(--qbf-bg); outline: none; transition: border-color .18s var(--qbf-ease-out), box-shadow .18s var(--qbf-ease-out), background-color .18s var(--qbf-ease-out); }
 .qbf-inp:focus { border-color: var(--qbf-accent); background: #fff; box-shadow: 0 0 0 3px rgba(51, 34, 26, .12); }
 .qbf-inp.ltr { direction: ltr; text-align: right; }
 .qbf-otp-send { width: 100%; padding: 15px; border: none; border-radius: var(--qbf-r2); background: var(--qbf-accent); color: #fff; font: 800 14px 'Vazirmatn'; cursor: pointer; transition: all .25s var(--qbf-ease-spring); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09), 0 10px 26px rgba(42, 24, 16, .2); }

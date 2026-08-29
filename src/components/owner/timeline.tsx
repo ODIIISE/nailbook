@@ -80,6 +80,16 @@ function getBlockPosition(startTime: string, endTime: string, startHour: number)
 }
 
 function computeBookingTotal(booking: Booking, service?: Service, addons?: Addon[]) {
+  // Deleted services NULL service_id server-side and the page supplies a
+  // price-less name stub — fall back to the creation-time snapshot so the
+  // card never shows 0 for a real booking.
+  if (booking.price_total !== null && booking.price_total !== undefined) {
+    return {
+      totalPrice: booking.price_total,
+      totalDuration: getBlockPosition(booking.start_time, booking.end_time, 0).durationMinutes,
+      hasAddons: (booking.selected_addons || []).length > 0,
+    };
+  }
   const servicePrice = Number(service?.price) || 0;
   const addonsPrice = (booking.selected_addons || []).reduce((sum, id) => {
     const a = addons?.find((x) => x.id === id);
@@ -297,9 +307,13 @@ export function Timeline({
                     </div>
                   ) : (
                     <div
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`حذف زمان استراحت ${blockedTimes[idx]?.start_time ?? ""}`}
                       className={`h-full border overflow-hidden flex cursor-pointer transition-colors`}
                       style={{ backgroundColor: t(statusColors.blockBg.light, statusColors.blockBg.dark), borderColor: wbBorder }}
                       onClick={() => setConfirmRemoveIndex(idx)}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setConfirmRemoveIndex(idx); }}
                       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = bh)}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = t(statusColors.blockBg.light, statusColors.blockBg.dark))}
                     >

@@ -424,11 +424,11 @@ function OwnerDashboardContent() {
             await updateBookingStatus(selectedBooking.id, status);
           }}
           onDelete={async (id) => {
-            const success = await cancelBooking(id);
-            if (success) {
+            const result = await cancelBooking(id);
+            if (result.success) {
               toast.success("نوبت لغو شد");
             } else {
-              toast.error("خطا در لغو نوبت");
+              toast.error(result.error || "خطا در لغو نوبت");
             }
             setSelectedBookingId(null);
           }}

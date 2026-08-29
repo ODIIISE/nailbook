@@ -139,7 +139,9 @@ export function ManualReserveModal({
     /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(startTime) &&
     /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(endTime) &&
     endTime > startTime &&
-    (!expectedEndTime || endTime === expectedEndTime)
+    // An empty expectedEndTime means the slot would cross midnight
+    // (calculateEndTime refuses) — never submit that.
+    endTime === expectedEndTime
   );
 
   const handleSubmit = async () => {
@@ -165,8 +167,8 @@ export function ManualReserveModal({
     <BottomSheet open={true} onClose={onClose} title="رزرو دستی">
       <div className="space-y-4">
         <div>
-          <Label className="text-caption">نام مشتری</Label>
-          <Input
+          <Label className="text-caption" htmlFor="mr-name">نام مشتری</Label>
+          <Input id="mr-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="نام (اختیاری)"
@@ -175,8 +177,8 @@ export function ManualReserveModal({
         </div>
 
         <div>
-          <Label className="text-caption">شماره موبایل</Label>
-          <Input
+          <Label className="text-caption" htmlFor="mr-phone">شماره موبایل</Label>
+          <Input id="mr-phone"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="۰۹۱۲۱۲۳۴۵۶۷"
@@ -189,9 +191,9 @@ export function ManualReserveModal({
         </div>
 
         <div>
-          <Label className="text-caption">خدمت</Label>
+          <Label className="text-caption" htmlFor="mr-service">خدمت</Label>
           {activeServices.length > 0 ? (
-            <Select value={resolvedServiceId} onValueChange={(val) => handleServiceChange(val as string)}>
+            <Select value={resolvedServiceId} id="mr-service" onValueChange={(val) => handleServiceChange(val as string)}>
               <SelectTrigger className="mt-1 w-full h-12 rounded-xl border border-border bg-card px-3 text-body" dir="rtl">
                 {/* Base UI renders the raw value when SelectValue has no child.
                     Provide the selected label explicitly so UUIDs never leak into the form. */}
@@ -219,8 +221,9 @@ export function ManualReserveModal({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label className="text-caption">از ساعت</Label>
+            <Label className="text-caption" htmlFor="mr-start">از ساعت</Label>
             <Input
+              id="mr-start"
               type="time"
               value={startTime}
               onChange={(e) => handleStartTimeChange(e.target.value)}
@@ -229,8 +232,9 @@ export function ManualReserveModal({
             />
           </div>
           <div>
-            <Label className="text-caption">تا ساعت</Label>
+            <Label className="text-caption" htmlFor="mr-end">تا ساعت</Label>
             <Input
+              id="mr-end"
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
@@ -254,7 +258,7 @@ export function ManualReserveModal({
         )}
 
         {endTime && startTime && endTime <= startTime && (
-          <p className="text-small text-destructive text-center">ساعت پایان باید بعد از ساعت شروع باشد</p>
+          <p role="alert" className="text-small text-destructive text-center">ساعت پایان باید بعد از ساعت شروع باشد</p>
         )}
         {submitError && <p role="alert" className="text-caption text-destructive text-center">{submitError}</p>}
       </div>
