@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
@@ -72,6 +72,7 @@ interface Look {
 // (The previous remote fallback went 404 silently and the hero degraded
 // to a flat gradient for salons without their own image.)
 const FALLBACK_HERO = "/hero-default.jpg";
+const FALLBACK_PORTRAIT = "https://images.unsplash.com/photo-1630843599725-32ead7671867?w=600&q=80&auto=format&fit=crop";
 
 export function QwenCustomerHome() {
   const router = useRouter();
@@ -244,90 +245,99 @@ export function QwenCustomerHome() {
 
   return (
     <main className="qhp-page">
-      {/* HERO CARD — framed editorial cover. Menu + profile ride on the image
-          as glass pills; the brand block sits on the bottom scrim. */}
-      <header className="qhp-hero">
-        <div className="qhp-hero-media" aria-hidden="true">
-          <div ref={heroRef} className="qhp-hero-par">
-            {(() => {
-              const src = salon.hero_image_url && !failedImages.includes(salon.hero_image_url)
-                ? salon.hero_image_url
-                : !failedImages.includes(FALLBACK_HERO) ? FALLBACK_HERO : null;
-              return src ? (
-                <Image src={src} alt="" fill priority unoptimized
-                  sizes="(max-width: 430px) 100vw, 430px"
-                  className="qhp-hero-img" onError={() => markImageFailed(src)} />
-              ) : <div className="qhp-hero-fallback" />;
-            })()}
-          </div>
-          <div className="qhp-hero-scrim" />
-        </div>
-
-        <div className="qhp-hero-chrome">
-          <button type="button" className="qhp-chrome-btn" onClick={() => setDrawerOpen(true)}
-            aria-label="منو" aria-expanded={drawerOpen} title="منو">
-            <Menu aria-hidden="true" />
-          </button>
-          {/* Prefetching Link: profile route is fetched on hover, first tap feels instant. */}
-          <Link href="/profile" className="qhp-chrome-btn" aria-label="پروفایل من" title="پروفایل من">
-            <User aria-hidden="true" />
-          </Link>
-        </div>
-
-        <div className="qhp-hero-body">
-          <span className="qhp-kicker">{salon.homepage_kicker || "NAIL · CARE · RITUAL"}</span>
-          <h1 className="qhp-name">{salon.name || "استودیو ناخن"}</h1>
-          {salon.slogan && <p className="qhp-tagline">{salon.slogan}</p>}
-          <div className="qhp-status" aria-live="polite">
-            <span className={`qhp-dot${live.isOpen ? "" : " is-closed"}`} aria-hidden="true" />
-            <span>{live.label}</span>
-          </div>
-        </div>
-      </header>
-
-      {/* PRIMARY CTA — floats over the hero's bottom edge, always the anchor */}
-      <div className="qhp-cta-wrap">
-        <button type="button" className="qhp-cta magnetic" onClick={() => openBooking()}
-          disabled={!loaded || activeServices.length === 0}>
-          <CalendarDays aria-hidden="true" />
-          <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? (salon.homepage_cta_label || "شروع رزرو") : "رزرو موقتاً بسته است"}</span>
-          <ArrowLeft className="qhp-cta-chev" aria-hidden="true" />
+      {/* TOP CHROME — hamburger menu (top-right) + profile (top-left), pinned to the frame.
+          In RTL the first flex child sits at the visual right, so the menu button
+          comes first in the DOM to land on the right and profile on the left. */}
+      <div className="qhp-topbar">
+        <button type="button" className="qhp-top-btn" onClick={() => setDrawerOpen(true)}
+          aria-label="منو" aria-expanded={drawerOpen} title="منو">
+          <Menu aria-hidden="true" />
         </button>
-        <p className="qhp-micro">{salon.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا"}</p>
+        {/* Prefetching Link (not router.push): the profile route is fetched on
+            hover/load, so the first tap feels instant instead of waiting on a
+            network roundtrip before the transition can start. */}
+        <Link href="/profile" className="qhp-top-btn" aria-label="پروفایل من" title="پروفایل من">
+          <User aria-hidden="true" />
+        </Link>
       </div>
 
-      {/* INFO TILES — hours, location, instagram: three taps, zero hunting */}
-      <div className="qhp-tiles">
-        <div className="qhp-tile">
-          <Clock className="qhp-tile-ic" aria-hidden="true" />
-          <b>{live.isOpen ? "باز است" : "بسته"}</b>
-          <small>{live.isOpen ? `تا ${toPersianDigits(workingHours[getTehranNow().weekdayKey]?.close ?? "")}` : "ساعات کاری"}</small>
+      {/* HERO — full-bleed cover with slow breathe + scroll parallax */}
+      <div className="qhp-hero" aria-hidden="true">
+        <div ref={heroRef} className="qhp-hero-par">
+          {(() => {
+            const src = salon.hero_image_url && !failedImages.includes(salon.hero_image_url)
+              ? salon.hero_image_url
+              : !failedImages.includes(FALLBACK_HERO) ? FALLBACK_HERO : null;
+            return src ? (
+              <Image src={src} alt="" fill priority unoptimized
+                sizes="(max-width: 430px) 100vw, 430px"
+                className="qhp-hero-img" onError={() => markImageFailed(src)} />
+            ) : <div className="qhp-hero-fallback" />;
+          })()}
         </div>
-        {salon.address && (
-          <a className="qhp-tile" href={mapUrl ?? undefined} target="_blank" rel="noopener noreferrer"
-            aria-label="مشاهده آدرس روی نقشه">
-            <MapPin className="qhp-tile-ic" aria-hidden="true" />
-            <b>{salon.city || "آدرس"}</b>
-            <small>{salon.address.length > 26 ? `${salon.address.slice(0, 26)}…` : salon.address}</small>
-          </a>
-        )}
-        {igHandle && (
-          <a className="qhp-tile" href={`https://instagram.com/${igHandle.replace(/^@/, "")}`}
-            target="_blank" rel="noopener noreferrer" aria-label="اینستاگرام">
-            <svg className="qhp-tile-ic" viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
-              <circle cx="12" cy="12" r="4.2" />
-              <circle cx="17.5" cy="6.7" r="1" fill="currentColor" stroke="none" />
-            </svg>
-            <b>اینستاگرام</b>
-            <small dir="ltr">@{igHandle.replace(/^@/, "")}</small>
-          </a>
-        )}
+        <div className="qhp-hero-fade" />
       </div>
 
-      {/* LOOKBOOK — story-style rail, first card in hand */}
+      {/* PROFILE — gold-ring portrait (decorative), editorial brand block */}
+      <section className="qhp-profile" aria-label={salon.name || "سالن"}>
+        <div className="qhp-ring" aria-hidden="true">
+          <span className="qhp-ring-swatch" aria-hidden="true" />
+          <span className="qhp-ring-inner">
+            {(() => {
+              const src = salon.portrait_image_url && !failedImages.includes(salon.portrait_image_url)
+                ? salon.portrait_image_url
+                : salon.logo_url && !failedImages.includes(salon.logo_url)
+                  ? salon.logo_url
+                  : !failedImages.includes(FALLBACK_PORTRAIT) ? FALLBACK_PORTRAIT : null;
+              return src ? (
+                <Image src={src} alt={salon.name || "سالن"} fill priority unoptimized
+                  sizes="110px" className="qhp-portrait" onError={() => markImageFailed(src)} />
+              ) : (
+                <span className="qhp-portrait-fallback" aria-hidden="true"><Sparkles className="h-8 w-8" /></span>
+              );
+            })()}
+          </span>
+        </div>
+
+        <span className="qhp-mask" style={{ "--md": ".04s" } as CSSProperties}>
+          <span className="qhp-kicker">{salon.homepage_kicker || "NAIL · CARE · RITUAL"}</span>
+        </span>
+        <span className="qhp-mask" style={{ "--md": ".09s" } as CSSProperties}>
+          <h1 className="qhp-name">{salon.name || "استودیو ناخن"}</h1>
+        </span>
+        {salon.slogan && (
+          <span className="qhp-mask" style={{ "--md": ".14s" } as CSSProperties}>
+            <span className="qhp-tagline">{salon.slogan}</span>
+          </span>
+        )}
+
+        <div className="qhp-meta">
+          {salon.address && (
+            <a className="qhp-addr" href={mapUrl ?? undefined} target="_blank" rel="noopener noreferrer"
+              aria-label="مشاهده آدرس روی نقشه">
+              <MapPin aria-hidden="true" />
+              <span>{salon.address}</span>
+            </a>
+          )}
+          <div className="qhp-open" aria-live="polite">
+            <span className={`qhp-dot${live.isOpen ? "" : " is-closed"}`} aria-hidden="true" />
+            <span className={live.isOpen ? "qhp-open-t" : "qhp-open-c"}>{live.label}</span>
+          </div>
+        </div>
+      </section>
+
+      {/* PRIMARY CTA — opens the booking flow on its own page */}
+      <button type="button" className="qhp-cta magnetic" onClick={() => openBooking()}
+        disabled={!loaded || activeServices.length === 0}>
+        <CalendarDays aria-hidden="true" />
+        <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? (salon.homepage_cta_label || "شروع رزرو") : "رزرو موقتاً بسته است"}</span>
+        <ArrowLeft className="qhp-cta-chev" aria-hidden="true" />
+      </button>
+      <p className="qhp-micro">{salon.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا"}</p>
+
+      {/* LOOKBOOK — story-style rail */}
       {looks.length > 0 && (
-        <section className="qhp-section" aria-labelledby="qhp-work-title">
+        <section className="qhp-section qhp-reveal qhp-lookbook" aria-labelledby="qhp-work-title">
           <div className="qhp-sec-head">
             <h2 id="qhp-work-title">{salon.lookbook_title || "نمونه‌کارها"}</h2>
             <span className="qhp-sec-kicker">LOOKBOOK</span>
@@ -340,7 +350,7 @@ export function QwenCustomerHome() {
                   onClick={() => openLook(look)} aria-label={`دیدن ${look.name}`}>
                   {src ? (
                     <Image src={src} alt={look.name} fill unoptimized loading="lazy"
-                      sizes="230px" className="qhp-work-image"
+                      sizes="190px" className="qhp-work-image"
                       onError={() => markImageFailed(src)} />
                   ) : (
                     <span className="qhp-work-fallback" aria-hidden="true">
@@ -364,48 +374,43 @@ export function QwenCustomerHome() {
         </section>
       )}
 
-      {/* MENU — service rows with photo thumbs */}
+      {/* MENU — editorial numbered service list */}
       {activeServices.length > 0 && (
-        <section className="qhp-section" aria-labelledby="qhp-menu-title">
+        <section className="qhp-section qhp-reveal" aria-labelledby="qhp-menu-title">
           <div className="qhp-sec-head">
             <h2 id="qhp-menu-title">منوی خدمات</h2>
             <span className="qhp-sec-kicker">MENU</span>
           </div>
           <div className="qhp-menu">
-            {activeServices.map((s) => {
-              const thumb = s.image_url && !failedImages.includes(s.image_url) ? s.image_url : getServiceImage(s.name);
-              return (
-                <button key={s.id} type="button" className="qhp-row"
-                  onClick={() => openBooking({ serviceId: s.id })} aria-label={`رزرو ${s.name}`}>
-                  <span className="qhp-row-thumb" aria-hidden="true">
-                    {thumb ? (
-                      <Image src={thumb} alt="" fill unoptimized loading="lazy" sizes="56px"
-                        className="qhp-row-thumb-img" onError={() => markImageFailed(thumb)} />
-                    ) : <Sparkles className="h-5 w-5" />}
-                  </span>
-                  <span className="qhp-row-body">
-                    <b className="qhp-row-name">
-                      {s.name}
-                      {s.is_popular && <span className="qhp-badge">پرطرفدار</span>}
-                    </b>
-                    <small className="qhp-row-dur">
-                      {s.description ? `${s.description} · ` : ""}
-                      <Clock className="h-3 w-3" aria-hidden="true" />
-                      {toPersianDigits(s.duration_minutes)} دقیقه
-                    </small>
-                  </span>
-                  <span className="qhp-row-price"><b>{compactPrice(s.price)}</b><small>تومان</small></span>
-                </button>
-              );
-            })}
+            {activeServices.map((s, i) => (
+              <button key={s.id} type="button" className="qhp-row"
+                onClick={() => openBooking({ serviceId: s.id })} aria-label={`رزرو ${s.name}`}>
+                <span className="qhp-row-num" aria-hidden="true">
+                  {toPersianDigits(String(i + 1).padStart(2, "0"))}
+                </span>
+                <span className="qhp-row-body">
+                  <b className="qhp-row-name">
+                    {s.name}
+                    {s.is_popular && <span className="qhp-badge">پرطرفدار</span>}
+                  </b>
+                  <small className="qhp-row-dur">
+                    {s.description ? `${s.description} · ` : ""}
+                    <Clock className="h-3 w-3" aria-hidden="true" />
+                    {toPersianDigits(s.duration_minutes)} دقیقه
+                  </small>
+                </span>
+                <span className="qhp-row-price"><b>{compactPrice(s.price)}</b><small>تومان</small></span>
+                <ArrowLeft className="qhp-row-chev" aria-hidden="true" />
+              </button>
+            ))}
           </div>
         </section>
       )}
 
-      {/* CONTACT — direct actions + hours */}
-      <section className="qhp-contact" aria-label="تماس با سالن">
+      {/* CONTACT — hours + quiet social row */}
+      <section className="qhp-contact qhp-reveal">
         <p className="qhp-hours"><b>ساعات کاری</b> · {formatHours(salon.working_hours_text, workingHours)}</p>
-        <nav className="qhp-socials">
+        <nav className="qhp-socials" aria-label="تماس با سالن">
           {salon.phone && (
             <a className="qhp-soc" href={`tel:${salon.phone}`} aria-label="تماس">
               <Phone aria-hidden="true" />
@@ -414,6 +419,16 @@ export function QwenCustomerHome() {
           {phoneValid && (
             <a className="qhp-soc" href={`sms:${salon.phone}`} aria-label="ارسال پیامک">
               <MessageCircle aria-hidden="true" />
+            </a>
+          )}
+          {igHandle && (
+            <a className="qhp-soc" href={`https://instagram.com/${igHandle.replace(/^@/, "")}`}
+              target="_blank" rel="noopener noreferrer" aria-label="اینستاگرام">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
+                <circle cx="12" cy="12" r="4.2" />
+                <circle cx="17.5" cy="6.7" r="1" fill="currentColor" stroke="none" />
+              </svg>
             </a>
           )}
         </nav>
@@ -446,6 +461,7 @@ export function QwenCustomerHome() {
                 )}
               </div>
 
+              {/* Gallery rail — all images the owner uploaded for this look */}
               {gallery.length > 1 && (
                 <div className="qhp-look-gallery" role="tablist" aria-label="تصاویر این مدل">
                   {gallery.map((u, i) => (
@@ -548,7 +564,7 @@ export function QwenCustomerHome() {
           <AlertDialogHeader>
             <AlertDialogTitle>خروج از حساب</AlertDialogTitle>
             <AlertDialogDescription>
-              مطمئن هستید که می‌خواهید از حساب خود خارج شوید؟ نوبت‌های شما محفوظ می‌مانند.
+              مطمئن هستید که می‌خواهید از حساب خود خارج شوید؟ نوبت‌های شما محفوظ می‌ماند.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
