@@ -30,6 +30,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fa_IR",
     siteName: "Forehand Nail Studio",
+    images: [{ url: "/hero-default.jpg", width: 1280, height: 853, alt: "Forehand Nail Studio" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Forehand Nail Studio | رزرو آنلاین",
+    description: "رزرو آنلاین نوبت ناخن — بدون تماس تلفنی، زمان‌های آزاد همین‌جا",
+    images: ["/hero-default.jpg"],
   },
   manifest: "/manifest.json",
   icons: {

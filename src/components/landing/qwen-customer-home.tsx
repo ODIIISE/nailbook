@@ -19,6 +19,7 @@ import { toPersianDigits } from "@/lib/jalali";
 import { isValidIranianPhone } from "@/lib/digits";
 import { compactPrice, compactToman } from "@/lib/pricing";
 import { getServiceImage } from "@/lib/service-images";
+import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
 import type { Addon, Service } from "@/lib/types";
 import type { WorkingHours } from "@/lib/slots";
 
@@ -189,7 +190,9 @@ export function QwenCustomerHome() {
   }, [activeLook, looks, failedImages]);
 
   const phoneValid = isValidIranianPhone(salon.phone);
-  const igHandle = salon.instagram_handle || (salon.name.toLowerCase().includes("forehand") ? "forehand.nail" : "");
+  // The handle lives in owner settings (instagram_handle). No heuristic:
+  // guessing from the salon name silently linked the wrong account once.
+  const igHandle = salon.instagram_handle;
   const mapUrl = salon.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.address)}` : null;
 
   // Hero parallax — rAF-throttled, honours reduced motion.
@@ -757,6 +760,10 @@ function Drawer({ open, onClose, title, children }: { open: boolean; onClose: ()
   const previousFocus = useRef<HTMLElement | null>(null);
   const closeTimer = useRef<number | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  // Tab cycles inside the drawer while it is open (focus in/out already
+  // handled below) — parity with the Sheet and every other modal.
+  const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(panelRef, open);
 
   useEffect(() => {
     if (open) {
@@ -820,7 +827,7 @@ function Drawer({ open, onClose, title, children }: { open: boolean; onClose: ()
   if (!mounted || typeof document === "undefined") return null;
 
   return createPortal(
-    <div className="qhp-drawer-wrap" role="dialog" aria-modal="true" aria-label={title}>
+    <div ref={panelRef} className="qhp-drawer-wrap" role="dialog" aria-modal="true" aria-label={title}>
       <div
         className="qhp-drawer-scrim"
         style={{ opacity: visible ? 1 : 0 }}
