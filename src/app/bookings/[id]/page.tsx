@@ -13,7 +13,7 @@ export const metadata = {
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   reserved: { label: "ثبت شده", cls: "reserved" },
-  confirmed: { label: "تایید شده", cls: "confirmed" },
+  confirmed: { label: "تأیید شده", cls: "confirmed" },
   pending: { label: "در انتظار", cls: "pending" },
   completed: { label: "انجام شده", cls: "completed" },
   cancelled: { label: "لغو شده", cls: "cancelled" },

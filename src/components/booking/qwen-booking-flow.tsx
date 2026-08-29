@@ -15,6 +15,8 @@ import {
 import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
 import { generateTimeSlots, type TimeSlot } from "@/lib/slots";
 import { getTehranDateKey, parseGregorianDateKey } from "@/lib/time";
+import { useBookingsPolling } from "@/lib/hooks/use-bookings-polling";
+import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
 import { compactToman } from "@/lib/pricing";
 import { haptic } from "@/lib/haptics";
 import { ServiceImage } from "@/components/ui/service-image";
@@ -68,10 +70,7 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
   const { user, sendOtp, verifyOtp, updateProfile } = useAuth();
 
   // ── Lifecycle ──
-  useEffect(() => {
-    const interval = setInterval(() => { refreshBookings(); }, 60_000);
-    return () => clearInterval(interval);
-  }, [refreshBookings]);
+  useBookingsPolling("default", 60_000);
 
   // ── State ──
   const [step, setStep] = useState<Step>("service");
@@ -963,6 +962,7 @@ function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; o
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
+  useFocusTrap(dialogRef, true);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onCloseRef.current(); };
     document.addEventListener("keydown", onKey);

@@ -160,7 +160,7 @@ export function Timeline({
         {hourMarks.map((hour, i) => (
           <span
             key={`h-${hour}`}
-            className={`absolute left-0 w-11 text-center text-small font-bold ${hourColor} z-5`}
+            className={`absolute start-0 w-11 text-center text-small font-bold ${hourColor} z-5`}
             style={{ top: i * HOUR_HEIGHT, fontVariantNumeric: "tabular-nums", transform: "translateY(-50%)" }}
           >
             {formatHourPersian(hour)}
@@ -169,7 +169,7 @@ export function Timeline({
 
         {/* Grid lines */}
         {hourMarks.map((hour, i) => (
-          <div key={`l-${hour}`} className={`absolute h-px ${lineColor}`} style={{ top: i * HOUR_HEIGHT, left: 44, right: 0 }} />
+          <div key={`l-${hour}`} className={`absolute h-px ${lineColor}`} style={{ top: i * HOUR_HEIGHT, insetInlineStart: 44, insetInlineEnd: 0 }} />
         ))}
 
         {/* Half-hour dots */}
@@ -194,7 +194,7 @@ export function Timeline({
               return (
                 <div
                   key={b.id}
-                  className="absolute left-12 right-2 cursor-pointer z-10 press-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card rounded"
+                  className="absolute start-12 end-2 cursor-pointer z-10 press-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card rounded"
                   style={{ top: pos.top, height: pos.height }}
                   onClick={() => onSelectBooking(b)}
                   role="button"
@@ -289,7 +289,7 @@ export function Timeline({
               const bh = t(statusColors.blockHover.light, statusColors.blockHover.dark);
 
               return (
-                <div key={`blk-${idx}`} className="absolute left-12 right-2 z-10" style={{ top: pos.top, height: pos.height }}>
+                <div key={`blk-${idx}`} className="absolute start-12 end-2 z-10" style={{ top: pos.top, height: pos.height }}>
                   {isConfirming ? (
                     <div className={`h-full ${wb} border ${wbBorder} overflow-hidden flex flex-col justify-center items-center p-2 animate-scale`}>
                       <AlertTriangle className={`h-4 w-4 ${wa} mb-1`} />
@@ -342,7 +342,7 @@ export function Timeline({
                     style={{ backgroundColor: 'currentColor' }} />
                 </div>
                 <div className="h-[2px]" style={{ backgroundColor: 'var(--accent-now)' }} />
-                <div className="absolute start-0 top-[3px] w-2.5 h-2.5 rounded-full -translate-x-1/2 -translate-y-1/2 ring-2 ring-card"
+                <div className="absolute start-0 top-[3px] w-2.5 h-2.5 rounded-full -translate-x-1/2 rtl:translate-x-1/2 -translate-y-1/2 ring-2 ring-card"
                   style={{ backgroundColor: 'var(--accent-now)' }} />
               </div>
             )}

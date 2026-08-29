@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     const statusLabels: Record<string, string> = {
       pending: "در انتظار",
       reserved: "رزرو شده",
-      confirmed: "تایید شده",
+      confirmed: "تأیید شده",
       in_progress: "در حال انجام",
       completed: "انجام شده",
       cancelled: "لغو شده",

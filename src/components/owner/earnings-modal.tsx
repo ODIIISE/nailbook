@@ -96,7 +96,7 @@ export function EarningsModal({
               <TrendingUp className="h-4 w-4 text-success" />
               <span className="text-caption text-foreground">پرداخت شده</span>
             </div>
-            <div className="text-left">
+            <div className="text-start">
               <p className="text-body font-bold text-success">
                 {formatPrice(earnings.paid)} تومان
               </p>
@@ -111,7 +111,7 @@ export function EarningsModal({
               <TrendingDown className="h-4 w-4 text-destructive" />
               <span className="text-caption text-foreground">پرداخت نشده</span>
             </div>
-            <div className="text-left">
+            <div className="text-start">
               <p className="text-body font-bold text-destructive">
                 {formatPrice(earnings.unpaid)} تومان
               </p>
@@ -128,7 +128,7 @@ export function EarningsModal({
               <DollarSign className="h-4 w-4 text-foreground" />
               <span className="text-caption font-bold text-foreground">کل درآمد</span>
             </div>
-            <div className="text-left">
+            <div className="text-start">
               <p className="text-body-lg font-bold text-foreground">
                 {formatPrice(earnings.total)} تومان
               </p>

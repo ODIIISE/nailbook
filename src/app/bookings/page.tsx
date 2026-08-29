@@ -9,6 +9,8 @@ import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
+import { useBookingsPolling } from "@/lib/hooks/use-bookings-polling";
 import { gregorianToJalali, toPersianDigits, formatJalaliTime } from "@/lib/jalali";
 import { parseGregorianDateKey } from "@/lib/time";
 import { compactToman } from "@/lib/pricing";
@@ -16,7 +18,7 @@ import type { Booking } from "@/lib/types";
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   reserved: { label: "ثبت شده", cls: "reserved" },
-  confirmed: { label: "تایید شده", cls: "confirmed" },
+  confirmed: { label: "تأیید شده", cls: "confirmed" },
   pending: { label: "در انتظار", cls: "pending" },
   completed: { label: "انجام شده", cls: "completed" },
   cancelled: { label: "لغو شده", cls: "cancelled" },
@@ -30,21 +32,8 @@ export default function BookingsPage() {
   const { bookings, services, addons, cancelBooking, refreshBookings } = useSalon();
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-  // Refresh bookings: 10s polling + instant refresh on tab focus
-  useEffect(() => {
-    const refresh = () => { void refreshBookings(); };
-    const id = window.setInterval(refresh, 10000);
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") refresh();
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-    window.addEventListener("focus", refresh);
-    return () => {
-      window.clearInterval(id);
-      document.removeEventListener("visibilitychange", handleVisibility);
-      window.removeEventListener("focus", refresh);
-    };
-  }, [refreshBookings]);
+  // Shared polling policy (10s + focus/visibility refresh).
+  useBookingsPolling("default");
 
   // A customer's history is matched by their user row; the phone fallback
   // also surfaces owner-created bookings whose customer hasn't OTP-verified
@@ -250,6 +239,8 @@ function BookingDetailSheet({
   const [confirming, setConfirming] = useState(false);
   const [visible, setVisible] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(sheetRef, visible);
   const cancelingRef = useRef(false);
   const closingRef = useRef(false);
   const timerRef = useRef<number | null>(null);
@@ -325,7 +316,7 @@ function BookingDetailSheet({
         onClick={() => { if (!cancelingRef.current) requestClose(); }}
         aria-hidden="true"
       />
-      <div className="qbp-sheet" style={{ transform: visible ? "none" : "translateY(105%)" }}>
+      <div ref={sheetRef} className="qbp-sheet" style={{ transform: visible ? "none" : "translateY(105%)" }}>
         <div className="qbp-sheet-handle" aria-hidden="true" />
         <div className="qbp-sheet-head">
           <h3>جزئیات نوبت</h3>

@@ -22,6 +22,7 @@ import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "./menu-context";
 import { haptic } from "@/lib/haptics";
 import { ThemeToggle, ThemeModeMenu } from "@/components/ui/theme-toggle";
+import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -62,6 +63,7 @@ export function AppHeader({
 
   // Move focus into the open menu panel so keyboard/SR users land inside it.
   const menuPanelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(menuPanelRef, menuOpen);
   useEffect(() => {
     if (menuOpen) menuPanelRef.current?.focus();
   }, [menuOpen]);

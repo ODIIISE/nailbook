@@ -30,6 +30,7 @@ import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } fro
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey, parseGregorianDateKey } from "@/lib/time";
 import { getIranWeekDay } from "@/lib/slots";
+import { useBookingsPolling } from "@/lib/hooks/use-bookings-polling";
 import type { Service } from "@/lib/types";
 import { calculateEarnings, calculateBookingPrice } from "@/lib/pricing";
 import { toast } from "sonner";
@@ -76,26 +77,8 @@ function OwnerDashboardContent() {
     }
   }, [searchParams]);
 
-  // Refresh bookings: 10s polling + instant refresh on tab focus
-  useEffect(() => {
-    const refreshOwnerBookings = () => { void refreshBookings("owner"); };
-    const id = window.setInterval(refreshOwnerBookings, 10000);
-
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") refreshOwnerBookings();
-    };
-    const handleFocus = () => refreshOwnerBookings();
-
-    document.addEventListener("visibilitychange", handleVisibility);
-    window.addEventListener("focus", handleFocus);
-
-    return () => {
-      window.clearInterval(id);
-      document.removeEventListener("visibilitychange", handleVisibility);
-      window.removeEventListener("focus", handleFocus);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Shared polling policy (owner scope).
+  useBookingsPolling("owner");
 
   const dayBookings = useMemo(() => {
     const dateStr = getTehranDateKey(currentDate);

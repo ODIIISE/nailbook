@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Trash2, AlertTriangle, CheckCircle2, XCircle, Loader } from "lucide-react";
 import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
 import { calculateBookingPrice } from "@/lib/pricing";
-import { STATUS_CONFIG, VALID_TRANSITIONS } from "@/lib/constants";
+import { STATUS_CONFIG, STATUS_CONFIG_DARK, VALID_TRANSITIONS } from "@/lib/constants";
 import { statusColors, themeColor } from "@/lib/design-tokens";
 import { useIsDark } from "@/lib/hooks/use-is-dark";
 import { parseGregorianDateKey } from "@/lib/time";
@@ -34,14 +34,20 @@ const STATUS_ICONS: Record<string, typeof CheckCircle2> = {
   pending: Clock,
 };
 
-const ALL_STATUS_OPTIONS: { value: string; label: string; color: string; Icon: typeof CheckCircle2 }[] = Object.entries(
+const ALL_STATUS_OPTIONS: { value: string; label: string; Icon: typeof CheckCircle2 }[] = Object.entries(
   STATUS_CONFIG
-).map(([value, { label, color }]) => ({
+).map(([value, { label }]) => ({
   value,
   label,
-  color,
   Icon: STATUS_ICONS[value] || Clock,
 }));
+
+/** Colors resolve per theme at render: the light hexes fail AA on the dark
+ * popover (3.0-4.0:1), so STATUS_CONFIG_DARK overrides them. */
+function statusColorFor(value: string, isDark: boolean): string {
+  const config = isDark ? { ...STATUS_CONFIG, ...STATUS_CONFIG_DARK } : STATUS_CONFIG;
+  return config[value]?.color ?? STATUS_CONFIG[value]?.color ?? "#6B7280";
+}
 
 export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, onStatusChange, onDelete, onClose }: BookingModalProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -59,12 +65,14 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
     }
   };
   const currentStatus = booking.status;
+  const isDark = useIsDark();
   const allowedTransitions = useMemo(() => VALID_TRANSITIONS[currentStatus] || [], [currentStatus]);
   const statusOptions = useMemo(
-    () => ALL_STATUS_OPTIONS.filter((opt) => allowedTransitions.includes(opt.value)),
-    [allowedTransitions]
+    () => ALL_STATUS_OPTIONS
+      .filter((opt) => allowedTransitions.includes(opt.value))
+      .map((opt) => ({ ...opt, color: statusColorFor(opt.value, isDark) })),
+    [allowedTransitions, isDark]
   );
-  const isDark = useIsDark();
   const t = (l: string, d: string) => themeColor(l, d, isDark);
 
   const jalali = gregorianToJalali(parseGregorianDateKey(booking.date_gregorian));
@@ -74,7 +82,8 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
   const endMinutes = parseInt(booking.end_time.split(":")[0]) * 60 + parseInt(booking.end_time.split(":")[1]);
   const duration = endMinutes >= startMinutes ? endMinutes - startMinutes : (endMinutes + 24 * 60) - startMinutes;
   const selectedAddons = (booking.selected_addons || []).map((id) => addons.find((a) => a.id === id)).filter(Boolean);
-  const statusConfig = ALL_STATUS_OPTIONS.find((s: { value: string }) => s.value === currentStatus) || ALL_STATUS_OPTIONS[0];
+  const statusConfigBase = ALL_STATUS_OPTIONS.find((s: { value: string }) => s.value === currentStatus) || ALL_STATUS_OPTIONS[0];
+  const statusConfig = { ...statusConfigBase, color: statusColorFor(currentStatus, isDark) };
   const shortId = `BK-${booking.id.slice(-6).toUpperCase()}`;
   const createdAtTime = booking.created_at ? new Date(booking.created_at).toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit", hour12: false }) : "";
 

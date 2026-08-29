@@ -356,7 +356,7 @@ export function PrintedReceipt({
             <p className="mt-1 text-xs text-muted-foreground">
               {isFinal
                 ? "رزرو شما با موفقیت ثبت گردید."
-                : "لطفاً جزئیات زیر را بررسی و تایید کنید."}
+                : "لطفاً جزئیات زیر را بررسی و تأیید کنید."}
             </p>
           </motion.div>
 

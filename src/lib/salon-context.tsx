@@ -49,7 +49,6 @@ interface SalonContextType {
   addOwnerBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   cancelBooking: (bookingId: string) => Promise<{ success: boolean; error?: string }>;
   refreshBookings: (scope?: "owner" | "default") => Promise<void>;
-  refreshSalonData: () => Promise<void>;
   addHighlight: (highlight: Highlight) => Promise<void>;
   updateHighlight: (highlight: Highlight) => Promise<void>;
   removeHighlight: (id: string) => Promise<void>;
@@ -93,7 +92,6 @@ const EMPTY_SALON_CONTEXT: SalonContextType = {
   addOwnerBooking: async () => ({ success: false }),
   cancelBooking: async () => ({ success: false }),
   refreshBookings: async () => {},
-  refreshSalonData: async () => {},
   addHighlight: async () => {},
   updateHighlight: async () => {},
   removeHighlight: async () => {},
@@ -391,20 +389,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     void refreshBookings(authUser?.roles?.includes("owner") ? "owner" : "default");
   }, [loaded, authLoading, authUser, refreshBookings]);
 
-  const refreshSalonData = useCallback(async () => {
-    try {
-      const salonData = await fetchSalonInfo();
-      if (salonData) {
-        setSalon(salonData);
-        if (salonData.working_hours && Object.keys(salonData.working_hours).length > 0) {
-          setWorkingHours(salonData.working_hours);
-        }
-        setSpecificDaysOff(salonData.specific_days_off || []);
-      }
-    } catch (e) {
-      devLog("Failed to refresh salon data:", e);
-    }
-  }, []);
+
 
   const handleUpdateSalon = useCallback(async (updates: Partial<SalonInfo>) => {
     // Persist first, then update the context. This prevents ScheduleManager's
@@ -618,7 +603,6 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       addOwnerBooking: handleAddOwnerBooking,
       cancelBooking: handleCancelBooking,
       refreshBookings: refreshBookings,
-      refreshSalonData: refreshSalonData,
       addHighlight: handleAddHighlight,
       updateHighlight: handleUpdateHighlight,
       removeHighlight: handleRemoveHighlight,
@@ -641,7 +625,6 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     handleAddOwnerBooking,
     handleCancelBooking,
     refreshBookings,
-    refreshSalonData,
     handleAddHighlight,
     handleUpdateHighlight,
     handleRemoveHighlight,

@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
     // Require explicit confirmation for destructive operations
     if (mode === "full" && !confirmDelete) {
       return NextResponse.json({
-        error: "بازیابی کامل نیاز به تایید دارد",
+        error: "بازیابی کامل نیاز به تأیید دارد",
         requiresConfirmation: true,
         bookingCount: Array.isArray(data.bookings) ? data.bookings.length : 0,
       }, { status: 409 });

@@ -429,14 +429,8 @@ export function QwenCustomerHome() {
       </section>
 
       <footer className="qhp-foot">
-        <span dir="ltr">Made with </span>
-        <span className="qhp-foot-heart" aria-hidden="true">♥</span>
-        <span dir="ltr"> for </span>
-        <strong>{salon.name || "your salon"}</strong>
-        <span dir="ltr"> by </span>
-        <a href="https://instagram.com/mehrdad_rastadfar" target="_blank" rel="noopener noreferrer" dir="ltr">
-          @mehrdad_rastadfar
-        </a>
+        ساخته شده با <span className="qhp-foot-heart" aria-hidden="true">♥</span> برای{" "}
+        <strong>{salon.name || "سالن شما"}</strong>
       </footer>
 
       {/* LOOK SHEET — gallery, service + addons, computed price/duration, one CTA */}
