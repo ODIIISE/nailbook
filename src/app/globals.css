@@ -777,17 +777,21 @@
 .qhp-page :focus-visible { outline: 2px solid var(--qhp-rose); outline-offset: 3px; border-radius: 4px; }
 
 /* ================= HERO ================= */
-.qhp-hero { position: absolute; top: 0; left: 0; right: 0; height: 400px; z-index: 0; pointer-events: none; overflow: hidden; }
+.qhp-hero { position: absolute; top: 0; left: 0; right: 0; height: 480px; z-index: 0; pointer-events: none; overflow: hidden; }
 .qhp-hero-par { position: absolute; inset: -60px 0; will-change: transform; transform: translate3d(0, var(--qhp-parallax, 0px), 0); }
 .qhp-hero-img { width: 100%; height: 100%; object-fit: cover; animation: qhpBreathe 16s var(--qhp-ease-inout) infinite alternate; }
 .qhp-hero-fallback { width: 100%; height: 100%; background: linear-gradient(160deg, #EADBC9, #D3B79D); }
 @keyframes qhpBreathe { from { transform: scale(1.02); } to { transform: scale(1.1) translateY(-8px); } }
 .qhp-hero-fade { position: absolute; inset: 0; background:
-  radial-gradient(120% 60% at 50% 0%, rgba(253, 246, 240, 0) 40%, rgba(253, 246, 240, .35) 78%),
-  linear-gradient(to bottom, rgba(253, 246, 240, .18) 0%, rgba(253, 246, 240, .46) 42%, rgba(253, 246, 240, .92) 72%, var(--qhp-bg) 97%); }
+  linear-gradient(to bottom,
+    rgba(253, 246, 240, .04) 0%,
+    rgba(253, 246, 240, .10) 34%,
+    rgba(253, 246, 240, .34) 55%,
+    rgba(253, 246, 240, .78) 74%,
+    var(--qhp-bg) 96%); }
 
 /* ================= PROFILE ================= */
-.qhp-profile { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 30px 0 18px; }
+.qhp-profile { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 0 14px; }
 .qhp-ring { position: relative; width: 116px; height: 116px; border-radius: 50%; margin-bottom: 16px; animation: qhpFadeDown .4s var(--qhp-ease-out) both; }
 .qhp-ring-swatch { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, #D8AC8E, #BE8A72, #E9CBB4, #C99B4C, #D8AC8E); animation: qhpRingSpin 9s linear infinite; }
 @keyframes qhpRingSpin { to { transform: rotate(360deg); } }
@@ -797,7 +801,7 @@
 .qhp-mask { display: block; overflow: hidden; }
 .qhp-mask > * { display: block; transform: translateY(115%); animation: qhpMaskUp .45s var(--qhp-ease-out) both; animation-delay: var(--md, 0s); }
 @keyframes qhpMaskUp { to { transform: none; } }
-.qhp-kicker { font-size: 10px; font-weight: 800; color: var(--qhp-rose-2); direction: ltr; letter-spacing: .28em; margin-bottom: 4px; }
+.qhp-kicker { font-size: 10px; font-weight: 800; color: #8A5636; direction: ltr; letter-spacing: .28em; margin-bottom: 6px; text-shadow: 0 1px 10px rgba(253, 246, 240, .9), 0 0 2px rgba(253, 246, 240, .8); }
 .qhp-name { font-family: var(--qhp-serif); font-size: 46px; font-weight: 700; line-height: 1.02; direction: ltr; color: var(--qhp-ink); }
 .qhp-tagline { font-size: 14.5px; color: var(--qhp-sub); margin: 6px 0 12px; font-weight: 500; }
 .qhp-meta { display: flex; flex-direction: column; align-items: center; gap: 10px; animation: qhpFadeUp .4s var(--qhp-ease-out) .18s both; }
@@ -823,11 +827,9 @@
 .qhp-micro { position: relative; z-index: 1; text-align: center; font-size: 11.5px; color: var(--qhp-mut); margin-bottom: 26px; animation: qhpFadeUp .4s var(--qhp-ease-out) .28s both; }
 
 /* ================= SECTION HEADS ================= */
-.qhp-section { position: relative; z-index: 1; margin-bottom: 26px; }
+.qhp-section { position: relative; z-index: 1; margin-bottom: 36px; }
 /* Lookbook is the conversion engine — pull the first card above the fold on
    typical phones so scrolling into it feels inevitable rather than hidden. */
-.qhp-section.qhp-lookbook { margin-top: -58px; }
-@media (min-height: 800px) { .qhp-section.qhp-lookbook { margin-top: -34px; } }
 .qhp-sec-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
 .qhp-sec-head h2 { font-size: 15px; font-weight: 800; color: var(--qhp-ink); }
 .qhp-sec-kicker { font-size: 9px; font-weight: 800; color: var(--qhp-mut); direction: ltr; letter-spacing: .24em; }

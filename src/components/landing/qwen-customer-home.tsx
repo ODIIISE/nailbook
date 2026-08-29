@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, CalendarDays, Clock, History, Home, Images, LogIn, LogOut, MapPin,
-  Menu, MessageCircle, Phone, Sparkles, User, X,
+  Menu, MessageCircle, Phone, User, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
@@ -72,7 +72,6 @@ interface Look {
 // (The previous remote fallback went 404 silently and the hero degraded
 // to a flat gradient for salons without their own image.)
 const FALLBACK_HERO = "/hero-default.jpg";
-const FALLBACK_PORTRAIT = "https://images.unsplash.com/photo-1630843599725-32ead7671867?w=600&q=80&auto=format&fit=crop";
 
 export function QwenCustomerHome() {
   const router = useRouter();
@@ -280,25 +279,6 @@ export function QwenCustomerHome() {
 
       {/* PROFILE — gold-ring portrait (decorative), editorial brand block */}
       <section className="qhp-profile" aria-label={salon.name || "سالن"}>
-        <div className="qhp-ring" aria-hidden="true">
-          <span className="qhp-ring-swatch" aria-hidden="true" />
-          <span className="qhp-ring-inner">
-            {(() => {
-              const src = salon.portrait_image_url && !failedImages.includes(salon.portrait_image_url)
-                ? salon.portrait_image_url
-                : salon.logo_url && !failedImages.includes(salon.logo_url)
-                  ? salon.logo_url
-                  : !failedImages.includes(FALLBACK_PORTRAIT) ? FALLBACK_PORTRAIT : null;
-              return src ? (
-                <Image src={src} alt={salon.name || "سالن"} fill priority unoptimized
-                  sizes="110px" className="qhp-portrait" onError={() => markImageFailed(src)} />
-              ) : (
-                <span className="qhp-portrait-fallback" aria-hidden="true"><Sparkles className="h-8 w-8" /></span>
-              );
-            })()}
-          </span>
-        </div>
-
         <span className="qhp-mask" style={{ "--md": ".04s" } as CSSProperties}>
           <span className="qhp-kicker">{salon.homepage_kicker || "NAIL · CARE · RITUAL"}</span>
         </span>
