@@ -107,29 +107,35 @@ export default function LoginPage() {
   const kicker = step === "name" ? "ثبت‌نام" : "حساب کاربری";
 
   return (
-    <div className="qbf-page">
-      <header className="qbf-head">
-        <button type="button" className="qbf-round-btn" onClick={goBack} aria-label="بازگشت">
+    <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
+      <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
+        <button
+          type="button"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+          onClick={goBack}
+          aria-label="بازگشت"
+        >
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </button>
-        <div className="qbf-mid">
-          <span className="qbf-kicker">{kicker}</span>
-          <h2 className="qbf-title">{title}</h2>
+        <div className="min-w-0 overflow-hidden text-center">
+          <span className="block text-xs font-extrabold text-primary">{kicker}</span>
+          <h2 className="truncate text-lg font-bold">{title}</h2>
         </div>
-        <span className="qbf-head-spacer" />
+        <span className="h-11 w-11" />
       </header>
 
-      <div className="qbp-body qbp-auth-body">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(34px,calc(34px+env(safe-area-inset-bottom)))] pt-[clamp(18px,7dvh,64px)]">
         {step === "phone" && (
-          <div className="qbf-form-card">
-            <p className="qbf-form-t">شماره موبایل خود را وارد کنید</p>
-            <div className="qbf-field">
-              <label htmlFor="login-phone">شماره موبایل</label>
+          <div className="w-full rounded-xl border border-border bg-card p-5 shadow-card">
+            <p className="mb-3.5 text-sm font-extrabold">شماره موبایل خود را وارد کنید</p>
+            <div className="mb-3">
+              <label htmlFor="login-phone" className="mb-1.5 block text-xs font-bold text-muted-foreground">شماره موبایل</label>
               <input
                 id="login-phone"
                 type="tel"
                 inputMode="numeric"
-                className="qbf-inp ltr"
+                dir="ltr"
+                className="h-12 w-full rounded-lg border border-input bg-card px-3.5 text-left text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !isLoading && handlePhoneSubmit()}
@@ -138,13 +144,12 @@ export default function LoginPage() {
                 autoFocus
               />
             </div>
-            {error && <p className="qbf-form-error" role="alert" style={{ display: "flex", alignItems: "center", gap: 6 }}><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
+            {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
             <button
               type="button"
-              className="qbf-otp-send"
+              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-extrabold text-primary-foreground disabled:opacity-50"
               onClick={handlePhoneSubmit}
               disabled={isLoading || !isValidIranianPhone(normalizeDigits(phone))}
-              style={{ marginTop: 14 }}
             >
               {isLoading ? "در حال ارسال…" : "دریافت کد"}
             </button>
@@ -152,15 +157,18 @@ export default function LoginPage() {
         )}
 
         {step === "otp" && (
-          <div className="qbf-form-card qbp-auth-card">
-            <p className="qbf-form-t">کد ۶ رقمی پیامک‌شده را وارد کنید</p>
-            <div className="qbf-verified-row">
-              <span className="qbf-verified-ic">✓</span>
-              <span><b>شماره</b><small dir="ltr">{displayDigits(phone)}</small></span>
+          <div className="w-full rounded-xl border border-border bg-card p-5 shadow-card">
+            <p className="mb-3.5 text-sm font-extrabold">کد ۶ رقمی پیامک‌شده را وارد کنید</p>
+            <div className="mb-4 flex items-center gap-3 rounded-lg border border-success/25 bg-muted p-3">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">✓</span>
+              <span className="min-w-0 flex-1">
+                <b className="block text-sm font-extrabold">شماره</b>
+                <small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(phone)}</small>
+              </span>
             </div>
-            <PinInput className="qbf-pin-input" length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
-            {error && <p className="qbf-form-error" role="alert" style={{ display: "flex", alignItems: "center", gap: 6 }}><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
-            <div className="qbf-otp-actions" aria-label="گزینه‌های کد ورود">
+            <PinInput length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
+            {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
+            <div className="mt-4 flex flex-col items-stretch gap-1.5 border-t border-border pt-3" aria-label="گزینه‌های کد ورود">
               <ResendOtpButton
                 onResend={async () => {
                   const result = await sendOtp(normalizeDigits(phone));
@@ -170,7 +178,7 @@ export default function LoginPage() {
               />
               <button
                 type="button"
-                className="qbf-otp-change"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-lg text-xs font-extrabold text-primary"
                 onClick={() => { setStep("phone"); setError(""); }}
               >
                 تغییر شماره
@@ -180,14 +188,14 @@ export default function LoginPage() {
         )}
 
         {step === "name" && (
-          <div className="qbf-form-card">
-            <p className="qbf-form-t">نام و نام خانوادگی خود را وارد کنید</p>
-            <div className="qbf-field">
-              <label htmlFor="login-name">نام و نام خانوادگی</label>
+          <div className="w-full rounded-xl border border-border bg-card p-5 shadow-card">
+            <p className="mb-3.5 text-sm font-extrabold">نام و نام خانوادگی خود را وارد کنید</p>
+            <div className="mb-3">
+              <label htmlFor="login-name" className="mb-1.5 block text-xs font-bold text-muted-foreground">نام و نام خانوادگی</label>
               <input
                 id="login-name"
                 type="text"
-                className="qbf-inp"
+                className="h-12 w-full rounded-lg border border-input bg-card px-3.5 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !isLoading && handleNameSubmit()}
@@ -196,13 +204,12 @@ export default function LoginPage() {
                 autoFocus
               />
             </div>
-            {error && <p className="qbf-form-error" role="alert" style={{ display: "flex", alignItems: "center", gap: 6 }}><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
+            {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
             <button
               type="button"
-              className="qbf-otp-send"
+              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-extrabold text-primary-foreground disabled:opacity-50"
               onClick={handleNameSubmit}
               disabled={isLoading || !name.trim()}
-              style={{ marginTop: 14 }}
             >
               {isLoading ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
             </button>

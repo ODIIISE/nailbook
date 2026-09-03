@@ -129,12 +129,11 @@ export function PinInput({ length = 4, onComplete, disabled, className }: PinInp
           onPaste={handlePaste}
           disabled={disabled}
           className={cn(
-            "box-border block h-11 w-full min-w-0 rounded-2xl px-0 text-center text-2xl font-bold sm:h-14",
-            "bg-background border-2 outline-none",
-            "focus:border-primary focus:ring-4 focus:ring-primary/10",
+            "box-border block h-14 w-full min-w-0 rounded-lg border px-0 text-center text-xl font-extrabold outline-none",
+            "bg-card focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
             digit
-              ? "qbf-pin-filled border-primary bg-primary/[0.03] text-foreground shadow-sm"
-              : "qbf-pin-empty border-border text-foreground",
+              ? "border-primary text-foreground"
+              : "border-input text-foreground",
             disabled && "opacity-50 cursor-not-allowed"
           )}
         />

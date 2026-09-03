@@ -15,13 +15,26 @@ import { parseGregorianDateKey } from "@/lib/time";
 import { compactToman } from "@/lib/pricing";
 import type { Booking } from "@/lib/types";
 
-const STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  reserved: { label: "ثبت شده", cls: "reserved" },
-  confirmed: { label: "تأیید شده", cls: "confirmed" },
-  pending: { label: "در انتظار", cls: "pending" },
-  completed: { label: "انجام شده", cls: "completed" },
-  cancelled: { label: "لغو شده", cls: "cancelled" },
+// Shared status pill: bg/text per state + leading dot color.
+const STATUS_PILL_BASE =
+  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold";
+
+const STATUS_MAP: Record<string, { label: string; cls: string; dot: string }> = {
+  reserved: { label: "ثبت شده", cls: "bg-primary/10 text-primary", dot: "bg-primary" },
+  confirmed: { label: "تأیید شده", cls: "bg-success/10 text-success", dot: "bg-success" },
+  pending: { label: "در انتظار", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
+  completed: { label: "انجام شده", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
+  cancelled: { label: "لغو شده", cls: "bg-destructive/10 text-destructive", dot: "bg-destructive" },
 };
+
+function StatusPill({ status }: { status: { cls: string; dot: string; label: string } }) {
+  return (
+    <span className={`${STATUS_PILL_BASE} ${status.cls}`}>
+      <i aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
+      {status.label}
+    </span>
+  );
+}
 
 const JALALI_MONTHS = ["", "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
 
@@ -74,10 +87,10 @@ export default function BookingsPage() {
     router.push("/");
   };
 
-  // Cancel + toast only; the sheet owns its own close lifecycle (slide-out
-  // before unmount) so the cancel confirm keeps its exit animation.
-  // cancelBooking catches its own errors and returns false on failure —
-  // only claim success when the server actually cancelled the booking.
+  // Cancel + toast only; the sheet calls onClose() directly (rebuild: sheets
+  // are instant — no slide-out lifecycle). cancelBooking catches its own
+  // errors and returns false on failure — only claim success when the server
+  // actually cancelled the booking.
   const handleCancel = useCallback(async (id: string) => {
     const result = await cancelBooking(id);
     if (result.success) {
@@ -89,25 +102,34 @@ export default function BookingsPage() {
 
   if (!user) {
     return (
-      <div className="qbf-page">
-        <header className="qbf-head">
-          <button type="button" className="qbf-round-btn" onClick={goBack} aria-label="بازگشت">
+      <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
+        <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
+          <button
+            type="button"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+            onClick={goBack}
+            aria-label="بازگشت"
+          >
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
-          <div className="qbf-mid">
-            <span className="qbf-kicker">نوبت‌های من</span>
-            <h2 className="qbf-title">نوبت‌ها</h2>
+          <div className="min-w-0 overflow-hidden text-center">
+            <span className="block text-xs font-extrabold text-primary">نوبت‌های من</span>
+            <h2 className="truncate text-lg font-bold">نوبت‌ها</h2>
           </div>
-          <span className="qbf-head-spacer" />
+          <span className="h-11 w-11" />
         </header>
-        <div className="qbp-body">
-          <div className="qbf-empty">
-            <div className="qbf-empty-icon">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8 pt-2">
+          <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-muted text-muted-foreground">
               <User className="h-7 w-7" aria-hidden="true" />
             </div>
-            <h3>وارد شوید</h3>
-            <p>برای دیدن نوبت‌های خود، با شماره موبایلی که رزرو کرده‌اید وارد شوید.</p>
-            <button type="button" className="qbf-empty-cta" onClick={() => router.push("/login")}>
+            <h3 className="text-sm font-extrabold">وارد شوید</h3>
+            <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">برای دیدن نوبت‌های خود، با شماره موبایلی که رزرو کرده‌اید وارد شوید.</p>
+            <button
+              type="button"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-extrabold text-primary-foreground"
+              onClick={() => router.push("/login")}
+            >
               ورود
             </button>
           </div>
@@ -118,43 +140,59 @@ export default function BookingsPage() {
 
   return (
     <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
-    <div className="qbf-page">
-      <header className="qbf-head">
-        <button type="button" className="qbf-round-btn" onClick={goBack} aria-label="بازگشت">
+    <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
+      <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
+        <button
+          type="button"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+          onClick={goBack}
+          aria-label="بازگشت"
+        >
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </button>
-        <div className="qbf-mid">
-          <span className="qbf-kicker">نوبت‌های من</span>
-          <h2 className="qbf-title">نوبت‌ها</h2>
+        <div className="min-w-0 overflow-hidden text-center">
+          <span className="block text-xs font-extrabold text-primary">نوبت‌های من</span>
+          <h2 className="truncate text-lg font-bold">نوبت‌ها</h2>
         </div>
-        <span className="qbf-head-spacer" />
+        <span className="h-11 w-11" />
       </header>
 
-      <div className="qbp-body qbp-history-body">
-        <section className="qbp-history-hero" aria-labelledby="booking-history-title">
-          <div className="qbp-history-hero-icon"><Calendar aria-hidden="true" /></div>
-          <div className="qbp-history-hero-copy">
-            <span className="qbp-section-kicker">سوابق رزرو</span>
-            <h3 id="booking-history-title">تاریخچه نوبت‌ها</h3>
-            <p>{toPersianDigits(myBookings.length)} نوبت ثبت‌شده</p>
-          </div>
-          <span className="qbp-history-hero-mark" aria-hidden="true">{toPersianDigits(myBookings.length)}</span>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8 pt-2">
+        <section
+          className="relative mb-3 flex items-center gap-3 overflow-hidden rounded-xl border border-border bg-card p-4"
+          aria-labelledby="booking-history-title"
+        >
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
+            <Calendar className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-[9px] font-extrabold tracking-[0.24em] text-muted-foreground uppercase" dir="ltr">HISTORY</span>
+            <h3 id="booking-history-title" className="mt-0.5 text-base font-extrabold">تاریخچه نوبت‌ها</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">{toPersianDigits(myBookings.length)} نوبت ثبت‌شده</p>
+          </span>
+          <span aria-hidden="true" className="pointer-events-none absolute -bottom-6 -end-2 select-none text-[96px] font-extrabold leading-none text-muted-foreground/10">
+            {toPersianDigits(myBookings.length)}
+          </span>
         </section>
         {myBookings.length === 0 ? (
-            <div className="qbf-empty" style={{ marginTop: 12 }}>
-              <div className="qbf-empty-icon">
-                <Calendar className="h-7 w-7" aria-hidden="true" />
+            <div className="mt-3 rounded-lg border border-border bg-card p-6 text-center shadow-card">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                <Calendar className="h-6 w-6" aria-hidden="true" />
               </div>
-              <h3>نوبتی ندارید</h3>
-              <p>هنوز نوبتی رزرو نکرده‌اید. همین حالا اولین نوبت خود را بگیرید.</p>
-              <button type="button" className="qbf-empty-cta" onClick={() => router.push("/")}>
+              <h3 className="text-sm font-extrabold">نوبتی ندارید</h3>
+              <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">هنوز نوبتی رزرو نکرده‌اید. همین حالا اولین نوبت خود را بگیرید.</p>
+              <button
+                type="button"
+                className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-extrabold text-primary-foreground"
+                onClick={() => router.push("/")}
+              >
                 رزرو نوبت
               </button>
             </div>
           ) : (
             groupedByDate.map((group) => (
               <div key={group.date}>
-                <p className="qbp-date-label">{group.jalaliStr}</p>
+                <p className="pb-1 pt-4 text-xs font-bold text-muted-foreground">{group.jalaliStr}</p>
                 {group.bookings.map((booking) => {
                   const status = STATUS_MAP[booking.status] || STATUS_MAP.pending;
                   const time = booking.start_time.slice(0, 5);
@@ -169,31 +207,31 @@ export default function BookingsPage() {
                     <button
                       key={booking.id}
                       type="button"
-                      className="qbp-book"
+                      className="mb-2.5 w-full rounded-lg border border-border bg-card p-4 text-start shadow-card"
                       onClick={() => setSelectedBooking(booking)}
                       aria-label={`مشاهده نوبت ${getServiceName(booking.service_id)}`}
                     >
-                      <div className="qbp-book-top">
-                        <span className="qbf-rev-ic"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
-                        <span className="qbp-book-name">
-                          <b>{getServiceName(booking.service_id)}</b>
-                          <small>{booking.customer_name || "مشتری"}</small>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
+                        <span className="min-w-0 flex-1">
+                          <b className="block truncate text-sm font-bold">{getServiceName(booking.service_id)}</b>
+                          <small className="mt-0.5 block text-[11px] text-muted-foreground">{booking.customer_name || "مشتری"}</small>
                         </span>
-                        <span className={`qbp-status ${status.cls}`}><i aria-hidden="true" />{status.label}</span>
+                        <StatusPill status={status} />
                       </div>
-                      <div className="qbp-book-time">
-                        <Clock aria-hidden="true" />
-                        {formatJalaliTime(time)} تا {formatJalaliTime(endTime)}
-                        <small>· {toPersianDigits(duration)} دقیقه</small>
+                      <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span>{formatJalaliTime(time)} تا {formatJalaliTime(endTime)}</span>
+                        <span>· {toPersianDigits(duration)} دقیقه</span>
                       </div>
                       {addonNames.length > 0 && (
-                        <div className="qbp-chips">
-                          {addonNames.map((name) => <span key={name} className="qbp-chip">{name}</span>)}
+                        <div className="mt-2.5 flex flex-wrap gap-1.5">
+                          {addonNames.map((name) => <span key={name} className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold text-secondary-foreground">{name}</span>)}
                         </div>
                       )}
-                      <div className="qbp-book-foot">
-                        <b>{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
-                        <small dir="ltr">#{booking.id.slice(-4).toUpperCase()}</small>
+                      <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+                        <b className="text-sm font-extrabold">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
+                        <small dir="ltr" className="text-[10px] font-bold text-muted-foreground">#{booking.id.slice(-4).toUpperCase()}</small>
                       </div>
                     </button>
                   );
@@ -234,13 +272,10 @@ function BookingDetailSheet({
   getServicePrice: (id: string) => number | null;
 }) {
   const [confirming, setConfirming] = useState(false);
-  const [visible, setVisible] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
-  useFocusTrap(sheetRef, visible);
+  useFocusTrap(sheetRef, true);
   const cancelingRef = useRef(false);
-  const closingRef = useRef(false);
-  const timerRef = useRef<number | null>(null);
   const onCloseRef = useRef(onClose);
   useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
@@ -252,33 +287,23 @@ function BookingDetailSheet({
   const price = getServicePrice(booking.service_id);
   const canCancel = booking.status === "reserved" || booking.status === "confirmed";
 
-  // Exit lifecycle: hide first, then unmount after the 450ms slide-out so the
-  // closing animation actually plays instead of vanishing instantly.
+  // Rebuild: sheets render instantly — close just unmounts, no exit phase.
   const requestClose = useCallback(() => {
-    if (closingRef.current) return;
-    closingRef.current = true;
-    setVisible(false);
     setConfirming(false);
-    timerRef.current = window.setTimeout(() => {
-      timerRef.current = null;
-      onCloseRef.current();
-    }, 450);
+    onCloseRef.current();
   }, []);
 
   useEffect(() => {
-    const raf = requestAnimationFrame(() => setVisible(true));
+    const focusTimer = window.setTimeout(() => closeRef.current?.focus({ preventScroll: true }), 80);
     const prevOverflow = document.documentElement.style.overflow;
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
-    const focusTimer = window.setTimeout(() => closeRef.current?.focus({ preventScroll: true }), 80);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") requestClose();
     };
     document.addEventListener("keydown", onKey);
     return () => {
-      cancelAnimationFrame(raf);
       window.clearTimeout(focusTimer);
-      if (timerRef.current !== null) window.clearTimeout(timerRef.current);
       document.removeEventListener("keydown", onKey);
       document.documentElement.style.overflow = prevOverflow;
       document.body.style.overflow = "";
@@ -291,7 +316,7 @@ function BookingDetailSheet({
     setConfirming(false);
     try {
       await Promise.resolve(onCancel(booking.id));
-      // Cancel succeeded — let the sheet slide out before unmounting.
+      // Cancel succeeded — close the sheet.
       requestClose();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "خطا در لغو نوبت");
@@ -306,87 +331,110 @@ function BookingDetailSheet({
   if (typeof document === "undefined") return null;
 
   return createPortal(
-    <div className="qbp-sheet-wrap" role="dialog" aria-modal="true" aria-label="جزئیات نوبت">
+    <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label="جزئیات نوبت">
       <div
-        className="qbp-sheet-scrim"
-        style={{ opacity: visible ? 1 : 0 }}
+        className="absolute inset-0 bg-black/40"
         onClick={() => { if (!cancelingRef.current) requestClose(); }}
         aria-hidden="true"
       />
-      <div ref={sheetRef} className="qbp-sheet" style={{ transform: visible ? "none" : "translateY(105%)" }}>
-        <div className="qbp-sheet-handle" aria-hidden="true" />
-        <div className="qbp-sheet-head">
-          <h3>جزئیات نوبت</h3>
-          <button ref={closeRef} type="button" className="qbp-sheet-close" onClick={requestClose} aria-label="بستن">
-            <X aria-hidden="true" />
+      <div
+        ref={sheetRef}
+        className="relative z-10 flex max-h-[88dvh] w-full max-w-[var(--frame-max-w)] flex-col rounded-t-xl border-t bg-popover p-4 pb-[calc(16px+env(safe-area-inset-bottom))] text-popover-foreground shadow-floating"
+      >
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h3 className="text-lg font-extrabold">جزئیات نوبت</h3>
+          <button
+            ref={closeRef}
+            type="button"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+            onClick={requestClose}
+            aria-label="بستن"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="qbp-sheet-content">
-          <div className="qbp-detail-card">
-            <div className="qbp-detail-row">
-              <span className="qbp-dlabel">خدمت</span>
-              <span className="qbp-dvalue">{getServiceName(booking.service_id)}</span>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="mb-3.5 overflow-hidden rounded-lg border border-border bg-card">
+            <div className="flex items-center justify-between gap-3 px-4 py-3">
+              <span className="text-xs text-muted-foreground">خدمت</span>
+              <span className="text-sm font-extrabold">{getServiceName(booking.service_id)}</span>
             </div>
-            <div className="qbp-detail-row">
-              <span className="qbp-dlabel">مشتری</span>
-              <span className="qbp-dvalue">{booking.customer_name || "—"}</span>
+            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
+              <span className="text-xs text-muted-foreground">مشتری</span>
+              <span className="text-sm font-extrabold">{booking.customer_name || "—"}</span>
             </div>
-            <div className="qbp-detail-row">
-              <span className="qbp-dlabel">تاریخ</span>
-              <span className="qbp-dvalue">
+            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
+              <span className="text-xs text-muted-foreground">تاریخ</span>
+              <span className="text-sm font-extrabold">
                 {toPersianDigits(jalali.jd)} {JALALI_MONTHS[jalali.jm]} {toPersianDigits(jalali.jy)}
               </span>
             </div>
-            <div className="qbp-detail-row">
-              <span className="qbp-dlabel">ساعت</span>
-              <span className="qbp-dvalue">{formatJalaliTime(time)} تا {formatJalaliTime(endTime)}</span>
+            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
+              <span className="text-xs text-muted-foreground">ساعت</span>
+              <span className="text-sm font-extrabold">{formatJalaliTime(time)} تا {formatJalaliTime(endTime)}</span>
             </div>
-            <div className="qbp-detail-row">
-              <span className="qbp-dlabel">مدت</span>
-              <span className="qbp-dvalue">{toPersianDigits(Math.max(0, (() => {
+            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
+              <span className="text-xs text-muted-foreground">مدت</span>
+              <span className="text-sm font-extrabold">{toPersianDigits(Math.max(0, (() => {
                 const s = parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
                 const e = parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
                 return e >= s ? e - s : e + 24 * 60 - s;
               })()))} دقیقه</span>
             </div>
             {addonNames.length > 0 && (
-              <div className="qbp-detail-row">
-                <span className="qbp-dlabel">افزودنی‌ها</span>
-                <span className="qbp-dvalue small">{addonNames.join("، ")}</span>
+              <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
+                <span className="shrink-0 text-xs text-muted-foreground">افزودنی‌ها</span>
+                <span className="text-start text-xs font-bold">{addonNames.join("، ")}</span>
               </div>
             )}
-            <div className="qbp-detail-row">
-              <span className="qbp-dlabel">هزینه</span>
-              <span className="qbp-dvalue">{price !== null ? compactToman(Number(price)) : "در سالن"}</span>
+            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
+              <span className="text-xs text-muted-foreground">هزینه</span>
+              <span className="text-sm font-extrabold">{price !== null ? compactToman(Number(price)) : "در سالن"}</span>
             </div>
-            <div className="qbp-detail-row">
-              <span className="qbp-dlabel">وضعیت</span>
-              <span className={`qbp-status ${status.cls}`}><i aria-hidden="true" />{status.label}</span>
+            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
+              <span className="text-xs text-muted-foreground">وضعیت</span>
+              <StatusPill status={status} />
             </div>
-            <div className="qbp-detail-row">
-              <span className="qbp-dlabel">کد رهگیری</span>
-              <span className="qbp-dvalue small" dir="ltr">#{booking.id.slice(-4).toUpperCase()}</span>
+            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
+              <span className="text-xs text-muted-foreground">کد رهگیری</span>
+              <span className="text-xs font-bold" dir="ltr">#{booking.id.slice(-4).toUpperCase()}</span>
             </div>
           </div>
 
-          <div className="qbp-sheet-actions">
+          <div className="mt-1 flex flex-col gap-2.5">
             {canCancel && !confirming && (
-              <button type="button" className="qbp-btn-danger" onClick={() => setConfirming(true)}>
+              <button
+                type="button"
+                className="flex h-12 w-full items-center justify-center rounded-lg border border-destructive/30 bg-destructive/10 text-sm font-extrabold text-destructive"
+                onClick={() => setConfirming(true)}
+              >
                 لغو نوبت
               </button>
             )}
             {canCancel && confirming && (
-              <div className="qbp-confirm-row">
-                <button type="button" className="qbp-btn-solid" onClick={handleCancelClick}>
+              <div className="flex gap-2.5">
+                <button
+                  type="button"
+                  className="h-12 flex-1 rounded-lg bg-destructive text-sm font-extrabold text-white"
+                  onClick={handleCancelClick}
+                >
                   بله، لغو کن
                 </button>
-                <button type="button" className="qbp-btn-danger" onClick={() => setConfirming(false)}>
+                <button
+                  type="button"
+                  className="h-12 flex-1 rounded-lg border border-destructive/30 bg-destructive/10 text-sm font-extrabold text-destructive"
+                  onClick={() => setConfirming(false)}
+                >
                   انصراف
                 </button>
               </div>
             )}
-            <button type="button" className="qbp-btn-solid" onClick={requestClose}>
+            <button
+              type="button"
+              className="flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-extrabold text-primary-foreground"
+              onClick={requestClose}
+            >
               بستن
             </button>
           </div>

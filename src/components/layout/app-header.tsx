@@ -104,7 +104,7 @@ export function AppHeader({
   return (
     <>
       <div
-      className={homeOverlay ? "qwen-home-header absolute inset-x-0 top-0 z-30 text-white" : "sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-sm"}
+      className={homeOverlay ? "absolute inset-x-0 top-0 z-30 text-white" : "sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-sm"}
       style={{
         // Native safe-area: notch + Dynamic Island sit above the title row.
         // padding-top pushes content into the safe zone; the inner row keeps
@@ -140,11 +140,11 @@ export function AppHeader({
             )}
           </div>
           <div className="flex items-center gap-1">
-            <ThemeToggle className={homeOverlay ? "qwen-home-control bg-black/20 text-white backdrop-blur-sm hover:bg-black/35 hover:text-white" : undefined} />
+            <ThemeToggle className={homeOverlay ? "bg-black/20 text-white backdrop-blur-sm hover:bg-black/35 hover:text-white" : undefined} />
             <Button
               variant="ghost"
               size="icon-sm"
-              className={homeOverlay ? "qwen-home-control bg-black/20 text-white backdrop-blur-sm hover:bg-black/35 hover:text-white" : undefined}
+              className={homeOverlay ? "bg-black/20 text-white backdrop-blur-sm hover:bg-black/35 hover:text-white" : undefined}
               onClick={() => {
                 haptic.tap();
                 openMenu();
@@ -167,7 +167,7 @@ export function AppHeader({
           <div
             ref={menuPanelRef}
             tabIndex={-1}
-            className="absolute top-0 right-0 h-full w-[280px] bg-background border-l border-border shadow-floating animate-slideUp flex flex-col"
+            className="absolute inset-y-0 start-0 h-full w-[280px] bg-background border-e border-border shadow-floating flex flex-col"
             role="dialog"
             aria-modal="true"
             aria-label="منوی جانبی"

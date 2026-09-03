@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
@@ -195,108 +195,102 @@ export function QwenCustomerHome() {
   const mapUrl = salon.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.address)}` : null;
 
   return (
-    <main className="qhp-page">
+    <main className="relative mx-auto min-h-dvh w-full max-w-[var(--frame-max-w)] bg-background px-5 pb-11 text-foreground">
       {/* TOP CHROME — hamburger menu (top-right) + profile (top-left), pinned to the frame.
           In RTL the first flex child sits at the visual right, so the menu button
           comes first in the DOM to land on the right and profile on the left. */}
-      <div className="qhp-topbar">
-        <button type="button" className="qhp-top-btn" onClick={() => setDrawerOpen(true)}
+      <div className="absolute inset-x-0 top-0 z-40 flex items-start justify-between p-4">
+        <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-sm"
+          onClick={() => setDrawerOpen(true)}
           aria-label="منو" aria-expanded={drawerOpen} title="منو">
           <Menu aria-hidden="true" />
         </button>
         {/* Prefetching Link (not router.push): the profile route is fetched on
             hover/load, so the first tap feels instant instead of waiting on a
             network roundtrip before the can start. */}
-        <Link href="/profile" className="qhp-top-btn" aria-label="پروفایل من" title="پروفایل من">
+        <Link href="/profile" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-sm"
+          aria-label="پروفایل من" title="پروفایل من">
           <User aria-hidden="true" />
         </Link>
       </div>
 
       {/* HERO — static cover image */}
-      <div className="qhp-hero" aria-hidden="true">
-        <div className="qhp-hero-par">
-          {(() => {
-            const src = salon.hero_image_url && !failedImages.includes(salon.hero_image_url)
-              ? salon.hero_image_url
-              : !failedImages.includes(FALLBACK_HERO) ? FALLBACK_HERO : null;
-            return src ? (
-              <Image src={src} alt="" fill priority unoptimized
-                sizes="(max-width: 430px) 100vw, 430px"
-                className="qhp-hero-img" onError={() => markImageFailed(src)} />
-            ) : <div className="qhp-hero-fallback" />;
-          })()}
-        </div>
-        <div className="qhp-hero-fade" />
+      <div className="relative h-[420px] overflow-hidden" aria-hidden="true">
+        {(() => {
+          const src = salon.hero_image_url && !failedImages.includes(salon.hero_image_url)
+            ? salon.hero_image_url
+            : !failedImages.includes(FALLBACK_HERO) ? FALLBACK_HERO : null;
+          return src ? (
+            <Image src={src} alt="" fill priority unoptimized
+              sizes="(max-width: 430px) 100vw, 430px"
+              className="object-cover" onError={() => markImageFailed(src)} />
+          ) : <div className="h-full bg-muted" />;
+        })()}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
       </div>
 
-      {/* PROFILE — gold-ring portrait (decorative), editorial brand block */}
-      <section className="qhp-profile" aria-label={salon.name || "سالن"}>
-        <span className="qhp-mask" style={{ "--md": ".04s" } as CSSProperties}>
-          <span className="qhp-kicker">{salon.homepage_kicker || "NAIL · CARE · RITUAL"}</span>
+      {/* PROFILE — editorial brand block */}
+      <section className="flex flex-col items-center gap-1.5 px-6 pt-5 text-center" aria-label={salon.name || "سالن"}>
+        <span className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-muted-foreground" dir="ltr">
+          {salon.homepage_kicker || "NAIL · CARE · RITUAL"}
         </span>
-        <span className="qhp-mask" style={{ "--md": ".09s" } as CSSProperties}>
-          <h1 className="qhp-name">{salon.name || "استودیو ناخن"}</h1>
-        </span>
-        {salon.slogan && (
-          <span className="qhp-mask" style={{ "--md": ".14s" } as CSSProperties}>
-            <span className="qhp-tagline">{salon.slogan}</span>
-          </span>
-        )}
+        <h1 className="text-display">{salon.name || "استودیو ناخن"}</h1>
+        {salon.slogan && <span className="text-sm text-muted-foreground">{salon.slogan}</span>}
 
-        <div className="qhp-meta">
+        <div className="mt-2 flex flex-col items-center gap-2">
           {salon.address && (
-            <a className="qhp-addr" href={mapUrl ?? undefined} target="_blank" rel="noopener noreferrer"
+            <a className="inline-flex items-center gap-1.5 text-xs text-muted-foreground" href={mapUrl ?? undefined} target="_blank" rel="noopener noreferrer"
               aria-label="مشاهده آدرس روی نقشه">
-              <MapPin aria-hidden="true" />
+              <MapPin aria-hidden="true" className="h-3.5 w-3.5" />
               <span>{salon.address}</span>
             </a>
           )}
-          <div className="qhp-open" aria-live="polite">
-            <span className={`qhp-dot${live.isOpen ? "" : " is-closed"}`} aria-hidden="true" />
-            <span className={live.isOpen ? "qhp-open-t" : "qhp-open-c"}>{live.label}</span>
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-bold shadow-sm" aria-live="polite">
+            <span className={`h-2 w-2 rounded-full ${live.isOpen ? "bg-success" : "bg-destructive"}`} aria-hidden="true" />
+            <span className={live.isOpen ? "text-success" : "text-muted-foreground"}>{live.label}</span>
           </div>
         </div>
       </section>
 
       {/* PRIMARY CTA — opens the booking flow on its own page */}
-      <button type="button" className="qhp-cta" onClick={() => openBooking()}
+      <button type="button" className="relative z-10 my-2 flex h-14 w-full items-center justify-center gap-2.5 rounded-lg bg-primary text-base font-extrabold text-primary-foreground shadow-card disabled:opacity-60"
+        onClick={() => openBooking()}
         disabled={!loaded || activeServices.length === 0}>
         <CalendarDays aria-hidden="true" />
         <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? (salon.homepage_cta_label || "شروع رزرو") : "رزرو موقتاً بسته است"}</span>
-        <ArrowLeft className="qhp-cta-chev" aria-hidden="true" />
+        <ArrowLeft className="absolute left-5 opacity-65" aria-hidden="true" />
       </button>
-      <p className="qhp-micro">{salon.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا"}</p>
+      <p className="relative z-10 mb-6 text-center text-xs text-muted-foreground">{salon.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا"}</p>
 
       {/* LOOKBOOK — story-style rail */}
       {looks.length > 0 && (
-        <section className="qhp-section qhp-reveal qhp-lookbook" aria-labelledby="qhp-work-title">
-          <div className="qhp-sec-head">
-            <h2 id="qhp-work-title">{salon.lookbook_title || "نمونه‌کارها"}</h2>
-            <span className="qhp-sec-kicker">LOOKBOOK</span>
+        <section className="py-7" aria-labelledby="lookbook-title">
+          <div className="mb-3.5 flex items-baseline gap-2.5">
+            <h2 id="lookbook-title" className="text-[15px] font-extrabold">{salon.lookbook_title || "نمونه‌کارها"}</h2>
+            <span className="text-[9px] font-extrabold tracking-[0.24em] text-muted-foreground" dir="ltr">LOOKBOOK</span>
           </div>
-          <div className="qhp-works">
+          <div className="flex gap-3 overflow-x-auto pb-2">
             {looks.map((look) => {
               const src = look.image && !failedImages.includes(look.image) ? look.image : null;
               return (
-                <button key={look.key} type="button" className="qhp-work-card"
+                <button key={look.key} type="button" className="relative h-60 w-44 shrink-0 overflow-hidden rounded-lg border border-border bg-card"
                   onClick={() => openLook(look)} aria-label={`دیدن ${look.name}`}>
                   {src ? (
                     <Image src={src} alt={look.name} fill unoptimized loading="lazy"
-                      sizes="190px" className="qhp-work-image"
+                      sizes="190px" className="object-cover"
                       onError={() => markImageFailed(src)} />
                   ) : (
-                    <span className="qhp-work-fallback" aria-hidden="true">
+                    <span className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground" aria-hidden="true">
                       <Images className="h-9 w-9" />
-                      <strong>{look.name.charAt(0)}</strong>
+                      <strong className="text-4xl font-bold">{look.name.charAt(0)}</strong>
                     </span>
                   )}
-                  <span className="qhp-work-shade" aria-hidden="true" />
-                  <span className="qhp-work-pill">
-                    <span className="qhp-work-name">{look.name}</span>
+                  <span className="absolute inset-x-2.5 bottom-2.5 flex items-center justify-between gap-2 rounded-md bg-black/55 px-3 py-2.5 text-[11.5px] font-bold text-white">
+                    <span className="truncate">{look.name}</span>
                     {look.price > 0 ? (
-                      <span className="qhp-work-price">{compactToman(look.price)}</span>
+                      <span className="shrink-0">{compactToman(look.price)}</span>
                     ) : (
-                      <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                      <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
                     )}
                   </span>
                 </button>
@@ -308,31 +302,31 @@ export function QwenCustomerHome() {
 
       {/* MENU — editorial numbered service list */}
       {activeServices.length > 0 && (
-        <section className="qhp-section qhp-reveal" aria-labelledby="qhp-menu-title">
-          <div className="qhp-sec-head">
-            <h2 id="qhp-menu-title">منوی خدمات</h2>
-            <span className="qhp-sec-kicker">MENU</span>
+        <section className="py-7" aria-labelledby="menu-title">
+          <div className="mb-3.5 flex items-baseline gap-2.5">
+            <h2 id="menu-title" className="text-[15px] font-extrabold">منوی خدمات</h2>
+            <span className="text-[9px] font-extrabold tracking-[0.24em] text-muted-foreground" dir="ltr">MENU</span>
           </div>
-          <div className="qhp-menu">
+          <div>
             {activeServices.map((s, i) => (
-              <button key={s.id} type="button" className="qhp-row"
+              <button key={s.id} type="button" className="flex w-full items-center gap-3.5 border-b border-border py-4 text-start"
                 onClick={() => openBooking({ serviceId: s.id })} aria-label={`رزرو ${s.name}`}>
-                <span className="qhp-row-num" aria-hidden="true">
+                <span className="w-8 shrink-0 text-[22px] font-bold text-muted-foreground" dir="ltr" aria-hidden="true">
                   {toPersianDigits(String(i + 1).padStart(2, "0"))}
                 </span>
-                <span className="qhp-row-body">
-                  <b className="qhp-row-name">
+                <span className="min-w-0 flex-1">
+                  <b className="block text-sm font-bold">
                     {s.name}
-                    {s.is_popular && <span className="qhp-badge">پرطرفدار</span>}
+                    {s.is_popular && <span className="ms-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">پرطرفدار</span>}
                   </b>
-                  <small className="qhp-row-dur">
+                  <small className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                     {s.description ? `${s.description} · ` : ""}
                     <Clock className="h-3 w-3" aria-hidden="true" />
                     {toPersianDigits(s.duration_minutes)} دقیقه
                   </small>
                 </span>
-                <span className="qhp-row-price"><b>{compactPrice(s.price)}</b><small>تومان</small></span>
-                <ArrowLeft className="qhp-row-chev" aria-hidden="true" />
+                <span className="whitespace-nowrap text-sm font-bold"><b>{compactPrice(s.price)}</b> <small className="text-xs font-medium text-muted-foreground">تومان</small></span>
+                <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               </button>
             ))}
           </div>
@@ -340,23 +334,23 @@ export function QwenCustomerHome() {
       )}
 
       {/* CONTACT — hours + quiet social row */}
-      <section className="qhp-contact qhp-reveal">
-        <p className="qhp-hours"><b>ساعات کاری</b> · {formatHours(salon.working_hours_text, workingHours)}</p>
-        <nav className="qhp-socials" aria-label="تماس با سالن">
+      <section className="flex flex-col items-center gap-4 py-7">
+        <p className="text-center text-xs leading-6 text-muted-foreground"><b className="font-bold text-foreground">ساعات کاری</b> · {formatHours(salon.working_hours_text, workingHours)}</p>
+        <nav className="flex justify-center gap-2" aria-label="تماس با سالن">
           {salon.phone && (
-            <a className="qhp-soc" href={`tel:${salon.phone}`} aria-label="تماس">
+            <a className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm" href={`tel:${salon.phone}`} aria-label="تماس">
               <Phone aria-hidden="true" />
             </a>
           )}
           {phoneValid && (
-            <a className="qhp-soc" href={`sms:${salon.phone}`} aria-label="ارسال پیامک">
+            <a className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm" href={`sms:${salon.phone}`} aria-label="ارسال پیامک">
               <MessageCircle aria-hidden="true" />
             </a>
           )}
           {igHandle && (
-            <a className="qhp-soc" href={`https://instagram.com/${igHandle.replace(/^@/, "")}`}
+            <a className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm" href={`https://instagram.com/${igHandle.replace(/^@/, "")}`}
               target="_blank" rel="noopener noreferrer" aria-label="اینستاگرام">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
                 <circle cx="12" cy="12" r="4.2" />
                 <circle cx="17.5" cy="6.7" r="1" fill="currentColor" stroke="none" />
@@ -366,8 +360,8 @@ export function QwenCustomerHome() {
         </nav>
       </section>
 
-      <footer className="qhp-foot">
-        ساخته شده با <span className="qhp-foot-heart" aria-hidden="true">♥</span> برای{" "}
+      <footer className="py-6 text-center text-xs text-muted-foreground">
+        ساخته شده با <span className="text-destructive" aria-hidden="true">♥</span> برای{" "}
         <strong>{salon.name || "سالن شما"}</strong>
       </footer>
 
@@ -379,64 +373,64 @@ export function QwenCustomerHome() {
             ? activeLookImage
             : gallery[0] ?? null;
           return (
-            <div className="qhp-look-body">
-              <div className="qhp-look-cover">
+            <div className="flex flex-col gap-4">
+              <div className="relative h-56 w-full overflow-hidden rounded-lg border border-border bg-muted">
                 {src ? (
                   <Image key={`${activeLook.key}-${src}`} src={src} alt={activeLook.name} fill unoptimized
-                    sizes="430px" className="qhp-look-cover-open object-cover"
+                    sizes="430px" className="object-cover"
                     onError={() => markImageFailed(src)} />
                 ) : (
-                  <span className="qhp-look-fallback" aria-hidden="true">
+                  <span className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground" aria-hidden="true">
                     <Images className="h-10 w-10" />
-                    <strong>{activeLook.name}</strong>
+                    <strong className="px-4 text-center text-sm font-bold">{activeLook.name}</strong>
                   </span>
                 )}
               </div>
 
               {/* Gallery rail — all images the owner uploaded for this look */}
               {gallery.length > 1 && (
-                <div className="qhp-look-gallery" role="tablist" aria-label="تصاویر این مدل">
+                <div className="flex gap-2 overflow-x-auto" role="tablist" aria-label="تصاویر این مدل">
                   {gallery.map((u, i) => (
                     <button key={u} type="button"
-                      className={`qhp-look-thumb${u === src ? " active" : ""}`}
+                      className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 ${u === src ? "border-primary" : "border-transparent"}`}
                       role="tab"
                       aria-selected={u === src}
                       aria-label={`تصویر ${toPersianDigits(i + 1)}`}
                       onClick={() => setActiveLookImage(u)}>
-                      <Image src={u} alt="" fill unoptimized sizes="64px"
+                      <Image src={u} alt="" fill unoptimized sizes="64px" className="object-cover"
                         onError={() => markImageFailed(u)} />
                     </button>
                   ))}
                 </div>
               )}
 
-              <div className="qhp-look-title-row">
-                <h4>{activeLook.name}</h4>
-                {activeLook.price > 0 && <span className="qhp-look-price">{compactToman(activeLook.price)}</span>}
+              <div className="flex items-baseline justify-between gap-3">
+                <h4 className="text-base font-semibold">{activeLook.name}</h4>
+                {activeLook.price > 0 && <span className="shrink-0 text-sm font-bold">{compactToman(activeLook.price)}</span>}
               </div>
-              <p className="qhp-look-sub">این مدل را دوست داری؟ خدمت و آپشن‌ها همین حالا برایت رزرو می‌شود — بدون تماس تلفنی.</p>
-              <div className="qhp-look-chips">
+              <p className="text-xs leading-6 text-muted-foreground">این مدل را دوست داری؟ خدمت و آپشن‌ها همین حالا برایت رزرو می‌شود — بدون تماس تلفنی.</p>
+              <div className="flex flex-wrap gap-2">
                 {activeLook.service ? (
                   <>
-                    <span className="qhp-chip primary">{activeLook.service.name}</span>
+                    <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] font-bold text-primary">{activeLook.service.name}</span>
                     {activeLook.addons.map((a) => (
-                      <span key={a.id} className="qhp-chip">+ {a.name}</span>
+                      <span key={a.id} className="rounded-full border border-border bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">+ {a.name}</span>
                     ))}
-                    <span className="qhp-chip">{toPersianDigits(activeLook.durationMinutes)} دقیقه</span>
-                    {activeLook.service.description && <span className="qhp-chip">{activeLook.service.description}</span>}
+                    <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">{toPersianDigits(activeLook.durationMinutes)} دقیقه</span>
+                    {activeLook.service.description && <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">{activeLook.service.description}</span>}
                   </>
                 ) : (
-                  <span className="qhp-chip">مدل الهام‌بخش</span>
+                  <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">مدل الهام‌بخش</span>
                 )}
               </div>
               {activeLook.service ? (
-                <button type="button" className="qhp-look-cta"
+                <button type="button" className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-extrabold text-primary-foreground"
                   onClick={() => { closeActiveLook(); openBooking({ serviceId: activeLook.service?.id, lookId: activeLook.key }); }}>
                   رزرو این مدل
                   <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                 </button>
               ) : (
-                <button type="button" className="qhp-look-cta ghost" onClick={closeActiveLook}>بستن</button>
+                <button type="button" className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-border bg-popover text-sm font-extrabold text-foreground" onClick={closeActiveLook}>بستن</button>
               )}
             </div>
           );
@@ -445,48 +439,48 @@ export function QwenCustomerHome() {
 
       {/* SIDE MENU — home / booking / history / profile / auth / owner access */}
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={salon.name || "منو"}>
-        <nav className="qhp-drawer-nav" aria-label="منوی سالن">
-          <button type="button" className="qhp-drawer-item" onClick={() => { setDrawerOpen(false); router.push("/"); }}>
-            <Home aria-hidden="true" />
+        <nav className="flex flex-col gap-1" aria-label="منوی سالن">
+          <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/"); }}>
+            <Home aria-hidden="true" className="h-4 w-4" />
             <span>خانه</span>
-            <ArrowLeft aria-hidden="true" />
+            <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
           </button>
-          <button type="button" className="qhp-drawer-item" onClick={() => { setDrawerOpen(false); openBooking(); }}>
-            <CalendarDays aria-hidden="true" />
+          <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); openBooking(); }}>
+            <CalendarDays aria-hidden="true" className="h-4 w-4" />
             <span>رزرو نوبت</span>
-            <ArrowLeft aria-hidden="true" />
+            <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
           </button>
           {user ? (
             <>
-              <button type="button" className="qhp-drawer-item" onClick={() => { setDrawerOpen(false); router.push("/bookings"); }}>
-                <History aria-hidden="true" />
+              <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/bookings"); }}>
+                <History aria-hidden="true" className="h-4 w-4" />
                 <span>نوبت‌های من</span>
-                <ArrowLeft aria-hidden="true" />
+                <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
               </button>
-              <button type="button" className="qhp-drawer-item" onClick={() => { setDrawerOpen(false); router.push("/profile"); }}>
-                <User aria-hidden="true" />
+              <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/profile"); }}>
+                <User aria-hidden="true" className="h-4 w-4" />
                 <span>پروفایل من</span>
-                <ArrowLeft aria-hidden="true" />
+                <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
               </button>
-              <button type="button" className="qhp-drawer-item destructive" onClick={() => setConfirmLogout(true)}>
-                <LogOut aria-hidden="true" />
+              <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold text-destructive hover:bg-destructive/10" onClick={() => setConfirmLogout(true)}>
+                <LogOut aria-hidden="true" className="h-4 w-4" />
                 <span>خروج از حساب</span>
-                <ArrowLeft aria-hidden="true" />
+                <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
               </button>
             </>
           ) : (
-            <button type="button" className="qhp-drawer-item" onClick={() => { setDrawerOpen(false); router.push("/login"); }}>
-              <LogIn aria-hidden="true" />
+            <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/login"); }}>
+              <LogIn aria-hidden="true" className="h-4 w-4" />
               <span>ورود به حساب</span>
-              <ArrowLeft aria-hidden="true" />
+              <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
             </button>
           )}
         </nav>
 
-        <div className="qhp-drawer-foot">
-          <button type="button" className="qhp-drawer-item subtle" onClick={() => { setDrawerOpen(false); router.push("/owner/login"); }}>
+        <div className="mt-4">
+          <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold text-muted-foreground hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/owner/login"); }}>
             <span>ورود مدیر</span>
-            <ArrowLeft aria-hidden="true" />
+            <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
           </button>
         </div>
       </Drawer>
@@ -536,16 +530,16 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
 
   if (!open || typeof document === "undefined") return null;
   return createPortal(
-    <div className="qhp-sheet-wrap" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="qhp-sheet-scrim" onClick={onClose} aria-hidden="true" />
-      <div ref={sheetRef} className="qhp-sheet">
-        <div className="qhp-sheet-head">
-          <h3>{title}</h3>
-          <button ref={closeButtonRef} type="button" className="qhp-sheet-close" onClick={onClose} aria-label="بستن">
-            <X aria-hidden="true" />
+    <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div ref={sheetRef} className="relative z-10 flex max-h-[88dvh] w-full max-w-[var(--frame-max-w)] flex-col rounded-t-xl border-t bg-popover pb-[env(safe-area-inset-bottom)] text-popover-foreground shadow-floating">
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <h3 className="text-base font-semibold">{title}</h3>
+          <button ref={closeButtonRef} type="button" className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-muted" onClick={onClose} aria-label="بستن">
+            <X aria-hidden="true" className="h-5 w-5" />
           </button>
         </div>
-        <div className="qhp-sheet-content">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
       </div>
     </div>,
     document.body
@@ -575,13 +569,13 @@ function Drawer({ open, onClose, title, children }: { open: boolean; onClose: ()
 
   if (!open || typeof document === "undefined") return null;
   return createPortal(
-    <div ref={panelRef} className="qhp-drawer-wrap" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="qhp-drawer-scrim" onClick={onClose} aria-hidden="true" />
-      <div className="qhp-drawer">
-        <div className="qhp-drawer-head">
-          <b>{title}</b>
-          <button type="button" className="qhp-drawer-close" onClick={onClose} aria-label="بستن">
-            <X aria-hidden="true" />
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div ref={panelRef} className="absolute inset-y-0 end-0 flex w-[min(86vw,320px)] flex-col overflow-y-auto border-s bg-popover p-4 pt-[calc(14px+env(safe-area-inset-top))] text-popover-foreground shadow-floating">
+        <div className="mb-3 flex items-center justify-between">
+          <b className="truncate text-lg font-bold">{title}</b>
+          <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-foreground" onClick={onClose} aria-label="بستن">
+            <X aria-hidden="true" className="h-4 w-4" />
           </button>
         </div>
         {children}

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import { QwenCustomerHome } from "@/components/landing/qwen-customer-home";
+import { QwenCustomerHome } from "@/components/landing/customer-home";
 import { SalonGuard } from "@/components/ui/salon-guard";
 
 import { toast } from "sonner";

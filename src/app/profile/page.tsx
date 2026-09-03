@@ -17,13 +17,25 @@ import { gregorianToJalali, toPersianDigits, formatJalaliTime } from "@/lib/jala
 import { parseGregorianDateKey } from "@/lib/time";
 import { compactToman } from "@/lib/pricing";
 
-const STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  reserved: { label: "ثبت شده", cls: "reserved" },
-  confirmed: { label: "تأیید شده", cls: "confirmed" },
-  pending: { label: "در انتظار", cls: "pending" },
-  completed: { label: "انجام شده", cls: "completed" },
-  cancelled: { label: "لغو شده", cls: "cancelled" },
+const STATUS_PILL_BASE =
+  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold";
+
+const STATUS_MAP: Record<string, { label: string; cls: string; dot: string }> = {
+  reserved: { label: "ثبت شده", cls: "bg-primary/10 text-primary", dot: "bg-primary" },
+  confirmed: { label: "تأیید شده", cls: "bg-success/10 text-success", dot: "bg-success" },
+  pending: { label: "در انتظار", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
+  completed: { label: "انجام شده", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
+  cancelled: { label: "لغو شده", cls: "bg-destructive/10 text-destructive", dot: "bg-destructive" },
 };
+
+function StatusPill({ status }: { status: { cls: string; dot: string; label: string } }) {
+  return (
+    <span className={`${STATUS_PILL_BASE} ${status.cls}`}>
+      <i aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
+      {status.label}
+    </span>
+  );
+}
 
 const JALALI_MONTHS = ["", "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
 
@@ -183,25 +195,34 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="qbf-page">
-        <header className="qbf-head">
-          <button type="button" className="qbf-round-btn" onClick={goBack} aria-label="بازگشت">
+      <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
+        <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
+          <button
+            type="button"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+            onClick={goBack}
+            aria-label="بازگشت"
+          >
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
-          <div className="qbf-mid">
-            <span className="qbf-kicker">حساب کاربری</span>
-            <h2 className="qbf-title">پروفایل</h2>
+          <div className="min-w-0 overflow-hidden text-center">
+            <span className="block text-xs font-extrabold text-primary">حساب کاربری</span>
+            <h2 className="truncate text-lg font-bold">پروفایل</h2>
           </div>
-          <span className="qbf-head-spacer" />
+          <span className="h-11 w-11" />
         </header>
-        <div className="qbp-body">
-          <div className="qbf-empty">
-            <div className="qbf-empty-icon">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8 pt-2">
+          <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-muted text-muted-foreground">
               <User className="h-7 w-7" aria-hidden="true" />
             </div>
-            <h3>وارد شوید</h3>
-            <p>برای مشاهده پروفایل و نوبت‌های خود، با شماره موبایل وارد شوید.</p>
-            <button type="button" className="qbf-empty-cta" onClick={() => router.push("/login")}>
+            <h3 className="text-sm font-extrabold">وارد شوید</h3>
+            <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">برای مشاهده پروفایل و نوبت‌های خود، با شماره موبایل وارد شوید.</p>
+            <button
+              type="button"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-extrabold text-primary-foreground"
+              onClick={() => router.push("/login")}
+            >
               ورود
             </button>
           </div>
@@ -213,38 +234,43 @@ export default function ProfilePage() {
   const initial = (user.name || user.phone || "م").trim().charAt(0);
 
   return (
-    <div className="qbf-page">
-      <header className="qbf-head">
-        <button type="button" className="qbf-round-btn" onClick={goBack} aria-label="بازگشت">
+    <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
+      <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
+        <button
+          type="button"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+          onClick={goBack}
+          aria-label="بازگشت"
+        >
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </button>
-        <div className="qbf-mid">
-          <span className="qbf-kicker">حساب کاربری</span>
-          <h2 className="qbf-title">پروفایل</h2>
+        <div className="min-w-0 overflow-hidden text-center">
+          <span className="block text-xs font-extrabold text-primary">حساب کاربری</span>
+          <h2 className="truncate text-lg font-bold">پروفایل</h2>
         </div>
-        <span className="qbf-head-spacer" />
+        <span className="h-11 w-11" />
       </header>
 
-      <div className="qbp-body">
-        <div className="qbp-avatar" aria-hidden="true">{initial}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8 pt-2">
+        <div className="mx-auto my-2.5 flex h-20 w-20 items-center justify-center rounded-full border border-border bg-muted text-2xl font-bold text-foreground shadow-card" aria-hidden="true">{initial}</div>
 
-        <section className="qbp-profile-card" aria-labelledby="profile-details-title">
-          <div className="qbp-section-heading">
-            <div>
-              <span className="qbp-section-kicker">حساب کاربری</span>
-              <h3 id="profile-details-title">مشخصات شما</h3>
+        <section className="overflow-hidden rounded-lg border border-border bg-card shadow-card" aria-labelledby="profile-details-title">
+          <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/50 px-4 pb-3 pt-4">
+            <div className="min-w-0">
+              <span className="mb-0.5 block text-xs font-extrabold text-primary">حساب کاربری</span>
+              <h3 id="profile-details-title" className="text-base font-extrabold">مشخصات شما</h3>
             </div>
-            <User className="qbp-section-heading-icon" aria-hidden="true" />
+            <User className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
           </div>
 
-          <div className="qbp-row">
-            <span className="qbf-rev-ic"><User className="h-4 w-4" aria-hidden="true" /></span>
-            <div className="qbp-row-meta">
-              <small>نام</small>
+          <div className="flex items-center gap-3 border-b border-border px-4 py-3.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground"><User className="h-4 w-4" aria-hidden="true" /></span>
+            <div className="min-w-0 flex-1">
+              <small className="mb-0.5 block text-xs text-muted-foreground">نام</small>
               {editing ? (
                 <input
                   type="text"
-                  className="qbp-edit-input"
+                  className="h-11 w-full rounded-lg border border-input bg-card px-3 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !saving && saveEdit()}
@@ -253,34 +279,34 @@ export default function ProfilePage() {
                   aria-label="نام"
                 />
               ) : (
-                <b>{user.name || "بدون نام"}</b>
+                <b className="block break-words text-sm font-extrabold">{user.name || "بدون نام"}</b>
               )}
             </div>
             {editing ? (
-              <div className="qbp-icon-actions">
-                <button type="button" className="qbp-icon-btn primary" onClick={saveEdit} disabled={saving} aria-label="ذخیره نام" title="ذخیره نام">
-                  {saving ? <span className="qbp-action-spinner" aria-hidden="true" /> : <Check aria-hidden="true" />}
+              <div className="flex shrink-0 items-center gap-1.5">
+                <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-50" onClick={saveEdit} disabled={saving} aria-label="ذخیره نام" title="ذخیره نام">
+                  {saving ? <span className="h-3.5 w-3.5 rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
                 </button>
-                <button type="button" className="qbp-icon-btn" onClick={cancelEdit} aria-label="انصراف از ویرایش نام" title="انصراف">
-                  <X aria-hidden="true" />
+                <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm" onClick={cancelEdit} aria-label="انصراف از ویرایش نام" title="انصراف">
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             ) : (
-              <button type="button" className="qbp-icon-btn" onClick={startEdit} aria-label="ویرایش نام" title="ویرایش نام">
-                <Pencil aria-hidden="true" />
+              <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm" onClick={startEdit} aria-label="ویرایش نام" title="ویرایش نام">
+                <Pencil className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
           </div>
 
-          <div className="qbp-row">
-            <span className="qbf-rev-ic"><Phone className="h-4 w-4" aria-hidden="true" /></span>
-            <div className="qbp-row-meta">
-              <small>شماره موبایل</small>
+          <div className="flex items-center gap-3 px-4 py-3.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground"><Phone className="h-4 w-4" aria-hidden="true" /></span>
+            <div className="min-w-0 flex-1">
+              <small className="mb-0.5 block text-xs text-muted-foreground">شماره موبایل</small>
               {editingPhone ? (
                 <input
                   type="tel"
                   dir="ltr"
-                  className="qbp-edit-input qbp-phone-input"
+                  className="h-11 w-full rounded-lg border border-input bg-card px-3 text-left text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                   value={editPhone}
                   onChange={(e) => setEditPhone(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !savingPhone && savePhone()}
@@ -289,54 +315,54 @@ export default function ProfilePage() {
                   aria-label="شماره موبایل"
                 />
               ) : (
-                <b className="qbp-phone-value" dir="ltr">{displayDigits(user.phone)}</b>
+                <b className="block text-sm font-extrabold tracking-wide" dir="ltr">{displayDigits(user.phone)}</b>
               )}
               {!editingPhone && (
-                <span className="qbp-row-note">این شماره هویت ورود شماست؛ نوبت‌های قبلی با تغییر شماره به‌صورت خودکار منتقل می‌شوند.</span>
+                <span className="mt-1 block text-[11px] leading-relaxed text-muted-foreground">این شماره هویت ورود شماست؛ نوبت‌های قبلی با تغییر شماره به‌صورت خودکار منتقل می‌شوند.</span>
               )}
             </div>
             {editingPhone ? (
-              <div className="qbp-icon-actions">
-                <button type="button" className="qbp-icon-btn primary" onClick={savePhone} disabled={savingPhone} aria-label="ذخیره شماره موبایل" title="ذخیره شماره موبایل">
-                  {savingPhone ? <span className="qbp-action-spinner" aria-hidden="true" /> : <Check aria-hidden="true" />}
+              <div className="flex shrink-0 items-center gap-1.5">
+                <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-50" onClick={savePhone} disabled={savingPhone} aria-label="ذخیره شماره موبایل" title="ذخیره شماره موبایل">
+                  {savingPhone ? <span className="h-3.5 w-3.5 rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
                 </button>
-                <button type="button" className="qbp-icon-btn" onClick={cancelPhoneEdit} aria-label="انصراف از ویرایش شماره" title="انصراف">
-                  <X aria-hidden="true" />
+                <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm" onClick={cancelPhoneEdit} aria-label="انصراف از ویرایش شماره" title="انصراف">
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             ) : (
-              <button type="button" className="qbp-icon-btn" onClick={startPhoneEdit} aria-label="ویرایش شماره موبایل" title="ویرایش شماره موبایل">
-                <Pencil aria-hidden="true" />
+              <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm" onClick={startPhoneEdit} aria-label="ویرایش شماره موبایل" title="ویرایش شماره موبایل">
+                <Pencil className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
           </div>
         </section>
 
-        <section className="qbp-history-section" aria-labelledby="profile-history-title">
-          <div className="qbp-sec-head">
-            <div>
-              <span className="qbp-section-kicker">رزروها</span>
-              <h3 id="profile-history-title">نوبت‌های من</h3>
+        <section className="mt-6" aria-labelledby="profile-history-title">
+          <div className="mb-3 flex items-end justify-between gap-2.5">
+            <div className="min-w-0">
+              <span className="mb-0.5 block text-xs font-extrabold text-primary">رزروها</span>
+              <h3 id="profile-history-title" className="text-base font-extrabold">نوبت‌های من</h3>
             </div>
-            <button type="button" className="qbp-view-all" onClick={() => router.push("/bookings")}>
+            <button type="button" className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-2 text-xs font-extrabold text-primary" onClick={() => router.push("/bookings")}>
               همه نوبت‌ها
               <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           </div>
 
         {recentBookings.length === 0 ? (
-          <div className="qbf-empty" style={{ marginTop: 4, padding: "24px 20px" }}>
-            <div className="qbf-empty-icon">
+          <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
               <Calendar className="h-6 w-6" aria-hidden="true" />
             </div>
-            <h3>نوبتی ندارید</h3>
-            <p>هنوز نوبتی رزرو نکرده‌اید. همین حالا اولین نوبت خود را بگیرید.</p>
-            <button type="button" className="qbf-empty-cta" onClick={() => router.push("/")}>
+            <h3 className="text-sm font-extrabold">نوبتی ندارید</h3>
+            <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">هنوز نوبتی رزرو نکرده‌اید. همین حالا اولین نوبت خود را بگیرید.</p>
+            <button type="button" className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-extrabold text-primary-foreground" onClick={() => router.push("/")}>
               رزرو نوبت
             </button>
           </div>
         ) : (
-          <div className="qbp-recent-list">
+          <div className="flex flex-col gap-2.5">
             {recentBookings.map((booking) => {
               const status = STATUS_MAP[booking.status] || STATUS_MAP.pending;
               const time = booking.start_time.slice(0, 5);
@@ -349,7 +375,7 @@ export default function ProfilePage() {
               return (
                 <div
                   key={booking.id}
-                  className="qbp-book"
+                  className="w-full rounded-lg border border-border bg-card p-4 shadow-card"
                   role="button"
                   tabIndex={0}
                   onClick={() => router.push("/bookings")}
@@ -361,27 +387,31 @@ export default function ProfilePage() {
                   }}
                   aria-label={`مشاهده نوبت ${getServiceName(booking.service_id)}`}
                 >
-                  <div className="qbp-book-top">
-                    <span className="qbf-rev-ic"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
-                    <span className="qbp-book-name">
-                      <b>{getServiceName(booking.service_id)}</b>
-                      <small>{jalaliShort(booking.date_gregorian)}</small>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
+                    <span className="min-w-0 flex-1">
+                      <b className="block truncate text-sm font-bold">{getServiceName(booking.service_id)}</b>
+                      <small className="mt-0.5 block text-[11px] text-muted-foreground">{jalaliShort(booking.date_gregorian)}</small>
                     </span>
-                    <span className={`qbp-status ${status.cls}`}><i aria-hidden="true" />{status.label}</span>
+                    <StatusPill status={status} />
                   </div>
-                  <div className="qbp-book-time">
-                    <Clock aria-hidden="true" />
-                    {formatJalaliTime(time)} تا {formatJalaliTime(endTime)}
-                    <small>· {toPersianDigits(duration)} دقیقه</small>
+                  <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{formatJalaliTime(time)} تا {formatJalaliTime(endTime)}</span>
+                    <span>· {toPersianDigits(duration)} دقیقه</span>
                   </div>
-                  <div className="qbp-book-foot">
-                    <b>{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
-                    <span className="qbp-book-actions">
-                      <small dir="ltr">#{booking.id.slice(-4).toUpperCase()}</small>
+                  <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
+                    <b className="text-sm font-extrabold">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
+                    <span className="flex items-center gap-2.5">
+                      <small dir="ltr" className="text-[10px] font-bold text-muted-foreground">#{booking.id.slice(-4).toUpperCase()}</small>
                       {CANCELABLE.has(booking.status) && (
                         <button
                           type="button"
-                          className={`qbp-cancel${confirmingCancel === booking.id ? " confirm" : ""}`}
+                          className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-3.5 text-[11px] font-extrabold ${
+                            confirmingCancel === booking.id
+                              ? "bg-destructive text-white"
+                              : "border border-border bg-muted text-foreground"
+                          }`}
                           onClick={(e) => { e.stopPropagation(); handleCancelBooking(booking.id); }}
                         >
                           {confirmingCancel === booking.id ? "تأیید لغو؟" : "لغو"}
@@ -396,8 +426,12 @@ export default function ProfilePage() {
         )}
         </section>
 
-        <button type="button" className="qbp-logout" onClick={() => setConfirmLogout(true)}>
-          <LogOut aria-hidden="true" />
+        <button
+          type="button"
+          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 text-sm font-extrabold text-destructive"
+          onClick={() => setConfirmLogout(true)}
+        >
+          <LogOut className="h-4 w-4" aria-hidden="true" />
           خروج از حساب
         </button>
       </div>
