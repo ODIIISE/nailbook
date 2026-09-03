@@ -1,219 +1,92 @@
-# Forehand Nail Studio — Design System
+# Forehand Nailbook — Design System
 
-> Two systems coexist. The **customer journey** (homepage + booking flow) ships on the **warm-paper system** — the `--qhp-*`/`--qbf-*` tokens in `src/app/globals.css` (single source of truth: the `:root` `--qbf-*` block; `.qhp-page` aliases it). **Admin/owner/auth surfaces** use **Clean Slate**, a monochrome, mobile-first, Persian-first system with compact geometry and native-feeling surfaces.
-
-This document describes the implementation source of truth in `src/app/globals.css`, `src/lib/design-tokens.ts`, and the shared UI primitives, and supersedes the older paper-blue exploration.
-
----
-
-## 1. Product and visual principles
-
-- **Persian-first:** natural RTL composition, Persian copy, Jalali dates, and Persian/Arabic digit support.
-- **Clean Slate:** near-black and cool-neutral surfaces create a calm, editorial salon feel.
-- **One primary action:** booking is the dominant action; contact and navigation stay subordinate.
-- **Content over chrome:** real salon imagery, services, and availability carry the experience.
-- **Native-feeling interaction:** compact sheets, predictable back/close behavior, tactile feedback, and purposeful motion.
-- **Accessible by default:** visible focus, semantic labels, minimum 44px interactive targets, reduced-motion support, and AA contrast targets.
-- **Mobile first:** the customer journey is designed around narrow portrait screens, then scales to larger widths.
+> Barebone stock shadcn. One zinc palette, two themes, zero motion, Persian-first.
+> This document is the implementation source of truth. Spec: `docs/superpowers/specs/2026-09-03-frontend-rebuild-design.md`.
 
 ---
+
+## 1. Principles
+
+1. **Stock shadcn, no theming.** Default structure, default behavior, zinc palette. Premium comes from consistency, spacing discipline, and typography — not effects.
+2. **Zero motion.** No CSS `transition`/`animation`, no `animate-*` classes, no framer-motion, no View Transitions, no drag/swipe physics. State changes are instant. Enforced by `src/lib/no-motion.test.ts`.
+3. **Persian-first.** RTL via logical properties (`ps/pe/ms/me/start/end`) — never physical (`pl/pr/ml/mr`). Persian digits via `toPersianDigits`. Jalali dates. `dir="ltr"` islands for phone numbers, times, tracking codes.
+4. **One palette, no per-salon theming.** Multi-tenant, but the product has one visual identity.
+5. **Accessible by default.** 44px minimum interactive targets, visible `focus-visible` rings, Escape/backdrop dismissal on every overlay, AA contrast.
 
 ## 2. Source of truth
 
 | Layer | Source |
 |---|---|
-| Primitive and semantic CSS tokens | `src/app/globals.css` |
-| Service/timeline palette helpers | `src/lib/design-tokens.ts` |
-| Shared button/card/sheet behavior | `src/components/ui/` |
-| Customer homepage composition | `src/app/page.tsx` and `src/components/landing/qwen-customer-home.tsx` |
-| Booking flow | `src/app/book/route-shell.tsx` and `src/components/booking/qwen-booking-flow.tsx` |
-| Persian product and interaction guidance | `PRODUCT.md` and `AGENTS.md` |
+| Semantic CSS tokens (light + dark) | `src/app/globals.css` — `:root` / `.dark` |
+| Categorical palettes (timeline blocks, charts, badges) | `src/lib/design-tokens.ts` |
+| UI primitives | `src/components/ui/` (shadcn on `@base-ui/react`) |
+| Zero-motion gate | `src/lib/no-motion.test.ts` |
+| Product spec | `docs/superpowers/specs/2026-09-03-frontend-rebuild-design.md` |
 
-Do not add raw color or radius values to new components when an existing semantic or component token is available.
+Do not add raw hex values to components. Use semantic tokens; categorical colors come from `design-tokens.ts`.
 
----
+## 3. Tokens
 
-## 3. Typography
+### Semantic (zinc — light)
 
-- **Family:** Vazirmatn, with system fallbacks.
-- **Display:** `.text-display` — 34px, 800, 1.08 line-height.
-- **H1:** `.text-h1` — 24px, 700, 1.2 line-height.
-- **H2:** `.text-h2` — 20px, 700, 1.25 line-height.
-- **H3:** `.text-h3` — 17px, 600, 1.3 line-height.
-- **Body:** `.text-body` — 15px, 1.55 line-height.
-- **Caption:** `.text-caption` — 13px, 500, 1.4 line-height.
+`--background: #ffffff` · `--foreground: #09090b` · `--card/popover: #ffffff` · `--primary: #18181b` · `--primary-foreground: #fafafa` · `--secondary/muted/accent: #f4f4f5` · `--muted-foreground: #52525b` · `--destructive: #dc2626` · `--success: #16a34a` · `--warning: #b45309` · `--border/input: #e4e4e7` · `--ring: #a1a1aa` · `--radius: 10px`
 
-Keep body copy readable, wrap Persian text naturally, and use `dir="ltr"` for phone numbers, times, and other directional numeric values.
+### Semantic (zinc — dark, `.dark`)
 
----
+`--background: #09090b` · `--foreground: #fafafa` · `--card/popover: #101012` · `--primary: #fafafa` · `--primary-foreground: #18181b` · `--secondary/muted/accent: #1c1c1f` · `--muted-foreground: #a1a1aa` · `--destructive: #ef4444` · `--success: #22c55e` · `--warning: #f59e0b` · `--border/input: #26262a` · `--ring: #52525b`
 
-## 4. Color tokens
+Derived radii: `sm = radius-4px`, `md = radius-2px`, `lg = radius`, `xl = radius+4px`.
+Elevation: `--shadow-xs/card/elevated/floating` (subtle, layered; dark mode uses inset highlight).
 
-### Primitive variables
+## 4. Typography
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
-| `--background` | `#FFFFFF` | `#000000` | Page background |
-| `--foreground` | `#0A0A0A` | `#FAFAFA` | Primary text, icons |
-| `--card` | `#FFFFFF` | `#0A0A0A` | Cards, elevated surfaces |
-| `--card-foreground` | `#0A0A0A` | `#FAFAFA` | Text on cards |
-| `--popover` | `#FFFFFF` | `#0A0A0A` | Popovers, dropdowns |
-| `--popover-foreground` | `#0A0A0A` | `#FAFAFA` | Text on popovers |
-| `--primary` | `#0A0A0A` | `#FAFAFA` | Primary buttons, active states |
-| `--primary-foreground` | `#FFFFFF` | `#000000` | Text/icons on primary |
-| `--secondary` | `#F5F5F5` | `#171717` | Secondary backgrounds |
-| `--secondary-foreground` | `#0A0A0A` | `#FAFAFA` | Text on secondary |
-| `--muted` | `#F5F5F5` | `#171717` | Muted surfaces |
-| `--muted-foreground` | `#737373` | `#A3A3A3` | Secondary text |
-| `--accent` | `#0A0A0A` | `#FAFAFA` | Accent (same as primary) |
-| `--accent-foreground` | `#FFFFFF` | `#000000` | Text on accent |
-| `--destructive` | `#DC2626` | `#EF4444` | Errors, delete |
-| `--success` | `#16A34A` | `#22C55E` | Confirmations, paid |
-| `--border` | `#E5E5E5` | `#262626` | Borders, dividers |
-| `--input` | `#F5F5F5` | `#171717` | Input backgrounds |
-| `--ring` | `#0A0A0A` | `#FAFAFA` | Focus rings |
+- **Family:** Vazirmatn only (CDN `@font-face` in `globals.css`, preloaded in `app/layout.tsx`). No Latin display fonts.
+- **Utilities** (class names fixed; stock-derived sizes):
 
-### Shadow tokens
-
-```css
---shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
---shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.08);
---shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.12);
-```
-
-Shadows are deliberately subtle; in dark mode the lower ambient brightness makes them read as depth rather than hard shadows.
-
-### Light theme
-
-| Token | Value | Purpose |
+| Class | Size | Weight |
 |---|---|---|
-| `--background` | `#FFFFFF` | Page canvas |
-| `--foreground` | `#0A0A0A` | Primary text and primary action |
-| `--card` | `#FFFFFF` | Elevated content surfaces |
-| `--secondary` / `--muted` | `#F5F5F5` | Quiet surfaces and secondary controls |
-| `--muted-foreground` | `#525252` | Secondary text with AA contrast |
-| `--border` | `#E5E5E5` | Dividers and control boundaries |
-| `--success` | `#16A34A` | Positive status |
-| `--destructive` | `#DC2626` | Error and destructive actions |
+| `.text-display` | 28px | 700 |
+| `.text-h1` | 24px | 700 |
+| `.text-h2` | 20px | 600 |
+| `.text-h3` | 16px | 600 |
+| `.text-body-lg` | 16px | 400 |
+| `.text-body` | 14px | 400 |
+| `.text-caption` | 12px | 500 |
 
-### Dark theme
+- `font-synthesis: none` globally (Vazirmatn has no italics — never fake them).
+- Phone numbers, times, IDs: wrap in `dir="ltr"`.
 
-| Token | Value | Purpose |
-|---|---|---|
-| `--background` | `#000000` | Page canvas |
-| `--foreground` | `#FAFAFA` | Primary text and primary action |
-| `--card` | `#0F0F10` | Elevated content surfaces |
-| `--secondary` / `--muted` | `#171717` | Quiet surfaces and secondary controls |
-| `--muted-foreground` | `#B5B5B5` | Secondary text with strong contrast |
-| `--border` | `#262626` | Dividers and control boundaries |
-| `--success` | `#34D399` | Positive status |
-| `--destructive` | `#F87171` | Error and destructive actions |
+## 5. Layout
 
-Use `var(--primary)` / `var(--foreground)` for the main action rather than introducing unrelated accent colors. Functional status colors must be paired with text or icon meaning, not color alone.
+- Customer frame: `max-w-[var(--frame-max-w)]` (`min(100vw, 480px)`), centered.
+- Spacing: Tailwind default 4px scale. Page gutter `px-5`; section rhythm `space-y-*`; card padding `p-4`.
+- Safe areas: `env(safe-area-inset-*)` on fixed headers/nav/sheets.
+- Scale: mobile-first (~390px leads); owner/admin render in the same frame, desktop just centers it.
 
----
+## 6. Components
 
-## 5. Radius and geometry
+Stock shadcn primitives in `src/components/ui/`: button, card, input, label, select, tabs, badge, separator, skeleton, dialog, alert-dialog, sheet, drawer, bottom-sheet, dropdown-menu, tooltip, sonner. All open/close **instantly**.
 
-The global scale stays compatible with the existing application. New booking surfaces use their own tighter component tokens so this refinement does not unexpectedly reshape owner screens, authentication, or the calendar.
+Conventions:
+- Round icon button: `flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm`.
+- Primary action: `Button` default variant; full-width CTAs `h-12`/`h-14 w-full`.
+- Cards: `rounded-lg border border-border bg-card p-4 shadow-card`. Avoid nesting cards.
+- Status pills: `statusBadgeClass` from `src/lib/design-tokens.ts`.
+- Overlays: keep focus trap, Escape, backdrop dismissal, body scroll lock, focus restore. `BottomSheet` for focused mobile tasks; `Dialog` for confirmation.
+- Loading: static `Skeleton` layouts in route `loading.tsx`. No spinners as sole affordance — pair `Loader2` with a text label if needed.
 
-| Token | Value | Use |
-|---|---:|---|
-| `--radius-sm` | 10px | Small controls and compact elements |
-| `--radius-md` | 14px | Cards, inputs, and standard grouped surfaces |
-| `--radius-lg` | 18px | Larger grouped surfaces |
-| `--radius-xl` | 24px | Modals and large surfaces |
-| `--radius-3xl` | 32px | Large containers |
+## 7. Zero-motion policy (enforced)
 
-### Booking component tokens
+Banned in `src/`: `transition` (CSS + Tailwind classes), `animation`, `@keyframes`, `animate-*` (`spin`, `pulse`, `in/out`, …), `duration-*`, `ease-*`, `will-change`, `framer-motion`, `tw-animate-css`, `startViewTransition`, drag/swipe gesture code. Sole exception: `src/lib/haptics.ts` (vibration is feedback, not motion).
 
-| Token | Value | Use |
-|---|---:|---|
-| `--radius-booking-cta` | 14px | Homepage booking surface |
-| `--radius-booking-item` | 10px | Service option and booking button |
-| `--radius-booking-icon` | 8px | Thumbnail and icon tile |
-| `--radius-sheet` | 14px | Service-selection sheet top corners |
-| `--radius-sheet-handle` | 999px | Sheet drag handle |
-| `--booking-sheet-scrim` | 42% black light / 56% black dark | Sheet backdrop |
+The gate test `npm test -- src/lib/no-motion.test.ts` fails the suite on any violation, including in new code.
 
-Prefer these semantic tokens over one-off `rounded-[...]` values in booking UI.
-
----
-
-## 6. Elevation and motion
-
-- `--shadow-xs`: subtle button/control lift.
-- `--shadow-card`: resting cards and booking surfaces.
-- `--shadow-elevated`: active or layered surfaces.
-- `--shadow-floating`: sheets, menus, and fixed navigation.
-- `--dur-fast`: 140ms for press feedback.
-- `--dur-base`: 200ms for normal transitions.
-- `--dur-slow`: 320ms for larger transitions.
-- `--ease-spring-decay`: sheet entrance and spatially continuous movement.
-
-Motion should communicate cause and effect. Sheets enter from the bottom, close faster than they enter, and disable motion under `prefers-reduced-motion`.
-
----
-
-## 7. Homepage booking CTA and service sheet
-
-The customer homepage presents the salon identity, highlights, trust/contact information, then one clear booking surface. The CTA does not dump the customer into a long service list immediately.
-
-### Booking CTA
-
-- Outer radius: `--radius-booking-cta` (warm system: `--qbf-r3`).
-- One concise explanation and one primary `شروع رزرو` action.
-- Located directly after the profile block in the homepage flow.
-- Uses the shared foreground/background action contrast in both themes.
-- Routes to `/book` (optionally `/book?service={id}` or `/book?look={id}`) as a standalone page; the booking flow renders `qwen-booking-flow.tsx`, which keeps the selection state across steps.
-
-### Interaction states
-
-| State | Treatment |
-|---|---|
-| Rest | Card surface, border, subtle card shadow |
-| Hover | Slight border/surface emphasis on pointer devices |
-| Pressed | Small transform feedback without layout shift |
-| Loading | Reserved skeleton rows |
-| Empty | Helpful message and recovery guidance |
-| Focused | Visible ring with semantic ring token |
-| Disabled | Reduced opacity and no pointer interaction |
-
----
-
-## 8. Shared components
-
-### Buttons
-
-The shared `Button` primitive supports default, outline, secondary, ghost, link, destructive, and paper-compatible variants. Booking CTA buttons use compact geometry and semantic foreground/background tokens when the surface requires a rectangular editorial treatment.
-
-### Cards
-
-Cards use `bg-card`, `border-border`, and the shadow scale. Avoid nesting cards without a clear hierarchy. Use a border or a shadow intentionally; do not layer several competing elevation treatments.
-
-### Bottom sheets
-
-Use `BottomSheet` for focused mobile tasks that benefit from preserving page context, such as service selection, manual booking, or block-time entry. Every sheet needs a visible title, close route, Escape handling, backdrop dismissal, and a clear scroll boundary.
-
----
-
-## 9. Navigation and safe areas
-
-- Customer bottom navigation has no more than five top-level destinations and includes text labels.
-- Fixed navigation reserves safe-area space with `env(safe-area-inset-bottom)`.
-- Sticky headers reserve top safe-area space.
-- Back behavior must preserve the booking state and use the same spatial direction across the flow.
-
----
-
-## 10. Quality checklist
+## 8. Quality checklist
 
 Before shipping a visual change:
 
-- Check 375px, 390px, and desktop widths.
-- Check light and dark themes independently.
-- Check Persian wrapping and LTR phone/time values.
-- Confirm all primary targets are at least 44px tall/wide.
-- Confirm keyboard focus and Escape behavior for sheets.
-- Confirm reduced motion removes non-essential animation.
-- Run lint, TypeScript, tests, production build, and the Impeccable detector for changed UI files.
+1. `npm run check` (lint + tsc + tests) and `npm run check:build` green.
+2. Real-browser review at ~390px and ≥1280px, light + dark, RTL correct, zero console errors.
+3. 44px targets, focus rings, Escape/backdrop dismissal verified.
+4. Persian digits render; `dir="ltr"` on phones/times; no physical spacing classes (`pl/pr/ml/mr`).
+5. No motion classes introduced (the gate test catches this automatically).

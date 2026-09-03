@@ -5,7 +5,7 @@ import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Trash2
 import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
 import { calculateBookingPrice } from "@/lib/pricing";
 import { STATUS_CONFIG, STATUS_CONFIG_DARK, VALID_TRANSITIONS } from "@/lib/constants";
-import { statusColors, themeColor } from "@/lib/design-tokens";
+import { themeColor } from "@/lib/design-tokens";
 import { useIsDark } from "@/lib/hooks/use-is-dark";
 import { parseGregorianDateKey } from "@/lib/time";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -87,13 +87,13 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
   const shortId = `BK-${booking.id.slice(-6).toUpperCase()}`;
   const createdAtTime = booking.created_at ? new Date(booking.created_at).toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit", hour12: false }) : "";
 
-  const addonColor = t(statusColors.addon.light, statusColors.addon.dark);
-  const phoneColor = t(statusColors.phone.light, statusColors.phone.dark);
-  const calendarColor = t(statusColors.calendar.light, statusColors.calendar.dark);
-  const priceColor = t(statusColors.price.light, statusColors.price.dark);
-  const paidColor = t(statusColors.paid.light, statusColors.paid.dark);
-  const deleteColor = t(statusColors.delete.light, statusColors.delete.dark);
-  const deleteHover = t(statusColors.deleteHover.light, statusColors.deleteHover.dark);
+  const addonColor = t("text-violet-700", "text-violet-400");
+  const phoneColor = t("text-blue-700", "text-blue-400");
+  const calendarColor = t("text-blue-700", "text-blue-400");
+  const priceColor = t("text-amber-700", "text-amber-500");
+  const paidColor = t("text-success", "text-success");
+  const deleteColor = t("text-destructive", "text-destructive");
+  const deleteHover = t("text-destructive", "text-destructive");
   const subtleBg = t("bg-black/[0.02]", "bg-white/[0.02]");
   const subtleBg2 = t("bg-black/[0.03]", "bg-white/[0.03]");
   const subtleBg3 = t("bg-black/[0.05]", "bg-white/[0.05]");

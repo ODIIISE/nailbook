@@ -25,9 +25,7 @@ export default function OwnerSettingsPage() {
   const [instagramHandle, setInstagramHandle] = useState(salon.instagram_handle || "");
   const [workingHoursText, setWorkingHoursText] = useState(salon.working_hours_text);
   const [avatarUrl, setAvatarUrl] = useState(salon.logo_url || "");
-  const [splashTitle, setSplashTitle] = useState(salon.splash_title || "Forehand Nail");
-  const [splashSlogan, setSplashSlogan] = useState(salon.splash_slogan || "Nail Art Studio");
-  const [splashLogoUrl, setSplashLogoUrl] = useState(salon.splash_logo_url || "");
+      const [splashLogoUrl, setSplashLogoUrl] = useState(salon.splash_logo_url || "");
   const [portraitUrl, setPortraitUrl] = useState(salon.portrait_image_url || "");
   const [heroUrl, setHeroUrl] = useState(salon.hero_image_url || "");
   const [portraitUploading, setPortraitUploading] = useState(false);
@@ -171,8 +169,6 @@ export default function OwnerSettingsPage() {
         name: name.trim(), slogan, description, phone: phone.trim(), address, city,
         instagram_handle: instagramHandle.replace(/^@/, "").trim(),
         working_hours_text: workingHoursText,
-        splash_title: splashTitle,
-        splash_slogan: splashSlogan,
         homepage_kicker: homepageKicker.trim() || "NAIL · CARE · RITUAL",
         homepage_cta_label: homepageCtaLabel.trim() || "شروع رزرو",
         homepage_micro: homepageMicro.trim() || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا",
@@ -427,7 +423,7 @@ export default function OwnerSettingsPage() {
             {splashLogoUrl ? (
               <Image
                 src={splashLogoUrl}
-                alt={splashTitle}
+                alt={name}
                 width={64}
                 height={64}
                 unoptimized
@@ -462,30 +458,6 @@ export default function OwnerSettingsPage() {
                 حذف عکس
               </button>
             )}
-          </div>
-        </div>
-
-        <div className="space-y-3 pt-2 border-t border-border">
-          <div>
-            <Label className="text-caption">عنوان اصلی</Label>
-            <Input
-              value={splashTitle}
-              onChange={(e) => setSplashTitle(e.target.value)}
-              className="mt-1 h-11 text-body font-bold"
-              placeholder="Forehand Nail"
-              maxLength={40}
-            />
-          </div>
-          <div>
-            <Label className="text-caption">شعار (انگلیسی، اختیاری)</Label>
-            <Input
-              value={splashSlogan}
-              onChange={(e) => setSplashSlogan(e.target.value)}
-              className="mt-1 h-11 text-small uppercase tracking-wider"
-              placeholder="NAIL ART STUDIO"
-              maxLength={40}
-              dir="ltr"
-            />
           </div>
         </div>
       </Card>

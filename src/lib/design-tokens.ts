@@ -1,8 +1,9 @@
 /**
- * Design Tokens — single source of truth for all colors.
+ * Design Tokens — single source of truth for data-driven colors.
  *
- * Rule: No hardcoded hex values in components. Import from here.
- * Semantic tokens map to CSS variables; palette tokens are fixed.
+ * Rule: UI chrome uses semantic CSS tokens (see globals.css). This file only
+ * holds categorical palettes: timeline service blocks, chart series, and
+ * status badge classes. No hardcoded UI colors in components — import here.
  */
 
 // ── Timeline Service Palette ──
@@ -15,40 +16,17 @@ export const servicePalette = [
   { accent: "#C4B5FD", bg: "#F5F3FF", bgDark: "#1F1A2D" },
 ] as const;
 
-// ── Status Badges ──
-export const statusColors = {
-  paid: { light: "#2E7D32", dark: "#4CAF50" },
-  unpaid: { light: "var(--muted-foreground)", dark: "var(--muted-foreground)" },
-  delete: { light: "#C62828", dark: "#EF5350" },
-  deleteHover: { light: "#B71C1C", dark: "#E53935" },
-  warning: { light: "#B45309", dark: "#FF9800" },
-  warningBg: { light: "#FFF3E0", dark: "#2D2A15" },
-  warningBorder: { light: "rgba(255,152,0,0.4)", dark: "rgba(255,215,79,0.3)" },
-  warningAccent: { light: "#FFB300", dark: "#FFD54F" },
-  blockBg: { light: "#FFF8E1", dark: "#2D2A15" },
-  blockHover: { light: "#FFF3E0", dark: "#3D3515" },
-  blockText: { light: "#B45309", dark: "#FFD54F" },
-  blockSubtext: { light: "rgba(146,64,14,0.95)", dark: "rgba(255,213,79,0.7)" },
-  blockFaint: { light: "rgba(245,127,23,0.5)", dark: "rgba(255,213,79,0.5)" },
-  addon: { light: "#7B1FA2", dark: "#CE93D8" },
-  phone: { light: "#1565C0", dark: "#64B5F6" },
-  calendar: { light: "#1976D2", dark: "#64B5F6" },
-  price: { light: "#B45309", dark: "#FF9800" },
-  currentLine: { light: "rgba(91,155,213,0.3)", dark: "rgba(91,155,213,0.4)" },
-  currentDot: { light: "rgba(91,155,213,0.4)", dark: "rgba(91,155,213,0.5)" },
-} as const;
-
 // ── Chart Colors (admin dashboard) ──
 export const chartColors = {
-  reserved: { light: "#0A0A0A", dark: "#FAFAFA" },
-  confirmed: { light: "#15803D", dark: "#22C55E" },
+  reserved: { light: "#18181B", dark: "#FAFAFA" },
+  confirmed: { light: "#16A34A", dark: "#22C55E" },
   completed: { light: "#7C3AED", dark: "#A78BFA" },
-  cancelled: { light: "#B91C1C", dark: "#EF4444" },
-  bar: { light: "#0A0A0A", dark: "#FAFAFA" },
-  axis: { light: "#A3A3A3", dark: "#525252" },
-  tooltipBg: { light: "#FFFFFF", dark: "#171717" },
-  tooltipBorder: { light: "#E5E5E5", dark: "#262626" },
-  tooltipText: { light: "#0A0A0A", dark: "#FAFAFA" },
+  cancelled: { light: "#DC2626", dark: "#EF4444" },
+  bar: { light: "#18181B", dark: "#FAFAFA" },
+  axis: { light: "#A1A1AA", dark: "#52525B" },
+  tooltipBg: { light: "#FFFFFF", dark: "#101012" },
+  tooltipBorder: { light: "#E4E4E7", dark: "#26262A" },
+  tooltipText: { light: "#09090B", dark: "#FAFAFA" },
 } as const;
 
 // ── Status Badge Classes (single source of truth for status pills) ──
