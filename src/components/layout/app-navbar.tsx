@@ -57,7 +57,7 @@ export function AppNavbar({ items }: AppNavbarProps) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-20 bg-background/85 backdrop-blur-2xl border-t border-border shadow-floating"
+      className="fixed bottom-0 left-0 right-0 z-20 bg-background border-t border-border shadow-floating"
       style={{
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
@@ -79,11 +79,11 @@ export function AppNavbar({ items }: AppNavbarProps) {
               <span
                 aria-hidden="true"
                 className={`absolute top-0 inset-x-3 h-[2px] rounded-full bg-foreground ${
-                  active ? "opacity-100 scale-x-100" : "opacity-0 scale-x-50"
+                  active ? "" : "hidden"
                 }`}
               />
               <Icon
-                className={`relative h-[22px] w-[22px] ${active ? "scale-105" : ""}`}
+                className={`relative h-[22px] w-[22px]`}
                 strokeWidth={active ? 0 : 1.5}
               />
               <span

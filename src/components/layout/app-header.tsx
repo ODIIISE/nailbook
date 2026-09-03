@@ -104,7 +104,7 @@ export function AppHeader({
   return (
     <>
       <div
-      className={homeOverlay ? "absolute inset-x-0 top-0 z-30 text-white" : "sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-sm"}
+      className={homeOverlay ? "absolute inset-x-0 top-0 z-30 text-white" : "sticky top-0 z-30 border-b border-border bg-background"}
       style={{
         // Native safe-area: notch + Dynamic Island sit above the title row.
         // padding-top pushes content into the safe zone; the inner row keeps
@@ -140,11 +140,11 @@ export function AppHeader({
             )}
           </div>
           <div className="flex items-center gap-1">
-            <ThemeToggle className={homeOverlay ? "bg-black/20 text-white backdrop-blur-sm hover:bg-black/35 hover:text-white" : undefined} />
+            <ThemeToggle className={homeOverlay ? "bg-black/20 text-white hover:bg-black/35" : undefined} />
             <Button
               variant="ghost"
               size="icon-sm"
-              className={homeOverlay ? "bg-black/20 text-white backdrop-blur-sm hover:bg-black/35 hover:text-white" : undefined}
+              className={homeOverlay ? "bg-black/20 text-white hover:bg-black/35" : undefined}
               onClick={() => {
                 haptic.tap();
                 openMenu();
@@ -161,7 +161,7 @@ export function AppHeader({
       {menuOpen && (
         <div className="fixed inset-0 z-50">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-md"
+            className="absolute inset-0 bg-black/50"
             onClick={closeMenu}
           />
           <div
