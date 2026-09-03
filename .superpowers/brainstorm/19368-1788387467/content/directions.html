@@ -1,0 +1,393 @@
+<h2>Design Direction — 4 Candidate Systems</h2>
+<p class="subtitle">Each direction: phone mockups (light + dark) of the customer homepage, core palette swatches, and a real WCAG contrast scorecard (measured, not estimated). Click a card to select — or just tell me in the terminal.</p>
+
+<style>
+  .dir{border:1px solid rgba(0,0,0,.08);border-radius:16px;overflow:hidden;margin-bottom:32px;background:#fff}
+  .dir.selected{outline:3px solid #4a7dff;outline-offset:-1px}
+  .dir-head{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(0,0,0,.06);flex-wrap:wrap}
+  .dir-head h3{margin:0;font-size:18px}
+  .dir-head .tag{font-size:11px;padding:3px 10px;border-radius:999px;background:#f0f0f0;color:#555;margin-inline-start:auto;white-space:nowrap}
+  .dir-body{display:flex;gap:28px;padding:24px;flex-wrap:wrap}
+  .phone-wrap{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+  .phone{width:248px;border-radius:30px;padding:9px;flex-shrink:0;background:#111;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+  .phone-frame{border-radius:23px;overflow:hidden;min-height:470px;display:flex;flex-direction:column;background:var(--pb);color:var(--pf);direction:rtl;font-family:Vazirmatn,Tahoma,sans-serif;position:relative}
+  .notch{position:absolute;top:7px;left:50%;transform:translateX(-50%);width:64px;height:14px;border-radius:8px;background:#000;opacity:.85;z-index:5}
+  .p-status{display:flex;justify-content:space-between;align-items:center;padding:10px 16px 4px;font-size:10px;font-weight:700;color:var(--pf)}
+  .p-sig{display:flex;gap:4px}
+  .p-sig i{width:13px;height:8px;border-radius:2px;background:var(--pf);display:block;opacity:.9}
+  .p-hero{padding:8px 16px 0}
+  .p-badge{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:.3px;padding:4px 10px;border-radius:999px;background:var(--psoft);color:var(--ppri)}
+  .p-name{font-size:24px;font-weight:800;line-height:1.2;margin:10px 0 4px}
+  .p-hl{background:var(--psoft);border-radius:8px;padding:0 8px}
+  .p-tag{font-size:10.5px;line-height:1.8;margin:0 0 12px;color:var(--pmut);max-width:200px}
+  .p-cta{display:flex;gap:8px;align-items:center;padding:13px 14px;border-radius:15px;margin:0 16px 14px;background:var(--ppri);color:var(--ponp);box-shadow:0 6px 16px var(--pshadow)}
+  .p-cta .cta-t{font-size:12.5px;font-weight:800}
+  .p-cta .cta-s{font-size:9px;opacity:.8}
+  .p-cta .arw{margin-inline-start:auto;font-size:15px}
+  .p-sec{padding:2px 16px 8px;display:flex;justify-content:space-between;align-items:center}
+  .p-sec .st{font-size:12px;font-weight:800}
+  .p-sec .sl{font-size:9px;color:var(--pmut)}
+  .p-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 14px}
+  .p-card{border-radius:14px;padding:9px;background:var(--pcard);border:1px solid var(--pbor);display:flex;flex-direction:column;gap:6px}
+  .p-thumb{height:42px;border-radius:10px;background:var(--pth);display:flex;align-items:center;justify-content:center;font-size:15px}
+  .p-cn{font-size:10.5px;font-weight:800}
+  .p-cm{font-size:8.5px;color:var(--pmut)}
+  .p-cr{display:flex;justify-content:space-between;align-items:center}
+  .p-price{font-size:10px;font-weight:800;direction:ltr}
+  .p-book{width:22px;height:22px;border-radius:7px;background:var(--ppri);color:var(--ponp);display:flex;align-items:center;justify-content:center;font-size:11px}
+  .p-nav{margin-top:auto;display:flex;justify-content:space-around;align-items:center;padding:9px 8px 12px;border-top:1px solid var(--pbor);background:var(--pnavbg)}
+  .p-nav .ni{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:7.5px;color:var(--pmut)}
+  .p-nav .ni .ic{width:22px;height:22px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px}
+  .p-nav .ni.on{color:var(--ppri);font-weight:700}
+  .p-nav .ni.on .ic{background:var(--psoft)}
+  .swatches{flex:1;min-width:250px;display:flex;flex-direction:column;gap:16px}
+  .sw-group h4{margin:0 0 8px;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:#777}
+  .sw-row{display:flex;gap:10px;flex-wrap:wrap}
+  .sw{width:46px;height:46px;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.09);position:relative;margin-bottom:15px}
+  .sw small{position:absolute;bottom:-15px;left:0;right:0;text-align:center;font-size:8px;color:#888;direction:ltr;font-family:monospace;white-space:nowrap}
+  .scorecard{background:#f7f7f8;border-radius:12px;padding:14px 16px;font-size:11.5px}
+  .scorecard h4{margin:0 0 8px;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:#777}
+  .scorecard table{border-collapse:collapse;width:100%}
+  .scorecard td{padding:3px 6px 3px 0;border-bottom:1px solid #ececec}
+  .scorecard td:last-child{text-align:right;font-weight:700;font-family:monospace;direction:ltr;white-space:nowrap}
+  .pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:8.5px;font-weight:700;margin-inline-start:6px;direction:ltr}
+  .pill.aaa{background:#1a7f37;color:#fff}
+  .pill.aa{background:#43a047;color:#fff}
+  .pill.aal{background:#b58900;color:#fff}
+  .verdict{font-size:11.5px;line-height:1.8;color:#555;padding:14px 20px 20px;border-top:1px dashed rgba(0,0,0,.08)}
+  .verdict b{color:#222}
+  .procon{display:flex;gap:10px;flex-wrap:wrap;padding:0 20px 16px}
+  .procon>div{flex:1;min-width:200px;border-radius:10px;padding:10px 14px;font-size:11.5px;line-height:1.7}
+  .procon .pro{background:#eef7ef}
+  .procon .con{background:#faf3ee}
+  .procon h5{margin:0 0 4px;font-size:10px;text-transform:uppercase;letter-spacing:.6px}
+  .procon .pro h5{color:#2e7d32}
+  .procon .con h5{color:#b3564d}
+</style>
+
+<!-- ================= A: ROSE CLAY ================= -->
+<div class="dir" data-choice="A-rose-clay" onclick="toggleSelect(this)">
+  <div class="dir-head"><span class="letter">A</span><h3>Rose Clay — گِل رُز</h3><span class="tag">گرم · لطیف · صمیمی</span></div>
+  <div class="dir-body">
+    <div class="phone-wrap">
+      <div class="phone"><div class="phone-frame" style="--pb:#FAF8F5;--pf:#2A241F;--pmut:#6E6157;--ppri:#9E665F;--ponp:#FFFFFF;--psoft:#F3E4E0;--pcard:#FFFFFF;--pbor:#EDE7E0;--pth:#F3E4E0;--pshadow:rgba(158,102,95,.32);--pnavbg:#FFFFFF">
+        <div class="notch"></div>
+        <div class="p-status"><span>۹:۴۱</span><span class="p-sig"><i></i><i></i></span></div>
+        <div class="p-hero">
+          <span class="p-badge">✦ نایل‌بوک</span>
+          <div class="p-name">استودیو <span class="p-hl">نایلا</span></div>
+          <p class="p-tag">مانیکور، پدیکور و ناخن‌های حرفه‌ای — رزرو آنلاین در کمتر از یک دقیقه</p>
+        </div>
+        <div class="p-cta"><div><div class="cta-t">شروع رزرو نوبت</div><div class="cta-s">۱۲ اسلات آزاد امروز</div></div><span class="arw">←</span></div>
+        <div class="p-sec"><span class="st">خدمات محبوب</span><span class="sl">همه خدمات</span></div>
+        <div class="p-grid">
+          <div class="p-card"><div class="p-thumb">💅</div><div class="p-cn">مانیکور کلاسیک</div><div class="p-cm">۴۵ دقیقه</div><div class="p-cr"><span class="p-price">۲۵۰,۰۰۰</span><span class="p-book">+</span></div></div>
+          <div class="p-card"><div class="p-thumb" style="background:#EDF0EA">✨</div><div class="p-cn">کاشت ژل</div><div class="p-cm">۹۰ دقیقه</div><div class="p-cr"><span class="p-price">۶۸۰,۰۰۰</span><span class="p-book">+</span></div></div>
+        </div>
+        <div class="p-nav">
+          <span class="ni on"><span class="ic">⌂</span>خانه</span>
+          <span class="ni"><span class="ic">✦</span>خدمات</span>
+          <span class="ni"><span class="ic">▦</span>رزروها</span>
+          <span class="ni"><span class="ic">☺</span>پروفایل</span>
+        </div>
+      </div></div>
+      <div class="phone"><div class="phone-frame" style="--pb:#191512;--pf:#F3EDE7;--pmut:#A89C90;--ppri:#D2A29B;--ponp:#241A18;--psoft:#3A2B27;--pcard:#221E1A;--pbor:#322C27;--pth:#3A2B27;--pshadow:rgba(0,0,0,.5);--pnavbg:#1D1915">
+        <div class="notch"></div>
+        <div class="p-status"><span>۹:۴۱</span><span class="p-sig"><i></i><i></i></span></div>
+        <div class="p-hero">
+          <span class="p-badge">✦ نایل‌بوک</span>
+          <div class="p-name">استودیو <span class="p-hl">نایلا</span></div>
+          <p class="p-tag">مانیکور، پدیکور و ناخن‌های حرفه‌ای — رزرو آنلاین در کمتر از یک دقیقه</p>
+        </div>
+        <div class="p-cta"><div><div class="cta-t">شروع رزرو نوبت</div><div class="cta-s">۱۲ اسلات آزاد امروز</div></div><span class="arw">←</span></div>
+        <div class="p-sec"><span class="st">خدمات محبوب</span><span class="sl">همه خدمات</span></div>
+        <div class="p-grid">
+          <div class="p-card"><div class="p-thumb">💅</div><div class="p-cn">مانیکور کلاسیک</div><div class="p-cm">۴۵ دقیقه</div><div class="p-cr"><span class="p-price">۲۵۰,۰۰۰</span><span class="p-book">+</span></div></div>
+          <div class="p-card"><div class="p-thumb" style="background:#332F26">✨</div><div class="p-cn">کاشت ژل</div><div class="p-cm">۹۰ دقیقه</div><div class="p-cr"><span class="p-price">۶۸۰,۰۰۰</span><span class="p-book">+</span></div></div>
+        </div>
+        <div class="p-nav">
+          <span class="ni on"><span class="ic">⌂</span>خانه</span>
+          <span class="ni"><span class="ic">✦</span>خدمات</span>
+          <span class="ni"><span class="ic">▦</span>رزروها</span>
+          <span class="ni"><span class="ic">☺</span>پروفایل</span>
+        </div>
+      </div></div>
+    </div>
+    <div class="swatches">
+      <div class="sw-group"><h4>Light</h4><div class="sw-row">
+        <div class="sw" style="background:#FAF8F5"><small>#FAF8F5</small></div>
+        <div class="sw" style="background:#FFFFFF"><small>#FFFFFF</small></div>
+        <div class="sw" style="background:#2A241F"><small>#2A241F</small></div>
+        <div class="sw" style="background:#9E665F"><small>#9E665F</small></div>
+        <div class="sw" style="background:#F3E4E0"><small>#F3E4E0</small></div>
+        <div class="sw" style="background:#EDE7E0"><small>#EDE7E0</small></div>
+        <div class="sw" style="background:#6E6157"><small>#6E6157</small></div>
+      </div></div>
+      <div class="sw-group"><h4>Dark</h4><div class="sw-row">
+        <div class="sw" style="background:#191512"><small>#191512</small></div>
+        <div class="sw" style="background:#221E1A"><small>#221E1A</small></div>
+        <div class="sw" style="background:#F3EDE7"><small>#F3EDE7</small></div>
+        <div class="sw" style="background:#D2A29B"><small>#D2A29B</small></div>
+        <div class="sw" style="background:#3A2B27"><small>#3A2B27</small></div>
+      </div></div>
+      <div class="scorecard"><h4>WCAG contrast (measured)</h4><table>
+        <tr><td>متن اصلی / پس‌زمینه</td><td>14.45 <span class="pill aaa">AAA</span></td></tr>
+        <tr><td>متن ثانویه / پس‌زمینه</td><td>5.64 <span class="pill aa">AA</span></td></tr>
+        <tr><td>دکمه اصلی (سفید روی گِل)</td><td>4.65 <span class="pill aa">AA</span></td></tr>
+        <tr><td>رنگ اصلی به‌عنوان متن</td><td>4.38 <span class="pill aal">AA-large</span></td></tr>
+        <tr><td>دارک: متن / پس‌زمینه</td><td>15.62 <span class="pill aaa">AAA</span></td></tr>
+        <tr><td>دارک: دکمه اصلی</td><td>7.59 <span class="pill aaa">AAA</span></td></tr>
+      </table></div>
+    </div>
+  </div>
+  <div class="procon">
+    <div class="pro"><h5>Pros</h5>بهترین تطابق با مرجع‌های رز/گِل شما · حس اسپا و زنانه بدون صورتیِ جیغ · کنتراست قوی در هر دو تم · کاملاً متمایز از قالب‌های آبی-بنفش رایج</div>
+    <div class="con"><h5>Cons</h5>دکمه اصلی در حالت light از AAA یک پله فاصله دارد (قابل قبول برای متن درشت دکمه‌ها) · رز برای برند خیلی «مشکی-لوکس» جذابیت کمتری دارد</div>
+  </div>
+  <div class="verdict"><b>شخصیت:</b> گرم، آرام، دست‌نشدنی-لطیف. اولین پیشنهاد من — همان روح Section 1 که الان با مقدارهای اصلاح‌شده (#9E665F به‌جای #B9847E) واقعاً AA پاس می‌شود.</div>
+</div>
+
+<!-- ================= B: SAGE STONE ================= -->
+<div class="dir" data-choice="B-sage-stone" onclick="toggleSelect(this)">
+  <div class="dir-head"><span class="letter">B</span><h3>Sage Stone — مریم‌گلی</h3><span class="tag">ارگانیک · تازه · طبیعی</span></div>
+  <div class="dir-body">
+    <div class="phone-wrap">
+      <div class="phone"><div class="phone-frame" style="--pb:#F7F5F1;--pf:#232823;--pmut:#6A7067;--ppri:#7D9382;--ponp:#161B17;--psoft:#E3EBE4;--pcard:#FFFFFF;--pbor:#E4E6E0;--pth:#E3EBE4;--pshadow:rgba(125,147,130,.3);--pnavbg:#FFFFFF">
+        <div class="notch"></div>
+        <div class="p-status"><span>۹:۴۱</span><span class="p-sig"><i></i><i></i></span></div>
+        <div class="p-hero">
+          <span class="p-badge" style="color:#5C7364">✦ نایل‌بوک</span>
+          <div class="p-name">استودیو <span class="p-hl">نایلا</span></div>
+          <p class="p-tag">مانیکور، پدیکور و ناخن‌های حرفه‌ای — رزرو آنلاین در کمتر از یک دقیقه</p>
+        </div>
+        <div class="p-cta"><div><div class="cta-t">شروع رزرو نوبت</div><div class="cta-s">۱۲ اسلات آزاد امروز</div></div><span class="arw">←</span></div>
+        <div class="p-sec"><span class="st">خدمات محبوب</span><span class="sl">همه خدمات</span></div>
+        <div class="p-grid">
+          <div class="p-card"><div class="p-thumb">💅</div><div class="p-cn">مانیکور کلاسیک</div><div class="p-cm">۴۵ دقیقه</div><div class="p-cr"><span class="p-price">۲۵۰,۰۰۰</span><span class="p-book">+</span></div></div>
+          <div class="p-card"><div class="p-thumb" style="background:#F0EBE4">✨</div><div class="p-cn">کاشت ژل</div><div class="p-cm">۹۰ دقیقه</div><div class="p-cr"><span class="p-price">۶۸۰,۰۰۰</span><span class="p-book">+</span></div></div>
+        </div>
+        <div class="p-nav">
+          <span class="ni on"><span class="ic">⌂</span>خانه</span>
+          <span class="ni"><span class="ic">✦</span>خدمات</span>
+          <span class="ni"><span class="ic">▦</span>رزروها</span>
+          <span class="ni"><span class="ic">☺</span>پروفایل</span>
+        </div>
+      </div></div>
+      <div class="phone"><div class="phone-frame" style="--pb:#141714;--pf:#EDEFEA;--pmut:#9AA295;--ppri:#A3B8A6;--ponp:#161B17;--psoft:#2A352C;--pcard:#1C201C;--pbor:#2A2F2A;--pth:#2A352C;--pshadow:rgba(0,0,0,.5);--pnavbg:#181C18">
+        <div class="notch"></div>
+        <div class="p-status"><span>۹:۴۱</span><span class="p-sig"><i></i><i></i></span></div>
+        <div class="p-hero">
+          <span class="p-badge" style="color:#A3B8A6">✦ نایل‌بوک</span>
+          <div class="p-name">استودیو <span class="p-hl">نایلا</span></div>
+          <p class="p-tag">مانیکور، پدیکور و ناخن‌های حرفه‌ای — رزرو آنلاین در کمتر از یک دقیقه</p>
+        </div>
+        <div class="p-cta"><div><div class="cta-t">شروع رزرو نوبت</div><div class="cta-s">۱۲ اسلات آزاد امروز</div></div><span class="arw">←</span></div>
+        <div class="p-sec"><span class="st">خدمات محبوب</span><span class="sl">همه خدمات</span></div>
+        <div class="p-grid">
+          <div class="p-card"><div class="p-thumb">💅</div><div class="p-cn">مانیکور کلاسیک</div><div class="p-cm">۴۵ دقیقه</div><div class="p-cr"><span class="p-price">۲۵۰,۰۰۰</span><span class="p-book">+</span></div></div>
+          <div class="p-card"><div class="p-thumb" style="background:#332F28">✨</div><div class="p-cn">کاشت ژل</div><div class="p-cm">۹۰ دقیقه</div><div class="p-cr"><span class="p-price">۶۸۰,۰۰۰</span><span class="p-book">+</span></div></div>
+        </div>
+        <div class="p-nav">
+          <span class="ni on"><span class="ic">⌂</span>خانه</span>
+          <span class="ni"><span class="ic">✦</span>خدمات</span>
+          <span class="ni"><span class="ic">▦</span>رزروها</span>
+          <span class="ni"><span class="ic">☺</span>پروفایل</span>
+        </div>
+      </div></div>
+    </div>
+    <div class="swatches">
+      <div class="sw-group"><h4>Light</h4><div class="sw-row">
+        <div class="sw" style="background:#F7F5F1"><small>#F7F5F1</small></div>
+        <div class="sw" style="background:#FFFFFF"><small>#FFFFFF</small></div>
+        <div class="sw" style="background:#232823"><small>#232823</small></div>
+        <div class="sw" style="background:#7D9382"><small>#7D9382</small></div>
+        <div class="sw" style="background:#E3EBE4"><small>#E3EBE4</small></div>
+        <div class="sw" style="background:#E4E6E0"><small>#E4E6E0</small></div>
+      </div></div>
+      <div class="sw-group"><h4>Dark</h4><div class="sw-row">
+        <div class="sw" style="background:#141714"><small>#141714</small></div>
+        <div class="sw" style="background:#1C201C"><small>#1C201C</small></div>
+        <div class="sw" style="background:#A3B8A6"><small>#A3B8A6</small></div>
+        <div class="sw" style="background:#2A352C"><small>#2A352C</small></div>
+      </div></div>
+      <div class="scorecard"><h4>WCAG contrast (measured)</h4><table>
+        <tr><td>متن اصلی / پس‌زمینه</td><td>13.78 <span class="pill aaa">AAA</span></td></tr>
+        <tr><td>متن ثانویه / پس‌زمینه</td><td>3.56 <span class="pill aal">AA-large</span></td></tr>
+        <tr><td>دکمه اصلی (تیره روی sage)</td><td>≈5.2 <span class="pill aa">AA</span></td></tr>
+        <tr><td>رنگ اصلی به‌عنوان متن</td><td>3.03 <span class="pill aal">AA-large</span></td></tr>
+        <tr><td>دارک: دکمه اصلی</td><td>8.28 <span class="pill aaa">AAA</span></td></tr>
+      </table></div>
+    </div>
+  </div>
+  <div class="procon">
+    <div class="pro"><h5>Pros</h5>خیلی متمایز و «ارگانیک» · دکمه‌ها با متن تیره روی سبز، امضای بصری خاصی می‌سازند · در دارک کنتراست بی‌نقص</div>
+    <div class="con"><h5>Cons</h5>سبزِ مریم‌گلی به دنیای ناخن کمتر «چسبیده» است · سبز در این سیستم هم‌زمان نقش primary و success را دارد و معنای وضعیت را گم می‌کند · متن ثانویه فقط AA-large</div>
+  </div>
+  <div class="verdict"><b>شخصیت:</b> طبیعی، سالم، بوتیک گیاهی. جایگزین باهوش — اگر بخواهید از رنگ رز فاصله بگیرید.</div>
+</div>
+
+<!-- ================= C: POWDER SLATE ================= -->
+<div class="dir" data-choice="C-powder-slate" onclick="toggleSelect(this)">
+  <div class="dir-head"><span class="letter">C</span><h3>Powder Slate — آبی پودری</h3><span class="tag">آرام · مطمئن · مدرن</span></div>
+  <div class="dir-body">
+    <div class="phone-wrap">
+      <div class="phone"><div class="phone-frame" style="--pb:#F8F9FA;--pf:#22272C;--pmut:#6A747C;--ppri:#6C8CA0;--ponp:#FFFFFF;--psoft:#E3EBF1;--pcard:#FFFFFF;--pbor:#E2E6EA;--pth:#E3EBF1;--pshadow:rgba(108,140,160,.3);--pnavbg:#FFFFFF">
+        <div class="notch"></div>
+        <div class="p-status"><span>۹:۴۱</span><span class="p-sig"><i></i><i></i></span></div>
+        <div class="p-hero">
+          <span class="p-badge" style="color:#54748A">✦ نایل‌بوک</span>
+          <div class="p-name">استودیو <span class="p-hl">نایلا</span></div>
+          <p class="p-tag">مانیکور، پدیکور و ناخن‌های حرفه‌ای — رزرو آنلاین در کمتر از یک دقیقه</p>
+        </div>
+        <div class="p-cta"><div><div class="cta-t">شروع رزرو نوبت</div><div class="cta-s">۱۲ اسلات آزاد امروز</div></div><span class="arw">←</span></div>
+        <div class="p-sec"><span class="st">خدمات محبوب</span><span class="sl">همه خدمات</span></div>
+        <div class="p-grid">
+          <div class="p-card"><div class="p-thumb">💅</div><div class="p-cn">مانیکور کلاسیک</div><div class="p-cm">۴۵ دقیقه</div><div class="p-cr"><span class="p-price">۲۵۰,۰۰۰</span><span class="p-book">+</span></div></div>
+          <div class="p-card"><div class="p-thumb" style="background:#F0EBE4">✨</div><div class="p-cn">کاشت ژل</div><div class="p-cm">۹۰ دقیقه</div><div class="p-cr"><span class="p-price">۶۸۰,۰۰۰</span><span class="p-book">+</span></div></div>
+        </div>
+        <div class="p-nav">
+          <span class="ni on"><span class="ic">⌂</span>خانه</span>
+          <span class="ni"><span class="ic">✦</span>خدمات</span>
+          <span class="ni"><span class="ic">▦</span>رزروها</span>
+          <span class="ni"><span class="ic">☺</span>پروفایل</span>
+        </div>
+      </div></div>
+      <div class="phone"><div class="phone-frame" style="--pb:#131719;--pf:#E9EDF0;--pmut:#96A1A9;--ppri:#9FB9C9;--ponp:#10181C;--psoft:#25313A;--pcard:#1A1F22;--pbor:#272E33;--pth:#25313A;--pshadow:rgba(0,0,0,.5);--pnavbg:#171C1F">
+        <div class="notch"></div>
+        <div class="p-status"><span>۹:۴۱</span><span class="p-sig"><i></i><i></i></span></div>
+        <div class="p-hero">
+          <span class="p-badge" style="color:#9FB9C9">✦ نایل‌بوک</span>
+          <div class="p-name">استودیو <span class="p-hl">نایلا</span></div>
+          <p class="p-tag">مانیکور، پدیکور و ناخن‌های حرفه‌ای — رزرو آنلاین در کمتر از یک دقیقه</p>
+        </div>
+        <div class="p-cta"><div><div class="cta-t">شروع رزرو نوبت</div><div class="cta-s">۱۲ اسلات آزاد امروز</div></div><span class="arw">←</span></div>
+        <div class="p-sec"><span class="st">خدمات محبوب</span><span class="sl">همه خدمات</span></div>
+        <div class="p-grid">
+          <div class="p-card"><div class="p-thumb">💅</div><div class="p-cn">مانیکور کلاسیک</div><div class="p-cm">۴۵ دقیقه</div><div class="p-cr"><span class="p-price">۲۵۰,۰۰۰</span><span class="p-book">+</span></div></div>
+          <div class="p-card"><div class="p-thumb" style="background:#33302B">✨</div><div class="p-cn">کاشت ژل</div><div class="p-cm">۹۰ دقیقه</div><div class="p-cr"><span class="p-price">۶۸۰,۰۰۰</span><span class="p-book">+</span></div></div>
+        </div>
+        <div class="p-nav">
+          <span class="ni on"><span class="ic">⌂</span>خانه</span>
+          <span class="ni"><span class="ic">✦</span>خدمات</span>
+          <span class="ni"><span class="ic">▦</span>رزروها</span>
+          <span class="ni"><span class="ic">☺</span>پروفایل</span>
+        </div>
+      </div></div>
+    </div>
+    <div class="swatches">
+      <div class="sw-group"><h4>Light</h4><div class="sw-row">
+        <div class="sw" style="background:#F8F9FA"><small>#F8F9FA</small></div>
+        <div class="sw" style="background:#22272C"><small>#22272C</small></div>
+        <div class="sw" style="background:#6C8CA0"><small>#6C8CA0</small></div>
+        <div class="sw" style="background:#E3EBF1"><small>#E3EBF1</small></div>
+        <div class="sw" style="background:#E2E6EA"><small>#E2E6EA</small></div>
+      </div></div>
+      <div class="sw-group"><h4>Dark</h4><div class="sw-row">
+        <div class="sw" style="background:#131719"><small>#131719</small></div>
+        <div class="sw" style="background:#1A1F22"><small>#1A1F22</small></div>
+        <div class="sw" style="background:#9FB9C9"><small>#9FB9C9</small></div>
+        <div class="sw" style="background:#25313A"><small>#25313A</small></div>
+      </div></div>
+      <div class="scorecard"><h4>WCAG contrast (measured)</h4><table>
+        <tr><td>متن اصلی / پس‌زمینه</td><td>14.29 <span class="pill aaa">AAA</span></td></tr>
+        <tr><td>متن ثانویه / پس‌زمینه</td><td>3.57 <span class="pill aal">AA-large</span></td></tr>
+        <tr><td>دکمه اصلی (سفید روی آبی)</td><td>3.56 <span class="pill aal">AA-large</span></td></tr>
+        <tr><td>رنگ اصلی به‌عنوان متن</td><td>3.38 <span class="pill aal">AA-large</span></td></tr>
+        <tr><td>دارک: دکمه اصلی</td><td>8.77 <span class="pill aaa">AAA</span></td></tr>
+      </table></div>
+    </div>
+  </div>
+  <div class="procon">
+    <div class="pro"><h5>Pros</h5>حس اعتماد و «محصول جدی» · بهترین خوانایی در داشبورد ادمین · مطابق مرجع‌های آبی-خاکستری شما</div>
+    <div class="con"><h5>Cons</h5>ضعیف‌ترین اتصال به دنیای زیبایی/ناخن · دکمه اصلی فقط AA-large · آبیِ محو حس «سرویس شرکتی» می‌دهد</div>
+  </div>
+  <div class="verdict"><b>شخصیت:</b> مهربان اما جدی. برای product-tool مناسب‌تر است تا تجربه لاکچری سالن.</div>
+</div>
+
+<!-- ================= D: NOIR BLUSH ================= -->
+<div class="dir" data-choice="D-noir-blush" onclick="toggleSelect(this)">
+  <div class="dir-head"><span class="letter">D</span><h3>Noir Blush — تیرهِ گلبهی</h3><span class="tag">لوکس · شبانه · دراماتیک</span></div>
+  <div class="dir-body">
+    <div class="phone-wrap">
+      <div class="phone"><div class="phone-frame" style="--pb:#1D1714;--pf:#F5EDE8;--pmut:#A99B92;--ppri:#DBA79E;--ponp:#241A18;--psoft:#382A25;--pcard:#262019;--pbor:#352D28;--pth:#382A25;--pshadow:rgba(0,0,0,.55);--pnavbg:#211B17">
+        <div class="notch"></div>
+        <div class="p-status"><span>۹:۴۱</span><span class="p-sig"><i></i><i></i></span></div>
+        <div class="p-hero">
+          <span class="p-badge" style="color:#DBA79E">✦ نایل‌بوک</span>
+          <div class="p-name">استودیو <span class="p-hl">نایلا</span></div>
+          <p class="p-tag">مانیکور، پدیکور و ناخن‌های حرفه‌ای — رزرو آنلاین در کمتر از یک دقیقه</p>
+        </div>
+        <div class="p-cta"><div><div class="cta-t">شروع رزرو نوبت</div><div class="cta-s">۱۲ اسلات آزاد امروز</div></div><span class="arw">←</span></div>
+        <div class="p-sec"><span class="st">خدمات محبوب</span><span class="sl">همه خدمات</span></div>
+        <div class="p-grid">
+          <div class="p-card"><div class="p-thumb">💅</div><div class="p-cn">مانیکور کلاسیک</div><div class="p-cm">۴۵ دقیقه</div><div class="p-cr"><span class="p-price">۲۵۰,۰۰۰</span><span class="p-book">+</span></div></div>
+          <div class="p-card"><div class="p-thumb" style="background:#2E2A22">✨</div><div class="p-cn">کاشت ژل</div><div class="p-cm">۹۰ دقیقه</div><div class="p-cr"><span class="p-price">۶۸۰,۰۰۰</span><span class="p-book">+</span></div></div>
+        </div>
+        <div class="p-nav">
+          <span class="ni on"><span class="ic">⌂</span>خانه</span>
+          <span class="ni"><span class="ic">✦</span>خدمات</span>
+          <span class="ni"><span class="ic">▦</span>رزروها</span>
+          <span class="ni"><span class="ic">☺</span>پروفایل</span>
+        </div>
+      </div></div>
+      <div class="phone"><div class="phone-frame" style="--pb:#FAF6F3;--pf:#241D1A;--pmut:#77695E;--ppri:#9E665F;--ponp:#FFFFFF;--psoft:#F5E7E2;--pcard:#FFFFFF;--pbor:#EFE6E0;--pth:#F5E7E2;--pshadow:rgba(158,102,95,.32);--pnavbg:#FFFFFF">
+        <div class="notch"></div>
+        <div class="p-status"><span>۹:۴۱</span><span class="p-sig"><i></i><i></i></span></div>
+        <div class="p-hero">
+          <span class="p-badge">✦ نایل‌بوک</span>
+          <div class="p-name">استودیو <span class="p-hl">نایلا</span></div>
+          <p class="p-tag">مانیکور، پدیکور و ناخن‌های حرفه‌ای — رزرو آنلاین در کمتر از یک دقیقه</p>
+        </div>
+        <div class="p-cta"><div><div class="cta-t">شروع رزرو نوبت</div><div class="cta-s">۱۲ اسلات آزاد امروز</div></div><span class="arw">←</span></div>
+        <div class="p-sec"><span class="st">خدمات محبوب</span><span class="sl">همه خدمات</span></div>
+        <div class="p-grid">
+          <div class="p-card"><div class="p-thumb">💅</div><div class="p-cn">مانیکور کلاسیک</div><div class="p-cm">۴۵ دقیقه</div><div class="p-cr"><span class="p-price">۲۵۰,۰۰۰</span><span class="p-book">+</span></div></div>
+          <div class="p-card"><div class="p-thumb" style="background:#F0EBE4">✨</div><div class="p-cn">کاشت ژل</div><div class="p-cm">۹۰ دقیقه</div><div class="p-cr"><span class="p-price">۶۸۰,۰۰۰</span><span class="p-book">+</span></div></div>
+        </div>
+        <div class="p-nav">
+          <span class="ni on"><span class="ic">⌂</span>خانه</span>
+          <span class="ni"><span class="ic">✦</span>خدمات</span>
+          <span class="ni"><span class="ic">▦</span>رزروها</span>
+          <span class="ni"><span class="ic">☺</span>پروفایل</span>
+        </div>
+      </div></div>
+    </div>
+    <div class="swatches">
+      <div class="sw-group"><h4>Dark (پیش‌فرض)</h4><div class="sw-row">
+        <div class="sw" style="background:#1D1714"><small>#1D1714</small></div>
+        <div class="sw" style="background:#262019"><small>#262019</small></div>
+        <div class="sw" style="background:#F5EDE8"><small>#F5EDE8</small></div>
+        <div class="sw" style="background:#DBA79E"><small>#DBA79E</small></div>
+        <div class="sw" style="background:#382A25"><small>#382A25</small></div>
+      </div></div>
+      <div class="sw-group"><h4>Light (حالت دوم)</h4><div class="sw-row">
+        <div class="sw" style="background:#FAF6F3"><small>#FAF6F3</small></div>
+        <div class="sw" style="background:#9E665F"><small>#9E665F</small></div>
+        <div class="sw" style="background:#F5E7E2"><small>#F5E7E2</small></div>
+      </div></div>
+      <div class="scorecard"><h4>WCAG contrast (measured)</h4><table>
+        <tr><td>متن / پس‌زمینه (تیره)</td><td>15.33 <span class="pill aaa">AAA</span></td></tr>
+        <tr><td>متن ثانویه / پس‌زمینه</td><td>6.57 <span class="pill aa">AA</span></td></tr>
+        <tr><td>دکمه اصلی (تیره روی blush)</td><td>8.12 <span class="pill aaa">AAA</span></td></tr>
+        <tr><td>رنگ اصلی به‌عنوان متن</td><td>8.47 <span class="pill aaa">AAA</span></td></tr>
+        <tr><td>بهترین نمرهء کل میان ۴ گزینه</td><td>— <span class="pill aaa">AAA</span></td></tr>
+      </table></div>
+    </div>
+  </div>
+  <div class="procon">
+    <div class="pro"><h5>Pros</h5>بالاترین نمرهء کنتراست (تقریباً همه AAA) · لوکس‌ترین و به‌یادماندنی‌ترین حس · دقیقاً مطابق مرجع تیرهء #377c4fda شما · تمایز رقابتی واقعی در بازار</div>
+    <div class="con"><h5>Cons</h5>تم تیره به‌عنوان پیش‌فرض برای ابزار مدیریتی روزمره سنگین‌تر است · عکاسی محتوای سالن‌ها (روشن) روی تم تیره به قاب‌بندی بهتر نیاز دارد · حالت روشنِ این سیستم عملاً به A برمی‌گردد</div>
+  </div>
+  <div class="verdict"><b>شخصیت:</b> شیک، شبانه، لاکچری. «بهترین نمره» اگر معیار شما کنتراست و حس پریمیوم حداکثری باشد.</div>
+</div>
+
+<div class="section">
+  <h3>خلاصه نمرات</h3>
+  <p class="subtitle" style="line-height:2">
+    <b>A — Rose Clay:</b> تعادل بهترین حس + کنتراست خوب (همه AA به بالا) — <b>پیشنهاد من</b><br>
+    <b>B — Sage Stone:</b> متمایزترین، اما سبز = success conflict<br>
+    <b>C — Powder Slate:</b> امن‌ترین و «ابزارگونه‌ترین»<br>
+    <b>D — Noir Blush:</b> بالاترین نمرهء فنی و لوکس‌ترین، با تم تیره به‌عنوان پیش‌فرض<br><br>
+    نکته: Light-mode سیستem D همان A است — پس انتخاب واقعی شما بین «پیش‌فرض روشن (A)» یا «پیش‌فرض تیره (D)» است.
+  </p>
+</div>

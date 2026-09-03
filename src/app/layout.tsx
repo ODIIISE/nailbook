@@ -1,24 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Providers } from "./providers";
-import { SplashScreen } from "@/components/layout/splash-screen";
 import { DeviceThemeSync } from "@/components/layout/device-theme-sync";
-import { PageTransition } from "@/components/layout/page-transition";
 import "./globals.css";
-
-// Next.js-managed display serif for all English / Latin text — the elegant,
-// high-contrast boutique serif for the wordmark and brand treatments. Persian
-// text stays on Vazirmatn (loaded via @font-face in globals.css). The variable
-// name is kept as --qhp-serif-font so every existing display rule picks it up.
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  style: ["normal", "italic"],
-  display: "swap",
-  variable: "--qhp-serif-font",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://forehand.vercel.app"),
@@ -67,7 +52,7 @@ export default function RootLayout({
   // class-attribute diff a false positive, so it is suppressed here — the
   // official Next.js pattern for theme scripts.
   return (
-    <html lang="fa" dir="rtl" className={`${playfair.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="fa" dir="rtl" className="h-full antialiased" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
@@ -93,10 +78,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <DeviceThemeSync />
         <Providers>
-          <SplashScreen />
-          <ErrorBoundary>
-            <PageTransition>{children}</PageTransition>
-          </ErrorBoundary>
+          <ErrorBoundary>{children}</ErrorBoundary>
           <Toaster />
         </Providers>
       </body>

@@ -1,0 +1,46 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Forehand Nail — 20 Homepage Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@600&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:Vazirmatn;src:url(https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2) format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:Vazirmatn;src:url(https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2) format('woff2');font-weight:700;font-display:swap}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Vazirmatn,system-ui,sans-serif;background:#161412;color:#EFEAE3;padding:40px 30px 80px}
+h1{font-family:'Markazi Text',serif;font-size:40px;font-weight:600}
+.sub{color:#A89E92;font-size:14px;margin:6px 0 34px;line-height:2}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:22px}
+a.card{display:block;text-decoration:none;color:inherit;background:#211E1A;border-radius:18px;overflow:hidden;border:1px solid #2E2A25;transition:.2s}
+a.card:hover{transform:translateY(-3px);border-color:#C98A94}
+a.card img{width:100%;display:block;background:#fff}
+a.card .bd{padding:13px 15px 16px}
+a.card b{font-size:14px;display:block}
+a.card span{font-size:11.5px;color:#A89E92;display:block;margin-top:4px;line-height:1.8}
+.num{color:#C98A94;font-size:11px;letter-spacing:.15em}
+</style></head><body>
+<h1>۲۰ موکاپ صفحه‌ی اصلی</h1>
+<div class="sub">Forehand Nail Studio — بر اساس تحقیق طراحی (docs/REDESIGN-INSPIRATION.md). روی هر کدام کلیک کنید تا نسخه‌ی زنده‌ی HTML باز شود.</div>
+<div class="grid" id="g"></div>
+<script>
+const M=[
+["01-atelier-ink","اتلیه جوهری — الهام NAILIC","Soft Luxury · مرجع A — قلم سریف، دکمه مشکی، اکسنت رز خاکی"],
+["02-editorial-serif","ادیتوریال سریف — الهام Treatwell","کرم + تیتر سریف بزرگ + کارت جستجو + ردیف ارزش‌ها"],
+["03-manire-minimal","مینیمال منیر — الهام La Manière","سفید مطلق، دکمه‌های مشکی، فضای خالی سخاوتمندانه"],
+["04-blush-spa","اسپا رز — الهام Smart Glow","هدر رز ملایم، تقویم هفتگی با دایره انتخاب"],
+["05-pastel-serif","پاستل سریف — الهام SoGlow","کاشی‌های دسته‌بندی پاستلی + خوش‌آمد سریف"],
+["06-coral-pop","مرجانی — الهام Veloura","خاکستری روشن + اکسنت مرجانی، آیکون‌های دایره‌ای"],
+["07-hot-pink","صورتی داغ — الهام Nail Extension","گرید گالری، لاگین اینستاگرام، شادابی جسورانه"],
+["08-purple-studio","استودیو بنفش — الهام BlissBo","بنر تخفیف گرادیانی، ردیف هنرمندان"],
+["09-chip-clean","چیپ تمیز — الهام Insurance","فیلتر چیپی، آمار سه‌تایی، سلسله‌مراتب آرام"],
+["10-warm-utility","کاربردی گرم — الهام Food-AI","پیشنهاد هوشمند، چیپ متا، CTA چسبان مرجانی"],
+["11-dark-luxe","لوکس تیره — مشکی و طلایی","طلایی شامپاینی روی مشکی، ابهت شبانه"],
+["12-midnight-glow","شفق نیمه‌شب — الهام Milkinside","گرادیان‌های نورانی بنفش/صورتی روی زمینه تیره"],
+["13-amber-noir","کهربای شب — dark warm minimal","هرو کهربایی + لیست وقت‌های خالی امشب"],
+["14-bento-cards","بنتو گرید — چیدمان مدرن","کارت‌های بهم‌چسبیده اطلاعاتی، تنوع بصری"],
+["15-neo-brutalist","نئو-بروتالیست — پوستری و جسور","حاشیه ضخیم، سایه سخت، رنگ زرد/صورتی"],
+["16-fresha-style","سبک Fresha","گرادیان یاسی→صورتی + کارت جستجوی سه‌بخشی + شمارنده اعتماد"],
+["17-booksy-style","سبک Booksy","هرو عکس تیره با کنتراست بالا + نوار دسته‌بندی"],
+["18-forest-pro","سبک StyleSeat — سبز جنگلی","هرو سبز تیره + گالری دوستونه + بنر اعتماد"],
+["19-azure-grid","سبک DIKIDI — آبی آسمانی","گرید ۴تایی دسته‌ها + تب‌بار + empty-state"],
+["20-the-merge","★ پیشنهاد نهایی — تلفیق تحقیق","جوهری + رز خاکی + سریف + اسکرال گالری + CTA چسبان"]
+];
+document.getElementById("g").innerHTML=M.map((m,i)=>`<a class="card" href="${m[0]}.html" target="_blank"><img loading="lazy" src="png/${m[0]}.png"><div class="bd"><div class="num">${String(i+1).padStart(2,"0")}</div><b>${m[1]}</b><span>${m[2]}</span></div></a>`).join("");
+</script></body></html>

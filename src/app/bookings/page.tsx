@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { Clock, Calendar, User, ArrowRight, Sparkles, X } from "lucide-react";
-import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
@@ -141,8 +140,7 @@ export default function BookingsPage() {
           </div>
           <span className="qbp-history-hero-mark" aria-hidden="true">{toPersianDigits(myBookings.length)}</span>
         </section>
-        <PullToRefresh onRefresh={refreshBookings}>
-          {myBookings.length === 0 ? (
+        {myBookings.length === 0 ? (
             <div className="qbf-empty" style={{ marginTop: 12 }}>
               <div className="qbf-empty-icon">
                 <Calendar className="h-7 w-7" aria-hidden="true" />
@@ -203,7 +201,6 @@ export default function BookingsPage() {
               </div>
             ))
           )}
-        </PullToRefresh>
       </div>
 
       {selectedBooking && (

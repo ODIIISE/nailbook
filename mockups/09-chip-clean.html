@@ -1,0 +1,52 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>09 Chip Clean — Insurance app inspired</title>
+<style>
+@font-face{font-family:Vazirmatn;src:url(https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2) format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:Vazirmatn;src:url(https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2) format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:Vazirmatn;src:url(https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2) format('woff2');font-weight:700;font-display:swap}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#dcd9d4;display:flex;justify-content:center;font-family:Vazirmatn,system-ui,sans-serif}
+.app{width:390px;min-height:100dvh;background:#F5F5F5;color:#1A1A1A;position:relative;padding:0 20px 100px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:22px 0}
+.logo{font-weight:700;font-size:16px}
+.top .links{display:flex;gap:14px;font-size:12px}
+.top a{color:#6B6B6B;text-decoration:none}
+.top a.solid{background:#FF4F87;color:#fff;font-weight:700;padding:9px 16px;border-radius:999px}
+.hero h1{font-size:26px;font-weight:700;line-height:1.7;margin-top:16px}
+.hero p{font-size:13px;color:#6B6B6B;line-height:1.9;margin-top:8px}
+.chips{display:flex;gap:8px;margin-top:18px;overflow:hidden}
+.chip{flex-shrink:0;font-size:12px;padding:9px 16px;border-radius:999px;background:#fff;color:#444;text-decoration:none;box-shadow:0 1px 6px rgba(0,0,0,.05)}
+.chip.on{background:#1A1A1A;color:#fff}
+.big{display:block;margin-top:20px;background:#FF4F87;color:#fff;text-align:center;text-decoration:none;font-size:14.5px;font-weight:700;padding:16px;border-radius:14px;box-shadow:0 8px 22px rgba(255,79,135,.3)}
+.stats{display:flex;gap:10px;margin-top:22px}
+.st{flex:1;background:#fff;border-radius:16px;padding:16px 14px;box-shadow:0 1px 6px rgba(0,0,0,.04)}
+.st b{font-size:20px;font-weight:700;display:block}
+.st b i{font-style:normal;color:#FF4F87}
+.st span{font-size:10.5px;color:#9A9A9A;display:block;margin-top:4px}
+.list{margin-top:26px}
+.list h2{font-size:15px;font-weight:700;margin-bottom:12px}
+.row{background:#fff;border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,.04);text-decoration:none;color:#1A1A1A}
+.row .t b{font-size:13.5px;display:block}
+.row .t span{font-size:11px;color:#9A9A9A;display:block;margin-top:3px}
+.row .go{width:34px;height:34px;border-radius:50%;background:#FCE7EF;color:#FF4F87;display:flex;align-items:center;justify-content:center;font-size:14px}
+.nav{position:absolute;bottom:0;right:0;left:0;background:#fff;display:flex;justify-content:space-around;padding:14px 0 24px;box-shadow:0 -3px 16px rgba(0,0,0,.05)}
+.nav a{font-size:11px;color:#B5B5B5;text-decoration:none}
+.nav a.on{color:#FF4F87;font-weight:700}
+</style></head><body><div class="app">
+<div class="top"><div class="logo">فورهند</div><div class="links"><a href="#">ورود</a><a class="solid" href="#">ثبت‌نام</a></div></div>
+<div class="hero"><h1>رزرو ناخن،<br>سریع و مطمئن</h1><p>وقت‌های خالی هفته را ببینید، خدمت و مدت را انتخاب کنید و با چند لمس ثبت کنید.</p></div>
+<div class="chips">
+<a class="chip on" href="#">همه</a><a class="chip" href="#">مانیکور</a><a class="chip" href="#">کاشت</a><a class="chip" href="#">ژلیش</a><a class="chip" href="#">طراحی</a><a class="chip" href="#">پدیکور</a>
+</div>
+<a class="big" href="#">مشاهده وقت‌های خالی</a>
+<div class="stats">
+<div class="st"><b><i>+۲۴۰</i></b><span>رزرو این هفته</span></div>
+<div class="st"><b>۴٫۹<i>★</i></b><span>امتیاز مشتریان</span></div>
+<div class="st"><b>۲۰<i>دقیقه</i></b><span>تا ثبت نوبت</span></div>
+</div>
+<div class="list"><h2>شروع سریع</h2>
+<a class="row" href="#"><div class="t"><b>اولین بار است؟</b><span>راهنمای ۳ مرحله‌ای رزرو</span></div><div class="go">←</div></a>
+<a class="row" href="#"><div class="t"><b>نوبت‌های من</b><span>مشاهده و پیگیری رزروها</span></div><div class="go">←</div></a>
+<a class="row" href="#"><div class="t"><b>سؤالات پرتکرار</b><span>قیمت‌ها، ماندگاری، ترمیم</span></div><div class="go">←</div></a>
+</div>
+<div class="nav"><a class="on" href="#">خانه</a><a href="#">خدمات</a><a href="#">نوبت‌ها</a><a href="#">پروفایل</a></div>
+</div></body></html>

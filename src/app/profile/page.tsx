@@ -137,7 +137,7 @@ export default function ProfilePage() {
 
   // Latest bookings (newest first), shown right on the profile so the user can
   // see and cancel appointments without leaving the hub. Full history lives at
-  // /bookings with pull-to-refresh, polling, and a detail sheet.
+  // /bookings with polling and a detail sheet.
   const recentBookings = useMemo(() => {
     if (!user) return [];
     return bookings

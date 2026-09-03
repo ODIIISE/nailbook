@@ -1,0 +1,166 @@
+<h2>Material Layer — Texture · Shaders · Gradients</h2>
+<p class="subtitle">لایه‌ی متریال به‌عنوان بخش رسمی سیستم: اورورای متحرک، دانه‌ی فیلم (grain)، بوردر گرادیانی، متن گرادیانی، هاله‌ی نور. همه با CSS خالص — بدون WebGL. حرکت فقط با transform/opacity (ارزان برای GPU).</p>
+
+<style>
+  .m-dir{border:1px solid rgba(0,0,0,.08);border-radius:16px;overflow:hidden;margin-bottom:28px;background:#fff}
+  .m-dir-head{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid rgba(0,0,0,.06);flex-wrap:wrap}
+  .m-dir-head h3{margin:0;font-size:17px}
+  .m-dir-head .tag{font-size:11px;padding:3px 10px;border-radius:999px;background:#f0f0f0;color:#555;margin-inline-start:auto;white-space:nowrap}
+  .m-body{display:flex;gap:24px;padding:22px;flex-wrap:wrap;align-items:flex-start}
+  .mphone{width:262px;border-radius:32px;padding:9px;flex-shrink:0;background:#05070d;box-shadow:0 14px 40px rgba(0,0,0,.35)}
+  .mphone.light-shell{background:#c9cfe0}
+  .mscreen{position:relative;border-radius:24px;overflow:hidden;height:540px;direction:rtl;font-family:Vazirmatn,Tahoma,sans-serif;background:var(--mbg);color:var(--mtxt)}
+  .aurora{position:absolute;inset:-30%;pointer-events:none}
+  .aurora i{position:absolute;border-radius:50%}
+  .a1{width:70%;height:45%;top:2%;right:-15%;background:radial-gradient(closest-side, rgba(59,78,134,.55), transparent 70%);animation:drift1 22s ease-in-out infinite alternate}
+  .a2{width:60%;height:40%;top:34%;left:-18%;background:radial-gradient(closest-side, rgba(107,78,134,.42), transparent 70%);animation:drift2 26s ease-in-out infinite alternate}
+  .a3{width:55%;height:38%;bottom:2%;right:-10%;background:radial-gradient(closest-side, rgba(231,201,161,.20), transparent 70%);animation:drift3 30s ease-in-out infinite alternate}
+  .light-aurora .a1{background:radial-gradient(closest-side, rgba(185,200,240,.75), transparent 70%)}
+  .light-aurora .a2{background:radial-gradient(closest-side, rgba(240,217,192,.8), transparent 70%)}
+  .light-aurora .a3{background:radial-gradient(closest-side, rgba(217,200,240,.6), transparent 70%)}
+  @keyframes drift1{from{transform:translate(0,0) scale(1)}to{transform:translate(-8%,6%) scale(1.15)}}
+  @keyframes drift2{from{transform:translate(0,0) scale(1.1)}to{transform:translate(10%,-6%) scale(.95)}}
+  @keyframes drift3{from{transform:translate(0,0) scale(.95)}to{transform:translate(-6%,-8%) scale(1.12)}}
+  .grain{position:absolute;inset:0;pointer-events:none;opacity:var(--mgrain);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");background-size:140px 140px}
+  .mcontent{position:absolute;inset:0;overflow-y:auto;padding:26px 16px 20px;scrollbar-width:none}
+  .mcontent::-webkit-scrollbar{display:none}
+  .mglass{background:var(--mg2);border:1px solid transparent;background-clip:padding-box;border-radius:18px;backdrop-filter:blur(20px) saturate(170%);-webkit-backdrop-filter:blur(20px) saturate(170%);position:relative}
+  .mglass::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:var(--mborder);-webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+  .mhead{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .moonz{width:58px;height:58px;border-radius:50%;flex-shrink:0;background:radial-gradient(circle at 34% 30%, #FBF3E4, #EFD9B4 42%, #C9A06C 78%, #9A7443);box-shadow:0 0 24px 6px rgba(231,201,161,.4), 0 0 60px 20px rgba(231,201,161,.14);position:relative}
+  .moonz::after{content:"";position:absolute;inset:-5px;border-radius:50%;background:conic-gradient(from var(--ang,0deg), rgba(231,201,161,.0) 0%, rgba(231,201,161,.55) 12%, rgba(231,201,161,0) 26%, rgba(231,201,161,0) 62%, rgba(231,201,161,.35) 74%, rgba(231,201,161,0) 88%);animation:spin 9s linear infinite;-webkit-mask:radial-gradient(farthest-side transparent calc(100% - 2.5px), #000 calc(100% - 2px));mask:radial-gradient(farthest-side transparent calc(100% - 2.5px), #000 calc(100% - 2px))}
+  @property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
+  @keyframes spin{to{--ang:360deg}}
+  .mtitle{font-size:21px;font-weight:800;line-height:1.3;background:var(--mtext);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .msub{font-size:9.5px;color:var(--mmut);line-height:1.8;margin-top:2px}
+  .msec{font-size:11px;font-weight:800;margin:16px 2px 9px;opacity:.9}
+  .mcard{padding:12px;margin-bottom:10px}
+  .mcard .h{font-size:12.5px;font-weight:800;margin-bottom:3px}
+  .mcard .s{font-size:9.5px;line-height:1.8;color:var(--mmut)}
+  .mchiprow{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+  .mchip{border-radius:999px;padding:6px 12px;font-size:9.5px;font-weight:700}
+  .mstat{display:flex;gap:9px;margin-bottom:12px}
+  .mstat>div{flex:1;border-radius:15px;padding:11px 8px;text-align:center}
+  .mstat .v{font-size:15px;font-weight:800}
+  .mstat .l{font-size:8px;color:var(--mmut);margin-top:2px}
+  .mdiv{height:1px;margin:14px 2px;background:var(--mdiv)}
+  .glow-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#8FD3A8;box-shadow:0 0 10px 2px rgba(143,211,168,.5);margin-inline-end:5px;vertical-align:1px}
+  .mnotes{flex:1;min-width:270px;display:flex;flex-direction:column;gap:12px}
+  .mnote{background:#f7f7f8;border-radius:12px;padding:13px 15px;font-size:11.5px;line-height:1.9}
+  .mnote h4{margin:0 0 6px;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:#777}
+  .mnote b{color:#222}
+  .mnote code{direction:ltr;display:inline-block;font-family:monospace;font-size:10px;background:#ececf1;border-radius:6px;padding:1px 6px;color:#333}
+  .cost{display:inline-block;padding:1px 7px;border-radius:999px;font-size:8.5px;font-weight:700;direction:ltr;margin-inline-start:4px}
+  .cost.ok{background:#1a7f37;color:#fff}
+  .cost.mid{background:#b58900;color:#fff}
+</style>
+
+<!-- ============ DARK MATERIAL ============ -->
+<div class="m-dir">
+  <div class="m-dir-head"><span class="letter">E</span><h3>Moonlit + متریال کامل (دارک)</h3><span class="tag">aurora متحرک + grain + گرادیان</span></div>
+  <div class="m-body">
+    <div class="mphone">
+      <div class="mscreen" style="--mbg:#0D1220;--mtxt:#F3F5FB;--mmut:#9AA6C0;--mg2:rgba(255,255,255,.055);--mborder:linear-gradient(135deg, rgba(231,201,161,.45), rgba(255,255,255,.07) 40%, rgba(255,255,255,.10) 75%, rgba(231,201,161,.25));--mtext:linear-gradient(105deg, #FBF3E4 10%, #E7C9A1 45%, #F3F5FB 90%);--mdiv:linear-gradient(90deg, transparent, rgba(231,201,161,.4), transparent);--mgrain:.05">
+        <div class="aurora"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
+        <div class="grain"></div>
+        <div class="mcontent">
+          <div class="mhead">
+            <div class="moonz"></div>
+            <div>
+              <div class="mtitle">استودیو نایلا</div>
+              <div class="msub">آسمان امشب شما — ۱۲ اسلات آزاد</div>
+            </div>
+          </div>
+          <div class="mstat">
+            <div class="mglass"><div class="v" style="background:linear-gradient(105deg,#FBF3E4,#E7C9A1);-webkit-background-clip:text;background-clip:text;color:transparent">۱۲</div><div class="l">اسلات آزاد</div></div>
+            <div class="mglass"><div class="v">۴.۹</div><div class="l">امتیاز</div></div>
+            <div class="mglass"><div class="v">+۲k</div><div class="l">مشتری</div></div>
+          </div>
+          <div class="mchiprow">
+            <span class="mchip mglass">مانیکور</span>
+            <span class="mchip mglass">پدیکور</span>
+            <span class="mchip mglass">کاشت ژل</span>
+            <span class="mchip mglass">فرنچ</span>
+          </div>
+          <div class="msec">خدمات امشب</div>
+          <div class="mcard mglass"><div class="h">مانیکور کلاسیک</div><div class="s">۴۵ دقیقه — شامل کوتیکول و لاک</div></div>
+          <div class="mcard mglass"><div class="h">کاشت ژل <span class="glow-dot"></span><span style="font-size:8.5px;color:#8FD3A8">امروز ۲ اسلات آخر</span></div><div class="s">۹۰ دقیقه — فرم‌دهی و طراحی</div></div>
+          <div class="mdiv"></div>
+          <div class="mcard mglass"><div class="h">نوبت بعدی شما</div><div class="s">سه‌شنبه ۱۴ مرداد — ساعت ۱۶:۳۰</div></div>
+          <div class="mcard mglass"><div class="h">آفر ماه</div><div class="s">۲۰٪ تخفیف اولین رزرو — تا پایان هفته</div></div>
+          <div class="mcard mglass"><div class="h">حالا در سالن</div><div class="s"><span class="glow-dot"></span>۳ مشتری حاضر — صف خالی</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="mnotes">
+      <div class="mnote"><h4>۱. Aurora — گرادیان شیدری متحرک <span class="cost ok">ارزان</span></h4>
+        سه لکه‌ی <code>radial-gradient</code> که ۲۲-۳۰ ثانیه با <code>transform: translate/scale</code> شناورند. فیلتر blur لازم نیست — نرمی داخل خود گرادیان است. فقط transform انیمیت می‌شود ⇒ GPU-friendly.</div>
+      <div class="mnote"><h4>۲. Grain — بافت دانه‌ی فیلم <span class="cost ok">رایگان</span></h4>
+        یک تایل SVG <code>feTurbulence</code> به‌صورت data-URI، opacity ≈ ۴-۶٪، ثابت (بدون انیمیشن). حس «متریال واقعی» می‌دهد و banding گرادیان‌ها را می‌شکند.</div>
+      <div class="mnote"><h4>۳. Gradient border — لبه‌ی نورانی <span class="cost ok">ارزان</span></h4>
+        بوردر شفاف + <code>mask-composite</code> روی لایه‌ی گرادیان. لبه‌ی هر کارت از طلایی به سفیدِ کم‌رنگ محو می‌شود — امضای بصری سیستم.</div>
+      <div class="mnote"><h4>۴. Gradient text + divider <span class="cost ok">رایگان</span></h4>
+        تیتر با <code>background-clip:text</code> از مهتابی به شامپاینی؛ جداکننده‌ی نورانی محو‌شونده. فقط روی تیترها — نه متن بدنه.</div>
+      <div class="mnote"><h4>۵. حلقه‌ی چرخان ماه <span class="cost mid">وسط</span></h4>
+        <code>@property --ang</code> + conic-gradient روی مسیر ماسک. فقط یک عنصر در صفحه (آواتار). fallback: حلقه‌ی استاتیک.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LIGHT MATERIAL ============ -->
+<div class="m-dir">
+  <div class="m-dir-head"><span class="letter">F</span><h3>Moonlit + متریال کامل (روشن)</h3><span class="tag">همان زبان، نورِ روز</span></div>
+  <div class="m-body">
+    <div class="mphone light-shell">
+      <div class="mscreen light-aurora" style="--mbg:#F4F6FB;--mtxt:#1B2233;--mmut:#5E6A85;--mg2:rgba(255,255,255,.62);--mborder:linear-gradient(135deg, rgba(138,102,56,.4), rgba(27,34,51,.06) 40%, rgba(27,34,51,.08) 75%, rgba(138,102,56,.2));--mtext:linear-gradient(105deg, #8A6638 10%, #6E5230 50%, #1B2233 95%);--mdiv:linear-gradient(90deg, transparent, rgba(138,102,56,.35), transparent);--mgrain:.035">
+        <div class="aurora"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
+        <div class="grain"></div>
+        <div class="mcontent">
+          <div class="mhead">
+            <div class="moonz" style="background:radial-gradient(circle at 34% 30%, #FFF, #F4E9D8 45%, #E4CBA3 80%, #C9A876);box-shadow:0 0 24px 6px rgba(138,102,56,.25)"></div>
+            <div>
+              <div class="mtitle">استودیو نایلا</div>
+              <div class="msub">صبحتون بخیر — ۱۲ اسلات آزاد امروز</div>
+            </div>
+          </div>
+          <div class="mstat">
+            <div class="mglass"><div class="v" style="background:linear-gradient(105deg,#8A6638,#1B2233);-webkit-background-clip:text;background-clip:text;color:transparent">۱۲</div><div class="l">اسلات آزاد</div></div>
+            <div class="mglass"><div class="v">۴.۹</div><div class="l">امتیاز</div></div>
+            <div class="mglass"><div class="v">+۲k</div><div class="l">مشتری</div></div>
+          </div>
+          <div class="mchiprow">
+            <span class="mchip mglass">مانیکور</span>
+            <span class="mchip mglass">پدیکور</span>
+            <span class="mchip mglass">کاشت ژل</span>
+            <span class="mchip mglass">فرنچ</span>
+          </div>
+          <div class="msec">خدمات امروز</div>
+          <div class="mcard mglass"><div class="h">مانیکور کلاسیک</div><div class="s">۴۵ دقیقه — شامل کوتیکول و لاک</div></div>
+          <div class="mcard mglass"><div class="h">کاشت ژل <span class="glow-dot"></span><span style="font-size:8.5px;color:#4E7D5B">امروز ۲ اسلات آخر</span></div><div class="s">۹۰ دقیقه — فرم‌دهی و طراحی</div></div>
+          <div class="mdiv"></div>
+          <div class="mcard mglass"><div class="h">نوبت بعدی شما</div><div class="s">سه‌شنبه ۱۴ مرداد — ساعت ۱۶:۳۰</div></div>
+          <div class="mcard mglass"><div class="h">آفر ماه</div><div class="s">۲۰٪ تخفیف اولین رزرو — تا پایان هفته</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="mnotes">
+      <div class="mnote"><h4>تفاوت‌های حالت روشن</h4>
+        اورورا پاستلی و ملایم‌تر · grain از ۵٪ به ۳.۵٪ · گرادیان متن به سرمه‌ای ختم می‌شود (نه سفید) · بوردر گرادیانی از عسلی به خاکستری سرد · همان توکن‌ها، مقادیر متفاوت.
+      </div>
+      <div class="mnote"><h4>بودجه‌ی نهایی متریال در هر صفحه</h4>
+        <b>1</b> اورورا (پس‌زمینه) · <b>1</b> grain · <b>1</b> عنصر با انیمیشن ممتاز (حلقه‌ی ماه یا shine دکمه) · blur واقعی فقط ناوبری/شیت · کارت‌ها: faux-glass + gradient border (بدون blur). جمع: 60fps روی گوشی میان‌رده.</div>
+      <div class="mnote"><h4>شیدر، بدون WebGL</h4>
+        همه‌ی افکت‌ها CSS خالص‌اند — قابل نگهداری، بدون کتابخانه‌ی سه‌بعدی، بدون ریسک باتری. اگر روزی افکت خاصی WebGL خواست (مثلاً پس‌زمینه‌ی لاگین)، به‌صورت مستثنا و فقط همان صفحه اضافه می‌شود — نه در سیستم.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>این لایه در سیستم چطور می‌نشیند</h3>
+  <p class="subtitle" style="line-height:2">
+    لایه‌ی متریال زیر توکن‌های سمانتیک اضافه می‌شود:<br>
+    <b>Surfaces:</b> <code>glass</code> (blur واقعی) · <code>glass-soft</code> (بدون blur) · <code>solid</code><br>
+    <b>Effects:</b> <code>aurora</code> (پس‌زمینه‌ی صفحه) · <code>grain</code> (بافت) · <code>gradient-border</code> · <code>gradient-text</code> · <code>glow</code> (سایه‌ی رنگی) · <code>shimmer</code> (انیمیشن نور)<br>
+    <b>قواعد:</b> هر صفحه حداکثر یک افکت ممتاز · متن بدنه هرگز گرادیانی نیست · افکت‌ها همه با <code>prefers-reduced-motion</code> خاموش می‌شوند.
+  </p>
+</div>

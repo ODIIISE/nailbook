@@ -1,0 +1,60 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>16 Fresha Style — gradient + search card</title>
+<style>
+@font-face{font-family:Vazirmatn;src:url(https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2) format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:Vazirmatn;src:url(https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2) format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:Vazirmatn;src:url(https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2) format('woff2');font-weight:700;font-display:swap}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#dcd9d4;display:flex;justify-content:center;font-family:Vazirmatn,system-ui,sans-serif}
+.app{width:390px;min-height:100dvh;background:linear-gradient(180deg,#C4B5FD 0%,#E9D5FF 30%,#FDF2F8 60%,#fff 100%);color:#1A1A1A;position:relative;padding:0 20px 100px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:22px 0}
+.top b{font-size:16px}
+.top a{font-size:12px;text-decoration:none;color:#4A4458;background:rgba(255,255,255,.5);padding:8px 14px;border-radius:999px}
+.hero{padding-top:26px}
+.hero h1{font-size:29px;font-weight:700;line-height:1.55}
+.hero p{font-size:13px;color:#4A4458;margin-top:8px}
+.card{background:#fff;border-radius:20px;padding:10px;margin-top:20px;box-shadow:0 16px 40px rgba(90,60,160,.18)}
+.seg{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #F1EDF7;font-size:13px}
+.seg:last-of-type{border-bottom:none}
+.seg .ic{color:#8B5CF6}
+.seg b{font-weight:500;color:#1A1A1A}
+.seg span{color:#A8A2B8;font-size:12px;margin-right:auto}
+.go{display:block;margin:6px;background:#8B5CF6;color:#fff;text-align:center;text-decoration:none;font-size:14px;font-weight:700;padding:14px;border-radius:14px}
+.counter{margin-top:18px;text-align:center;font-size:12.5px;color:#4A4458}
+.counter b{color:#8B5CF6}
+.reco{margin-top:28px}
+.reco .hd{display:flex;justify-content:space-between;align-items:baseline}
+.reco h2{font-size:16px;font-weight:700}
+.reco a{font-size:11px;color:#8B5CF6;text-decoration:none}
+.cards{display:flex;gap:12px;margin-top:14px;overflow:hidden}
+.cc{width:170px;flex-shrink:0;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 6px 20px rgba(90,60,160,.10);position:relative}
+.cc .im{height:110px}
+.v1{background:linear-gradient(140deg,#DDD6FE,#B79CF8)}
+.v2{background:linear-gradient(140deg,#FBCFE8,#F09AC8)}
+.v3{background:linear-gradient(140deg,#C7F0DB,#8FD4B0)}
+.fav{position:absolute;top:10px;left:10px;width:28px;height:28px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;color:#EC4899}
+.cc .bd{padding:12px 14px}
+.cc b{font-size:13px;display:block}
+.cc span{font-size:10.5px;color:#9A94A8;display:block;margin-top:3px}
+.cc .bt{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.cc .p{font-size:12.5px;font-weight:700}
+.cc .bk{background:#8B5CF6;color:#fff;font-size:10.5px;font-weight:700;padding:6px 12px;border-radius:999px;text-decoration:none}
+.nav{position:absolute;bottom:0;right:0;left:0;background:#fff;display:flex;justify-content:space-around;padding:14px 0 24px;box-shadow:0 -6px 24px rgba(90,60,160,.08)}
+.nav a{font-size:11px;color:#B0A8C8;text-decoration:none}
+.nav a.on{color:#8B5CF6;font-weight:700}
+</style></head><body><div class="app">
+<div class="top"><b>فورهند</b><a href="#">برای کسب‌وکار</a></div>
+<div class="hero"><h1>رزرو خدمات ناخن،<br>به سادگی و بی‌معطلی</h1><p>استودیوی فورهند — سعادت‌آباد، تهران</p></div>
+<div class="card">
+<div class="seg"><span class="ic">✋</span><b>مانیکور و پدیکور</b><span>تغییر</span></div>
+<div class="seg"><span class="ic">▦</span><b>شنبه ۱۵ شهریور</b><span>تغییر</span></div>
+<a class="go" href="#">جستجوی وقت خالی</a>
+</div>
+<div class="counter"><b>۶۶۰ رزرو</b> در فورهند — فقط این هفته</div>
+<div class="reco"><div class="hd"><h2>پیشنهاد برای تو</h2><a href="#">همه</a></div>
+<div class="cards">
+<div class="cc"><div class="im v1"></div><div class="fav">♡</div><div class="bd"><b>مانیکور اسپا</b><span>۶۰ دقیقه · ★ 4.9</span><div class="bt"><span class="p">۵۹۰ ت</span><span class="bk">رزرو</span></div></div></div>
+<div class="cc"><div class="im v2"></div><div class="fav">♡</div><div class="bd"><b>ژلیش فرنچ</b><span>۷۵ دقیقه · ★ 4.8</span><div class="bt"><span class="p">۷۲۰ ت</span><span class="bk">رزرو</span></div></div></div>
+<div class="cc"><div class="im v3"></div><div class="fav">♡</div><div class="bd"><b>پکیج مراقبت</b><span>۹۰ دقیقه · ★ 5.0</span><div class="bt"><span class="p">۱٬۱۰۰ ت</span><span class="bk">رزرو</span></div></div></div>
+</div></div>
+<div class="nav"><a class="on" href="#">خانه</a><a href="#">کاوش</a><a href="#">نوبت‌ها</a><a href="#">پروفایل</a></div>
+</div></body></html>

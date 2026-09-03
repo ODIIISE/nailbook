@@ -3,14 +3,12 @@
 import { Heart, Store, Users, Calendar, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { GradientBackground } from "@/components/layout/gradient-background";
 
 export function AdminLanding() {
   return (
     <div className="relative min-h-screen bg-background text-foreground">
-      <GradientBackground />
       <div className="relative z-10">
-        <nav className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
+        <nav className="sticky top-0 z-50 border-b border-border bg-background">
           <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-2xl bg-foreground text-background flex items-center justify-center shadow-card">
@@ -58,7 +56,7 @@ export function AdminLanding() {
                 { icon: Users, label: "کاربران", desc: "مدیران و مشتریان" },
                 { icon: Calendar, label: "رزروها", desc: "رزرو و درآمد" },
               ].map((f) => (
-                <div key={f.label} className="bg-card border border-border rounded-2xl p-6 group hover:shadow-elevated hover:-translate-y-0.5 transition-all">
+                <div key={f.label} className="bg-card border border-border rounded-2xl p-6">
                   <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                     <f.icon className="h-5 w-5 text-primary" />
                   </div>

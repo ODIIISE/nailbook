@@ -1,0 +1,58 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>17 Booksy Style — dark photo hero</title>
+<style>
+@font-face{font-family:Vazirmatn;src:url(https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2) format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:Vazirmatn;src:url(https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2) format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:Vazirmatn;src:url(https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2) format('woff2');font-weight:700;font-display:swap}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#dcd9d4;display:flex;justify-content:center;font-family:Vazirmatn,system-ui,sans-serif}
+.app{width:390px;min-height:100dvh;background:#fff;color:#1A1A1A;position:relative;padding-bottom:100px}
+.hero{background:radial-gradient(120% 90% at 70% 10%,#4A3A3F 0%,#2A2024 45%,#171214 100%);color:#fff;padding:0 22px 34px;border-radius:0 0 28px 28px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;right:-40px;top:20%;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,180,190,.25),transparent 70%)}
+.top{display:flex;justify-content:space-between;align-items:center;padding:22px 0;position:relative}
+.top b{font-size:15px}
+.top a{font-size:12px;color:#E8DCDE;text-decoration:none;border:1px solid rgba(255,255,255,.25);padding:8px 14px;border-radius:999px}
+.hero h1{font-size:32px;font-weight:700;line-height:1.4;margin-top:30px;position:relative}
+.hero p{font-size:13px;color:#C9B8BC;margin-top:10px;position:relative}
+.search{background:#fff;border-radius:16px;margin-top:22px;padding:15px 18px;font-size:13.5px;color:#8A8A8A;display:flex;justify-content:space-between;align-items:center;position:relative;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+.search .go{background:#171214;color:#fff;font-size:12px;font-weight:700;padding:9px 16px;border-radius:10px}
+.cats{display:flex;gap:16px;margin-top:20px;position:relative;overflow:hidden}
+.cat{flex-shrink:0;font-size:12px;color:#E8DCDE;text-decoration:none;padding-bottom:6px;border-bottom:2px solid transparent}
+.cat.on{color:#fff;border-color:#fff;font-weight:700}
+.sec{padding:26px 22px 0}
+.sec .hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.sec h2{font-size:16px;font-weight:700}
+.sec a{font-size:11px;color:#C9798F;text-decoration:none}
+.pop{background:#FAF7F8;border-radius:18px;padding:14px;display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.pop .im{width:60px;height:60px;border-radius:14px;flex-shrink:0}
+.p1{background:linear-gradient(140deg,#E8C8CE,#C98A9C)}
+.p2{background:linear-gradient(140deg,#D4C8E8,#A992C9)}
+.pop .bd{flex:1}
+.pop b{font-size:13.5px;display:block}
+.pop span{font-size:11px;color:#9A8A8E;display:block;margin-top:3px}
+.pop .bk{background:#171214;color:#fff;font-size:11.5px;font-weight:700;padding:9px 16px;border-radius:10px;text-decoration:none}
+.ratings{display:flex;gap:10px;margin-top:8px}
+.rg{flex:1;background:#FAF7F8;border-radius:16px;padding:14px;text-align:center}
+.rg b{font-size:17px;display:block}
+.rg span{font-size:10px;color:#9A8A8E}
+.nav{position:absolute;bottom:0;right:0;left:0;background:#fff;display:flex;justify-content:space-around;padding:14px 0 24px;box-shadow:0 -4px 18px rgba(0,0,0,.06)}
+.nav a{font-size:11px;color:#B5B5B5;text-decoration:none}
+.nav a.on{color:#171214;font-weight:700}
+</style></head><body><div class="app">
+<div class="hero">
+<div class="top"><b>فورهند نيل</b><a href="#">ورود / ثبت‌نام</a></div>
+<h1>شجاع باش،<br>ناخن‌هایت را بروز بده</h1>
+<p>بهترین تجربه‌ی مراقبت ناخن در سعادت‌آباد — رزرو در ۲۰ ثانیه</p>
+<div class="search"><span>دنبال چه خدمتی هستی؟</span><span class="go">جستجو</span></div>
+<div class="cats"><a class="cat on" href="#">مانیکور</a><a class="cat" href="#">کاشت</a><a class="cat" href="#">ژلیش</a><a class="cat" href="#">طراحی</a><a class="cat" href="#">پدیکور</a><a class="cat" href="#">اسپا</a></div>
+</div>
+<div class="sec"><div class="hd"><h2>خدمات محبوب</h2><a href="#">همه خدمات</a></div>
+<div class="pop"><div class="im p1"></div><div class="bd"><b>مانیکور اسپا + لاک</b><span>۶۰ دقیقه · شامل ماساژ دست</span></div><a class="bk" href="#">رزرو</a></div>
+<div class="pop"><div class="im p2"></div><div class="bd"><b>کاشت پودر + طراحی</b><span>۱۲۰ دقیقه · طراحی رایگان</span></div><a class="bk" href="#">رزرو</a></div>
+<div class="ratings">
+<div class="rg"><b>۴٫۹★</b><span>از ۱٬۲۴۰ نظر</span></div>
+<div class="rg"><b>+۲۴۰</b><span>رزرو این هفته</span></div>
+<div class="rg"><b>۸ سال</b><span>سابقه استودیو</span></div>
+</div>
+</div>
+<div class="nav"><a class="on" href="#">خانه</a><a href="#">رزرو</a><a href="#">نوبت‌ها</a><a href="#">پروفایل</a></div>
+</div></body></html>
