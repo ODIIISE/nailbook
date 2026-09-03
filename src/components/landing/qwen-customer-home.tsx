@@ -194,54 +194,6 @@ export function QwenCustomerHome() {
   const igHandle = salon.instagram_handle;
   const mapUrl = salon.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.address)}` : null;
 
-  // Hero parallax — rAF-throttled, honours reduced motion.
-  const heroRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    let frame = 0;
-    const tick = () => {
-      const node = heroRef.current;
-      if (node) {
-        const y = Math.min(window.scrollY, 700);
-        node.style.setProperty("--qhp-parallax", `${(y * 0.18).toFixed(1)}px`);
-      }
-      frame = 0;
-    };
-    const onScroll = () => {
-      if (frame) return;
-      frame = window.requestAnimationFrame(tick);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    tick();
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
-
-  // Magnetic CTA on fine pointers only.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!window.matchMedia?.("(pointer: fine)").matches) return;
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    const el = document.querySelector<HTMLElement>(".qhp-cta");
-    if (!el) return;
-    const move = (e: PointerEvent) => {
-      const r = el.getBoundingClientRect();
-      const x = (e.clientX - r.left - r.width / 2) / r.width;
-      const y = (e.clientY - r.top - r.height / 2) / r.height;
-      el.style.transform = `translate(${x * 7}px, ${y * 5}px)`;
-    };
-    const leave = () => { el.style.transform = ""; };
-    el.addEventListener("pointermove", move);
-    el.addEventListener("pointerleave", leave);
-    return () => {
-      el.removeEventListener("pointermove", move);
-      el.removeEventListener("pointerleave", leave);
-    };
-  }, []);
-
   return (
     <main className="qhp-page">
       {/* TOP CHROME — hamburger menu (top-right) + profile (top-left), pinned to the frame.
@@ -260,9 +212,9 @@ export function QwenCustomerHome() {
         </Link>
       </div>
 
-      {/* HERO — full-bleed cover with slow breathe + scroll parallax */}
+      {/* HERO — static cover image */}
       <div className="qhp-hero" aria-hidden="true">
-        <div ref={heroRef} className="qhp-hero-par">
+        <div className="qhp-hero-par">
           {(() => {
             const src = salon.hero_image_url && !failedImages.includes(salon.hero_image_url)
               ? salon.hero_image_url
@@ -307,7 +259,7 @@ export function QwenCustomerHome() {
       </section>
 
       {/* PRIMARY CTA — opens the booking flow on its own page */}
-      <button type="button" className="qhp-cta magnetic" onClick={() => openBooking()}
+      <button type="button" className="qhp-cta" onClick={() => openBooking()}
         disabled={!loaded || activeServices.length === 0}>
         <CalendarDays aria-hidden="true" />
         <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? (salon.homepage_cta_label || "شروع رزرو") : "رزرو موقتاً بسته است"}</span>
@@ -558,266 +510,77 @@ export function QwenCustomerHome() {
   );
 }
 
-// ---- Inline sheet primitive ----
-// Focus-friendly bottom sheet: scrim tap / Escape / drag-to-dismiss, body
-// lock, exit, focus restore. Rendered inside this component tree
-// so its styles share the qhp-* layer.
+// ---- Instant overlay primitives (stock pattern, no motion) ----
 
 function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
-  // Keep mounting separate from visibility so the exit animation is never
-  // skipped when the parent closes the sheet.
-  const [mounted, setMounted] = useState(open);
-  const [visible, setVisible] = useState(false);
-  const [dragOffset, setDragOffset] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragOffsetRef = useRef(0);
-  const touchStartY = useRef(0);
-  const reducedMotionRef = useRef(false);
-  const previousFocus = useRef<HTMLElement | null>(null);
-  const closeTimer = useRef<number | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (open) {
-      if (closeTimer.current) {
-        window.clearTimeout(closeTimer.current);
-        closeTimer.current = null;
-      }
-      previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      reducedMotionRef.current = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-      // Lock scrolling on both the html and body elements: some mobile
-      // browsers keep scrolling on <html> even when body overflow is hidden.
-      const previousHtmlOverflow = document.documentElement.style.overflow;
-      const previousBodyOverflow = document.body.style.overflow;
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
-      let enterFrame = 0;
-      let visibleFrame = 0;
-      enterFrame = window.requestAnimationFrame(() => {
-        setMounted(true);
-        dragOffsetRef.current = 0;
-        setDragOffset(0);
-        visibleFrame = window.requestAnimationFrame(() => {
-          setVisible(true);
-          // Never let focusing the close button scroll the page — the sheet is
-          // fixed, and smooth-scrolling to a bottom-anchored element would
-          // visibly jump the homepage to its end.
-          closeButtonRef.current?.focus({ preventScroll: true });
-        });
-      });
-      return () => {
-        window.cancelAnimationFrame(enterFrame);
-        window.cancelAnimationFrame(visibleFrame);
-        document.documentElement.style.overflow = previousHtmlOverflow;
-        document.body.style.overflow = previousBodyOverflow;
-      };
-    }
-
-    if (closeTimer.current) window.clearTimeout(closeTimer.current);
-    const closeFrame = window.requestAnimationFrame(() => {
-      setVisible(false);
-      dragOffsetRef.current = 0;
-      setDragOffset(0);
-      setIsDragging(false);
-    });
-    const exitDuration = reducedMotionRef.current ? 0 : 450;
-    closeTimer.current = window.setTimeout(() => {
-      setMounted(false);
-      if (previousFocus.current?.isConnected) previousFocus.current.focus({ preventScroll: true });
-      previousFocus.current = null;
-      closeTimer.current = null;
-    }, exitDuration);
-    return () => {
-      window.cancelAnimationFrame(closeFrame);
-      if (closeTimer.current) {
-        window.clearTimeout(closeTimer.current);
-        closeTimer.current = null;
-      }
-    };
-  }, [open]);
+  useFocusTrap(sheetRef, open);
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-      if (e.key !== "Tab" || !sheetRef.current) return;
-      const focusable = Array.from(sheetRef.current.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      ));
-      if (focusable.length === 0) {
-        e.preventDefault();
-        sheetRef.current.focus({ preventScroll: true });
-        return;
-      }
-      if (!sheetRef.current.contains(document.activeElement)) {
-        e.preventDefault();
-        (e.shiftKey ? focusable[focusable.length - 1] : focusable[0]).focus({ preventScroll: true });
-        return;
-      }
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus({ preventScroll: true });
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus({ preventScroll: true });
-      }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
     };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
+    document.addEventListener("keydown", onKey);
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+    };
   }, [open, onClose]);
 
-  if (!mounted) return null;
-
-  const translateY = !visible ? "105%" : dragOffset > 0 ? `${dragOffset}px` : "0";
-
-  const sheet = (
-    <div className="qhp-sheet-wrap" role="presentation">
-      <div className="qhp-sheet-scrim" aria-hidden="true"
-        onClick={onClose}
-        style={{ opacity: visible ? 1 : 0 }} />
-      <div ref={sheetRef} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1}
-        className={`qhp-sheet${visible ? " qhp-sheet-entering" : ""}`}
-        style={{ transform: `translateY(${translateY})`, transitionDuration: isDragging ? "0ms" : undefined }}>
-        <div className="qhp-sheet-handle"
-          onTouchStart={(e) => {
-            touchStartY.current = e.touches[0]?.clientY ?? 0;
-            setIsDragging(true);
-          }}
-          onTouchMove={(e) => {
-            const delta = (e.touches[0]?.clientY ?? touchStartY.current) - touchStartY.current;
-            if (delta > 0) {
-              dragOffsetRef.current = delta;
-              setDragOffset(delta);
-            }
-          }}
-          onTouchEnd={() => {
-            setIsDragging(false);
-            if (dragOffsetRef.current > 110) {
-              onClose();
-            } else {
-              dragOffsetRef.current = 0;
-              setDragOffset(0);
-            }
-          }}
-          aria-hidden="true">
-          <i />
-        </div>
+  if (!open || typeof document === "undefined") return null;
+  return createPortal(
+    <div className="qhp-sheet-wrap" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="qhp-sheet-scrim" onClick={onClose} aria-hidden="true" />
+      <div ref={sheetRef} className="qhp-sheet">
         <div className="qhp-sheet-head">
           <h3>{title}</h3>
           <button ref={closeButtonRef} type="button" className="qhp-sheet-close" onClick={onClose} aria-label="بستن">
-            <X className="h-5 w-5" aria-hidden="true" />
+            <X aria-hidden="true" />
           </button>
         </div>
         <div className="qhp-sheet-content">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
-
-  // Render through a portal to <body>. Any transformed/filtered ancestor
-  // (PageTransition's motion.div applies a transient transform during the
-  // route slide; becomes the containing
-  // block for fixed-positioned descendants, which previously anchored the
-  // sheet to the bottom of the whole page — the browser scrolled the homepage
-  // to its end to reveal it. A portal keeps the sheet bound to the viewport.
-  return createPortal(sheet, document.body);
 }
 
-// ---- Side drawer primitive ----
-// Right-side slide-in menu (RTL) with the same lifecycle hardening as Sheet:
-// portal to <body> so no transformed ancestor can re-anchor it, scrim +
-// Escape + focus restore, html/body scroll lock, and a real exit animation.
 function Drawer({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
-  const [mounted, setMounted] = useState(open);
-  const [visible, setVisible] = useState(false);
-  const reducedMotionRef = useRef(false);
-  const previousFocus = useRef<HTMLElement | null>(null);
-  const closeTimer = useRef<number | null>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  // Tab cycles inside the drawer while it is open (focus in/out already
-  // handled below) — parity with the Sheet and every other modal.
   const panelRef = useRef<HTMLDivElement>(null);
   useFocusTrap(panelRef, open);
 
   useEffect(() => {
-    if (open) {
-      if (closeTimer.current) {
-        window.clearTimeout(closeTimer.current);
-        closeTimer.current = null;
-      }
-      previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      reducedMotionRef.current = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-      const previousHtmlOverflow = document.documentElement.style.overflow;
-      const previousBodyOverflow = document.body.style.overflow;
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
-      let enterFrame = 0;
-      let visibleFrame = 0;
-      enterFrame = window.requestAnimationFrame(() => {
-        setMounted(true);
-        visibleFrame = window.requestAnimationFrame(() => {
-          setVisible(true);
-          closeButtonRef.current?.focus({ preventScroll: true });
-        });
-      });
-      return () => {
-        window.cancelAnimationFrame(enterFrame);
-        window.cancelAnimationFrame(visibleFrame);
-        document.documentElement.style.overflow = previousHtmlOverflow;
-        document.body.style.overflow = previousBodyOverflow;
-      };
-    }
-
-    if (closeTimer.current) window.clearTimeout(closeTimer.current);
-    const closeFrame = window.requestAnimationFrame(() => setVisible(false));
-    const exitDuration = reducedMotionRef.current ? 0 : 420;
-    closeTimer.current = window.setTimeout(() => {
-      setMounted(false);
-      if (previousFocus.current?.isConnected) previousFocus.current.focus({ preventScroll: true });
-      previousFocus.current = null;
-      closeTimer.current = null;
-    }, exitDuration);
-    return () => {
-      window.cancelAnimationFrame(closeFrame);
-      if (closeTimer.current) {
-        window.clearTimeout(closeTimer.current);
-        closeTimer.current = null;
-      }
-    };
-  }, [open]);
-
-  useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-      }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
     };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
+    document.addEventListener("keydown", onKey);
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+    };
   }, [open, onClose]);
 
-  if (!mounted || typeof document === "undefined") return null;
-
+  if (!open || typeof document === "undefined") return null;
   return createPortal(
     <div ref={panelRef} className="qhp-drawer-wrap" role="dialog" aria-modal="true" aria-label={title}>
-      <div
-        className="qhp-drawer-scrim"
-        style={{ opacity: visible ? 1 : 0 }}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div className="qhp-drawer" style={{ transform: visible ? "none" : "translateX(105%)" }}>
+      <div className="qhp-drawer-scrim" onClick={onClose} aria-hidden="true" />
+      <div className="qhp-drawer">
         <div className="qhp-drawer-head">
           <b>{title}</b>
-          <button ref={closeButtonRef} type="button" className="qhp-drawer-close" onClick={onClose} aria-label="بستن منو">
+          <button type="button" className="qhp-drawer-close" onClick={onClose} aria-label="بستن">
             <X aria-hidden="true" />
           </button>
         </div>
