@@ -52,3 +52,8 @@ docs/compose/
 
 # local AI tooling (kept on disk, not in version control)
 .claude/
+
+# local AI session artifacts
+.superpowers/
+.freebuff/
+.opencode/
