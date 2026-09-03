@@ -126,7 +126,7 @@ export default function LoginPage() {
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(34px,calc(34px+env(safe-area-inset-bottom)))] pt-[clamp(18px,7dvh,64px)]">
         {step === "phone" && (
-          <div className="w-full rounded-xl border border-border bg-card p-5 shadow-card">
+          <div className="w-full rounded-2xl border border-border bg-card p-5 shadow-card">
             <p className="mb-3.5 text-sm font-extrabold">شماره موبایل خود را وارد کنید</p>
             <div className="mb-3">
               <label htmlFor="login-phone" className="mb-1.5 block text-xs font-bold text-muted-foreground">شماره موبایل</label>
@@ -135,7 +135,7 @@ export default function LoginPage() {
                 type="tel"
                 inputMode="numeric"
                 dir="ltr"
-                className="h-12 w-full rounded-lg border border-input bg-card px-3.5 text-left text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="h-12 w-full rounded-full border border-input bg-input px-3.5 text-left text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !isLoading && handlePhoneSubmit()}
@@ -147,7 +147,7 @@ export default function LoginPage() {
             {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
             <button
               type="button"
-              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-extrabold text-primary-foreground disabled:opacity-50"
+              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-full bg-primary text-sm font-extrabold text-primary-foreground disabled:opacity-50"
               onClick={handlePhoneSubmit}
               disabled={isLoading || !isValidIranianPhone(normalizeDigits(phone))}
             >
@@ -157,9 +157,9 @@ export default function LoginPage() {
         )}
 
         {step === "otp" && (
-          <div className="w-full rounded-xl border border-border bg-card p-5 shadow-card">
+          <div className="w-full rounded-2xl border border-border bg-card p-5 shadow-card">
             <p className="mb-3.5 text-sm font-extrabold">کد ۶ رقمی پیامک‌شده را وارد کنید</p>
-            <div className="mb-4 flex items-center gap-3 rounded-lg border border-success/25 bg-muted p-3">
+            <div className="mb-4 flex items-center gap-3 rounded-2xl border border-success/25 bg-muted p-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">✓</span>
               <span className="min-w-0 flex-1">
                 <b className="block text-sm font-extrabold">شماره</b>
@@ -188,14 +188,14 @@ export default function LoginPage() {
         )}
 
         {step === "name" && (
-          <div className="w-full rounded-xl border border-border bg-card p-5 shadow-card">
+          <div className="w-full rounded-2xl border border-border bg-card p-5 shadow-card">
             <p className="mb-3.5 text-sm font-extrabold">نام و نام خانوادگی خود را وارد کنید</p>
             <div className="mb-3">
               <label htmlFor="login-name" className="mb-1.5 block text-xs font-bold text-muted-foreground">نام و نام خانوادگی</label>
               <input
                 id="login-name"
                 type="text"
-                className="h-12 w-full rounded-lg border border-input bg-card px-3.5 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="h-12 w-full rounded-full border border-input bg-input px-3.5 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !isLoading && handleNameSubmit()}
@@ -207,7 +207,7 @@ export default function LoginPage() {
             {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
             <button
               type="button"
-              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-extrabold text-primary-foreground disabled:opacity-50"
+              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-full bg-primary text-sm font-extrabold text-primary-foreground disabled:opacity-50"
               onClick={handleNameSubmit}
               disabled={isLoading || !name.trim()}
             >

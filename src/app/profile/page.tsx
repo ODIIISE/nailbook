@@ -212,8 +212,8 @@ export default function ProfilePage() {
           <span className="h-11 w-11" />
         </header>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8 pt-2">
-          <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card">
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+          <div className="rounded-2xl border border-border bg-card p-6 text-center shadow-card">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
               <User className="h-7 w-7" aria-hidden="true" />
             </div>
             <h3 className="text-sm font-extrabold">وارد شوید</h3>
@@ -254,7 +254,7 @@ export default function ProfilePage() {
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8 pt-2">
         <div className="mx-auto my-2.5 flex h-20 w-20 items-center justify-center rounded-full border border-border bg-muted text-2xl font-bold text-foreground shadow-card" aria-hidden="true">{initial}</div>
 
-        <section className="overflow-hidden rounded-lg border border-border bg-card shadow-card" aria-labelledby="profile-details-title">
+        <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-card" aria-labelledby="profile-details-title">
           <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/50 px-4 pb-3 pt-4">
             <div className="min-w-0">
               <span className="mb-0.5 block text-xs font-extrabold text-primary">حساب کاربری</span>
@@ -264,13 +264,13 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex items-center gap-3 border-b border-border px-4 py-3.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground"><User className="h-4 w-4" aria-hidden="true" /></span>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-foreground"><User className="h-4 w-4" aria-hidden="true" /></span>
             <div className="min-w-0 flex-1">
               <small className="mb-0.5 block text-xs text-muted-foreground">نام</small>
               {editing ? (
                 <input
                   type="text"
-                  className="h-11 w-full rounded-lg border border-input bg-card px-3 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
+                  className="h-11 w-full rounded-full border border-input bg-input px-3 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !saving && saveEdit()}
@@ -299,14 +299,14 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex items-center gap-3 px-4 py-3.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground"><Phone className="h-4 w-4" aria-hidden="true" /></span>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-foreground"><Phone className="h-4 w-4" aria-hidden="true" /></span>
             <div className="min-w-0 flex-1">
               <small className="mb-0.5 block text-xs text-muted-foreground">شماره موبایل</small>
               {editingPhone ? (
                 <input
                   type="tel"
                   dir="ltr"
-                  className="h-11 w-full rounded-lg border border-input bg-card px-3 text-left text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
+                  className="h-11 w-full rounded-full border border-input bg-input px-3 text-left text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                   value={editPhone}
                   onChange={(e) => setEditPhone(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !savingPhone && savePhone()}
@@ -351,8 +351,8 @@ export default function ProfilePage() {
           </div>
 
         {recentBookings.length === 0 ? (
-          <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+          <div className="rounded-2xl border border-border bg-card p-6 text-center shadow-card">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
               <Calendar className="h-6 w-6" aria-hidden="true" />
             </div>
             <h3 className="text-sm font-extrabold">نوبتی ندارید</h3>
@@ -375,7 +375,7 @@ export default function ProfilePage() {
               return (
                 <div
                   key={booking.id}
-                  className="w-full rounded-lg border border-border bg-card p-4 shadow-card"
+                  className="w-full rounded-2xl border border-border bg-card p-4 shadow-card"
                   role="button"
                   tabIndex={0}
                   onClick={() => router.push("/bookings")}
@@ -388,7 +388,7 @@ export default function ProfilePage() {
                   aria-label={`مشاهده نوبت ${getServiceName(booking.service_id)}`}
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-foreground"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
                     <span className="min-w-0 flex-1">
                       <b className="block truncate text-sm font-bold">{getServiceName(booking.service_id)}</b>
                       <small className="mt-0.5 block text-[11px] text-muted-foreground">{jalaliShort(booking.date_gregorian)}</small>
@@ -409,8 +409,8 @@ export default function ProfilePage() {
                           type="button"
                           className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-3.5 text-[11px] font-extrabold ${
                             confirmingCancel === booking.id
-                              ? "bg-destructive text-white"
-                              : "border border-border bg-muted text-foreground"
+                              ? "bg-destructive text-primary-foreground"
+                              : "glass text-foreground"
                           }`}
                           onClick={(e) => { e.stopPropagation(); handleCancelBooking(booking.id); }}
                         >
@@ -428,7 +428,7 @@ export default function ProfilePage() {
 
         <button
           type="button"
-          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 text-sm font-extrabold text-destructive"
+          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 text-sm font-extrabold text-destructive"
           onClick={() => setConfirmLogout(true)}
         >
           <LogOut className="h-4 w-4" aria-hidden="true" />

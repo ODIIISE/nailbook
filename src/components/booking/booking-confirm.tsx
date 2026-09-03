@@ -75,7 +75,7 @@ export function BookingConfirm({
     await document.fonts?.ready;
     const { toBlob } = await import("html-to-image");
     return toBlob(receiptRef.current, {
-      backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--background").trim() || "#fafafa",
+      backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--background").trim() || "#1D0E0C",
       pixelRatio: 2,
       cacheBust: true,
     });
@@ -191,18 +191,18 @@ export function BookingConfirm({
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <Button size="xl" variant="paper" className="w-full" onClick={handleDownloadImage} disabled={isCapturing}>
+        <Button size="xl" className="w-full h-12" onClick={handleDownloadImage} disabled={isCapturing}>
           {isCapturing ? <Loader2 className="h-4 w-4 me-2" /> : <ImageIcon className="h-4 w-4 me-2" />}
           {isCapturing ? "در حال آماده‌سازی..." : "دانلود تصویر"}
         </Button>
-        <Button size="xl" variant="outline" className="w-full bg-background" onClick={handleShare} disabled={isCapturing}>
+        <Button size="xl" variant="outline" className="w-full h-12" onClick={handleShare} disabled={isCapturing}>
           {isCapturing ? <Loader2 className="h-4 w-4 me-2" /> : <Share2 className="h-4 w-4 me-2" />}
           اشتراک‌گذاری
         </Button>
       </div>
 
       <div className="mt-2">
-        <Button size="xl" variant="ghost" className="w-full" onClick={handleRebook} disabled={isCapturing}>
+        <Button size="xl" variant="ghost" className="w-full h-12" onClick={handleRebook} disabled={isCapturing}>
           <Repeat className="h-4 w-4 me-2" />
           رزرو مجدد
         </Button>
