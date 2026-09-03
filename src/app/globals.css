@@ -36,7 +36,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--qhp-serif-font, 'Playfair Display'), 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  --font-sans: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'SF Mono', SFMono-Regular, Consolas, monospace;
   --color-ring: var(--ring);
   --color-input: var(--input);
@@ -55,24 +55,12 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --color-rose: var(--rose);
-  --color-navy: var(--navy);
-  --color-gold: var(--gold);
-  --color-warm-white: var(--warm-white);
 
-  /* ── Radius ── */
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
-  --radius-3xl: 32px;
-
-  /* ── Booking surface tokens ── */
-  --radius-booking-cta: 14px;
-  --radius-booking-item: 10px;
-  --radius-booking-icon: 8px;
-  --radius-sheet: 14px;
-  --radius-sheet-handle: 999px;
+  /* ── Radius (stock shadcn) ── */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 
   /* ── Form Field Heights ── */
   --field-xs: 32px;
@@ -92,49 +80,31 @@
 
 :root {
   color-scheme: light;
-  /* Phone-frame width: fill narrow phones fully, cap on wide phones/desktop.
-     min(100vw, …) makes it fluid on every device; bumping the cap widens the
-     frame everywhere (homepage, booking flow, bottom sheet stay in sync). */
+  /* Phone-frame width: fill narrow phones fully, cap on wide phones/desktop. */
   --frame-max-w: min(100vw, 480px);
-  /* ── Clean Slate: Light Mode ── */
-  --background: #FFFFFF;
-  --foreground: #0A0A0A;
-  --card: #FFFFFF;
-  --card-foreground: #0A0A0A;
-  --popover: #FFFFFF;
-  --popover-foreground: #0A0A0A;
-  --primary: #0A0A0A;
-  --primary-foreground: #FFFFFF;
-  --secondary: #F5F5F5;
-  --secondary-foreground: #0A0A0A;
-  --muted: #F5F5F5;
-  /* Bumped for AA contrast: #525252 on #FFFFFF ≈ 8.6:1 (was #737373 ≈ 4.4:1, borderline) */
-  --muted-foreground: #525252;
-  --accent: #0A0A0A;
-  --accent-foreground: #FFFFFF;
-  --destructive: #DC2626;
-  --success: #16A34A;
-  --accent-now: #2563EB;
-  --border: #E5E5E5;
-  --input: #F5F5F5;
-  --ring: #0A0A0A;
-  --rose: #E5E5E5;
-  --gold: #0A0A0A;
-  --warm-white: #FFFFFF;
-  --navy: #0A0A0A;
-
-  /* ── Homepage emotional layer ── */
-  --home-blush: #D9A28F;
-  --home-blush-light: #F5E7E0;
-  --home-sand: #E9D5C2;
-  --home-accent: #B87562;
-  --home-accent-strong: #8D4E3D;
-  --home-ink: #2A1713;
-  --home-border-strong: #D7B6A8;
-  --home-overlay: rgba(42, 23, 19, 0.76);
-  --home-hero-start: #3A211B;
-  --home-hero-end: #9A6554;
-  --radius: 14px;
+  /* ── Stock shadcn zinc — Light ── */
+  --background: #ffffff;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;
+  --success: #16a34a;
+  --warning: #b45309;
+  --accent-now: #2563eb;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #a1a1aa;
+  --radius: 10px;
 
   /* ── Booking surface tokens (semantic aliases) ── */
   --booking-cta-bg: var(--card);
@@ -142,63 +112,37 @@
   --booking-cta-fg: var(--foreground);
   --booking-sheet-scrim: rgba(0, 0, 0, 0.42);
 
-  /* ── Elevation (working, multi-layer, monochromatic) ── */
-  --shadow-xs: 0 1px 2px rgba(10, 10, 10, 0.04);
-  --shadow-card: 0 1px 2px rgba(10, 10, 10, 0.04), 0 2px 8px rgba(10, 10, 10, 0.04);
-  --shadow-elevated: 0 2px 4px rgba(10, 10, 10, 0.06), 0 8px 24px rgba(10, 10, 10, 0.08);
-  --shadow-floating: 0 4px 8px rgba(10, 10, 10, 0.08), 0 16px 40px rgba(10, 10, 10, 0.14);
-
-  /* ── Motion tokens (used by Tailwind utilities + JS) ── */
-  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  /* Spring tokens */
-  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1); /* smooth deceleration for branded entrance motion */
-  --ease-spring-out: cubic-bezier(0.16, 1, 0.3, 1); /* smooth spring-out — modal/sheet/drawer */
-  --ease-spring-decay: cubic-bezier(0.16, 1, 0.3, 1); /* smooth sheet ease */
-  --dur-fast: 140ms;
-  --dur-base: 200ms;
-  --dur-slow: 320ms;
+  /* ── Elevation ── */
+  --shadow-xs: 0 1px 2px rgba(9, 9, 11, 0.04);
+  --shadow-card: 0 1px 2px rgba(9, 9, 11, 0.04), 0 2px 8px rgba(9, 9, 11, 0.04);
+  --shadow-elevated: 0 2px 4px rgba(9, 9, 11, 0.06), 0 8px 24px rgba(9, 9, 11, 0.08);
+  --shadow-floating: 0 4px 8px rgba(9, 9, 11, 0.08), 0 16px 40px rgba(9, 9, 11, 0.14);
 }
 
-/* ── Clean Slate: Dark Mode ── */
+/* ── Stock shadcn zinc — Dark ── */
 .dark {
   color-scheme: dark;
-  --background: #000000;
-  --foreground: #FAFAFA;
-  --card: #0F0F10;
-  --card-foreground: #FAFAFA;
-  --popover: #0F0F10;
-  --popover-foreground: #FAFAFA;
-  --primary: #FAFAFA;
-  --primary-foreground: #000000;
-  --secondary: #171717;
-  --secondary-foreground: #FAFAFA;
-  --muted: #171717;
-  /* Bumped for AA contrast on dark surfaces: #B5B5B5 on #0A0A0A ≈ 9.4:1 */
-  --muted-foreground: #B5B5B5;
-  --accent: #FAFAFA;
-  --accent-foreground: #000000;
-  --destructive: #F87171;
-  --success: #34D399;
-  --border: #262626;
-  --input: #171717;
-  --ring: #FAFAFA;
-  --rose: #262626;
-  --gold: #FAFAFA;
-  --warm-white: #FAFAFA;
-  --navy: #000000;
-
-  /* ── Homepage emotional layer ── */
-  --home-blush: #8B5A4D;
-  --home-blush-light: #241A18;
-  --home-sand: #31221E;
-  --home-accent: #B98A7A;
-  --home-accent-strong: #D9A99A;
-  --home-ink: #F6EDE8;
-  --home-border-strong: #5A3F37;
-  --home-overlay: rgba(0, 0, 0, 0.78);
-  --home-hero-start: #211513;
-  --home-hero-end: #6F493F;
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #101012;
+  --card-foreground: #fafafa;
+  --popover: #101012;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-foreground: #18181b;
+  --secondary: #1c1c1f;
+  --secondary-foreground: #fafafa;
+  --muted: #1c1c1f;
+  --muted-foreground: #a1a1aa;
+  --accent: #1c1c1f;
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --accent-now: #3b82f6;
+  --border: #26262a;
+  --input: #26262a;
+  --ring: #52525b;
 
   /* ── Booking surface tokens (semantic aliases) ── */
   --booking-cta-bg: var(--card);
@@ -235,7 +179,7 @@
        Persian text falls through to Vazirmatn (which has no Latin-first claim
        in this stack, so Latin never lands on it). font-synthesis:none prevents
        fake italic/bold slants — Vazirmatn has no italic faces. */
-    font-family: var(--qhp-serif-font, 'Playfair Display'), 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     font-kerning: normal;
@@ -386,10 +330,10 @@
 
 @layer utilities {
   .text-display {
-    font-size: 34px;
-    line-height: 1.08;
-    font-weight: 800;
-    letter-spacing: -0.025em;
+    font-size: 28px;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
   .text-h1 {
     font-size: 24px;
@@ -400,27 +344,27 @@
   .text-h2 {
     font-size: 20px;
     line-height: 1.25;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.01em;
   }
   .text-h3 {
-    font-size: 17px;
-    line-height: 1.3;
+    font-size: 16px;
+    line-height: 1.35;
     font-weight: 600;
   }
   .text-body-lg {
-    font-size: 17px;
+    font-size: 16px;
     line-height: 1.6;
     font-weight: 400;
   }
   .text-body {
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.55;
     font-weight: 400;
   }
   .text-caption {
-    font-size: 13px;
-    line-height: 1.4;
+    font-size: 12px;
+    line-height: 1.45;
     font-weight: 500;
   }
   .text-small {
@@ -727,37 +671,66 @@
    bottom sheets. Everything dies cleanly under prefers-reduced-motion.
    ================================================================ */
 
-/* Aliases into the global warm-paper set above — same names, single values.
-   Defined on :root (not .qhp-page) because the bottom sheet renders through
-   a portal directly under <body> and would otherwise inherit none of them. */
+/* ================================================================
+   Legacy aliases — warm-paper names mapped to the stock zinc tokens.
+   Unmigrated screens keep rendering while their colors go zinc.
+   Deleted surface by surface as migrations land (spec §6).
+   ================================================================ */
 :root {
-  --qhp-serif: var(--qhp-serif-font, 'Playfair Display'), 'Playfair Display', 'Vazirmatn', Georgia, serif;
-  --qhp-bg: var(--qbf-bg);
-  --qhp-bg-2: var(--qbf-bg-2);
-  --qhp-card: var(--qbf-card);
-  --qhp-ink: var(--qbf-ink);
-  --qhp-sub: var(--qbf-sub);
-  --qhp-mut: var(--qbf-mut);
-  --qhp-accent: var(--qbf-accent);
-  --qhp-accent-2: var(--qbf-accent-2);
-  --qhp-blush: var(--qbf-blush);
-  --qhp-rose: var(--qbf-rose);
-  --qhp-rose-2: var(--qbf-rose-2);
-  --qhp-green: var(--qbf-green);
-  --qhp-red: var(--qbf-red);
-  --qhp-gold: var(--qbf-gold);
-  --qhp-hair: var(--qbf-hair);
-  --qhp-hair-2: var(--qbf-hair-2);
-  --qhp-r1: var(--qbf-r1);
-  --qhp-r2: var(--qbf-r2);
-  --qhp-r3: var(--qbf-r3);
-  --qhp-r4: var(--qbf-r4);
-  --qhp-sh1: var(--qbf-sh1);
-  --qhp-sh2: var(--qbf-sh2);
-  --qhp-sh3: var(--qbf-sh3);
-  --qhp-ease-out: var(--qbf-ease-out);
-  --qhp-ease-inout: var(--qbf-ease-inout);
-  --qhp-ease-spring: var(--qbf-ease-spring);
+  --qhp-serif: 'Vazirmatn', Georgia, serif;
+  --qhp-serif-font: 'Vazirmatn';
+  --qhp-bg: var(--background);
+  --qhp-bg-2: var(--muted);
+  --qhp-card: var(--card);
+  --qhp-ink: var(--foreground);
+  --qhp-sub: var(--muted-foreground);
+  --qhp-mut: var(--muted-foreground);
+  --qhp-accent: var(--primary);
+  --qhp-accent-2: var(--primary);
+  --qhp-blush: var(--muted);
+  --qhp-rose: var(--ring);
+  --qhp-rose-2: var(--foreground);
+  --qhp-green: var(--success);
+  --qhp-red: var(--destructive);
+  --qhp-gold: var(--warning);
+  --qhp-hair: var(--border);
+  --qhp-hair-2: var(--border);
+  --qhp-r1: var(--radius-sm);
+  --qhp-r2: var(--radius-md);
+  --qhp-r3: var(--radius-lg);
+  --qhp-r4: var(--radius-xl);
+  --qhp-sh1: var(--shadow-xs);
+  --qhp-sh2: var(--shadow-card);
+  --qhp-sh3: var(--shadow-floating);
+  --qhp-parallax: 0px;
+  --qwen-ink: var(--foreground);
+  --qwen-paper: var(--background);
+  --qbf-bg: var(--background);
+  --qbf-bg-2: var(--muted);
+  --qbf-card: var(--card);
+  --qbf-ink: var(--foreground);
+  --qbf-sub: var(--muted-foreground);
+  --qbf-mut: var(--muted-foreground);
+  --qbf-accent: var(--primary);
+  --qbf-accent-2: var(--primary);
+  --qbf-blush: var(--muted);
+  --qbf-rose: var(--ring);
+  --qbf-rose-2: var(--foreground);
+  --qbf-green: var(--success);
+  --qbf-red: var(--destructive);
+  --qbf-gold: var(--warning);
+  --qbf-hair: var(--border);
+  --qbf-hair-2: var(--border);
+  --qbf-r1: var(--radius-sm);
+  --qbf-r2: var(--radius-md);
+  --qbf-r3: var(--radius-lg);
+  --qbf-r4: var(--radius-xl);
+  --qbf-sh1: var(--shadow-xs);
+  --qbf-sh2: var(--shadow-card);
+  --qbf-sh3: var(--shadow-floating);
+  --qbf-ease-out: linear;
+  --qbf-ease-inout: linear;
+  --qbf-ease-spring: linear;
 }
 
 .qhp-page {
@@ -980,42 +953,9 @@
 }
 /* ================================================================
    QBF — merged booking flow (Qwen front · real engine)
-   Warm paper shell, espresso CTA, gold accents. One shared component
-   rendered either as a standalone page (/book) or an overlay sheet
-   on the homepage. Full reduced-motion support.
+   Tokens live in the legacy alias block; this section's CSS is
+   scheduled for deletion when the booking flow migrates (spec §6).
    ================================================================ */
-
-:root {
-  /* Warm-paper tokens — single source of truth for the customer journey.
-     Defined globally (not on .qbf-page) so the overlay-sheet variant, which
-     never renders .qbf-page, inherits them too. Change colors here only. */
-  --qbf-bg: #FDF6F0;
-  --qbf-bg-2: #FBF1E8;
-  --qbf-card: #FFFFFF;
-  --qbf-ink: #2A1810;
-  --qbf-sub: #7A6654;
-  --qbf-mut: #7E6C5A;
-  --qbf-accent: #33221A;
-  --qbf-accent-2: #241511;
-  --qbf-blush: #F6E7DB;
-  --qbf-rose: #BE8A72;
-  --qbf-rose-2: #96603F;
-  --qbf-green: #2D7A3A;
-  --qbf-red: #B93E3E;
-  --qbf-gold: #C99B4C;
-  --qbf-hair: rgba(42, 24, 16, .07);
-  --qbf-hair-2: rgba(42, 24, 16, .12);
-  --qbf-r1: 10px;
-  --qbf-r2: 14px;
-  --qbf-r3: 20px;
-  --qbf-r4: 28px;
-  --qbf-sh1: 0 1px 2px rgba(42, 24, 16, .04), 0 6px 18px rgba(42, 24, 16, .06);
-  --qbf-sh2: 0 2px 6px rgba(42, 24, 16, .06), 0 14px 36px rgba(42, 24, 16, .10);
-  --qbf-sh3: 0 4px 12px rgba(42, 24, 16, .08), 0 28px 70px rgba(42, 24, 16, .18);
-  --qbf-ease-out: cubic-bezier(.22, 1, .36, 1);
-  --qbf-ease-inout: cubic-bezier(.65, 0, .35, 1);
-  --qbf-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
-}
 
 .qbf-page {
   min-height: 100dvh;
