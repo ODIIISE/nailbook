@@ -3,10 +3,8 @@
 import { useMemo, useState, useEffect } from "react";
 import QRCode from "qrcode";
 import Image from "next/image";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { Check, MapPin, Phone } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
-import { TornPaperCard } from "./torn-paper-card";
 
 interface AddonItem {
   name: string;
@@ -36,110 +34,6 @@ interface PrintedReceiptProps {
   bookingIdRaw?: string;
   customerName?: string;
   className?: string;
-}
-
-/* ── Animation variants ── */
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.92, rotate: -1.5, y: 24 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    rotate: 0,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 260,
-      damping: 24,
-      mass: 0.8,
-    },
-  },
-};
-
-const contentVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.12,
-    },
-  },
-};
-
-const sectionVariants: Variants = {
-  hidden: { opacity: 0, y: 14, scale: 0.98 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 28,
-    },
-  },
-};
-
-/* ── Confetti burst ── */
-
-function seededRandom(seed: number): () => number {
-  let s = seed % 2147483647;
-  if (s <= 0) s += 2147483646;
-  return () => {
-    s = (s * 48271) % 2147483647;
-    return (s - 1) / 2147483646;
-  };
-}
-
-function Confetti({ seed }: { seed: string }) {
-  const seedValue = seed.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-  const particles = useMemo(() => {
-    const rand = seededRandom(seedValue);
-    const count = 24;
-    const colors = ["#16A34A", "#2563EB", "#F59E0B", "#DC2626", "#0A0A0A"];
-    return Array.from({ length: count }).map((_, i) => {
-      const angle = (i / count) * 360 + rand() * 20;
-      const distance = 60 + rand() * 80;
-      const color = colors[i % colors.length];
-      const size = 4 + rand() * 5;
-      const delay = rand() * 0.1;
-      const duration = 0.8 + rand() * 0.5;
-      const rotation = rand() * 360;
-      return { angle, distance, color, size, delay, duration, rotation };
-    });
-  }, [seedValue]);
-
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 z-20 overflow-visible"
-      aria-hidden="true"
-    >
-      {particles.map((p, i) => (
-        <motion.span
-          key={i}
-          className="absolute left-1/2 top-1/2 block rounded-full"
-          style={{
-            width: p.size,
-            height: p.size,
-            backgroundColor: p.color,
-          }}
-          initial={{ x: 0, y: 0, opacity: 0, scale: 0, rotate: p.rotation }}
-          animate={{
-            x: Math.cos((p.angle * Math.PI) / 180) * p.distance,
-            y: Math.sin((p.angle * Math.PI) / 180) * p.distance + 40,
-            opacity: [0, 1, 0],
-            scale: [0, 1, 0.5],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: 0.2 + p.delay,
-            ease: "easeOut",
-          }}
-        />
-      ))}
-    </div>
-  );
 }
 
 function BookingQrCode({
@@ -192,7 +86,7 @@ function BookingQrCode({
             خطا در ساخت QR
           </div>
         ) : (
-          <div className="h-[120px] w-[120px] animate-pulse rounded bg-muted" />
+          <div className="h-[120px] w-[120px] rounded bg-muted" />
         )}
       </div>
       {label && (
@@ -224,7 +118,6 @@ export function PrintedReceipt({
   className = "",
 }: PrintedReceiptProps) {
   const isFinal = mode === "final";
-  const shouldReduceMotion = useReducedMotion();
   const displayId = bookingId ? bookingId.slice(-8).toUpperCase() : null;
   const issueDate = useMemo(
     () =>
@@ -248,26 +141,14 @@ export function PrintedReceipt({
   const dateYear = toPersianDigits(dateParts.year);
   const accessibleDateTime = `تاریخ ${dateDay} ${dateMonth} ${dateYear}، ساعت ${toPersianDigits(startTime)} تا ${toPersianDigits(endTime)}`;
 
-  const transition = shouldReduceMotion
-    ? { duration: 0 }
-    : undefined;
-
   return (
-    <motion.article
+    <article
       className={`relative mx-auto max-w-md ${className}`}
       aria-label={isFinal ? "رسید نهایی رزرو" : "پیش‌فاکتور رزرو"}
-      initial={shouldReduceMotion ? "visible" : "hidden"}
-      animate="visible"
-      variants={containerVariants}
-      transition={transition}
     >
-      {isFinal && !shouldReduceMotion && bookingId && <Confetti seed={bookingId} />}
-      <TornPaperCard className="shadow-card">
-        <motion.div
+      <div className="rounded-lg border bg-card shadow-card">
+        <div
           className="relative overflow-hidden rounded bg-transparent px-5 py-5"
-          variants={contentVariants}
-          initial={shouldReduceMotion ? "visible" : "hidden"}
-          animate="visible"
         >
           {/* Subtle paper grain */}
           <div
@@ -280,7 +161,7 @@ export function PrintedReceipt({
           />
 
           {/* Header */}
-          <motion.div className="relative z-10 flex items-start justify-between gap-3" variants={sectionVariants}>
+          <div className="relative z-10 flex items-start justify-between gap-3">
             <div className="flex items-center gap-2.5">
               {salonLogoUrl ? (
                 <Image
@@ -322,10 +203,10 @@ export function PrintedReceipt({
                 </div>
               </div>
             )}
-          </motion.div>
+          </div>
 
           {/* Status badge */}
-          <motion.div className="relative z-10 mt-4 text-center" variants={sectionVariants}>
+          <div className="relative z-10 mt-4 text-center">
             <div
               className={`relative inline-flex items-center gap-1.5 isolate rounded-full px-3 py-1 text-xs font-semibold ${
                 isFinal
@@ -333,14 +214,6 @@ export function PrintedReceipt({
                   : "bg-primary/10 text-primary"
               }`}
             >
-              {isFinal && !shouldReduceMotion && (
-                <motion.div
-                  className="absolute left-1/2 top-1/2 -z-10 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-success/30"
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: [1, 1.7, 1.7], opacity: [0.6, 0, 0] }}
-                  transition={{ duration: 1.2, ease: "easeOut" }}
-                />
-              )}
               {isFinal ? (
                 <>
                   <Check className="h-3.5 w-3.5" />
@@ -358,11 +231,11 @@ export function PrintedReceipt({
                 ? "رزرو شما با موفقیت ثبت گردید."
                 : "لطفاً جزئیات زیر را بررسی و تأیید کنید."}
             </p>
-          </motion.div>
+          </div>
 
           {/* Reference */}
           {isFinal && bookingId && (
-            <motion.div className="relative z-10 mt-4 text-center" variants={sectionVariants}>
+            <div className="relative z-10 mt-4 text-center">
               <span className="text-xs text-muted-foreground">شماره رزرو:</span>
               <span
                 className="mr-1 inline-block select-all text-sm font-bold tabular-nums tracking-widest text-primary"
@@ -370,14 +243,14 @@ export function PrintedReceipt({
               >
                 {bookingId}
               </span>
-            </motion.div>
+            </div>
           )}
 
           {/* Perforated dashed line */}
           <div className="relative z-10 my-5 border-t-2 border-dashed border-border" />
 
           {/* Itemized list */}
-          <motion.div className="relative z-10" variants={sectionVariants}>
+          <div className="relative z-10">
             <div className="mb-2 flex items-center justify-between text-small font-bold tracking-wide text-muted-foreground">
               <span className="w-8">#</span>
               <span className="flex-1 px-2">شرح خدمات</span>
@@ -399,10 +272,10 @@ export function PrintedReceipt({
                 </span>
               </div>
             ))}
-          </motion.div>
+          </div>
 
           {/* Total block */}
-          <motion.div className="relative z-10 mt-4 rounded-xl bg-muted/40 p-3" variants={sectionVariants}>
+          <div className="relative z-10 mt-4 rounded-xl bg-muted/40 p-3">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">
                 مدت کل
@@ -425,10 +298,10 @@ export function PrintedReceipt({
                 {formatPrice(totalPrice)} تومان
               </span>
             </div>
-          </motion.div>
+          </div>
 
           {/* Date / time row */}
-          <motion.div className="relative z-10 mt-4 flex items-center justify-between rounded-lg border border-border/60 bg-card px-3 py-2.5" variants={sectionVariants}>
+          <div className="relative z-10 mt-4 flex items-center justify-between rounded-lg border border-border/60 bg-card px-3 py-2.5">
             <span className="text-xs font-medium text-muted-foreground">تاریخ و ساعت</span>
             <span className="sr-only">{accessibleDateTime}</span>
             <span
@@ -449,11 +322,11 @@ export function PrintedReceipt({
                 {toPersianDigits(startTime)} - {toPersianDigits(endTime)}
               </bdi>
             </span>
-          </motion.div>
+          </div>
 
           {/* QR + promo section */}
           {isFinal && bookingIdRaw && (
-            <motion.div className="relative z-10 mt-5 flex items-center gap-3 rounded-xl border border-border/60 bg-card p-3" variants={sectionVariants}>
+            <div className="relative z-10 mt-5 flex items-center gap-3 rounded-xl border border-border/60 bg-card p-3">
               <div className="shrink-0">
                 <BookingQrCode key={bookingIdRaw} bookingId={bookingIdRaw} label="رسید رزرو" />
               </div>
@@ -465,11 +338,11 @@ export function PrintedReceipt({
                   با اسکرین‌شات یا اشتراک تصویری این رسید را نزد خود داشته باشید.
                 </p>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* Footer */}
-          <motion.div className="relative z-10 mt-5 space-y-1 border-t border-dashed border-border pt-4 text-center" variants={sectionVariants}>
+          <div className="relative z-10 mt-5 space-y-1 border-t border-dashed border-border pt-4 text-center">
             {customerName && (
               <p className="text-xs text-muted-foreground">
                 رزرو برای: <span className="font-semibold text-foreground">{customerName}</span>
@@ -490,9 +363,9 @@ export function PrintedReceipt({
             <p className="pt-1 text-small text-muted-foreground/60">
               {salonName}
             </p>
-          </motion.div>
-        </motion.div>
-      </TornPaperCard>
-    </motion.article>
+          </div>
+        </div>
+      </div>
+    </article>
   );
 }
