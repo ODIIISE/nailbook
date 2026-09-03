@@ -170,7 +170,7 @@
   html {
     @apply font-sans bg-background;
     direction: rtl;
-    over;
+    overscroll-behavior: none;
     text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
     /* All English / Latin text renders in Playfair Display (--qhp-serif-font),
@@ -189,7 +189,7 @@
     /* Inner scroll containers restore their own overscroll-y via the
        .native-scroll opt-in class. This prevents the page background
        from rubber-banding like a web page when scrolling lists. */
-    over;
+    overscroll-behavior-y: none;
   }
   /* Opt-in class for elements that need native scroll feel back. */
   .native-scroll {
@@ -693,7 +693,7 @@
 .qhp-sheet-head h3 { font-family: var(--qhp-serif); font-size: 24px; font-weight: 700; }
 .qhp-sheet-close { width: 40px; height: 40px; border: none; border-radius: 50%; background: var(--qhp-card); box-shadow: var(--qhp-sh1); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--qhp-ink); }
 .qhp-sheet-close:active { transform: scale(.86); }
-.qhp-sheet-content { min-height: 0; overflow-y: auto; over; scrollbar-width: none; }
+.qhp-sheet-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
 .qhp-sheet-content::-webkit-scrollbar { display: none; }
 
 /* look sheet body */
@@ -799,7 +799,7 @@
 
 /* ---- Steps ---- */
 .qbf-view { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
-.qbf-step { position: absolute; inset: 0; min-height: 0; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; over; scrollbar-width: none; opacity: 0; visibility: hidden; pointer-events: none; }
+.qbf-step { position: absolute; inset: 0; min-height: 0; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; scrollbar-width: none; opacity: 0; visibility: hidden; pointer-events: none; }
 .qbf-step::-webkit-scrollbar { display: none; }
 .qbf-step.active { opacity: 1; visibility: visible; pointer-events: auto; }
 .qbf-step-body { padding: 4px 22px calc(30px + env(safe-area-inset-bottom)); }
@@ -1068,7 +1068,7 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  over;
+  overscroll-behavior: contain;
   scrollbar-width: none;
   padding: 8px 22px calc(34px + env(safe-area-inset-bottom));
 }
@@ -1229,7 +1229,7 @@
 .qbp-sheet-close { width: 38px; height: 38px; border: none; border-radius: 50%; background: var(--qbf-card); box-shadow: var(--qbf-sh1); border: 1px solid var(--qbf-hair); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--qbf-ink); flex-shrink: 0; }
 .qbp-sheet-close:active { transform: scale(.86); }
 .qbp-sheet-close svg { width: 17px; height: 17px; }
-.qbp-sheet-content { min-height: 0; overflow-y: auto; over; scrollbar-width: none; }
+.qbp-sheet-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
 .qbp-sheet-content::-webkit-scrollbar { display: none; }
 .qbp-detail-card { background: var(--qbf-card); border: 1px solid var(--qbf-hair); border-radius: var(--qbf-r3); box-shadow: var(--qbf-sh1); overflow: hidden; margin-bottom: 14px; }
 .qbp-detail-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-top: 1px dashed var(--qbf-hair-2); }
