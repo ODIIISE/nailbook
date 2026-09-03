@@ -50,7 +50,7 @@ export default function BootstrapPage() {
 
   return (
     <div className="min-h-[100dvh] flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-sm glass rounded-3xl p-6 animate-scale">
+      <div className="w-full max-w-sm rounded-3xl border bg-card p-6">
         <div className="text-center mb-6">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <Sparkles className="h-6 w-6 text-foreground" />
