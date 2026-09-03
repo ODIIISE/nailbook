@@ -16,7 +16,7 @@ interface ThemeSnapshot {
 /* ── Module-level store: single source of truth for all useTheme consumers ── */
 
 const listeners = new Set<() => void>();
-let snapshot: ThemeSnapshot = { theme: "dark", mode: "system", resolved: false };
+let snapshot: ThemeSnapshot = { theme: "light", mode: "system", resolved: false };
 let initialized = false;
 
 function emit() {
@@ -24,7 +24,7 @@ function emit() {
 }
 
 function getSystemTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
+  if (typeof window === "undefined") return "light";
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 

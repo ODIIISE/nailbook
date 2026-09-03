@@ -645,7 +645,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
       <div className="relative min-h-0 flex-1 overflow-hidden">
         <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain px-5 pb-8 ${step === "service" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
           {look && (
-            <div className="mb-3.5 flex items-center gap-3 rounded-2xl bg-primary p-3 text-primary-foreground">
+            <div className="mb-3.5 flex items-center gap-3 rounded-lg bg-primary p-3 text-primary-foreground">
               {look.cover_url ? (
                 <Image src={look.cover_url} alt="" width={50} height={50} unoptimized className="h-12 w-12 shrink-0 rounded-lg object-cover" />
               ) : (
@@ -679,7 +679,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
                 <div
                   key={s.id}
                   ref={(node) => { serviceCardRefs.current[s.id] = node; }}
-                  className={`overflow-hidden rounded-2xl border bg-card shadow-card ${isSelected ? "border-primary" : "border-border"}`}
+                  className={`overflow-hidden rounded-lg border bg-card shadow-card ${isSelected ? "border-primary" : "border-border"}`}
                 >
                   <button
                     type="button"
@@ -730,10 +730,10 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
                                 type="button"
                                 onClick={() => handleToggleAddon(a.id)}
                                 aria-pressed={isOn}
-                                 className={`mt-1.5 flex w-full items-center gap-3 rounded-2xl border p-3 text-start ${isOn ? "border-primary bg-primary/5" : "border-border bg-card"}`}
+                                className={`mt-1.5 flex w-full items-center gap-3 rounded-lg border p-3 text-start ${isOn ? "border-primary bg-primary/5" : "border-border bg-card"}`}
                               >
                                 <span
-                                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${isOn ? "border-primary bg-primary text-primary-foreground" : "border-border text-transparent"}`}
+                                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 ${isOn ? "border-primary bg-primary text-primary-foreground" : "border-border text-transparent"}`}
                                   aria-hidden="true"
                                 >
                                   {isOn && <Check className="h-3 w-3" strokeWidth={3} />}
@@ -760,7 +760,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
               );
             })}
             {activeServices.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-border bg-card p-7 text-center text-sm text-muted-foreground">
+              <div className="rounded-lg border border-dashed border-border bg-card p-7 text-center text-sm text-muted-foreground">
                 هنوز خدمتی برای رزرو فعال نیست
               </div>
             )}
@@ -836,7 +836,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
         <footer className="border-t border-border bg-background/95 px-5 pb-[calc(14px+env(safe-area-inset-bottom))] pt-2.5">
           <button
             type="button"
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-4 text-base font-extrabold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-extrabold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
             disabled={!ctaState.ok || isBookingLoading}
             onClick={() => {
               if (isBookingLoading) return;
@@ -910,7 +910,7 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
             <button
               key={getTehranDateKey(d.date)}
               type="button"
-              className={`flex h-16 min-w-[58px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-full px-3 text-sm font-bold ${d.isSelected ? "bg-primary text-primary-foreground" : "border border-border bg-card text-foreground"} ${blocked && !d.isSelected ? "opacity-40" : ""}`}
+              className={`flex h-16 min-w-[58px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border px-3 text-sm font-bold ${d.isSelected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"} ${blocked && !d.isSelected ? "opacity-40" : ""}`}
               onClick={() => { if (!blocked) onSelectDate(d.date); }}
               disabled={blocked}
               aria-pressed={d.isSelected}
@@ -925,14 +925,14 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
 
       {showModal && <MonthModal selectedDate={selectedDate} onSelect={(d) => { onSelectDate(d); setShowModal(false); }} onClose={() => setShowModal(false)} />}
 
-      <div className="mb-3.5 flex items-center justify-center gap-2 rounded-full border border-border bg-muted px-3.5 py-2.5 text-sm font-extrabold">
+      <div className="mb-3.5 flex items-center justify-center gap-2 rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm font-extrabold">
         <CalendarDays className="h-4 w-4 text-primary" aria-hidden="true" />
         <span>{selectedDateText}</span>
       </div>
 
       {emptyReason ? (
-        <div className="rounded-2xl border border-border bg-card p-8 text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <div className="rounded-lg border border-border bg-card p-8 text-center">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
             <Clock className="h-7 w-7" strokeWidth={1.7} aria-hidden="true" />
           </div>
           <h3 className="text-base font-extrabold">{emptyReason === "full" ? "این روز کاملاً پر شده" : "برای این روز ساعت کاری نداریم"}</h3>
@@ -942,7 +942,7 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
           <button
             type="button"
             onClick={onGoToNextDay}
-            className="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-5 text-sm font-extrabold text-primary-foreground"
+            className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-extrabold text-primary-foreground"
           >
             {emptyReason === "full" ? "برنامه فردا را ببینید" : "روز بعد را بررسی کنید"}
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -954,7 +954,7 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
             const suggested = slotGroups.flatMap((g) => g.slots).filter((s) => s.available && s.suggested);
             if (!suggested.length) return null;
             return (
-              <section className="mb-4 rounded-2xl border border-primary/25 bg-primary/5 p-3.5" aria-label="پیشنهاد نوبت">
+              <section className="mb-4 rounded-lg border border-primary/25 bg-primary/5 p-3.5" aria-label="پیشنهاد نوبت">
                 <div className="mb-3 flex items-baseline gap-2">
                   <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 shrink-0 self-center fill-primary"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z" /></svg>
                   <span className="text-sm font-extrabold text-primary">پیشنهاد نوبت</span>
@@ -996,7 +996,7 @@ function SlotChip({ slot, selected, onSelect, suggest = false }: { slot: TimeSlo
   const formatted = slot.time.split(":").map((p) => toPersianDigits(p)).join(":");
   return (
     <button type="button"
-      className={`relative flex h-11 min-w-16 flex-col items-center justify-center gap-0.5 rounded-full border px-3 text-sm font-bold ${selected ? "bg-primary text-primary-foreground" : suggest ? "glass text-foreground" : "border-border bg-card text-foreground"} ${!available ? "opacity-40 line-through" : ""}`}
+      className={`relative flex h-11 min-w-16 flex-col items-center justify-center gap-0.5 rounded-lg border px-3 text-sm font-bold ${selected ? "border-primary bg-primary text-primary-foreground" : suggest ? "border-primary/50 bg-card text-foreground" : "border-border bg-card text-foreground"} ${!available ? "opacity-40 line-through" : ""}`}
       disabled={!available}
       aria-pressed={selected}
       onClick={() => { if (available) onSelect(slot.time); }}
@@ -1059,7 +1059,7 @@ function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; o
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div ref={dialogRef} tabIndex={-1} className="relative w-full max-w-sm rounded-3xl border border-border bg-card p-4 shadow-card" role="dialog" aria-modal="true" aria-label="تقویم">
+      <div ref={dialogRef} tabIndex={-1} className="relative w-full max-w-sm rounded-xl border border-border bg-card p-4 shadow-card" role="dialog" aria-modal="true" aria-label="تقویم">
         <div className="mb-3 flex items-center justify-between">
           <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm" onClick={() => shiftMonth(-1)} aria-label="ماه قبل">
             <ArrowLeft className="h-4 w-4 rotate-180" aria-hidden="true" />
@@ -1079,7 +1079,7 @@ function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; o
           {cells.map((cell, i) =>
             cell.day === null ? <span key={`e-${i}`} /> : (
               <button key={cell.day} type="button" disabled={cell.isPast}
-                className={`flex h-11 w-full items-center justify-center rounded-full text-sm font-bold disabled:opacity-30 ${cell.isSelected ? "bg-primary text-primary-foreground" : cell.isToday ? "border border-ring text-foreground" : "text-foreground"}`}
+                className={`flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold disabled:opacity-30 ${cell.isSelected ? "bg-primary text-primary-foreground" : cell.isToday ? "border border-ring text-foreground" : "text-foreground"}`}
                 onClick={() => cell.date && onSelect(cell.date)}>
                 {toPersianDigits(cell.day)}
               </button>
@@ -1131,9 +1131,9 @@ function ReviewStep(props: ReviewStepProps) {
 
   return (
     <div>
-      <div className="mb-3.5 overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+      <div className="mb-3.5 overflow-hidden rounded-lg border border-border bg-card shadow-card">
         <div className="flex items-center gap-3.5 p-4">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><Clock className="h-4 w-4" aria-hidden="true" /></span>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Clock className="h-4 w-4" aria-hidden="true" /></span>
           <span className="min-w-0 flex-1">
             <b className="block text-sm font-extrabold">{service?.name ?? "—"}{lookName ? ` · مدل ${lookName}` : ""}</b>
             <small className="mt-0.5 block text-xs text-muted-foreground">{toPersianDigits(totalDuration)} دقیقه · {compactToman(totalPrice)}</small>
@@ -1167,22 +1167,22 @@ function ReviewStep(props: ReviewStepProps) {
         </div>
       </div>
 
-      <div className="mb-3.5 rounded-2xl border border-border bg-card p-4 shadow-card">
+      <div className="mb-3.5 rounded-lg border border-border bg-card p-4 shadow-card">
         <p className="mb-3.5 text-sm font-extrabold">مشخصات شما</p>
 
         <div className="mb-3">
           <label htmlFor="booking-name" className="mb-1.5 block text-xs font-bold text-muted-foreground">نام {nameRequired ? "(الزامی)" : "(قابل ویرایش)"}</label>
-          <input id="booking-name" type="text" className="h-12 w-full rounded-full border border-input bg-input px-3.5 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50" value={authName}
+          <input id="booking-name" type="text" className="h-12 w-full rounded-lg border border-input bg-card px-3.5 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50" value={authName}
             onChange={(e) => onAuthName(e.target.value)} placeholder="مثال: سارا احمدی" autoComplete="name" required={nameRequired} aria-required={nameRequired} />
         </div>
 
         {user ? (
-          <div className="flex items-center gap-3 rounded-2xl border border-success/25 bg-muted p-3">
+          <div className="flex items-center gap-3 rounded-lg border border-success/25 bg-muted p-3">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success"><Check className="h-4 w-4" strokeWidth={3} /></span>
             <span className="min-w-0 flex-1"><b className="block text-sm font-extrabold">شماره تأیید شده</b><small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(user.phone)}</small></span>
           </div>
         ) : otpState === "verified" ? (
-          <div className="flex items-center gap-3 rounded-2xl border border-success/25 bg-muted p-3">
+          <div className="flex items-center gap-3 rounded-lg border border-success/25 bg-muted p-3">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success"><Check className="h-4 w-4" strokeWidth={3} /></span>
             <span className="min-w-0 flex-1"><b className="block text-sm font-extrabold">شماره تأیید شد</b><small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(authPhone)}</small></span>
             <button type="button" onClick={onChangePhone} className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-extrabold text-primary">تغییر شماره</button>
@@ -1191,13 +1191,13 @@ function ReviewStep(props: ReviewStepProps) {
           <>
             <div className="mb-3">
               <label htmlFor="booking-phone" className="mb-1.5 block text-xs font-bold text-muted-foreground">شماره موبایل</label>
-              <input id="booking-phone" type="tel" inputMode="numeric" dir="ltr" className="h-12 w-full rounded-full border border-input bg-input px-3.5 text-left text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50" value={authPhone}
+              <input id="booking-phone" type="tel" inputMode="numeric" dir="ltr" className="h-12 w-full rounded-lg border border-input bg-card px-3.5 text-left text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50" value={authPhone}
                 onChange={(e) => onAuthPhone(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && phoneValid && !isAuthLoading && otpState === "idle" && onSendOtp()}
                 placeholder="۰۹۱۲۱۲۳۴۵۶۷" autoComplete="tel" />
             </div>
             {otpState === "idle" && (
-              <button type="button" className="flex h-12 w-full items-center justify-center rounded-full bg-primary text-sm font-extrabold text-primary-foreground disabled:opacity-50" disabled={!phoneValid || isAuthLoading} onClick={onSendOtp}>
+              <button type="button" className="flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-extrabold text-primary-foreground disabled:opacity-50" disabled={!phoneValid || isAuthLoading} onClick={onSendOtp}>
                 {isAuthLoading ? "در حال ارسال…" : "دریافت کد تأیید"}
               </button>
             )}
@@ -1219,7 +1219,7 @@ function ReviewStep(props: ReviewStepProps) {
         {authError && <p className="mt-2.5 text-xs font-semibold text-destructive" role="alert">{authError}</p>}
       </div>
 
-      <div className="mb-3.5 flex items-start gap-2.5 rounded-2xl border border-dashed border-border bg-muted p-3.5 text-xs leading-relaxed text-muted-foreground">
+      <div className="mb-3.5 flex items-start gap-2.5 rounded-lg border border-dashed border-border bg-muted p-3.5 text-xs leading-relaxed text-muted-foreground">
         کنسلی رایگان تا ۲۴ ساعت قبل از نوبت؛ هزینهٔ افزودنی‌ها همراه خدمت در سالن پرداخت می‌شود.
       </div>
 
@@ -1274,11 +1274,11 @@ function SuccessStep(props: SuccessStepProps) {
       <p className="mb-4 mt-1 text-sm text-muted-foreground">پیامک تأیید برایت در راه است</p>
 
       <div className="mb-4 flex gap-2.5">
-        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary text-sm font-extrabold text-primary-foreground" onClick={() => { downloadIcs({ title: eventTitle, start, end, location: eventLocation, description: eventDescription }); setIcsAdded(true); haptic.tap(); }}>
+        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-extrabold text-primary-foreground" onClick={() => { downloadIcs({ title: eventTitle, start, end, location: eventLocation, description: eventDescription }); setIcsAdded(true); haptic.tap(); }}>
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           {icsAdded ? "به تقویم اضافه شد" : "افزودن به تقویم"}
         </button>
-        <a className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-card text-sm font-extrabold text-foreground" href={googleCalendarUrl({ title: eventTitle, start, end, location: eventLocation, description: eventDescription })} target="_blank" rel="noopener noreferrer">
+        <a className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-extrabold text-foreground" href={googleCalendarUrl({ title: eventTitle, start, end, location: eventLocation, description: eventDescription })} target="_blank" rel="noopener noreferrer">
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           تقویم گوگل
         </a>
@@ -1302,11 +1302,11 @@ function SuccessStep(props: SuccessStepProps) {
       />
 
       <div className="mt-4 flex gap-2.5">
-        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary text-sm font-extrabold text-primary-foreground" onClick={() => { haptic.tap(); router.push("/bookings"); }}>
+        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-extrabold text-primary-foreground" onClick={() => { haptic.tap(); router.push("/bookings"); }}>
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           مشاهده نوبت‌های من
         </button>
-        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-card text-sm font-extrabold text-foreground" onClick={() => { haptic.tap(); router.push("/"); }}>
+        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-extrabold text-foreground" onClick={() => { haptic.tap(); router.push("/"); }}>
           بازگشت به خانه
         </button>
       </div>

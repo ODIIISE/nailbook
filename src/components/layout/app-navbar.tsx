@@ -57,11 +57,12 @@ export function AppNavbar({ items }: AppNavbarProps) {
 
   return (
     <nav
-      aria-label="ناوبری اصلی"
-      className="fixed bottom-4 left-1/2 z-20 w-[240px] -translate-x-1/2"
-      style={{ marginBottom: "env(safe-area-inset-bottom, 0px)" }}
+      className="fixed bottom-0 left-0 right-0 z-20 bg-background border-t border-border shadow-floating"
+      style={{
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}
     >
-      <div className="glass flex items-center justify-between rounded-full px-3 py-2 backdrop-blur-md">
+      <div className="mx-auto max-w-lg flex items-stretch">
         {navItems.map(({ path, icon: OutlineIcon, activeIcon: SolidIcon, label }) => {
           const active = pathname === path;
           const Icon = active ? SolidIcon : OutlineIcon;
@@ -71,38 +72,40 @@ export function AppNavbar({ items }: AppNavbarProps) {
               href={path}
               onClick={() => haptic.tap()}
               aria-current={active ? "page" : undefined}
-              className="flex flex-col items-center gap-0.5 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+              className={`relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-card rounded-md ${
+                active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
             >
               <span
                 aria-hidden="true"
-                className={`flex h-[58px] w-[58px] items-center justify-center rounded-full ${
-                  active ? "bg-white text-black" : "glass text-foreground/80"
+                className={`absolute top-0 inset-x-3 h-[2px] rounded-full bg-foreground ${
+                  active ? "" : "hidden"
                 }`}
+              />
+              <Icon
+                className={`relative h-[22px] w-[22px]`}
+                strokeWidth={active ? 0 : 1.5}
+              />
+              <span
+                className={`relative text-small leading-none ${active ? "font-bold" : "font-medium"}`}
               >
-                <Icon className="h-6 w-6" strokeWidth={active ? 0 : 1.5} />
-              </span>
-              <span className={`mt-1 text-[12px] font-normal leading-none ${active ? "text-foreground" : "text-muted-foreground"}`}>
                 {label}
               </span>
             </Link>
           );
         })}
 
-        {isOwner && (
-          <button
-            onClick={() => {
-              haptic.tap();
-              openMenu();
-            }}
-            aria-label="منو"
-            className="flex flex-col items-center gap-0.5 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
-          >
-            <span aria-hidden="true" className="glass flex h-[58px] w-[58px] items-center justify-center rounded-full text-foreground/80">
-              <Bars3Icon className="h-6 w-6" strokeWidth={1.5} />
-            </span>
-            <span className="mt-1 text-[12px] font-normal leading-none text-muted-foreground">منو</span>
-          </button>
-        )}
+        <button
+          onClick={() => {
+            haptic.tap();
+            openMenu();
+          }}
+          aria-label="منو"
+          className="relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] text-muted-foreground hover:text-foreground rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <Bars3Icon className="h-[22px] w-[22px]" strokeWidth={1.5} />
+          <span className="text-small leading-none font-medium">منو</span>
+        </button>
       </div>
     </nav>
   );

@@ -81,81 +81,67 @@
   color-scheme: light;
   /* Phone-frame width: fill narrow phones fully, cap on wide phones/desktop. */
   --frame-max-w: min(100vw, 480px);
-  /* ── Ember — Daylight (light) ── */
-  --background: #FAF3EF;
-  --foreground: #2A130D;
-  --card: #FFFFFF;
-  --card-foreground: #2A130D;
-  --popover: #FFFFFF;
-  --popover-foreground: #2A130D;
-  --primary: #D6471C;
-  --primary-foreground: #FFFFFF;
-  --secondary: #F3E4DC;
-  --secondary-foreground: #2A130D;
-  --muted: #F3E4DC;
-  --muted-foreground: #8A6A5E;
-  --accent: #F3E4DC;
-  --accent-foreground: #2A130D;
-  --destructive: #C2372B;
-  --success: #1E7D3C;
-  --warning: #B45309;
-  --accent-now: #D6471C;
-  --border: #EBDCD4;
-  --input: #EBDCD4;
-  --ring: #D6471C;
+  /* ── Stock shadcn zinc — Light ── */
+  --background: #ffffff;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;
+  --success: #16a34a;
+  --warning: #b45309;
+  --accent-now: #2563eb;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #a1a1aa;
   --radius: 10px;
-
-  /* ── Ember accents ── */
-  --ember-grad-a: #AD3C22;
-  --ember-grad-b: #E25024;
-  --ember-text-a: #FF9778;
-  --ember-text-b: #FFD399;
-  --ember-glass: var(--accent);
 
   /* ── Booking surface tokens (semantic aliases) ── */
   --booking-cta-bg: var(--card);
   --booking-cta-border: var(--border);
   --booking-cta-fg: var(--foreground);
-  --booking-sheet-scrim: rgba(29, 14, 12, 0.42);
+  --booking-sheet-scrim: rgba(0, 0, 0, 0.42);
 
   /* ── Elevation ── */
-  --shadow-xs: 0 1px 2px rgba(42, 19, 13, 0.05);
-  --shadow-card: 0 1px 2px rgba(42, 19, 13, 0.05), 0 2px 8px rgba(42, 19, 13, 0.05);
-  --shadow-elevated: 0 2px 4px rgba(42, 19, 13, 0.07), 0 8px 24px rgba(42, 19, 13, 0.09);
-  --shadow-floating: 0 4px 8px rgba(42, 19, 13, 0.10), 0 16px 40px rgba(42, 19, 13, 0.16);
+  --shadow-xs: 0 1px 2px rgba(9, 9, 11, 0.04);
+  --shadow-card: 0 1px 2px rgba(9, 9, 11, 0.04), 0 2px 8px rgba(9, 9, 11, 0.04);
+  --shadow-elevated: 0 2px 4px rgba(9, 9, 11, 0.06), 0 8px 24px rgba(9, 9, 11, 0.08);
+  --shadow-floating: 0 4px 8px rgba(9, 9, 11, 0.08), 0 16px 40px rgba(9, 9, 11, 0.14);
 }
 
-/* ── Ember — Dark (default) ── */
+/* ── Stock shadcn zinc — Dark ── */
 .dark {
   color-scheme: dark;
-  --background: #1D0E0C;
-  --foreground: #FFF7F2;
-  --card: #241410;
-  --card-foreground: #FFF7F2;
-  --popover: #241410;
-  --popover-foreground: #FFF7F2;
-  --primary: #E25024;
-  --primary-foreground: #FFF7F2;
-  --secondary: #2A1813;
-  --secondary-foreground: #FFF7F2;
-  --muted: #2A1813;
-  --muted-foreground: rgba(255, 247, 242, 0.70);
-  --accent: rgba(255, 255, 255, 0.10);
-  --accent-foreground: #FFF7F2;
-  --destructive: #FF6B5E;
-  --success: #5FBF77;
-  --warning: #F5A623;
-  --accent-now: #E25024;
-  --border: rgba(255, 247, 242, 0.14);
-  --input: rgba(255, 247, 242, 0.10);
-  --ring: #E25024;
-
-  /* ── Ember accents ── */
-  --ember-grad-a: #AD3C22;
-  --ember-grad-b: #E25024;
-  --ember-text-a: #FF9778;
-  --ember-text-b: #FFD399;
-  --ember-glass: rgba(255, 255, 255, 0.10);
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #101012;
+  --card-foreground: #fafafa;
+  --popover: #101012;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-foreground: #18181b;
+  --secondary: #1c1c1f;
+  --secondary-foreground: #fafafa;
+  --muted: #1c1c1f;
+  --muted-foreground: #a1a1aa;
+  --accent: #1c1c1f;
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --accent-now: #3b82f6;
+  --border: #26262a;
+  --input: #26262a;
+  --ring: #52525b;
 
   /* ── Booking surface tokens (semantic aliases) ── */
   --booking-cta-bg: var(--card);
@@ -340,27 +326,6 @@
 .shadow-elevated { box-shadow: var(--shadow-elevated); }
 .shadow-floating { box-shadow: var(--shadow-floating); }
 .shadow-xs { box-shadow: var(--shadow-xs); }
-
-/* ── Ember utilities (static glass + gradient accents) ── */
-
-/* Glass surface: translucent white in dark mode, solid warm tint in light. */
-.glass {
-  background: var(--ember-glass);
-  border: 1px solid var(--border);
-}
-
-/* Gradient text accent — the Figma subtitle treatment. */
-.gradient-text {
-  background: linear-gradient(90deg, var(--ember-text-a), var(--ember-text-b));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* Static radial glow — the Figma orange circle at the hero/content seam. */
-.ember-glow {
-  background: radial-gradient(circle at 50% 50%, var(--ember-grad-b) 0%, var(--ember-grad-a) 70%, transparent 100%);
-}
 
 /* ── Scrollbar ── */
 

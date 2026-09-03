@@ -6,44 +6,56 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, ArrowUpLeft, CalendarDays, History, Home, Images, LogIn, LogOut,
-  Menu, ReceiptText, Sparkles, User, X,
+  ArrowLeft, CalendarDays, Clock, History, Home, Images, LogIn, LogOut, MapPin,
+  Menu, MessageCircle, Phone, User, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
-import { AppNavbar } from "@/components/layout/app-navbar";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { formatJalaliDate, formatJalaliDateShort, formatJalaliTime, gregorianToJalali, toPersianDigits } from "@/lib/jalali";
-import { getTehranNow, parseGregorianDateKey } from "@/lib/time";
-import { compactToman } from "@/lib/pricing";
+import { toPersianDigits } from "@/lib/jalali";
+import { isValidIranianPhone } from "@/lib/digits";
+import { compactPrice, compactToman } from "@/lib/pricing";
 import { getServiceImage } from "@/lib/service-images";
 import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
-import type { Addon, Booking, Service } from "@/lib/types";
+import type { Addon, Service } from "@/lib/types";
+import type { WorkingHours } from "@/lib/slots";
 
-const WEEKDAYS_FA = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"];
-const ACTIVE_STATUSES: ReadonlyArray<Booking["status"]> = ["pending", "reserved", "confirmed", "in_progress"];
+const DAY_LABELS: Record<string, string> = {
+  sat: "شنبه", sun: "یکشنبه", mon: "دوشنبه", tue: "سه‌شنبه",
+  wed: "چهارشنبه", thu: "پنجشنبه", fri: "جمعه",
+};
 
 function parseMinutes(v: string) {
   const [h, m] = v.split(":").map(Number);
   return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : null;
 }
-
-/** True when the booking's start (Tehran date key + wall-clock minutes) lies before now. */
-function isPast(b: Booking, todayKey: string, nowMinutes: number) {
-  if (b.date_gregorian < todayKey) return true;
-  if (b.date_gregorian > todayKey) return false;
-  return (parseMinutes(b.start_time) ?? 0) < nowMinutes;
+function getTehranNow() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tehran", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(new Date());
+  const v = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  const wk = ({ Sat: "sat", Sun: "sun", Mon: "mon", Tue: "tue", Wed: "wed", Thu: "thu", Fri: "fri" } as Record<string, string>)[v("weekday")] ?? "sat";
+  return { weekdayKey: wk, minutes: Number(v("hour")) * 60 + Number(v("minute")) };
 }
-
-function weeksLabel(weeks: number) {
-  if (weeks === 0) return "چند روز از آخرین نوبتت گذشته . . .";
-  if (weeks === 1) return "یک هفته از آخرین نوبتت گذشته . . .";
-  return `${toPersianDigits(weeks)} هفته از آخرین نوبتت گذشته . . .`;
+function liveLabel(h: WorkingHours) {
+  const n = getTehranNow(), today = h[n.weekdayKey];
+  if (!today) return { isOpen: false, label: "امروز · تعطیل" };
+  const o = parseMinutes(today.open), c = parseMinutes(today.close);
+  if (o == null || c == null) return { isOpen: false, label: "ساعات کاری ثبت نشده" };
+  if (n.minutes >= o && n.minutes < c) return { isOpen: true, label: `باز است · تا ${toPersianDigits(today.close)}` };
+  if (n.minutes < o) return { isOpen: false, label: `بازگشایی ساعت ${toPersianDigits(today.open)}` };
+  return { isOpen: false, label: "امروز · بسته" };
 }
-
+function formatHours(txt: string, h: WorkingHours) {
+  if (txt.trim()) return txt;
+  return (Object.entries(h) as Array<[string, { open: string; close: string } | null]>)
+    .filter(([, v]) => v)
+    .map(([d, v]) => `${DAY_LABELS[d]} ${toPersianDigits(v!.open)} تا ${toPersianDigits(v!.close)}`)
+    .join(" · ") || "اطلاعات ثبت نشده";
+}
 interface Look {
   key: string;
   name: string;
@@ -63,7 +75,7 @@ const FALLBACK_HERO = "/hero-default.jpg";
 
 export function QwenCustomerHome() {
   const router = useRouter();
-  const { salon, services, addons, highlights, bookings, loaded } = useSalon();
+  const { salon, workingHours, services, addons, highlights, loaded } = useSalon();
   const { user, logout } = useAuth();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -93,6 +105,7 @@ export function QwenCustomerHome() {
     setActiveLookImage((current) => current === url ? null : current);
   }, []);
 
+  const live = liveLabel(workingHours);
   const activeServices = useMemo(
     () => services.filter((s) => s.is_active).sort((a, b) => a.sort_order - b.sort_order),
     [services],
@@ -175,39 +188,34 @@ export function QwenCustomerHome() {
     return () => window.clearTimeout(timer);
   }, [activeLook, looks, failedImages]);
 
-  // Upcoming bookings (owner data for owners, the signed-in customer's own
-  // bookings, empty for guests) — soonest first, top three surfaced.
-  const activeBookings = useMemo(() => {
-    const { dateKey, minutes } = getTehranNow();
-    return bookings
-      .filter((b) => ACTIVE_STATUSES.includes(b.status) && !isPast(b, dateKey, minutes))
-      .sort((a, b) => `${a.date_gregorian}T${a.start_time}`.localeCompare(`${b.date_gregorian}T${b.start_time}`));
-  }, [bookings]);
-
-  // Time-past bookings (completed ones included) drive the "weeks since your
-  // last visit" subtitle. Guests never have bookings, so they see no subtitle.
-  const weeksSince = useMemo<number | null>(() => {
-    if (!user) return null;
-    const { dateKey, minutes } = getTehranNow();
-    const latest = bookings
-      .filter((b) => b.status === "completed" || isPast(b, dateKey, minutes))
-      .sort((a, b) => `${b.date_gregorian}T${b.start_time}`.localeCompare(`${a.date_gregorian}T${a.start_time}`))[0];
-    if (!latest) return null;
-    const todayMs = parseGregorianDateKey(dateKey).getTime();
-    const startMs = parseGregorianDateKey(latest.date_gregorian).getTime();
-    if (Number.isNaN(startMs) || Number.isNaN(todayMs)) return null;
-    return Math.max(0, Math.floor((todayMs - startMs) / 86_400_000 / 7));
-  }, [bookings, user]);
-
-  const today = new Date();
-  const jToday = gregorianToJalali(today);
-  const weekdayFa = WEEKDAYS_FA[today.getDay()];
-  const firstName = user?.name?.trim().split(" ")[0] || user?.name || "";
+  const phoneValid = isValidIranianPhone(salon.phone);
+  // The handle lives in owner settings (instagram_handle). No heuristic:
+  // guessing from the salon name silently linked the wrong account once.
+  const igHandle = salon.instagram_handle;
+  const mapUrl = salon.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.address)}` : null;
 
   return (
-    <main className="relative mx-auto min-h-dvh w-full max-w-[var(--frame-max-w)] bg-background pb-[140px] text-foreground">
-      {/* HERO — full-bleed cover fading into the page background */}
-      <div className="relative h-[45vh] overflow-hidden" aria-hidden="true">
+    <main className="relative mx-auto min-h-dvh w-full max-w-[var(--frame-max-w)] bg-background px-5 pb-11 text-foreground">
+      {/* TOP CHROME — hamburger menu (top-right) + profile (top-left), pinned to the frame.
+          In RTL the first flex child sits at the visual right, so the menu button
+          comes first in the DOM to land on the right and profile on the left. */}
+      <div className="absolute inset-x-0 top-0 z-40 flex items-start justify-between p-4">
+        <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-sm"
+          onClick={() => setDrawerOpen(true)}
+          aria-label="منو" aria-expanded={drawerOpen} title="منو">
+          <Menu aria-hidden="true" />
+        </button>
+        {/* Prefetching Link (not router.push): the profile route is fetched on
+            hover/load, so the first tap feels instant instead of waiting on a
+            network roundtrip before the can start. */}
+        <Link href="/profile" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-sm"
+          aria-label="پروفایل من" title="پروفایل من">
+          <User aria-hidden="true" />
+        </Link>
+      </div>
+
+      {/* HERO — static cover image */}
+      <div className="relative h-[420px] overflow-hidden" aria-hidden="true">
         {(() => {
           const src = salon.hero_image_url && !failedImages.includes(salon.hero_image_url)
             ? salon.hero_image_url
@@ -218,121 +226,144 @@ export function QwenCustomerHome() {
               className="object-cover" onError={() => markImageFailed(src)} />
           ) : <div className="h-full bg-muted" />;
         })()}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
       </div>
 
-      {/* Static ember glow behind the hero/content seam */}
-      <div className="ember-glow pointer-events-none absolute left-1/2 top-[38vh] z-0 h-[404px] w-[404px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-60" aria-hidden="true" />
+      {/* PROFILE — editorial brand block */}
+      <section className="flex flex-col items-center gap-1.5 px-6 pt-5 text-center" aria-label={salon.name || "سالن"}>
+        <span className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-muted-foreground" dir="ltr">
+          {salon.homepage_kicker || "NAIL · CARE · RITUAL"}
+        </span>
+        <h1 className="text-display">{salon.name || "استودیو ناخن"}</h1>
+        {salon.slogan && <span className="text-sm text-muted-foreground">{salon.slogan}</span>}
 
-      <div className="relative z-10">
-        {/* HEADER — salon name + today (first in DOM = visual start in RTL), menu circle after */}
-        <div className="flex items-center justify-between px-5">
-          <div className="flex flex-col">
-            <span className="text-caption font-medium text-foreground">{salon.name}</span>
-            <span className="text-caption font-light text-muted-foreground" suppressHydrationWarning>
-              امروز {weekdayFa} {formatJalaliDate(jToday.jy, jToday.jm, jToday.jd)}
-            </span>
-          </div>
-          <button type="button" className="glass flex h-[74px] w-[74px] items-center justify-center rounded-full text-foreground"
-            onClick={() => setDrawerOpen(true)}
-            aria-label="منو" aria-expanded={drawerOpen} title="منو">
-            <Menu aria-hidden="true" className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* GREETING */}
-        <div className="mt-4 px-5">
-          <h1 className="text-display font-bold text-foreground">
-            {firstName ? `${firstName} جون، خوش اومدی` : "خوش اومدی"} <span aria-hidden="true">😊</span>
-          </h1>
-          {weeksSince !== null && (
-            <p className="gradient-text mt-1 text-xs font-black">{weeksLabel(weeksSince)}</p>
+        <div className="mt-2 flex flex-col items-center gap-2">
+          {salon.address && (
+            <a className="inline-flex items-center gap-1.5 text-xs text-muted-foreground" href={mapUrl ?? undefined} target="_blank" rel="noopener noreferrer"
+              aria-label="مشاهده آدرس روی نقشه">
+              <MapPin aria-hidden="true" className="h-3.5 w-3.5" />
+              <span>{salon.address}</span>
+            </a>
           )}
-          <div className="mt-4 h-px bg-border" />
-        </div>
-
-        {/* MY BOOKINGS — upcoming pills, guests see the empty state */}
-        <section className="mt-6 px-5" aria-labelledby="my-bookings-title">
-          <div className="flex items-center gap-2">
-            <ReceiptText aria-hidden="true" className="h-5 w-5 text-foreground/80" />
-            <h2 id="my-bookings-title" className="text-xl font-normal text-foreground">نوبت‌های من</h2>
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-bold shadow-sm" aria-live="polite">
+            <span className={`h-2 w-2 rounded-full ${live.isOpen ? "bg-success" : "bg-destructive"}`} aria-hidden="true" />
+            <span className={live.isOpen ? "text-success" : "text-muted-foreground"}>{live.label}</span>
           </div>
-          <div className="mt-3 h-px bg-border" />
-          {activeBookings.length > 0 ? (
-            <div className="mt-3 flex flex-col gap-2">
-              {activeBookings.slice(0, 3).map((b) => {
-                const j = gregorianToJalali(parseGregorianDateKey(b.date_gregorian));
-                const name = b.service?.name ?? b.service_name ?? serviceById.get(b.service_id)?.name ?? "نوبت";
-                return (
-                  <button key={b.id} type="button" className="glass flex w-full items-center gap-3 rounded-full px-4 py-3 text-start"
-                    onClick={() => router.push(`/bookings/${b.id}`)} aria-label={`نوبت ${name}`}>
-                    <span className="text-caption font-bold">{name}</span>
-                    <span className="text-caption text-muted-foreground">
-                      {formatJalaliDateShort(j.jy, j.jm, j.jd)} · <span dir="ltr">{formatJalaliTime(b.start_time)}</span>
+        </div>
+      </section>
+
+      {/* PRIMARY CTA — opens the booking flow on its own page */}
+      <button type="button" className="relative z-10 my-2 flex h-14 w-full items-center justify-center gap-2.5 rounded-lg bg-primary text-base font-extrabold text-primary-foreground shadow-card disabled:opacity-60"
+        onClick={() => openBooking()}
+        disabled={!loaded || activeServices.length === 0}>
+        <CalendarDays aria-hidden="true" />
+        <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? (salon.homepage_cta_label || "شروع رزرو") : "رزرو موقتاً بسته است"}</span>
+        <ArrowLeft className="absolute left-5 opacity-65" aria-hidden="true" />
+      </button>
+      <p className="relative z-10 mb-6 text-center text-xs text-muted-foreground">{salon.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا"}</p>
+
+      {/* LOOKBOOK — story-style rail */}
+      {looks.length > 0 && (
+        <section className="py-7" aria-labelledby="lookbook-title">
+          <div className="mb-3.5 flex items-baseline gap-2.5">
+            <h2 id="lookbook-title" className="text-[15px] font-extrabold">{salon.lookbook_title || "نمونه‌کارها"}</h2>
+            <span className="text-[9px] font-extrabold tracking-[0.24em] text-muted-foreground" dir="ltr">LOOKBOOK</span>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {looks.map((look) => {
+              const src = look.image && !failedImages.includes(look.image) ? look.image : null;
+              return (
+                <button key={look.key} type="button" className="relative h-60 w-44 shrink-0 overflow-hidden rounded-lg border border-border bg-card"
+                  onClick={() => openLook(look)} aria-label={`دیدن ${look.name}`}>
+                  {src ? (
+                    <Image src={src} alt={look.name} fill unoptimized loading="lazy"
+                      sizes="190px" className="object-cover"
+                      onError={() => markImageFailed(src)} />
+                  ) : (
+                    <span className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground" aria-hidden="true">
+                      <Images className="h-9 w-9" />
+                      <strong className="text-4xl font-bold">{look.name.charAt(0)}</strong>
                     </span>
-                    <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4" />
-                  </button>
-                );
-              })}
-              {activeBookings.length > 3 && (
-                <Link href="/bookings" className="flex h-11 items-center justify-center text-caption font-bold text-foreground">
-                  همه
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div className="mt-3 flex items-center gap-3">
-              <ArrowUpLeft aria-hidden="true" className="h-5 w-5 text-muted-foreground" />
-              <span className="text-caption text-muted-foreground">هنوز نوبت فعالی نداری</span>
-            </div>
-          )}
-        </section>
-
-        {/* GALLERY — pill rail bleeding to the frame edges */}
-        {looks.length > 0 && (
-          <section className="mt-6 px-5" aria-labelledby="gallery-title">
-            <div className="glass inline-flex h-[31px] items-center gap-2 rounded-full px-4">
-              <Images aria-hidden="true" className="h-4 w-4" />
-              <h2 id="gallery-title" className="text-xl font-normal">گالری</h2>
-            </div>
-            <div className="mt-3 h-px bg-border" />
-            <div className="-mx-5 mt-4 flex gap-3 overflow-x-auto px-5 pb-2">
-              {looks.map((look) => {
-                const src = look.image && !failedImages.includes(look.image) ? look.image : null;
-                return (
-                  <button key={look.key} type="button" className="relative h-[173px] w-[91px] shrink-0 overflow-hidden rounded-full border border-border bg-card"
-                    onClick={() => openLook(look)} aria-label={`دیدن ${look.name}`}>
-                    {src ? (
-                      <Image src={src} alt={look.name} fill unoptimized loading="lazy"
-                        sizes="91px" className="object-cover"
-                        onError={() => markImageFailed(src)} />
+                  )}
+                  <span className="absolute inset-x-2.5 bottom-2.5 flex items-center justify-between gap-2 rounded-md bg-black/55 px-3 py-2.5 text-[11.5px] font-bold text-white">
+                    <span className="truncate">{look.name}</span>
+                    {look.price > 0 ? (
+                      <span className="shrink-0">{compactToman(look.price)}</span>
                     ) : (
-                      <span className="glass flex h-full w-full items-center justify-center text-2xl font-bold" aria-hidden="true">
-                        {look.name.charAt(0)}
-                      </span>
+                      <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
                     )}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        )}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
-        {/* PRIMARY CTA — opens the booking flow on its own page */}
-        <div className="mt-8 px-5">
-          <button type="button" className="glass flex h-[72px] w-full items-center justify-center gap-3 rounded-full text-2xl font-light text-foreground/80 disabled:opacity-60"
-            onClick={() => openBooking()}
-            disabled={!loaded || activeServices.length === 0}>
-            <span>رزرو نوبت</span>
-            <Sparkles aria-hidden="true" className="h-5 w-5 text-foreground/80" />
-          </button>
-        </div>
+      {/* MENU — editorial numbered service list */}
+      {activeServices.length > 0 && (
+        <section className="py-7" aria-labelledby="menu-title">
+          <div className="mb-3.5 flex items-baseline gap-2.5">
+            <h2 id="menu-title" className="text-[15px] font-extrabold">منوی خدمات</h2>
+            <span className="text-[9px] font-extrabold tracking-[0.24em] text-muted-foreground" dir="ltr">MENU</span>
+          </div>
+          <div>
+            {activeServices.map((s, i) => (
+              <button key={s.id} type="button" className="flex w-full items-center gap-3.5 border-b border-border py-4 text-start"
+                onClick={() => openBooking({ serviceId: s.id })} aria-label={`رزرو ${s.name}`}>
+                <span className="w-8 shrink-0 text-[22px] font-bold text-muted-foreground" dir="ltr" aria-hidden="true">
+                  {toPersianDigits(String(i + 1).padStart(2, "0"))}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <b className="block text-sm font-bold">
+                    {s.name}
+                    {s.is_popular && <span className="ms-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">پرطرفدار</span>}
+                  </b>
+                  <small className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                    {s.description ? `${s.description} · ` : ""}
+                    <Clock className="h-3 w-3" aria-hidden="true" />
+                    {toPersianDigits(s.duration_minutes)} دقیقه
+                  </small>
+                </span>
+                <span className="whitespace-nowrap text-sm font-bold"><b>{compactPrice(s.price)}</b> <small className="text-xs font-medium text-muted-foreground">تومان</small></span>
+                <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
-        <footer className="mt-8 px-5 py-8 text-center text-caption text-muted-foreground">
-          ساخته شده با <span className="text-destructive" aria-hidden="true">♥</span> برای{" "}
-          <strong>{salon.name || "سالن شما"}</strong>
-        </footer>
-      </div>
+      {/* CONTACT — hours + quiet social row */}
+      <section className="flex flex-col items-center gap-4 py-7">
+        <p className="text-center text-xs leading-6 text-muted-foreground"><b className="font-bold text-foreground">ساعات کاری</b> · {formatHours(salon.working_hours_text, workingHours)}</p>
+        <nav className="flex justify-center gap-2" aria-label="تماس با سالن">
+          {salon.phone && (
+            <a className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm" href={`tel:${salon.phone}`} aria-label="تماس">
+              <Phone aria-hidden="true" />
+            </a>
+          )}
+          {phoneValid && (
+            <a className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm" href={`sms:${salon.phone}`} aria-label="ارسال پیامک">
+              <MessageCircle aria-hidden="true" />
+            </a>
+          )}
+          {igHandle && (
+            <a className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm" href={`https://instagram.com/${igHandle.replace(/^@/, "")}`}
+              target="_blank" rel="noopener noreferrer" aria-label="اینستاگرام">
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
+                <circle cx="12" cy="12" r="4.2" />
+                <circle cx="17.5" cy="6.7" r="1" fill="currentColor" stroke="none" />
+              </svg>
+            </a>
+          )}
+        </nav>
+      </section>
+
+      <footer className="py-6 text-center text-xs text-muted-foreground">
+        ساخته شده با <span className="text-destructive" aria-hidden="true">♥</span> برای{" "}
+        <strong>{salon.name || "سالن شما"}</strong>
+      </footer>
 
       {/* LOOK SHEET — gallery, service + addons, computed price/duration, one CTA */}
       <Sheet open={activeLook !== null} onClose={closeActiveLook} title="نمونه‌کار">
@@ -361,7 +392,7 @@ export function QwenCustomerHome() {
                 <div className="flex gap-2 overflow-x-auto" role="tablist" aria-label="تصاویر این مدل">
                   {gallery.map((u, i) => (
                     <button key={u} type="button"
-                      className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 ${u === src ? "border-primary" : "border-transparent"}`}
+                      className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 ${u === src ? "border-primary" : "border-transparent"}`}
                       role="tab"
                       aria-selected={u === src}
                       aria-label={`تصویر ${toPersianDigits(i + 1)}`}
@@ -393,13 +424,13 @@ export function QwenCustomerHome() {
                 )}
               </div>
               {activeLook.service ? (
-                <button type="button" className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-extrabold text-primary-foreground"
+                <button type="button" className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-extrabold text-primary-foreground"
                   onClick={() => { closeActiveLook(); openBooking({ serviceId: activeLook.service?.id, lookId: activeLook.key }); }}>
                   رزرو این مدل
                   <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                 </button>
               ) : (
-                <button type="button" className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-border bg-card text-sm font-extrabold text-foreground" onClick={closeActiveLook}>بستن</button>
+                <button type="button" className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-border bg-popover text-sm font-extrabold text-foreground" onClick={closeActiveLook}>بستن</button>
               )}
             </div>
           );
@@ -409,36 +440,36 @@ export function QwenCustomerHome() {
       {/* SIDE MENU — home / booking / history / profile / auth / owner access */}
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={salon.name || "منو"}>
         <nav className="flex flex-col gap-1" aria-label="منوی سالن">
-          <button type="button" className="flex w-full items-center gap-3 rounded-full px-4 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/"); }}>
+          <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/"); }}>
             <Home aria-hidden="true" className="h-4 w-4" />
             <span>خانه</span>
             <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
           </button>
-          <button type="button" className="flex w-full items-center gap-3 rounded-full px-4 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); openBooking(); }}>
+          <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); openBooking(); }}>
             <CalendarDays aria-hidden="true" className="h-4 w-4" />
             <span>رزرو نوبت</span>
             <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
           </button>
           {user ? (
             <>
-              <button type="button" className="flex w-full items-center gap-3 rounded-full px-4 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/bookings"); }}>
+              <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/bookings"); }}>
                 <History aria-hidden="true" className="h-4 w-4" />
                 <span>نوبت‌های من</span>
                 <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
               </button>
-              <button type="button" className="flex w-full items-center gap-3 rounded-full px-4 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/profile"); }}>
+              <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/profile"); }}>
                 <User aria-hidden="true" className="h-4 w-4" />
                 <span>پروفایل من</span>
                 <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
               </button>
-              <button type="button" className="flex w-full items-center gap-3 rounded-full px-4 py-3 text-start text-sm font-bold text-destructive hover:bg-destructive/10" onClick={() => setConfirmLogout(true)}>
+              <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold text-destructive hover:bg-destructive/10" onClick={() => setConfirmLogout(true)}>
                 <LogOut aria-hidden="true" className="h-4 w-4" />
                 <span>خروج از حساب</span>
                 <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
               </button>
             </>
           ) : (
-            <button type="button" className="flex w-full items-center gap-3 rounded-full px-4 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/login"); }}>
+            <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/login"); }}>
               <LogIn aria-hidden="true" className="h-4 w-4" />
               <span>ورود به حساب</span>
               <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
@@ -447,7 +478,7 @@ export function QwenCustomerHome() {
         </nav>
 
         <div className="mt-4">
-          <button type="button" className="flex w-full items-center gap-3 rounded-full px-4 py-3 text-start text-sm font-bold text-muted-foreground hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/owner/login"); }}>
+          <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-start text-sm font-bold text-muted-foreground hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/owner/login"); }}>
             <span>ورود مدیر</span>
             <ArrowLeft aria-hidden="true" className="ms-auto h-4 w-4 text-muted-foreground" />
           </button>
@@ -468,9 +499,6 @@ export function QwenCustomerHome() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Floating bottom navigation */}
-      <AppNavbar />
 
     </main>
   );
@@ -504,10 +532,10 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
-      <div ref={sheetRef} className="relative z-10 flex max-h-[88dvh] w-full max-w-[var(--frame-max-w)] flex-col rounded-t-3xl border-t border-border bg-card pb-[env(safe-area-inset-bottom)] text-foreground shadow-floating">
+      <div ref={sheetRef} className="relative z-10 flex max-h-[88dvh] w-full max-w-[var(--frame-max-w)] flex-col rounded-t-xl border-t bg-popover pb-[env(safe-area-inset-bottom)] text-popover-foreground shadow-floating">
         <div className="flex items-center justify-between border-b px-4 py-3">
           <h3 className="text-base font-semibold">{title}</h3>
-          <button ref={closeButtonRef} type="button" className="glass flex h-11 w-11 items-center justify-center rounded-full text-foreground" onClick={onClose} aria-label="بستن">
+          <button ref={closeButtonRef} type="button" className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-muted" onClick={onClose} aria-label="بستن">
             <X aria-hidden="true" className="h-5 w-5" />
           </button>
         </div>
@@ -543,7 +571,7 @@ function Drawer({ open, onClose, title, children }: { open: boolean; onClose: ()
   return createPortal(
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
-      <div ref={panelRef} className="absolute inset-y-0 end-0 flex w-[min(86vw,320px)] flex-col overflow-y-auto border-s border-border bg-card p-4 pt-[calc(14px+env(safe-area-inset-top))] text-foreground shadow-floating">
+      <div ref={panelRef} className="absolute inset-y-0 end-0 flex w-[min(86vw,320px)] flex-col overflow-y-auto border-s bg-popover p-4 pt-[calc(14px+env(safe-area-inset-top))] text-popover-foreground shadow-floating">
         <div className="mb-3 flex items-center justify-between">
           <b className="truncate text-lg font-bold">{title}</b>
           <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-foreground" onClick={onClose} aria-label="بستن">

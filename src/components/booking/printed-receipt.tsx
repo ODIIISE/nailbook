@@ -71,7 +71,7 @@ function BookingQrCode({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="relative rounded-xl border border-border bg-card p-2 shadow-sm">
+      <div className="relative rounded-lg border border-border bg-card p-2 shadow-sm">
         {dataUrl ? (
           <Image
             src={dataUrl}
@@ -146,7 +146,7 @@ export function PrintedReceipt({
       className={`relative mx-auto max-w-md ${className}`}
       aria-label={isFinal ? "رسید نهایی رزرو" : "پیش‌فاکتور رزرو"}
     >
-      <div className="rounded-2xl border border-border bg-card shadow-card">
+      <div className="rounded-lg border bg-card shadow-card">
         <div
           className="relative overflow-hidden rounded bg-transparent px-5 py-5"
         >

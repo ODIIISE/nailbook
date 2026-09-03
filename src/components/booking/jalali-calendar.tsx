@@ -183,14 +183,14 @@ export function JalaliCalendar({
                 if (!d.isSelected) haptic.tap();
                 onSelectDate(d.date);
               }}
-              className={`flex h-20 min-w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-full px-3 text-sm font-bold ${
+              className={`flex h-20 min-w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border px-3 text-sm font-bold ${
                 d.isSelected
-                  ? "bg-primary text-primary-foreground"
+                  ? "border-primary bg-primary text-primary-foreground"
                   : d.isFullyBooked
-                    ? "border border-border bg-muted opacity-40"
+                    ? "border-border bg-muted opacity-40"
                     : d.isToday
-                      ? "border border-ring bg-card text-foreground"
-                      : "border border-border bg-card text-foreground"
+                      ? "border-ring bg-card text-foreground"
+                      : "border-border bg-card text-foreground"
               }`}
             >
               {/* Weekday label */}
@@ -337,7 +337,7 @@ function CalendarModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="انتخاب تاریخ">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div ref={panelRef} tabIndex={-1} className="relative w-full max-w-sm rounded-3xl border border-border bg-card p-5 shadow-card">
+      <div ref={panelRef} tabIndex={-1} className="relative w-full max-w-sm rounded-xl border border-border bg-card p-5 shadow-card">
         <div className="mb-3 flex items-center justify-between">
           <button
             type="button"
@@ -403,7 +403,7 @@ function CalendarModal({
                 disabled={cell.isPast}
                 onClick={() => cell.date && onSelect(cell.date)}
                 className={`
-                  flex h-11 w-full items-center justify-center rounded-full text-sm font-bold
+                  flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold
                   ${cell.isSelected
                     ? "bg-primary text-primary-foreground"
                     : cell.isToday

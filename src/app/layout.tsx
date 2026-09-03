@@ -35,8 +35,8 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#1D0E0C" },
-    { media: "(prefers-color-scheme: dark)", color: "#1D0E0C" },
+    { media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
   ],
   viewportFit: "cover",
 };
@@ -71,7 +71,7 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=null;try{t=localStorage.getItem("nailbook-theme");}catch(e){}var dark;if(t==="dark"){dark=true}else if(t==="light"){dark=false}else{dark=true}document.documentElement.classList.toggle("dark",dark);}catch(e){}})();`,
+            __html: `(function(){try{var t=null;try{t=localStorage.getItem("nailbook-theme");}catch(e){}var dark;if(t==="dark"){dark=true}else if(t==="light"){dark=false}else{dark=window.matchMedia("(prefers-color-scheme: dark)").matches}document.documentElement.classList.toggle("dark",dark);}catch(e){}})();`,
           }}
         />
       </head>
