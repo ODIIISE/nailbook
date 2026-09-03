@@ -222,7 +222,7 @@ export default function OwnerHighlightsPage() {
                 {/* Collapsed header — always visible */}
                 <button
                   onClick={() => toggleExpand(highlight)}
-                  className="w-full p-4 flex items-center gap-3 text-left hover:bg-muted transition-colors"
+                  className="w-full p-4 flex items-center gap-3 text-left hover:bg-muted"
                 >
                   <div className="relative w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0">
                     {highlight.cover_url ? (
@@ -323,7 +323,7 @@ export default function OwnerHighlightsPage() {
                         {expandedHighlight.addon_ids.length > 0 && (
                           <button
                             type="button"
-                            className="text-small text-muted-foreground hover:text-destructive transition-colors"
+                            className="text-small text-muted-foreground hover:text-destructive"
                             onClick={() => {
                               const updated = { ...expandedHighlight, addon_ids: [] };
                               void updateHighlight(updated);
@@ -362,7 +362,7 @@ export default function OwnerHighlightsPage() {
                                   key={addon.id}
                                   type="button"
                                   onClick={() => handleToggleLookAddon(expandedHighlight, addon.id)}
-                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
                                     on
                                       ? "bg-primary text-primary-foreground"
                                       : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
@@ -486,7 +486,7 @@ export default function OwnerHighlightsPage() {
                               />
                               <button
                                 onClick={() => handleRemoveImage(image.id)}
-                                className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100"
                               >
                                 <X className="h-3 w-3" />
                               </button>

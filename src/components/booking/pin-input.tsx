@@ -129,7 +129,7 @@ export function PinInput({ length = 4, onComplete, disabled, className }: PinInp
           onPaste={handlePaste}
           disabled={disabled}
           className={cn(
-            "box-border block h-11 w-full min-w-0 rounded-2xl px-0 text-center text-2xl font-bold transition-all duration-200 sm:h-14",
+            "box-border block h-11 w-full min-w-0 rounded-2xl px-0 text-center text-2xl font-bold sm:h-14",
             "bg-background border-2 outline-none",
             "focus:border-primary focus:ring-4 focus:ring-primary/10",
             digit

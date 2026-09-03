@@ -321,7 +321,7 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
 
   const handleBack = useCallback(() => {
     if (step === "service") {
-      // Tell the page transition this is a back action so the homepage slides
+      // Tell the page this is a back action so the homepage slides
       // in from the back (right) side rather than the forward (left) side.
       window.dispatchEvent(new Event("nailbook:back"));
       router.push("/");
@@ -340,7 +340,7 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
 
   const focusServiceCard = useCallback((id: string) => {
     cancelFocusScroll();
-    // Wait for the accordion's 550ms grid-row transition to settle before
+    // Wait for the accordion's 550ms grid-row to settle before
     // measuring. This keeps the expanded content out from under the fixed CTA.
     focusScrollTimer.current = window.setTimeout(() => {
       focusScrollTimer.current = null;
@@ -802,7 +802,7 @@ export function QwenBookingFlow({ initialServiceId = null, lookId = null }: Qwen
               else if (step === "review") handleConfirmBooking();
             }}>
             {isBookingLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+              <Loader2 className="h-5 w-5" aria-hidden="true" />
             ) : (
               <span>{ctaState.label}</span>
             )}

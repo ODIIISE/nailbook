@@ -194,7 +194,7 @@ export function JalaliCalendar({
                 if (!d.isSelected) haptic.tap();
                 onSelectDate(d.date);
               }}
-              className="flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl cursor-pointer active:scale-95 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
+              className="flex-shrink-0 min-w-[64px] h-[80px] flex flex-col items-center justify-center rounded-2xl cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none"
               style={{
                 background: d.isSelected
                   ? "var(--foreground)"
@@ -348,7 +348,7 @@ function CalendarModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="انتخاب تاریخ">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div ref={panelRef} tabIndex={-1} className="relative w-full max-w-sm bg-card rounded-3xl p-5 animate-scale">
+      <div ref={panelRef} tabIndex={-1} className="relative w-full max-w-sm bg-card rounded-3xl p-5">
         <div className="flex items-center justify-between mb-2">
           <Button variant="ghost" size="icon-sm" onClick={prevMonth}>
             <ChevronRight className="h-5 w-5" />
@@ -393,7 +393,7 @@ function CalendarModal({
                 disabled={cell.isPast}
                 onClick={() => cell.date && onSelect(cell.date)}
                 className={`
-                  h-10 rounded-xl text-caption font-bold transition-all duration-150
+                  h-10 rounded-xl text-caption font-bold
                   ${cell.isSelected
                     ? "bg-foreground text-background"
                     : cell.isToday

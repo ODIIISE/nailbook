@@ -86,7 +86,7 @@ export default function OwnerLoginPage() {
 
   return (
     <div className="min-h-[100dvh] flex items-center justify-center px-4 py-8">
-      <AuthCardRoot className="w-full max-w-sm animate-scale">
+      <AuthCardRoot className="w-full max-w-sm">
           {step === "phone" && (
           <AuthCard
             icon={<ShieldCheck className="h-6 w-6" />}              title="ورود مدیر"

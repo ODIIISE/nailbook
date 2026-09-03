@@ -289,7 +289,7 @@ export default function NewSalonPage() {
               بازگشت
             </Button>
             <Button onClick={handleCreate} disabled={creating} className="rounded-full gap-2">
-              {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              {creating ? <Loader2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}
               {creating ? "در حال ایجاد..." : "ایجاد سالن"}
             </Button>
           </div>
@@ -337,7 +337,7 @@ export default function NewSalonPage() {
           {/* Deploy status: deploying */}
           {deployStatus === "deploying" && (
             <div className="p-4 rounded-xl bg-primary/10 flex items-center gap-3">
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <Loader2 className="h-5 w-5 text-primary" />
               <span className="text-sm font-medium">در حال استقرار...</span>
             </div>
           )}

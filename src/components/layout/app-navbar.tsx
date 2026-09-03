@@ -72,22 +72,22 @@ export function AppNavbar({ items }: AppNavbarProps) {
               href={path}
               onClick={() => haptic.tap()}
               aria-current={active ? "page" : undefined}
-              className={`relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] transition-all duration-200 press-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-card rounded-md ${
+              className={`relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-card rounded-md ${
                 active ? "text-primary" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <span
                 aria-hidden="true"
-                className={`absolute top-0 inset-x-3 h-[2px] rounded-full bg-foreground transition-all duration-300 ${
+                className={`absolute top-0 inset-x-3 h-[2px] rounded-full bg-foreground ${
                   active ? "opacity-100 scale-x-100" : "opacity-0 scale-x-50"
                 }`}
               />
               <Icon
-                className={`relative h-[22px] w-[22px] transition-transform duration-200 ${active ? "scale-105" : ""}`}
+                className={`relative h-[22px] w-[22px] ${active ? "scale-105" : ""}`}
                 strokeWidth={active ? 0 : 1.5}
               />
               <span
-                className={`relative text-small leading-none transition-all ${active ? "font-bold" : "font-medium"}`}
+                className={`relative text-small leading-none ${active ? "font-bold" : "font-medium"}`}
               >
                 {label}
               </span>
@@ -101,7 +101,7 @@ export function AppNavbar({ items }: AppNavbarProps) {
             openMenu();
           }}
           aria-label="منو"
-          className="relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] transition-colors duration-200 text-muted-foreground hover:text-foreground press-feedback rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] text-muted-foreground hover:text-foreground rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <Bars3Icon className="h-[22px] w-[22px]" strokeWidth={1.5} />
           <span className="text-small leading-none font-medium">منو</span>

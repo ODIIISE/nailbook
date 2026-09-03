@@ -63,7 +63,7 @@ export function ThemeModeMenu({ onSelect }: { onSelect?: () => void }) {
                 setThemeStore(opt.value);
                 onSelect?.();
               }}
-              className={`flex-1 h-9 rounded-xl text-small font-semibold transition-all duration-150 ${
+              className={`flex-1 h-9 rounded-xl text-small font-semibold ${
                 active
                   ? "bg-foreground text-background"
                   : "bg-muted text-muted-foreground hover:text-foreground"

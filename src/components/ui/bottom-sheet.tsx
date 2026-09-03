@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode, type TouchEvent } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
-import { Button } from "./button";
-import { haptic } from "@/lib/haptics";
+import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
 
 interface BottomSheetProps {
   open: boolean;
@@ -13,215 +12,50 @@ interface BottomSheetProps {
   children: ReactNode;
 }
 
-const CLOSE_DURATION_MS = 200;
-
 export function BottomSheet({ open, onClose, onClosed, title, children }: BottomSheetProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  const [dragOffset, setDragOffset] = useState(0);
   const sheetRef = useRef<HTMLDivElement>(null);
-  const touchStartY = useRef(0);
-  const closeTimerRef = useRef<number | null>(null);
-  const visibilityTimerRef = useRef<number | null>(null);
-  const onCloseRef = useRef(onClose);
-  const onClosedRef = useRef(onClosed);
-  const previousOverflowRef = useRef("");
-  const previousActiveElementRef = useRef<HTMLElement | null>(null);
-  const wasOpenRef = useRef(false);
-  const closingRef = useRef(false);
-  const sheetTitleId = useId();
+  useFocusTrap(sheetRef, open);
 
   useEffect(() => {
-    onCloseRef.current = onClose;
-    onClosedRef.current = onClosed;
-  }, [onClose, onClosed]);
-
-  const clearTimers = useCallback(() => {
-    if (closeTimerRef.current !== null) {
-      window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-    if (visibilityTimerRef.current !== null) {
-      window.clearTimeout(visibilityTimerRef.current);
-      visibilityTimerRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    clearTimers();
-
-    if (open) {
-      wasOpenRef.current = true;
-      closingRef.current = false;
-      previousOverflowRef.current = document.body.style.overflow;
-      previousActiveElementRef.current = document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-      document.body.style.overflow = "hidden";
-      haptic.select();
-
-      visibilityTimerRef.current = window.setTimeout(() => {
-        visibilityTimerRef.current = null;
-        setIsMounted(true);
-        setIsVisible(true);
-        window.requestAnimationFrame(() => {
-          sheetRef.current?.querySelector<HTMLElement>("[data-sheet-close]")?.focus();
-        });
-      }, 16);
-    } else if (wasOpenRef.current) {
-      // Keep the sheet mounted during its exit transition. This also covers
-      // callers that close it by changing `open` instead of using handleClose.
-      closingRef.current = true;
-      document.body.style.overflow = previousOverflowRef.current;
-      setIsVisible(false);
-      setDragOffset(0);
-      closeTimerRef.current = window.setTimeout(() => {
-        closeTimerRef.current = null;
-        wasOpenRef.current = false;
-        closingRef.current = false;
-        setIsMounted(false);
-        previousActiveElementRef.current?.focus();
-        previousActiveElementRef.current = null;
-        onClosedRef.current?.();
-      }, CLOSE_DURATION_MS);
-    }
-
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
     return () => {
-      clearTimers();
-      document.body.style.overflow = previousOverflowRef.current;
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+      onClosed?.();
     };
-  }, [open, clearTimers]);
+  }, [open, onClose, onClosed]);
 
-  useEffect(() => {
-    return () => {
-      clearTimers();
-      document.body.style.overflow = previousOverflowRef.current;
-      previousActiveElementRef.current?.focus();
-      previousActiveElementRef.current = null;
-    };
-  }, [clearTimers]);
-
-  const handleClose = useCallback(() => {
-    if (closingRef.current) return;
-    closingRef.current = true;
-    haptic.tap();
-    setIsVisible(false);
-    setDragOffset(0);
-    // Close immediately at the source of the interaction; the effect above
-    // owns the 200ms exit lifecycle and calls onClosed exactly once.
-    onCloseRef.current();
-  }, []);
-
-  useEffect(() => {
-    // Keep the trap active through the exit transition so keyboard focus cannot
-    // escape behind the sheet before it is unmounted.
-    if (!open && !isMounted) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        handleClose();
-        return;
-      }
-      if (event.key !== "Tab" || !sheetRef.current) return;
-
-      const focusable = Array.from(
-        sheetRef.current.querySelectorAll<HTMLElement>(
-          "button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])"
-        )
-      );
-      if (focusable.length === 0) {
-        event.preventDefault();
-        sheetRef.current.focus();
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const activeElement = document.activeElement;
-      if (!sheetRef.current.contains(activeElement)) {
-        event.preventDefault();
-        first.focus();
-      } else if (event.shiftKey && activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, isMounted, handleClose]);
-
-  const onTouchStart = (event: TouchEvent<HTMLDivElement>) => {
-    touchStartY.current = event.touches[0]?.clientY ?? 0;
-  };
-
-  const onTouchMove = (event: TouchEvent<HTMLDivElement>) => {
-    const delta = (event.touches[0]?.clientY ?? touchStartY.current) - touchStartY.current;
-    if (delta > 0) setDragOffset(delta);
-  };
-
-  const onTouchEnd = () => {
-    if (dragOffset > 100) {
-      handleClose();
-    } else {
-      setDragOffset(0);
-    }
-  };
-
-  if (!open && !isMounted) return null;
-
-  const isDragging = dragOffset > 0;
-  const sheetTranslateY = !isVisible ? "100%" : isDragging ? `${dragOffset}px` : "0";
+  if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
-      <div
-        className="absolute inset-0 bg-[var(--booking-sheet-scrim)] backdrop-blur-sm"
-        aria-hidden="true"
-        onClick={handleClose}
-        style={{
-          opacity: isVisible ? 1 : 0,
-          transition: `opacity var(--dur-base) var(--ease-out)`,
-        }}
-      />
-
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
       <div
         ref={sheetRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={sheetTitleId}
-        tabIndex={-1}
-        className="relative max-h-[min(88dvh,680px)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-[var(--radius-sheet)] bg-card p-4"
-        style={{
-          transform: `translateY(${sheetTranslateY})`,
-          opacity: isVisible ? 1 : 0,
-          transition: isDragging
-            ? `opacity var(--dur-fast) var(--ease-out)`
-            : `transform var(--dur-base) var(--ease-spring-decay), opacity var(--dur-base) var(--ease-out)`,
-        }}
+        className="relative z-10 flex max-h-[88dvh] w-full max-w-[var(--frame-max-w)] flex-col rounded-t-xl border-t bg-popover pb-[env(safe-area-inset-bottom)] text-popover-foreground shadow-floating"
       >
-        <div
-          className="mb-4 -mt-2 flex min-h-8 touch-none cursor-grab justify-center pt-2 active:cursor-grabbing"
-          aria-hidden="true"
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        >
-          <div className="h-1 w-10 rounded-[var(--radius-sheet-handle)] bg-muted-foreground/30" />
-        </div>
-
-        <div className="mb-4 flex items-center justify-between">
-          <h3 id={sheetTitleId} className="text-h3 text-foreground">{title}</h3>
-          <Button data-sheet-close variant="ghost" size="icon-sm" onClick={handleClose} aria-label="بستن">
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <h2 className="text-base font-semibold">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="بستن"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
             <X className="h-5 w-5" />
-          </Button>
+          </button>
         </div>
-
-        {children}
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
       </div>
     </div>
   );

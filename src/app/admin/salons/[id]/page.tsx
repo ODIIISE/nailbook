@@ -82,7 +82,7 @@ export default function SalonDetailPage({ params }: { params: Promise<{ id: stri
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Loader2 className="h-6 w-6 text-muted-foreground" />
       </div>
     );
   }
@@ -125,7 +125,7 @@ export default function SalonDetailPage({ params }: { params: Promise<{ id: stri
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+            className={`px-4 py-3 text-sm font-medium whitespace-nowrap ${
               tab === t.id
                 ? "text-foreground border-b-2 border-primary"
                 : "text-muted-foreground hover:text-foreground"
@@ -271,7 +271,7 @@ function UsersTab({ salonId }: { salonId: string }) {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+        <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 text-muted-foreground" /></div>
       ) : users.length === 0 ? (
         <div className="p-8 text-center text-muted-foreground text-sm">کاربری یافت نشد</div>
       ) : (
@@ -348,7 +348,7 @@ function BookingsTab({ salonId }: { salonId: string }) {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+        <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 text-muted-foreground" /></div>
       ) : bookings.length === 0 ? (
         <div className="p-8 text-center text-muted-foreground text-sm">رزروی یافت نشد</div>
       ) : (
@@ -396,7 +396,7 @@ function ServicesTab({ salonId }: { salonId: string }) {
   return (
     <div className="space-y-3">
       {isLoading ? (
-        <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+        <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 text-muted-foreground" /></div>
       ) : services.length === 0 ? (
         <div className="p-8 text-center text-muted-foreground text-sm">خدمتی یافت نشد</div>
       ) : (

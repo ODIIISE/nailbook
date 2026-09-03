@@ -19,7 +19,7 @@ function Switch({ checked, onCheckedChange, disabled, className }: SwitchProps) 
       dir="ltr"
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        "relative inline-flex h-[30px] w-[50px] shrink-0 cursor-pointer items-center rounded-full p-[3px] transition-all duration-200 outline-none border",
+        "relative inline-flex h-[30px] w-[50px] shrink-0 cursor-pointer items-center rounded-full p-[3px] outline-none border",
         checked
           ? "bg-foreground border-foreground/20"
           : "bg-secondary border-border",
@@ -29,7 +29,7 @@ function Switch({ checked, onCheckedChange, disabled, className }: SwitchProps) 
     >
       <span
         className={cn(
-          "block h-[24px] w-[24px] rounded-full bg-card shadow-sm transition-transform duration-200",
+          "block h-[24px] w-[24px] rounded-full bg-card shadow-sm",
           checked ? "translate-x-[20px]" : "translate-x-0"
         )}
       />

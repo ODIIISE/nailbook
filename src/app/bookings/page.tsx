@@ -28,7 +28,7 @@ const JALALI_MONTHS = ["", "فروردین", "اردیبهشت", "خرداد", "
 export default function BookingsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { bookings, services, addons, cancelBooking, refreshBookings } = useSalon();
+  const { bookings, services, addons, cancelBooking } = useSalon();
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   // Shared polling policy (10s + focus/visibility refresh).
@@ -300,7 +300,7 @@ function BookingDetailSheet({
     }
   };
 
-  // Portal to <body> so a transformed ancestor (page transition wrapper) can
+  // Portal to <body> so a transformed ancestor (page wrapper) can
   // never re-anchor the fixed sheet away from the viewport — same hardening as
   // the homepage sheets.
   if (typeof document === "undefined") return null;

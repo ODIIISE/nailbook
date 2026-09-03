@@ -251,7 +251,7 @@ export default function OwnerSettingsPage() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="absolute -bottom-1 -left-1 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+              className="absolute -bottom-1 -left-1 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 disabled:opacity-50"
             >
               <Camera className="h-4 w-4" />
             </button>
@@ -442,7 +442,7 @@ export default function OwnerSettingsPage() {
               onClick={() => splashFileInputRef.current?.click()}
               disabled={splashUploading}
               aria-label="تغییر لوگوی اسپلش"
-              className="absolute -bottom-1 -left-1 h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/85 press-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card transition-colors disabled:opacity-50"
+              className="absolute -bottom-1 -left-1 h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50"
             >
               <Camera className="h-3.5 w-3.5" />
             </button>

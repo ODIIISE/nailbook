@@ -106,7 +106,7 @@ export default function AdminExportPage() {
 
         <Button onClick={handleExport} disabled={exporting} className="gap-2 rounded-full">
           {exporting ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4" />
           ) : (
             <Download className="h-4 w-4" />
           )}

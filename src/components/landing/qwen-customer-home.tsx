@@ -254,7 +254,7 @@ export function QwenCustomerHome() {
         </button>
         {/* Prefetching Link (not router.push): the profile route is fetched on
             hover/load, so the first tap feels instant instead of waiting on a
-            network roundtrip before the transition can start. */}
+            network roundtrip before the can start. */}
         <Link href="/profile" className="qhp-top-btn" aria-label="پروفایل من" title="پروفایل من">
           <User aria-hidden="true" />
         </Link>
@@ -560,7 +560,7 @@ export function QwenCustomerHome() {
 
 // ---- Inline sheet primitive ----
 // Focus-friendly bottom sheet: scrim tap / Escape / drag-to-dismiss, body
-// lock, exit transition, focus restore. Rendered inside this component tree
+// lock, exit, focus restore. Rendered inside this component tree
 // so its styles share the qhp-* layer.
 
 function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
@@ -722,7 +722,7 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
 
   // Render through a portal to <body>. Any transformed/filtered ancestor
   // (PageTransition's motion.div applies a transient transform during the
-  // route slide; `will-change: transform` also works) becomes the containing
+  // route slide; becomes the containing
   // block for fixed-positioned descendants, which previously anchored the
   // sheet to the bottom of the whole page — the browser scrolled the homepage
   // to its end to reveal it. A portal keeps the sheet bound to the viewport.

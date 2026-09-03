@@ -194,7 +194,7 @@ export function Timeline({
               return (
                 <div
                   key={b.id}
-                  className="absolute start-12 end-2 cursor-pointer z-10 press-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card rounded"
+                  className="absolute start-12 end-2 cursor-pointer z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card rounded"
                   style={{ top: pos.top, height: pos.height }}
                   onClick={() => onSelectBooking(b)}
                   role="button"
@@ -291,7 +291,7 @@ export function Timeline({
               return (
                 <div key={`blk-${idx}`} className="absolute start-12 end-2 z-10" style={{ top: pos.top, height: pos.height }}>
                   {isConfirming ? (
-                    <div className={`h-full ${wb} border ${wbBorder} overflow-hidden flex flex-col justify-center items-center p-2 animate-scale`}>
+                    <div className={`h-full ${wb} border ${wbBorder} overflow-hidden flex flex-col justify-center items-center p-2`}>
                       <AlertTriangle className={`h-4 w-4 ${wa} mb-1`} />
                       <p className={`text-small ${wt} font-semibold mb-1.5 text-center`}>حذف شود؟</p>
                       <div className="flex gap-1">
@@ -310,7 +310,7 @@ export function Timeline({
                       role="button"
                       tabIndex={0}
                       aria-label={`حذف زمان استراحت ${blockedTimes[idx]?.start_time ?? ""}`}
-                      className={`h-full border overflow-hidden flex cursor-pointer transition-colors`}
+                      className={`h-full border overflow-hidden flex cursor-pointer`}
                       style={{ backgroundColor: t(statusColors.blockBg.light, statusColors.blockBg.dark), borderColor: wbBorder }}
                       onClick={() => setConfirmRemoveIndex(idx)}
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setConfirmRemoveIndex(idx); }}
@@ -338,7 +338,7 @@ export function Timeline({
               <div id="timeline-now" className="absolute z-20 pointer-events-none" style={{ top: nowPosition, left: 44, right: 0 }}>
                 <div className="relative h-[2px] w-full">
                   {/* Pulse halo behind the dot */}
-                  <div className="absolute -start-1 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full animate-ping opacity-60"
+                  <div className="absolute -start-1 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full opacity-60"
                     style={{ backgroundColor: 'currentColor' }} />
                 </div>
                 <div className="h-[2px]" style={{ backgroundColor: 'var(--accent-now)' }} />

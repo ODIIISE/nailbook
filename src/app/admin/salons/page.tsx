@@ -47,7 +47,7 @@ export default function AdminSalonsPage() {
 
       {isLoading ? (
         <div className="flex justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <Loader2 className="h-6 w-6 text-muted-foreground" />
         </div>
       ) : salons.length === 0 ? (
         <div className="p-8 text-center text-muted-foreground text-sm">
@@ -61,7 +61,7 @@ export default function AdminSalonsPage() {
           {salons.map((salon, i) => (
             <div
               key={salon.id}
-              className={`p-4 hover:bg-muted/30 transition-colors ${
+              className={`p-4 hover:bg-muted/30 ${
                 i < salons.length - 1 ? "border-b border-border" : ""
               }`}
             >

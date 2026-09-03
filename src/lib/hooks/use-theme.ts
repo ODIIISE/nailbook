@@ -52,25 +52,9 @@ function applyTheme(theme: Theme) {
 }
 
 function apply(theme: Theme, mode: ThemeMode) {
-  const commit = () => {
-    applyTheme(theme);
-    snapshot = { theme, mode, resolved: snapshot.resolved };
-    emit();
-  };
-  // Cross-fade the theme switch when the browser supports View Transitions
-  // (globals.css defines ::view-transition-old/new(root) for this). If the
-  // transition API throws (edge cases: rapid toggles, during navigation), fall
-  // back to applying the theme directly so the switch never silently fails.
-  if (typeof document !== "undefined" && "startViewTransition" in document) {
-    try {
-      const doc = document as Document & { startViewTransition?: (cb: () => void) => void };
-      doc.startViewTransition?.(commit);
-      return;
-    } catch {
-      // fall through to the direct commit below
-    }
-  }
-  commit();
+  applyTheme(theme);
+  snapshot = { theme, mode, resolved: snapshot.resolved };
+  emit();
 }
 
 function ensureInitialized() {

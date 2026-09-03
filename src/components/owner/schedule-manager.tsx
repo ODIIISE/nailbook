@@ -73,7 +73,7 @@ const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
 function Help({ text }: { text: string }) {
   return (
     <Tooltip>
-      <TooltipTrigger render={<HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help hover:text-muted-foreground transition-colors" />} />
+      <TooltipTrigger render={<HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help hover:text-muted-foreground" />} />
       <TooltipContent side="top" className="w-52 text-small leading-relaxed p-2.5 rounded-xl bg-card border border-border">
         {text}
       </TooltipContent>
@@ -188,7 +188,7 @@ function JalaliMonthGrid({
               key={d}
               onClick={() => onToggleDayOff(dateStr)}
               className={`
-                h-8 rounded-lg text-xs font-medium transition-all
+                h-8 rounded-lg text-xs font-medium
                 ${isOff
                   ? "bg-destructive text-destructive-foreground"
                   : isToday
@@ -355,7 +355,7 @@ export function ScheduleManager({
           </p>
         </div>
         <Button size="sm" onClick={handleSave} disabled={!hasChanges || isSaving} className="bg-foreground text-background hover:bg-foreground/90">
-          <Save className={`h-4 w-4 ml-1 ${isSaving ? "animate-pulse" : ""}`} />
+          <Save className={`h-4 w-4 ml-1 ${isSaving ? "" : ""}`} />
           {isSaving ? "در حال ذخیره..." : "ذخیره"}
         </Button>
       </div>
@@ -433,7 +433,7 @@ export function ScheduleManager({
                   key={v}
                   onClick={() => { setSlotInterval(v); markChanged(); }}
                   className={`
-                    h-9 min-w-[40px] px-2 rounded-lg text-caption font-medium transition-all
+                    h-9 min-w-[40px] px-2 rounded-lg text-caption font-medium
                     ${slotInterval === v
                       ? "bg-foreground text-background shadow-sm"
                       : "bg-secondary text-foreground hover:bg-secondary/80"
@@ -542,7 +542,7 @@ export function ScheduleManager({
                   key={mode}
                   type="button"
                   onClick={() => { setOptimizationMode(mode); markChanged(); }}
-                  className={`h-10 rounded-xl text-small font-medium transition-all ${optimizationMode === mode ? "bg-foreground text-background" : "bg-secondary text-foreground hover:bg-secondary/80"}`}
+                  className={`h-10 rounded-xl text-small font-medium ${optimizationMode === mode ? "bg-foreground text-background" : "bg-secondary text-foreground hover:bg-secondary/80"}`}
                 >
                   {mode === "hybrid" ? "هوشمند (پیشنهادی)" : "قدیمی"}
                 </button>

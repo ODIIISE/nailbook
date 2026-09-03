@@ -34,7 +34,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="text-caption text-muted-foreground">لطفاً دوباره تلاش کنید</p>
             <button
               onClick={() => this.setState({ hasError: false, error: null })}
-              className="h-10 px-4 rounded-xl bg-foreground text-background text-caption font-bold hover:bg-foreground/90 transition-colors"
+              className="h-10 px-4 rounded-xl bg-foreground text-background text-caption font-bold hover:bg-foreground/90"
             >
               تلاش مجدد
             </button>

@@ -7,8 +7,8 @@ export function StatsSkeleton() {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {[1, 2, 3, 4].map((i) => (
         <Card key={i} className="p-4">
-          <div className="h-3 w-20 bg-muted rounded animate-pulse mb-2" />
-          <div className="h-7 w-12 bg-muted rounded animate-pulse" />
+          <div className="h-3 w-20 bg-muted rounded mb-2" />
+          <div className="h-7 w-12 bg-muted rounded" />
         </Card>
       ))}
     </div>
@@ -22,10 +22,10 @@ export function ListSkeleton({ count = 3 }: { count?: number }) {
         <Card key={i} className="p-3">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <div className="h-4 w-32 bg-muted rounded animate-pulse" />
-              <div className="h-3 w-24 bg-muted rounded animate-pulse" />
+              <div className="h-4 w-32 bg-muted rounded" />
+              <div className="h-3 w-24 bg-muted rounded" />
             </div>
-            <div className="h-6 w-16 bg-muted rounded animate-pulse" />
+            <div className="h-6 w-16 bg-muted rounded" />
           </div>
         </Card>
       ))}
@@ -36,8 +36,8 @@ export function ListSkeleton({ count = 3 }: { count?: number }) {
 export function ChartSkeleton() {
   return (
     <Card className="p-4">
-      <div className="h-4 w-32 bg-muted rounded animate-pulse mb-4" />
-      <div className="h-48 bg-muted rounded animate-pulse" />
+      <div className="h-4 w-32 bg-muted rounded mb-4" />
+      <div className="h-48 bg-muted rounded" />
     </Card>
   );
 }

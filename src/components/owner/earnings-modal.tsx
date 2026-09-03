@@ -79,7 +79,7 @@ export function EarningsModal({
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              className={`flex-1 h-9 rounded-full text-caption font-bold transition-all ${
+              className={`flex-1 h-9 rounded-full text-caption font-bold ${
                 period === p
                   ? "bg-foreground text-background"
                   : "border border-border text-foreground hover:bg-muted"

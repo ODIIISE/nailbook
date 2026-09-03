@@ -226,8 +226,8 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
             className="flex items-center gap-2 disabled:opacity-50"
           >
             <span className={`text-small font-medium ${isPaid ? paidColor : "text-muted-foreground"}`}>{isPaid ? "پرداخت شده" : "پرداخت نشده"}</span>
-            <div className={`w-9 h-5 rounded-full relative transition-colors`} style={{ backgroundColor: isPaid ? paidColor as string : "var(--muted)" }}>
-              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-background shadow transition-transform ${isPaid ? "right-0.5" : "right-[18px]"}`} />
+            <div className={`w-9 h-5 rounded-full relative`} style={{ backgroundColor: isPaid ? paidColor as string : "var(--muted)" }}>
+              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-background shadow ${isPaid ? "right-0.5" : "right-[18px]"}`} />
             </div>
           </button>
         </div>
@@ -235,7 +235,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
         {/* Actions */}
         <div className="flex gap-2">
           <button onClick={() => setDeleteOpen(true)}
-            className={`flex-1 py-2.5 rounded-[10px] text-small font-semibold flex items-center justify-center gap-1.5 transition-colors`}
+            className={`flex-1 py-2.5 rounded-[10px] text-small font-semibold flex items-center justify-center gap-1.5`}
             style={{ backgroundColor: `${deleteColor}14`, color: deleteColor as string }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = `${deleteColor}1F`)}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = `${deleteColor}14`)}>

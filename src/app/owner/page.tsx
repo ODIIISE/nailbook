@@ -235,7 +235,7 @@ function OwnerDashboardContent() {
   if (authLoading) {
     return (
       <div className="px-4 py-4 space-y-4">
-        <div className="animate-pulse text-muted-foreground text-center py-8">در حال بارگذاری...</div>
+        <div className=" text-muted-foreground text-center py-8">در حال بارگذاری...</div>
       </div>
     );
   }
@@ -437,7 +437,7 @@ export default function OwnerDashboard() {
   return (
     <Suspense fallback={
       <div className="px-4 py-4 space-y-4">
-        <div className="animate-pulse text-muted-foreground text-center py-8">در حال بارگذاری...</div>
+        <div className=" text-muted-foreground text-center py-8">در حال بارگذاری...</div>
       </div>
     }>
       <OwnerDashboardContent />

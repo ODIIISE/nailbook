@@ -133,7 +133,7 @@ export default function AdminDashboard() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Loader2 className="h-6 w-6 text-muted-foreground" />
       </div>
     );
   }
@@ -177,7 +177,7 @@ export default function AdminDashboard() {
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
-            className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
+            className={`px-4 py-3 text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
               activeTab === t.id
                 ? "text-foreground border-b-2 border-primary"
                 : "text-muted-foreground hover:text-foreground"

@@ -319,7 +319,7 @@ function ServicesTab({
                       <button
                         key={addon.id}
                         onClick={() => handleToggleAddon(service.id, addon.id)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
                           assigned
                             ? "bg-primary text-primary-foreground"
                             : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
@@ -614,11 +614,11 @@ function ServiceForm({
       {/* Image Upload */}
       <div className="flex items-center gap-4">
         <div
-          className="relative w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors overflow-hidden"
+          className="relative w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/50 overflow-hidden"
           onClick={() => fileInputRef.current?.click()}
         >
           {isUploading ? (
-            <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
+            <div className=" rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
           ) : form.image_url ? (
             <Image src={form.image_url} alt="" fill unoptimized className="object-cover" />
           ) : (

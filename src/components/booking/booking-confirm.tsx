@@ -168,7 +168,7 @@ export function BookingConfirm({
   };
 
   return (
-    <div className="mx-auto max-w-lg animate-scale">
+    <div className="mx-auto max-w-lg">
       <div ref={receiptRef}>
         <PrintedReceipt
           mode="final"
@@ -192,11 +192,11 @@ export function BookingConfirm({
 
       <div className="mt-3 grid grid-cols-2 gap-2">
         <Button size="xl" variant="paper" className="w-full" onClick={handleDownloadImage} disabled={isCapturing}>
-          {isCapturing ? <Loader2 className="h-4 w-4 ml-2 animate-spin" /> : <ImageIcon className="h-4 w-4 ml-2" />}
+          {isCapturing ? <Loader2 className="h-4 w-4 ml-2" /> : <ImageIcon className="h-4 w-4 ml-2" />}
           {isCapturing ? "در حال آماده‌سازی..." : "دانلود تصویر"}
         </Button>
         <Button size="xl" variant="outline" className="w-full bg-background" onClick={handleShare} disabled={isCapturing}>
-          {isCapturing ? <Loader2 className="h-4 w-4 ml-2 animate-spin" /> : <Share2 className="h-4 w-4 ml-2" />}
+          {isCapturing ? <Loader2 className="h-4 w-4 ml-2" /> : <Share2 className="h-4 w-4 ml-2" />}
           اشتراک‌گذاری
         </Button>
       </div>

@@ -132,7 +132,7 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
             <button
               key={tab.key}
               onClick={() => onFilterChange(tab.key)}
-              className={`px-3 py-1.5 rounded-full text-small font-medium whitespace-nowrap transition-colors ${
+              className={`px-3 py-1.5 rounded-full text-small font-medium whitespace-nowrap ${
                 activeFilter === tab.key
                   ? "bg-primary text-primary-foreground"
                   : "bg-card text-muted-foreground border border-border"
@@ -166,7 +166,7 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
                   <button
                     key={log.id}
                     onClick={() => setSelectedLog(log)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-muted/50 transition-colors text-right"
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-muted/50 text-right"
                   >
                     <div className={`w-2 h-2 rounded-full shrink-0 ${config.dot}`} />
                     <div className="flex-1 min-w-0">

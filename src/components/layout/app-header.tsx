@@ -186,7 +186,7 @@ export function AppHeader({
                     {item.icon === undefined && <Separator className="my-2" />}
                     <button
                       onClick={() => { item.onClick(); closeMenu(); }}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors duration-150 ${
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right ${
                         item.destructive ? "text-destructive hover:bg-destructive/10" : ""
                       }`}
                     >
@@ -210,7 +210,7 @@ export function AppHeader({
                   <>
                     <a
                       href={`tel:${salon.phone}`}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors duration-150"
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-right"
                     >
                       <Phone className="h-4 w-4 text-muted-foreground" />
                       <span className="text-body" dir="ltr">{toPersianDigits(salon.phone)}</span>
@@ -238,7 +238,7 @@ export function AppHeader({
                 <div className="pt-2 border-t border-border">
                   <button
                     onClick={() => { router.push("/owner/login"); closeMenu(); }}
-                    className="w-full flex items-center justify-center px-3 py-2.5 rounded-xl hover:bg-muted text-right transition-colors duration-150"
+                    className="w-full flex items-center justify-center px-3 py-2.5 rounded-xl hover:bg-muted text-right"
                   >
                     <span className="text-caption text-muted-foreground">ورود مدیر</span>
                   </button>

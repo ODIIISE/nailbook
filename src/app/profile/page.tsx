@@ -68,7 +68,7 @@ export default function ProfilePage() {
     window.dispatchEvent(new Event("nailbook:back"));
     // In-app navigation already has the homepage in the browser history. Use
     // that entry rather than pushing/reloading the homepage, which avoids the
-    // blank transition while the App Router requests the same route again.
+    // blank while the App Router requests the same route again.
     if (window.history.length > 1) {
       router.back();
     } else {
