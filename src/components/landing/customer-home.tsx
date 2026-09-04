@@ -174,6 +174,15 @@ export function QwenCustomerHome() {
     }));
   }, [highlights, activeServices, serviceById, lookAddons]);
 
+  const [lookIndex, setLookIndex] = useState(0);
+  const lookRailRef = useRef<HTMLDivElement>(null);
+  const onLookRailScroll = useCallback(() => {
+    const el = lookRailRef.current;
+    if (!el || looks.length < 2) return;
+    const progress = Math.abs(el.scrollLeft) / Math.max(1, el.scrollWidth - el.clientWidth);
+    setLookIndex(Math.min(looks.length - 1, Math.round(progress * (looks.length - 1))));
+  }, [looks.length]);
+
   // Keep an open sheet synchronized with fresh owner data.
   useEffect(() => {
     if (!activeLook) return;
@@ -223,7 +232,7 @@ export function QwenCustomerHome() {
   const lookbookTitle = salon.lookbook_title || "نمونه‌کارها";
 
   return (
-    <main className="relative mx-auto min-h-dvh w-full max-w-[var(--frame-max-w)] bg-background pb-28 text-foreground">
+    <main className="dark relative mx-auto min-h-dvh w-full max-w-[var(--frame-max-w)] bg-background pb-28 text-foreground">
       {/* ── HERO: full-bleed editorial image with identity, status and CTA ── */}
       <section className="relative" aria-label="استودیو فورهند">
         <div className="relative h-[440px] w-full overflow-hidden sm:h-[520px]">
@@ -262,95 +271,138 @@ export function QwenCustomerHome() {
 
           {/* Bottom editorial copy */}
           <div className="absolute inset-x-0 bottom-0 px-5 pb-8">
-            <p className="text-[11px] font-medium tracking-[0.2em] text-white/75">
+            <p className="font-serif text-[11px] font-medium tracking-[0.22em] text-white/70">
               {salon.homepage_kicker || "NAIL · CARE · RITUAL"}
             </p>
             <h1 className="mt-2 text-display text-white" style={{ textShadow: "0 1px 12px rgba(0,0,0,0.35)" }}>
               {salon.slogan || "زیبایی، آرام و حرفه‌ای"}
             </h1>
             <p className="mt-1.5 text-xs leading-5 text-white/80">{salon.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا"}</p>
-            <div className="mt-5 flex items-center gap-3">
+            <div className="mt-5 flex items-center gap-2.5">
               <button type="button"
-                className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-elevated disabled:opacity-60"
+                className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-elevated active:bg-primary/90 disabled:opacity-60"
                 onClick={() => openBooking()}
                 disabled={!loaded || activeServices.length === 0}>
                 <IconFingerNail className="h-[18px] w-[18px]" aria-hidden="true" />
                 <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? (salon.homepage_cta_label || "شروع رزرو") : "رزرو موقتاً بسته است"}</span>
               </button>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-black/45 px-3 py-2 text-[11px] font-medium text-white backdrop-blur-sm" aria-live="polite">
-                <span className={`h-1.5 w-1.5 rounded-full ${live.isOpen ? "bg-success" : "bg-white/60"}`} aria-hidden="true" />
+              <button type="button"
+                className="flex h-12 items-center justify-center rounded-full border border-white/35 px-4 text-sm font-medium text-white active:bg-white/10"
+                onClick={() => document.getElementById("gallery-title")?.scrollIntoView({ block: "start" })}
+                aria-label="مشاهده نمونه‌کارها">
+                نمونه‌کارها
+              </button>
+            </div>
+            <div className="mt-3 flex items-center gap-2 text-[11px] text-white/75">
+              <span className="inline-flex items-center gap-1.5" aria-live="polite">
+                <span className={`h-1.5 w-1.5 rounded-full ${live.isOpen ? "bg-success" : "bg-white/50"}`} aria-hidden="true" />
                 {live.label}
               </span>
+              {salon.address && (
+                <>
+                  <span aria-hidden="true" className="text-white/40">·</span>
+                  <span className="truncate">{salon.address}</span>
+                </>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── LOOKBOOK: big imagery, discovery-first ── */}
+      {/* ── FEATURED WORK: large imagery, next card peeks ── */}
       {looks.length > 0 && (
-        <section className="mt-10" aria-labelledby="gallery-title">
+        <section className="mt-12" aria-labelledby="gallery-title">
           <div className="flex items-baseline justify-between px-5">
             <h2 id="gallery-title" className="text-h2">{lookbookTitle}</h2>
             <span className="text-xs text-muted-foreground">{toPersianDigits(looks.length)} مدل</span>
           </div>
-          <div className="native-scroll scrollbar-hide -mx-0 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2">
+          <div ref={lookRailRef} onScroll={onLookRailScroll}
+            className="native-scroll scrollbar-hide mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2">
             {looks.map((look) => {
               const src = look.image && !failedImages.includes(look.image) ? look.image : null;
               return (
                 <button key={look.key} type="button"
-                  className="group relative w-[232px] shrink-0 snap-start overflow-hidden rounded-2xl bg-muted text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="relative w-[76vw] max-w-[320px] shrink-0 snap-start overflow-hidden rounded-2xl bg-card text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={() => openLook(look)} aria-label={`دیدن ${look.name}`}>
                   <span className="relative block aspect-[3/4] w-full">
                     {src ? (
-                      <Image src={src} alt={look.name} fill unoptimized loading="lazy" sizes="232px"
+                      <Image src={src} alt={look.name} fill unoptimized loading="lazy" sizes="(min-width: 420px) 320px, 76vw"
                         className="object-cover" onError={() => markImageFailed(src)} />
                     ) : (
                       <span className="flex h-full items-center justify-center text-4xl font-bold text-muted-foreground" aria-hidden="true">
                         {look.name.charAt(0)}
                       </span>
                     )}
-                    <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" aria-hidden="true" />
-                    <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3.5">
+                    <span className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" aria-hidden="true" />
+                    <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-4">
                       <span className="min-w-0">
-                        <b className="block truncate text-sm font-bold text-white">{look.name}</b>
-                        {look.price > 0 && <span className="mt-0.5 block text-[11px] text-white/80">{compactToman(look.price)}</span>}
+                        <b className="block truncate text-base font-bold text-white">{look.name}</b>
+                        {look.price > 0 && <span className="mt-1 block text-[11px] text-white/75">{compactToman(look.price)}</span>}
                       </span>
-                      <IconArrowUpLeft className="h-4 w-4 shrink-0 -scale-x-100 text-white/80" aria-hidden="true" />
+                      <IconArrowUpLeft className="h-4 w-4 shrink-0 -scale-x-100 text-white/70" aria-hidden="true" />
                     </span>
                   </span>
                 </button>
               );
             })}
           </div>
+          {looks.length > 1 && (
+            <div className="mt-3 flex items-center justify-center gap-1.5 px-5" aria-hidden="true">
+              {looks.map((look, i) => (
+                <span key={look.key} className={`h-1.5 rounded-full ${i === lookIndex ? "w-5 bg-foreground" : "w-1.5 bg-border"}`} />
+              ))}
+            </div>
+          )}
         </section>
       )}
 
-      {/* ── SERVICES: quiet editorial rows (no cards, no icons) ── */}
+      {/* ── SERVICES: scannable rows with duration + price metadata ── */}
       {activeServices.length > 0 && (
-        <section className="mt-10 px-5" aria-labelledby="services-title">
+        <section className="mt-12 px-5" aria-labelledby="services-title">
           <h2 id="services-title" className="text-h2">خدمات</h2>
-          <ul className="mt-2 divide-y divide-border">
+          <ul className="mt-3 space-y-2">
             {activeServices.map((s) => (
               <li key={s.id}>
-                <button type="button" className="flex w-full items-center justify-between gap-3 py-3.5 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                <button type="button"
+                  className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 text-start active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={() => openBooking({ serviceId: s.id })}
                   aria-label={`رزرو ${s.name}`}>
-                  <span className="min-w-0">
-                    <b className="block text-sm font-semibold">{s.name}</b>
+                  <span className="min-w-0 flex-1">
+                    <b className="block text-[15px] font-semibold leading-6">{s.name}</b>
                     {s.description && <small className="mt-0.5 block truncate text-xs text-muted-foreground">{s.description}</small>}
+                    <small className="mt-1 block text-xs text-muted-foreground">
+                      <span>{toPersianDigits(s.duration_minutes)} دقیقه</span>
+                    </small>
                   </span>
-                  <span className="flex shrink-0 items-center gap-3">
+                  <span className="flex shrink-0 flex-col items-end gap-1.5">
                     <span className="text-sm font-bold tabular-nums">{compactToman(s.price)}</span>
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card">
-                      <IconArrowUpLeft className="h-3.5 w-3.5 -scale-x-100 text-muted-foreground" aria-hidden="true" />
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-soft">
+                      <IconArrowUpLeft className="h-3.5 w-3.5 -scale-x-100 text-accent-foreground-soft" aria-hidden="true" />
                     </span>
-                  </span>
+    </span>
                 </button>
               </li>
             ))}
           </ul>
         </section>
       )}
+
+      {/* ── HOW BOOKING WORKS: quiet 3-step reassurance ── */}
+      <section className="mt-12 px-5" aria-labelledby="how-title">
+        <h2 id="how-title" className="text-h2">رزرو در سه قدم</h2>
+        <ol className="mt-4 grid grid-cols-3 gap-2">
+          {[
+            ["۱", "انتخاب خدمت"],
+            ["۲", "انتخاب زمان"],
+            ["۳", "ثبت نهایی"],
+          ].map(([n, label]) => (
+            <li key={n} className="rounded-2xl border border-border bg-card px-2 py-4 text-center">
+              <b className="text-lg text-accent-foreground-soft" aria-hidden="true">{n}</b>
+              <span className="mt-1 block text-[11px] font-medium text-foreground">{label}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
 
       {/* ── UPCOMING BOOKINGS (only when they exist) ── */}
       {activeBookings.length > 0 && (
@@ -378,24 +430,29 @@ export function QwenCustomerHome() {
         </section>
       )}
 
-      {/* ── INFO: hours + contact (quiet footer) ── */}
+      {/* ── INFO: location + socials (secondary, quiet) ── */}
       <section className="mt-12 px-5 pb-4" aria-label="تماس با سالن">
-        <p className="text-xs leading-6 text-muted-foreground">{formatHours(salon.working_hours_text, workingHours)}</p>
-        <nav className="mt-4 flex items-center gap-2" aria-label="تماس با سالن">
+        {salon.address && (
+          <a href={mapUrl ?? undefined} target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground underline-offset-2 hover:underline" aria-label="مشاهده آدرس روی نقشه">
+            <span className="truncate">{salon.address}</span>
+          </a>
+        )}
+        <nav className="mt-3 flex items-center justify-center gap-2" aria-label="تماس با سالن">
           {salon.phone && (
-            <a className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground hover:bg-muted" href={`tel:${salon.phone}`} aria-label="تماس تلفنی">
-              <Phone aria-hidden="true" className="h-[18px] w-[18px]" />
+            <a className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground hover:bg-muted" href={`tel:${salon.phone}`} aria-label="تماس تلفنی">
+              <Phone aria-hidden="true" className="h-4 w-4" />
             </a>
           )}
           {phoneValid && (
-            <a className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground hover:bg-muted" href={`sms:${salon.phone}`} aria-label="ارسال پیامک">
-              <MessageCircle aria-hidden="true" className="h-[18px] w-[18px]" />
+            <a className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground hover:bg-muted" href={`sms:${salon.phone}`} aria-label="ارسال پیامک">
+              <MessageCircle aria-hidden="true" className="h-4 w-4" />
             </a>
           )}
           {igHandle && (
-            <a className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground hover:bg-muted" href={`https://instagram.com/${igHandle.replace(/^@/, "")}`}
+            <a className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground hover:bg-muted" href={`https://instagram.com/${igHandle.replace(/^@/, "")}`}
               target="_blank" rel="noopener noreferrer" aria-label="اینستاگرام">
-              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
                 <circle cx="12" cy="12" r="4.2" />
                 <circle cx="17.5" cy="6.7" r="1" fill="currentColor" stroke="none" />
@@ -403,12 +460,7 @@ export function QwenCustomerHome() {
             </a>
           )}
         </nav>
-        {salon.address && (
-          <a href={mapUrl ?? undefined} target="_blank" rel="noopener noreferrer"
-            className="mt-4 block text-xs text-muted-foreground underline-offset-2 hover:underline" aria-label="مشاهده آدرس روی نقشه">
-            {salon.address}
-          </a>
-        )}
+        <p className="mt-4 text-center text-[11px] leading-5 text-muted-foreground/80">{formatHours(salon.working_hours_text, workingHours)}</p>
       </section>
 
       {/* ── LOOK SHEET ── */}
@@ -551,7 +603,7 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
 
   if (!open || typeof document === "undefined") return null;
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label={title}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center dark" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
       <div ref={sheetRef} className="relative z-10 flex max-h-[88dvh] w-full max-w-[var(--frame-max-w)] flex-col rounded-t-3xl border-t bg-popover pb-[env(safe-area-inset-bottom)] text-popover-foreground">
         <div className="flex items-center justify-between px-4 py-3">
@@ -590,7 +642,7 @@ function Drawer({ open, onClose, title, children }: { open: boolean; onClose: ()
 
   if (!open || typeof document === "undefined") return null;
   return createPortal(
-    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={title}>
+    <div className="fixed inset-0 z-50 dark" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
       <div ref={panelRef} className="absolute inset-y-0 end-0 flex w-[min(86vw,320px)] flex-col overflow-y-auto border-s bg-popover px-5 pt-[calc(18px+env(safe-area-inset-top))] text-popover-foreground">
         <div className="mb-4 flex items-center justify-between">
