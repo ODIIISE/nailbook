@@ -232,7 +232,7 @@ export function QwenCustomerHome() {
   const lookbookTitle = salon.lookbook_title || "نمونه‌کارها";
 
   return (
-    <main className="dark relative mx-auto min-h-dvh w-full max-w-[var(--frame-max-w)] bg-background pb-28 text-foreground">
+    <main className="dark relative mx-auto min-h-dvh w-full max-w-[var(--frame-max-w)] bg-background pb-24 text-foreground">
       {/* ── HERO: full-bleed editorial image with identity, status and CTA ── */}
       <section className="relative" aria-label="استودیو فورهند">
         <div className="relative h-[460px] w-full overflow-hidden sm:h-[540px]">
@@ -249,14 +249,10 @@ export function QwenCustomerHome() {
           {/* Floating identity row */}
           <div className="absolute inset-x-0 top-0 flex items-start justify-between px-5 pt-[calc(14px+env(safe-area-inset-top))]">
             <div className="flex items-center gap-2.5">
-              {salon.logo_url ? (
-                <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white/90 shadow-elevated">
-                  <Image src={salon.logo_url} alt="" width={40} height={40} unoptimized className="h-full w-full object-contain"
+              {salon.logo_url && (
+                <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full ring-1 ring-white/30">
+                  <Image src={salon.logo_url} alt="" width={36} height={36} unoptimized className="h-full w-full object-contain"
                     onError={() => markImageFailed(salon.logo_url!)} />
-                </span>
-              ) : (
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-sm font-bold text-foreground shadow-elevated">
-                  {(salon.name || "ف").charAt(0)}
                 </span>
               )}
               <span className="flex flex-col">
@@ -282,18 +278,18 @@ export function QwenCustomerHome() {
             <p className="mt-2 max-w-[290px] text-[13px] leading-6 text-white/85">{salon.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا"}</p>
             <div className="mt-6 flex items-center gap-5">
               <button type="button"
-                className="flex h-13 min-w-[172px] flex-[1.4] items-center justify-center gap-2 rounded-full bg-primary text-[15px] font-bold text-primary-foreground shadow-elevated active:bg-primary/90 disabled:opacity-60"
+                className="flex h-13 flex-[1_1_auto] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-primary px-5 text-[15px] font-bold text-primary-foreground shadow-elevated active:bg-primary/90 disabled:opacity-60"
                 onClick={() => openBooking()}
                 disabled={!loaded || activeServices.length === 0}>
                 <IconFingerNail className="h-[18px] w-[18px]" aria-hidden="true" />
                 <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? (salon.homepage_cta_label || "شروع رزرو") : "رزرو موقتاً بسته است"}</span>
               </button>
               <button type="button"
-                className="flex h-13 flex-1 items-center justify-center gap-1.5 text-sm font-semibold text-white active:opacity-80"
+                className="flex h-13 shrink-0 items-center justify-center gap-1 text-sm font-semibold text-white active:opacity-80"
                 onClick={() => document.getElementById("gallery-title")?.scrollIntoView({ block: "start" })}
                 aria-label="مشاهده نمونه‌کارها">
-                <span className="border-b border-white/40 pb-0.5">نمونه‌کارها</span>
-                <span aria-hidden="true" className="text-base leading-none">↗</span>
+                <span className="border-b border-white/30 pb-0.5">نمونه‌کارها</span>
+                <IconArrowUpLeft aria-hidden="true" className="h-4 w-4" />
               </button>
             </div>
             <div className="mt-3.5 flex items-center gap-2 text-xs text-white/80">
@@ -327,11 +323,11 @@ export function QwenCustomerHome() {
               const src = look.image && !failedImages.includes(look.image) ? look.image : null;
               return (
                 <button key={look.key} type="button"
-                  className="w-[72vw] max-w-[300px] shrink-0 snap-start text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="w-[70vw] max-w-[290px] shrink-0 snap-start text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={() => openLook(look)} aria-label={`دیدن ${look.name}`}>
                   <span className="relative block aspect-[3/4] w-full overflow-hidden rounded-[20px] bg-card">
                     {src ? (
-                      <Image src={src} alt={look.name} fill unoptimized loading="lazy" sizes="(min-width: 420px) 300px, 72vw"
+                      <Image src={src} alt={look.name} fill unoptimized loading="lazy" sizes="(min-width: 420px) 290px, 70vw"
                         className="object-cover" onError={() => markImageFailed(src)} />
                     ) : (
                       <span className="flex h-full items-center justify-center text-4xl font-bold text-muted-foreground" aria-hidden="true">
@@ -339,10 +335,7 @@ export function QwenCustomerHome() {
                       </span>
                     )}
                   </span>
-                  <span className="mt-2.5 flex items-baseline justify-between gap-2 px-0.5">
-                    <b className="truncate text-[15px] font-bold text-foreground">{look.name}</b>
-                    {look.price > 0 && <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{compactToman(look.price)}</span>}
-                  </span>
+                  <b className="mt-2.5 block truncate px-0.5 text-[15px] font-bold text-foreground">{look.name}</b>
                 </button>
               );
             })}
@@ -358,11 +351,11 @@ export function QwenCustomerHome() {
             {activeServices.map((s) => (
               <li key={s.id}>
                 <button type="button"
-                  className="flex w-full items-center gap-4 py-4 text-start active:bg-white/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex w-full items-start gap-4 py-4 text-start active:bg-white/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={() => openBooking({ serviceId: s.id })}
                   aria-label={`رزرو ${s.name}`}>
                   <span className="min-w-0 flex-1">
-                    <b className="block text-[17px] font-semibold leading-8">{s.name}</b>
+                    <b className="block text-[17px] font-semibold leading-7">{s.name}</b>
                     {(s.description || s.duration_minutes > 0) && (
                       <small className="flex items-center gap-1.5 text-[13px] leading-6 text-muted-foreground">
                         {s.description && <span className="truncate">{s.description}</span>}
@@ -371,7 +364,10 @@ export function QwenCustomerHome() {
                       </small>
                     )}
                   </span>
-                  <span className="shrink-0 text-[15px] font-bold tabular-nums">{compactToman(s.price)}</span>
+                  <span className="flex shrink-0 flex-col items-end gap-2.5 pt-1.5">
+                    <span className="text-[15px] font-bold leading-5 tabular-nums">{compactToman(s.price)}</span>
+                    <IconArrowUpLeft aria-hidden="true" className="h-4 w-4 text-muted-foreground/70" />
+                  </span>
                 </button>
               </li>
             ))}
@@ -382,7 +378,7 @@ export function QwenCustomerHome() {
       {/* ── HOW BOOKING WORKS: editorial numbered list ── */}
       <section className="mt-16 px-5" aria-labelledby="how-title">
         <h2 id="how-title" className="fh-sec">رزرو در سه قدم</h2>
-        <ol className="mt-5 space-y-5">
+        <ol className="mt-5 space-y-4">
           {[
             ["01", "انتخاب خدمت", "خدمت و طرح موردنظرت را انتخاب کن."],
             ["02", "انتخاب زمان", "از بین زمان‌های آزاد، بهترین گزینه را پیدا کن."],
@@ -403,22 +399,21 @@ export function QwenCustomerHome() {
       {activeBookings.length > 0 && (
         <section className="mt-12 px-5" aria-labelledby="active-bookings-title">
           <h2 id="active-bookings-title" className="fh-sec">نوبت‌های پیش‌رو</h2>
-          <div className="mt-3 space-y-2">
+          <div className="mt-2 divide-y divide-border/70">
             {activeBookings.map((b) => (
               <button key={b.id} type="button"
-                className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 text-start shadow-card"
+                className="flex w-full items-start gap-4 py-4 text-start active:bg-white/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => router.push(`/bookings/${b.id}`)}
                 aria-label={`نوبت ${b.service_name || b.service?.name || ""}`}>
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft">
-                  <IconFingerNail className="h-4 w-4 text-accent-foreground-soft" aria-hidden="true" />
-                </span>
                 <span className="min-w-0 flex-1">
-                  <b className="block truncate text-[13px] font-bold">{b.service_name || b.service?.name || "نوبت"}</b>
-                  <small className="mt-0.5 block text-xs text-muted-foreground">
+                  <b className="block text-[17px] font-semibold leading-7">{b.service_name || b.service?.name || "نوبت"}</b>
+                  <small className="block text-[13px] leading-6 text-muted-foreground">
                     {b.date} · <span dir="ltr">{formatJalaliTime(b.start_time)}</span>
                   </small>
                 </span>
-                <IconArrowUpLeft className="h-4 w-4 shrink-0 -scale-x-100 text-muted-foreground" aria-hidden="true" />
+                <span className="flex h-full shrink-0 items-center">
+                  <IconArrowUpLeft aria-hidden="true" className="h-4 w-4 text-muted-foreground/70" />
+                </span>
               </button>
             ))}
           </div>
@@ -430,11 +425,10 @@ export function QwenCustomerHome() {
         <div className="border-t border-border/70 pt-10 text-center">
           <p className="fh-end text-foreground">وقتشه خودتو مهمون کنی.</p>
           <button type="button"
-            className="mx-auto mt-5 flex h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 text-[15px] font-bold text-primary-foreground shadow-elevated active:bg-primary/90 disabled:opacity-60"
+            className="mx-auto mt-5 flex h-12 items-center justify-center rounded-full bg-primary px-10 text-[15px] font-bold text-primary-foreground shadow-elevated active:bg-primary/90 disabled:opacity-60"
             onClick={() => openBooking()}
             disabled={!loaded || activeServices.length === 0}>
             <span>{activeServices.length ? (salon.homepage_cta_label || "شروع رزرو") : "رزرو موقتاً بسته است"}</span>
-            <IconArrowUpLeft className="h-4 w-4 -scale-x-100" aria-hidden="true" />
           </button>
         </div>
       </section>
@@ -469,7 +463,7 @@ export function QwenCustomerHome() {
             </a>
           )}
         </nav>
-        <p className="mt-4 text-center text-[11px] leading-5 text-muted-foreground">{formatHours(salon.working_hours_text, workingHours)}</p>
+        <p className="mt-4 text-center text-xs leading-[1.7] text-muted-foreground">{formatHours(salon.working_hours_text, workingHours)}</p>
       </section>
 
       {/* ── LOOK SHEET ── */}
@@ -497,7 +491,7 @@ export function QwenCustomerHome() {
                 <div className="native-scroll scrollbar-hide flex gap-2 overflow-x-auto" role="tablist" aria-label="تصاویر این مدل">
                   {gallery.map((u, i) => (
                     <button key={u} type="button"
-                      className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 ${u === src ? "border-primary" : "border-transparent"}`}
+                      className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-xl ring-2 ${u === src ? "ring-foreground" : "ring-transparent"}`}
                       role="tab" aria-selected={u === src} aria-label={`تصویر ${toPersianDigits(i + 1)}`}
                       onClick={() => setActiveLookImage(u)}>
                       <Image src={u} alt="" fill unoptimized sizes="64px" className="object-cover"

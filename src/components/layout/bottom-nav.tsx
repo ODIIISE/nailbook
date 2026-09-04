@@ -28,7 +28,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/95 backdrop-blur-sm"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       aria-label="ناوبری اصلی"
     >
@@ -41,7 +41,7 @@ export function BottomNav() {
               href={href}
               onClick={() => haptic.tap()}
               aria-current={active ? "page" : undefined}
-              className="relative flex h-[68px] flex-1 flex-col items-center justify-center gap-1 pt-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              className="relative flex h-[68px] flex-1 flex-col items-center justify-center gap-1.5 pt-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
             >
               <Icon
                 className={`h-6 w-6 ${active ? "text-foreground" : "text-muted-foreground"}`}
@@ -50,10 +50,6 @@ export function BottomNav() {
               <span className={`text-[11px] leading-none ${active ? "font-semibold text-foreground" : "font-medium text-muted-foreground"}`}>
                 {label}
               </span>
-              <span
-                aria-hidden="true"
-                className={`absolute bottom-1.5 h-1 w-1 rounded-full ${active ? "bg-accent-foreground-soft" : "bg-transparent"}`}
-              />
             </Link>
           );
         })}
