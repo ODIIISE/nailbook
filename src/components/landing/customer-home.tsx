@@ -4,14 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Menu, MessageCircle, Phone, X } from "lucide-react";
+import { Menu, MessageCircle, Phone, X, MapPin } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toPersianDigits, gregorianToJalali, formatJalaliDateShort, formatJalaliTime, getJalaliWeekdayFullName } from "@/lib/jalali";
+import { toPersianDigits, formatJalaliTime } from "@/lib/jalali";
 import { isValidIranianPhone } from "@/lib/digits";
 import { compactToman } from "@/lib/pricing";
 import { getServiceImage } from "@/lib/service-images";
@@ -67,29 +67,10 @@ interface Look {
   addons: Addon[];
 }
 
-/** Client-only today-in-Tehran for the header date (avoids SSR mismatch).
- *  Reads the clock inside a render-time ref callback instead of setState-in-effect. */
-function useTehranToday() {
-  const [today, setToday] = useState<{ weekday: string; label: string } | null>(null);
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      const now = new Date();
-      const j = gregorianToJalali(now);
-      setToday({
-        weekday: getJalaliWeekdayFullName(now),
-        label: formatJalaliDateShort(j.jy, j.jm, j.jd),
-      });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
-  return today;
-}
-
 export function QwenCustomerHome() {
   const router = useRouter();
   const { salon, workingHours, services, addons, highlights, bookings, loaded } = useSalon();
   const { user, logout } = useAuth();
-  const today = useTehranToday();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -235,75 +216,97 @@ export function QwenCustomerHome() {
 
   return (
     <main className="dark relative mx-auto min-h-dvh w-full max-w-[var(--frame-max-w)] bg-background pb-24 text-foreground">
-      {/* ── HERO: full-bleed editorial image with identity, status and CTA ── */}
+      {/* ── HERO: centered editorial composition on a dark canvas.
+          No background image — the photograph is an object in the layout. ── */}
       <section className="relative" aria-label="استودیو فورهند">
-        <div className="relative h-[560px] w-full overflow-hidden bg-[#241b13] sm:h-[620px]">
-          {heroImage ? (
-            <Image src={heroImage} alt={salon.name || "استودیو ناخن فورهند"} fill priority
-              sizes="(min-width: 480px) 480px, 100vw" className="object-cover"
-              onError={() => markImageFailed(heroImage)} />
-          ) : (
-            <h1 className="fh-hero absolute inset-x-0 top-1/2 -translate-y-1/2 px-5 text-center text-white">
-              {salon.name || "استودیو ناخن"}
-            </h1>
+        {/* Top navigation — whisper-quiet: utility icon / wordmark / menu */}
+        <div className="flex items-center justify-between px-5 pt-[calc(14px+env(safe-area-inset-top))] pb-1">
+          <a href={mapUrl ?? "#"} target={mapUrl ? "_blank" : undefined} rel="noopener noreferrer"
+            className="flex h-11 w-11 items-center justify-center text-muted-foreground hover:text-foreground"
+            aria-label="آدرس روی نقشه">
+            <MapPin aria-hidden="true" className="h-[16px] w-[16px]" strokeWidth={1.6} />
+          </a>
+          <span className="flex items-center gap-2" aria-hidden="true">
+            {logoUrl && (
+              <Image src={logoUrl} alt="" width={24} height={24} unoptimized
+                className="h-6 w-6 rounded-full object-contain" onError={() => markImageFailed(logoUrl)} />
+            )}
+            <b dir="ltr" className="fh-kicker text-[12px] text-foreground/90">FOREHAND</b>
+          </span>
+          <button type="button"
+            className="flex h-11 w-11 items-center justify-center text-muted-foreground hover:text-foreground"
+            onClick={() => setDrawerOpen(true)} aria-label="منو" aria-expanded={drawerOpen}>
+            <Menu aria-hidden="true" className="h-[17px] w-[17px]" strokeWidth={1.6} />
+          </button>
+        </div>
+
+        {/* Headline block — script line over the large serif mark */}
+        <div className="px-5 text-center">
+          <p className="fh-script text-accent-foreground-soft">زیبایی، با تو شروع می‌شود</p>
+          <h1 className="fh-hero mt-0.5 text-foreground">
+            {salon.slogan || "فورهنـد"}
+            <span className="mt-1 block fh-sec text-muted-foreground">{salon.name || "استودیو ناخن"}</span>
+          </h1>
+          <p className="mx-auto mt-3 max-w-[300px] text-[13px] leading-6 text-muted-foreground">
+            {salon.homepage_micro || "رزرو آنلاین، بدون تماس تلفنی — زمان‌های آزاد همین‌جا."}
+          </p>
+        </div>
+
+        {/* Framed portrait photograph — an object in the composition, not a background */}
+        <div className="relative mx-auto mt-7 w-[68%] max-w-[270px]">
+          <span className="relative block aspect-[4/5] overflow-hidden rounded-[18px] bg-card">
+            {heroImage ? (
+              <Image src={heroImage} alt={salon.name || "استودیو ناخن فورهند"} fill priority
+                sizes="270px" className="object-cover"
+                onError={() => markImageFailed(heroImage)} />
+            ) : (
+              <span className="flex h-full items-center justify-center fh-hero text-muted-foreground/50" aria-hidden="true">
+                {salon.name?.charAt(0) || "ف"}
+              </span>
+            )}
+          </span>
+          {/* Circular editorial badge overlapping the image's start edge */}
+          <span dir="ltr" aria-hidden="true"
+            className="absolute top-1/2 -translate-y-1/2 -start-[26px] flex h-[54px] w-[54px] items-center justify-center rounded-full border border-foreground/15 bg-background">
+            <svg viewBox="0 0 54 54" className="h-full w-full p-1.5">
+              <defs>
+                <path id="fh-badge-circle" d="M27,27 m-19,0 a19,19 0 1,1 38,0 a19,19 0 1,1 -38,0" />
+              </defs>
+              <text fill="currentColor" fontSize="6.4" letterSpacing="1.4" className="fill-accent-foreground-soft">
+                <textPath href="#fh-badge-circle">FOREHAND · EST. 2024 · TEHRAN ·</textPath>
+              </text>
+            </svg>
+          </span>
+        </div>
+
+        {/* Primary CTA — warm cream pill */}
+        <div className="mt-7 flex justify-center px-5">
+          <button type="button"
+            className="flex h-12 w-[160px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[var(--fh-cta-bg)] text-[15px] font-bold text-[var(--fh-cta-fg)] hover:bg-[var(--fh-cta-bg-hover)] active:bg-[var(--fh-cta-bg-active)] disabled:opacity-60"
+            onClick={() => openBooking()}
+            disabled={!loaded || activeServices.length === 0}>
+            <IconFingerNail className="h-[17px] w-[17px]" aria-hidden="true" />
+            <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? (salon.homepage_cta_label || "رزرو نوبت") : "رزرو موقتاً بسته است"}</span>
+          </button>
+        </div>
+
+        {/* Quiet status line + subtle continuation hint into the next section */}
+        <div className="mt-5 flex items-center justify-center gap-2 px-5 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5" aria-live="polite">
+            <span className={`h-1.5 w-1.5 rounded-full ${live.isOpen ? "bg-success" : "bg-accent-foreground-soft"}`} aria-hidden="true" />
+            {live.label}
+          </span>
+          {salon.address && (
+            <>
+              <span aria-hidden="true" className="text-border">·</span>
+              <span className="max-w-[190px] truncate">{salon.address}</span>
+            </>
           )}
-          {/* Legibility scrims — linear (gradients are reserved for scrims only,
-              never decoration): deep floor for text, light top veil so the OS
-              status bar reads on any photo. */}
-          <div className="absolute inset-0 bg-black/30" aria-hidden="true" />
-          <div className="absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-[#171310] via-black/60 to-black/0" aria-hidden="true" />
-          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/45 to-black/0" aria-hidden="true" />
-
-          {/* Floating identity row — quiet: small wordmark + date, menu button */}
-          <div className="absolute inset-x-0 top-0 flex items-start justify-between px-5 pt-[calc(14px+env(safe-area-inset-top))]">
-            <div className="flex items-center gap-2.5">
-              {logoUrl && (
-                <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full ring-1 ring-white/30">
-                  <Image src={logoUrl} alt="" width={36} height={36} unoptimized className="h-full w-full object-contain"
-                    onError={() => markImageFailed(logoUrl)} />
-                </span>
-              )}
-              <span className="flex flex-col">
-                <b className="text-[13px] font-bold leading-5 text-white">{salon.name || "استودیو ناخن"}</b>
-                {today && <span suppressHydrationWarning className="text-[11px] leading-4 text-white/70">{`امروز ${today.weekday} ${today.label}`}</span>}
-              </span>
-            </div>
-            <button type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/85 text-foreground"
-              onClick={() => setDrawerOpen(true)} aria-label="منو" aria-expanded={drawerOpen}>
-              <Menu aria-hidden="true" className="h-5 w-5" />
-            </button>
-          </div>
-
-          {/* Bottom editorial copy */}
-          <div className="absolute inset-x-0 bottom-0 px-5 pb-7">
-            <p dir="ltr" className="fh-kicker text-start text-white/75">
-              {salon.homepage_kicker || "NAIL · CARE · RITUAL"}
-            </p>
-            <h1 className="fh-hero mt-2 text-white" style={{ textShadow: "0 1px 18px rgba(0,0,0,0.45)" }}>
-              {salon.slogan || "زیبایی، در جزئیات است."}
-            </h1>
-            <p className="mt-2 max-w-[300px] text-[13px] leading-6 text-white/80">{salon.homepage_micro || "رزرو آنلاین، بدون تماس تلفنی — زمان‌های آزاد همین‌جا."}</p>
-            <button type="button"
-              className="mt-6 flex h-14 w-full items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[var(--fh-cta-bg)] text-[15px] font-bold text-[var(--fh-cta-fg)] shadow-elevated hover:bg-[var(--fh-cta-bg-hover)] active:bg-[var(--fh-cta-bg-active)] disabled:opacity-60"
-              onClick={() => openBooking()}
-              disabled={!loaded || activeServices.length === 0}>
-              <IconFingerNail className="h-[18px] w-[18px]" aria-hidden="true" />
-              <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? (salon.homepage_cta_label || "رزرو نوبت") : "رزرو موقتاً بسته است"}</span>
-            </button>
-            <div className="mt-4 flex items-center gap-2 text-xs text-white/75">
-              <span className="inline-flex items-center gap-1.5" aria-live="polite">
-                <span className={`h-1.5 w-1.5 rounded-full ${live.isOpen ? "bg-success" : "bg-accent-foreground-soft"}`} aria-hidden="true" />
-                {live.label}
-              </span>
-              {salon.address && (
-                <>
-                  <span aria-hidden="true" className="text-white/40">·</span>
-                  <span className="truncate">{salon.address}</span>
-                </>
-              )}
-            </div>
-          </div>
+        </div>
+        <div className="mt-8 flex items-center justify-center gap-3" aria-hidden="true">
+          <span className="h-px w-10 bg-border/70" />
+          <span dir="ltr" className="fh-kicker text-[10px] text-accent-foreground-soft">GALLERY</span>
+          <span className="h-px w-10 bg-border/70" />
         </div>
       </section>
 
