@@ -5,6 +5,22 @@
 
 /* ── Font ── */
 
+/* Estedad FD variable — primary Persian/UI face (wght 100-900, Farsi-digit variant).
+   Vazirmatn kept below as fallback (also covers the swap window). */
+@font-face {
+  font-family: 'Estedad';
+  src: url('https://cdn.jsdelivr.net/gh/aminabedi68/Estedad@v7.3/fonts/webfonts/variable/Estedad-FD%5BKSHD%2Cwght%5D.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-display: swap;
+}
+/* Instrument Serif — Latin editorial accent (kickers, numerals) only. */
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('https://cdn.jsdelivr.net/npm/@fontsource/instrument-serif@5.3.0/files/instrument-serif-latin-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
 @font-face {
   font-family: 'Vazirmatn';
   src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2') format('woff2');
@@ -35,7 +51,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Estedad', 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
   --font-mono: 'SF Mono', SFMono-Regular, Consolas, monospace;
   --color-ring: var(--ring);
   --color-input: var(--input);
@@ -129,7 +146,7 @@
   --foreground: #f5f0e9;
   --card: #241d17;
   --card-foreground: #f5f0e9;
-  --popover: #1f1a15;
+  --popover: #241d17;
   --popover-foreground: #f5f0e9;
   --primary: #f5f0e9;
   --primary-foreground: #241d17;
@@ -164,26 +181,40 @@
 
 /* ── Paper theme (legacy tokens preserved for back-compat; not used in new UI) ── */
 
-/* ── Homepage editorial type scale (scoped: .fh-display/.fh-hero/.fh-sec only) ──
-   Persian display sizes for the customer homepage. Existing .text-* utilities
-   stay stock for the rest of the app. */
+/* ── Homepage editorial type scale (scoped: .fh-* classes) ──
+   Persian display sizes for the customer homepage. Persian line-heights are
+   tuned manually; letter-spacing stays 0 on Arabic script (joining breaks). */
 
 .fh-hero {
-  font-size: 30px;
-  line-height: 1.5;
+  font-size: 34px;
+  line-height: 1.35;
   font-weight: 800;
   letter-spacing: 0;
 }
 
 .fh-sec {
   font-size: 21px;
-  line-height: 1.45;
+  line-height: 1.4;
   font-weight: 700;
   letter-spacing: 0;
 }
 
+.fh-end {
+  font-size: 22px;
+  line-height: 1.5;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.fh-num {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 400;
+}
+
 @media (min-width: 480px) {
-  .fh-hero { font-size: 34px; }
+  .fh-hero { font-size: 38px; }
 }
 
 /* ── Base ── */
@@ -201,9 +232,9 @@
     overscroll-behavior: none;
     text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
-    /* Persian-first: Vazirmatn everywhere. font-synthesis:none prevents
-       fake italic/bold slants — Vazirmatn has no italic faces. */
-    font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Persian-first: Estedad (FD variable) with Vazirmatn fallback everywhere.
+       font-synthesis:none prevents fake italic/bold slants. */
+    font-family: 'Estedad', 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     font-kerning: normal;

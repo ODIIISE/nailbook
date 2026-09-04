@@ -41,15 +41,19 @@ export function BottomNav() {
               href={href}
               onClick={() => haptic.tap()}
               aria-current={active ? "page" : undefined}
-              className="relative flex h-16 flex-1 flex-col items-center justify-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              className="relative flex h-[68px] flex-1 flex-col items-center justify-center gap-1 pt-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
             >
               <Icon
-                className={`h-[22px] w-[22px] ${active ? "text-foreground" : "text-muted-foreground"}`}
-                strokeWidth={active ? 2.4 : 2}
+                className={`h-6 w-6 ${active ? "text-foreground" : "text-muted-foreground"}`}
+                strokeWidth={active ? 2.2 : 1.8}
               />
-              <span className={`text-[11px] leading-none ${active ? "font-bold text-foreground" : "font-medium text-muted-foreground"}`}>
+              <span className={`text-[11px] leading-none ${active ? "font-semibold text-foreground" : "font-medium text-muted-foreground"}`}>
                 {label}
               </span>
+              <span
+                aria-hidden="true"
+                className={`absolute bottom-1.5 h-1 w-1 rounded-full ${active ? "bg-accent-foreground-soft" : "bg-transparent"}`}
+              />
             </Link>
           );
         })}
