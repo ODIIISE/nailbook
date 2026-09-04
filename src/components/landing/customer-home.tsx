@@ -235,7 +235,7 @@ export function QwenCustomerHome() {
     <main className="dark relative mx-auto min-h-dvh w-full max-w-[var(--frame-max-w)] bg-background pb-28 text-foreground">
       {/* ── HERO: full-bleed editorial image with identity, status and CTA ── */}
       <section className="relative" aria-label="استودیو فورهند">
-        <div className="relative h-[440px] w-full overflow-hidden sm:h-[520px]">
+        <div className="relative h-[460px] w-full overflow-hidden sm:h-[540px]">
           <Image src={heroImage} alt={salon.name || "استودیو ناخن فورهند"} fill priority
             sizes="(min-width: 480px) 480px, 100vw" className="object-cover"
             onError={() => markImageFailed(heroImage)} />
@@ -258,7 +258,7 @@ export function QwenCustomerHome() {
                 </span>
               )}
               <span className="flex flex-col">
-                <b className="text-sm font-bold leading-5 text-white">{salon.name || "استودیو ناخن"}</b>
+                <b className="text-[13px] font-bold leading-5 text-white">{salon.name || "استودیو ناخن"}</b>
                 {today && <span suppressHydrationWarning className="text-[11px] leading-4 text-white/70">{`امروز ${today.weekday} ${today.label}`}</span>}
               </span>
             </div>
@@ -271,29 +271,29 @@ export function QwenCustomerHome() {
 
           {/* Bottom editorial copy */}
           <div className="absolute inset-x-0 bottom-0 px-5 pb-8">
-            <p className="font-serif text-[11px] font-medium tracking-[0.22em] text-white/70">
+            <p className="font-serif text-[12px] font-medium tracking-[0.24em] text-white/70">
               {salon.homepage_kicker || "NAIL · CARE · RITUAL"}
             </p>
-            <h1 className="mt-2 text-display text-white" style={{ textShadow: "0 1px 12px rgba(0,0,0,0.35)" }}>
+            <h1 className="fh-hero mt-3 text-white" style={{ textShadow: "0 1px 14px rgba(0,0,0,0.4)" }}>
               {salon.slogan || "زیبایی، آرام و حرفه‌ای"}
             </h1>
-            <p className="mt-1.5 text-xs leading-5 text-white/80">{salon.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا"}</p>
-            <div className="mt-5 flex items-center gap-2.5">
+            <p className="mt-2 text-[13px] leading-6 text-white/85">{salon.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا"}</p>
+            <div className="mt-6 flex items-center gap-2.5">
               <button type="button"
-                className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-elevated active:bg-primary/90 disabled:opacity-60"
+                className="flex h-13 flex-1 items-center justify-center gap-2 rounded-full bg-primary text-[15px] font-bold text-primary-foreground shadow-elevated active:bg-primary/90 disabled:opacity-60"
                 onClick={() => openBooking()}
                 disabled={!loaded || activeServices.length === 0}>
                 <IconFingerNail className="h-[18px] w-[18px]" aria-hidden="true" />
                 <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? (salon.homepage_cta_label || "شروع رزرو") : "رزرو موقتاً بسته است"}</span>
               </button>
               <button type="button"
-                className="flex h-12 items-center justify-center rounded-full border border-white/35 px-4 text-sm font-medium text-white active:bg-white/10"
+                className="flex h-13 items-center justify-center rounded-full border border-white/35 px-4 text-sm font-medium text-white active:bg-white/10"
                 onClick={() => document.getElementById("gallery-title")?.scrollIntoView({ block: "start" })}
                 aria-label="مشاهده نمونه‌کارها">
                 نمونه‌کارها
               </button>
             </div>
-            <div className="mt-3 flex items-center gap-2 text-[11px] text-white/75">
+            <div className="mt-3.5 flex items-center gap-2 text-xs text-white/80">
               <span className="inline-flex items-center gap-1.5" aria-live="polite">
                 <span className={`h-1.5 w-1.5 rounded-full ${live.isOpen ? "bg-success" : "bg-white/50"}`} aria-hidden="true" />
                 {live.label}
@@ -311,9 +311,9 @@ export function QwenCustomerHome() {
 
       {/* ── FEATURED WORK: large imagery, next card peeks ── */}
       {looks.length > 0 && (
-        <section className="mt-12" aria-labelledby="gallery-title">
+        <section className="mt-14" aria-labelledby="gallery-title">
           <div className="flex items-baseline justify-between px-5">
-            <h2 id="gallery-title" className="text-h2">{lookbookTitle}</h2>
+            <h2 id="gallery-title" className="fh-sec">{lookbookTitle}</h2>
             <span className="text-xs text-muted-foreground">{toPersianDigits(looks.length)} مدل</span>
           </div>
           <div ref={lookRailRef} onScroll={onLookRailScroll}
@@ -322,7 +322,7 @@ export function QwenCustomerHome() {
               const src = look.image && !failedImages.includes(look.image) ? look.image : null;
               return (
                 <button key={look.key} type="button"
-                  className="relative w-[76vw] max-w-[320px] shrink-0 snap-start overflow-hidden rounded-2xl bg-card text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="relative w-[76vw] max-w-[320px] shrink-0 snap-start overflow-hidden rounded-2xl bg-card shadow-card text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={() => openLook(look)} aria-label={`دیدن ${look.name}`}>
                   <span className="relative block aspect-[3/4] w-full">
                     {src ? (
@@ -337,7 +337,7 @@ export function QwenCustomerHome() {
                     <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-4">
                       <span className="min-w-0">
                         <b className="block truncate text-base font-bold text-white">{look.name}</b>
-                        {look.price > 0 && <span className="mt-1 block text-[11px] text-white/75">{compactToman(look.price)}</span>}
+                        {look.price > 0 && <span className="mt-1 block text-xs text-white/80">{compactToman(look.price)}</span>}
                       </span>
                       <IconArrowUpLeft className="h-4 w-4 shrink-0 -scale-x-100 text-white/70" aria-hidden="true" />
                     </span>
@@ -359,27 +359,30 @@ export function QwenCustomerHome() {
       {/* ── SERVICES: scannable rows with duration + price metadata ── */}
       {activeServices.length > 0 && (
         <section className="mt-12 px-5" aria-labelledby="services-title">
-          <h2 id="services-title" className="text-h2">خدمات</h2>
-          <ul className="mt-3 space-y-2">
+          <h2 id="services-title" className="fh-sec">خدمات</h2>
+          <ul className="mt-4 space-y-2.5">
             {activeServices.map((s) => (
               <li key={s.id}>
                 <button type="button"
-                  className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 text-start active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex w-full items-center gap-3 rounded-2xl bg-card px-4 py-4 text-start active:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={() => openBooking({ serviceId: s.id })}
                   aria-label={`رزرو ${s.name}`}>
                   <span className="min-w-0 flex-1">
-                    <b className="block text-[15px] font-semibold leading-6">{s.name}</b>
-                    {s.description && <small className="mt-0.5 block truncate text-xs text-muted-foreground">{s.description}</small>}
-                    <small className="mt-1 block text-xs text-muted-foreground">
-                      <span>{toPersianDigits(s.duration_minutes)} دقیقه</span>
-                    </small>
+                    <b className="block text-base font-semibold leading-7">{s.name}</b>
+                    {(s.description || s.duration_minutes > 0) && (
+                      <small className="mt-0.5 flex items-center gap-1.5 text-xs leading-5 text-muted-foreground">
+                        {s.description && <span className="truncate">{s.description}</span>}
+                        {s.description && s.duration_minutes > 0 && <span aria-hidden="true" className="shrink-0">·</span>}
+                        {s.duration_minutes > 0 && <span className="shrink-0">{toPersianDigits(s.duration_minutes)} دقیقه</span>}
+                      </small>
+                    )}
                   </span>
                   <span className="flex shrink-0 flex-col items-end gap-1.5">
                     <span className="text-sm font-bold tabular-nums">{compactToman(s.price)}</span>
                     <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-soft">
                       <IconArrowUpLeft className="h-3.5 w-3.5 -scale-x-100 text-accent-foreground-soft" aria-hidden="true" />
                     </span>
-    </span>
+                  </span>
                 </button>
               </li>
             ))}
@@ -389,16 +392,19 @@ export function QwenCustomerHome() {
 
       {/* ── HOW BOOKING WORKS: quiet 3-step reassurance ── */}
       <section className="mt-12 px-5" aria-labelledby="how-title">
-        <h2 id="how-title" className="text-h2">رزرو در سه قدم</h2>
-        <ol className="mt-4 grid grid-cols-3 gap-2">
+        <h2 id="how-title" className="fh-sec">رزرو در سه قدم</h2>
+        <ol className="mt-4 divide-y divide-border/70">
           {[
-            ["۱", "انتخاب خدمت"],
-            ["۲", "انتخاب زمان"],
-            ["۳", "ثبت نهایی"],
-          ].map(([n, label]) => (
-            <li key={n} className="rounded-2xl border border-border bg-card px-2 py-4 text-center">
-              <b className="text-lg text-accent-foreground-soft" aria-hidden="true">{n}</b>
-              <span className="mt-1 block text-[11px] font-medium text-foreground">{label}</span>
+            ["۱", "انتخاب خدمت", "از خدمات یا نمونه‌کارهای استودیو"],
+            ["۲", "انتخاب زمان", "تقویم شمسی با زمان‌های آزاد واقعی"],
+            ["۳", "ثبت نهایی", "تأیید نوبت بدون تماس تلفنی"],
+          ].map(([n, title, desc]) => (
+            <li key={n} className="flex items-center gap-4 py-3.5">
+              <span className="w-6 shrink-0 text-center text-base font-bold text-accent-foreground-soft" aria-hidden="true">{n}</span>
+              <span className="min-w-0 flex-1">
+                <b className="block text-sm font-semibold leading-6">{title}</b>
+                <small className="block text-xs leading-5 text-muted-foreground">{desc}</small>
+              </span>
             </li>
           ))}
         </ol>
@@ -406,8 +412,8 @@ export function QwenCustomerHome() {
 
       {/* ── UPCOMING BOOKINGS (only when they exist) ── */}
       {activeBookings.length > 0 && (
-        <section className="mt-10 px-5" aria-labelledby="active-bookings-title">
-          <h2 id="active-bookings-title" className="text-h2">نوبت‌های پیش‌رو</h2>
+        <section className="mt-12 px-5" aria-labelledby="active-bookings-title">
+          <h2 id="active-bookings-title" className="fh-sec">نوبت‌های پیش‌رو</h2>
           <div className="mt-3 space-y-2">
             {activeBookings.map((b) => (
               <button key={b.id} type="button"
@@ -438,21 +444,21 @@ export function QwenCustomerHome() {
             <span className="truncate">{salon.address}</span>
           </a>
         )}
-        <nav className="mt-3 flex items-center justify-center gap-2" aria-label="تماس با سالن">
+        <nav className="mt-3.5 flex items-center justify-center gap-2.5" aria-label="تماس با سالن">
           {salon.phone && (
-            <a className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground hover:bg-muted" href={`tel:${salon.phone}`} aria-label="تماس تلفنی">
-              <Phone aria-hidden="true" className="h-4 w-4" />
+            <a className="flex h-11 w-11 items-center justify-center rounded-full bg-card text-foreground hover:bg-muted" href={`tel:${salon.phone}`} aria-label="تماس تلفنی">
+              <Phone aria-hidden="true" className="h-[18px] w-[18px]" />
             </a>
           )}
           {phoneValid && (
-            <a className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground hover:bg-muted" href={`sms:${salon.phone}`} aria-label="ارسال پیامک">
-              <MessageCircle aria-hidden="true" className="h-4 w-4" />
+            <a className="flex h-11 w-11 items-center justify-center rounded-full bg-card text-foreground hover:bg-muted" href={`sms:${salon.phone}`} aria-label="ارسال پیامک">
+              <MessageCircle aria-hidden="true" className="h-[18px] w-[18px]" />
             </a>
           )}
           {igHandle && (
-            <a className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground hover:bg-muted" href={`https://instagram.com/${igHandle.replace(/^@/, "")}`}
+            <a className="flex h-11 w-11 items-center justify-center rounded-full bg-card text-foreground hover:bg-muted" href={`https://instagram.com/${igHandle.replace(/^@/, "")}`}
               target="_blank" rel="noopener noreferrer" aria-label="اینستاگرام">
-              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
                 <circle cx="12" cy="12" r="4.2" />
                 <circle cx="17.5" cy="6.7" r="1" fill="currentColor" stroke="none" />
@@ -460,7 +466,7 @@ export function QwenCustomerHome() {
             </a>
           )}
         </nav>
-        <p className="mt-4 text-center text-[11px] leading-5 text-muted-foreground/80">{formatHours(salon.working_hours_text, workingHours)}</p>
+        <p className="mt-4 text-center text-[11px] leading-5 text-muted-foreground">{formatHours(salon.working_hours_text, workingHours)}</p>
       </section>
 
       {/* ── LOOK SHEET ── */}

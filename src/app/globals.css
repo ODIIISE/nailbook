@@ -127,26 +127,26 @@
   color-scheme: dark;
   --background: #171310;
   --foreground: #f5f0e9;
-  --card: #1f1a15;
+  --card: #241d17;
   --card-foreground: #f5f0e9;
   --popover: #1f1a15;
   --popover-foreground: #f5f0e9;
   --primary: #f5f0e9;
   --primary-foreground: #241d17;
-  --secondary: #2a231c;
+  --secondary: #2b241d;
   --secondary-foreground: #f5f0e9;
-  --muted: #2a231c;
-  --muted-foreground: #b3a598;
-  --accent: #2a231c;
+  --muted: #2b241d;
+  --muted-foreground: #beb1a3;
+  --accent: #2b241d;
   --accent-foreground: #f5f0e9;
-  --accent-soft: #33261e;
-  --accent-foreground-soft: #d9a68c;
+  --accent-soft: #382a21;
+  --accent-foreground-soft: #dfa98b;
   --destructive: #ef4444;
   --success: #22c55e;
   --warning: #f59e0b;
   --accent-now: #3b82f6;
-  --border: #332b23;
-  --input: #332b23;
+  --border: #3a3128;
+  --input: #3a3128;
   --ring: #7d7166;
 
   /* ── Booking surface tokens (semantic aliases) ── */
@@ -163,6 +163,28 @@
 }
 
 /* ── Paper theme (legacy tokens preserved for back-compat; not used in new UI) ── */
+
+/* ── Homepage editorial type scale (scoped: .fh-display/.fh-hero/.fh-sec only) ──
+   Persian display sizes for the customer homepage. Existing .text-* utilities
+   stay stock for the rest of the app. */
+
+.fh-hero {
+  font-size: 30px;
+  line-height: 1.5;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.fh-sec {
+  font-size: 21px;
+  line-height: 1.45;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+@media (min-width: 480px) {
+  .fh-hero { font-size: 34px; }
+}
 
 /* ── Base ── */
 
