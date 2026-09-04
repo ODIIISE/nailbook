@@ -228,17 +228,25 @@ export function QwenCustomerHome() {
       .map(({ b }) => b);
   }, [bookings, nowMs]);
 
-  const heroImage = salon.hero_image_url || "/hero-default.jpg";
+  const heroCandidate = salon.hero_image_url || "/hero-default.jpg";
+  const heroImage = failedImages.includes(heroCandidate) ? null : heroCandidate;
+  const logoUrl = salon.logo_url && !failedImages.includes(salon.logo_url) ? salon.logo_url : null;
   const lookbookTitle = salon.lookbook_title || "نمونه‌کارها";
 
   return (
     <main className="dark relative mx-auto min-h-dvh w-full max-w-[var(--frame-max-w)] bg-background pb-24 text-foreground">
       {/* ── HERO: full-bleed editorial image with identity, status and CTA ── */}
       <section className="relative" aria-label="استودیو فورهند">
-        <div className="relative h-[460px] w-full overflow-hidden sm:h-[540px]">
-          <Image src={heroImage} alt={salon.name || "استودیو ناخن فورهند"} fill priority
-            sizes="(min-width: 480px) 480px, 100vw" className="object-cover"
-            onError={() => markImageFailed(heroImage)} />
+        <div className="relative h-[460px] w-full overflow-hidden bg-[#2b2016] sm:h-[540px]">
+          {heroImage ? (
+            <Image src={heroImage} alt={salon.name || "استودیو ناخن فورهند"} fill priority
+              sizes="(min-width: 480px) 480px, 100vw" className="object-cover"
+              onError={() => markImageFailed(heroImage)} />
+          ) : (
+            <h1 className="fh-hero absolute inset-x-0 top-1/2 -translate-y-1/2 px-5 text-center text-white">
+              {salon.name || "استودیو ناخن"}
+            </h1>
+          )}
           {/* Legibility scrims — linear (gradients are reserved for scrims only,
               never decoration): deep floor for text, light top veil so the OS
               status bar reads on any photo. */}
@@ -249,10 +257,10 @@ export function QwenCustomerHome() {
           {/* Floating identity row */}
           <div className="absolute inset-x-0 top-0 flex items-start justify-between px-5 pt-[calc(14px+env(safe-area-inset-top))]">
             <div className="flex items-center gap-2.5">
-              {salon.logo_url && (
+              {logoUrl && (
                 <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full ring-1 ring-white/30">
-                  <Image src={salon.logo_url} alt="" width={36} height={36} unoptimized className="h-full w-full object-contain"
-                    onError={() => markImageFailed(salon.logo_url!)} />
+                  <Image src={logoUrl} alt="" width={36} height={36} unoptimized className="h-full w-full object-contain"
+                    onError={() => markImageFailed(logoUrl)} />
                 </span>
               )}
               <span className="flex flex-col">
@@ -261,7 +269,7 @@ export function QwenCustomerHome() {
               </span>
             </div>
             <button type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/85 text-foreground backdrop-blur-sm"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/85 text-foreground"
               onClick={() => setDrawerOpen(true)} aria-label="منو" aria-expanded={drawerOpen}>
               <Menu aria-hidden="true" className="h-5 w-5" />
             </button>
@@ -269,7 +277,7 @@ export function QwenCustomerHome() {
 
           {/* Bottom editorial copy */}
           <div className="absolute inset-x-0 bottom-0 px-5 pb-7">
-            <p className="font-serif text-[12px] font-medium tracking-[0.24em] text-white/75">
+            <p className="font-serif text-[12px] font-normal tracking-[0.24em] text-white/75">
               {salon.homepage_kicker || "NAIL · CARE · RITUAL"}
             </p>
             <h1 className="fh-hero mt-2.5 text-white" style={{ textShadow: "0 1px 14px rgba(0,0,0,0.4)" }}>
@@ -285,16 +293,16 @@ export function QwenCustomerHome() {
                 <span>{!loaded ? "در حال آماده‌سازی…" : activeServices.length ? (salon.homepage_cta_label || "شروع رزرو") : "رزرو موقتاً بسته است"}</span>
               </button>
               <button type="button"
-                className="flex h-13 shrink-0 items-center justify-center gap-1 text-sm font-semibold text-white active:opacity-80"
+                className="flex h-13 shrink-0 items-center justify-center gap-1.5 text-sm font-semibold text-white active:opacity-80"
                 onClick={() => document.getElementById("gallery-title")?.scrollIntoView({ block: "start" })}
                 aria-label="مشاهده نمونه‌کارها">
-                <span className="border-b border-white/30 pb-0.5">نمونه‌کارها</span>
+                <span>نمونه‌کارها</span>
                 <IconArrowUpLeft aria-hidden="true" className="h-4 w-4" />
               </button>
             </div>
             <div className="mt-3.5 flex items-center gap-2 text-xs text-white/80">
               <span className="inline-flex items-center gap-1.5" aria-live="polite">
-                <span className={`h-1.5 w-1.5 rounded-full ${live.isOpen ? "bg-success" : "bg-white/50"}`} aria-hidden="true" />
+                <span className={`h-1.5 w-1.5 rounded-full ${live.isOpen ? "bg-success" : "bg-accent-foreground-soft"}`} aria-hidden="true" />
                 {live.label}
               </span>
               {salon.address && (
@@ -313,7 +321,7 @@ export function QwenCustomerHome() {
         <section className="mt-14" aria-labelledby="gallery-title">
           <div className="flex items-baseline justify-between px-5">
             <h2 id="gallery-title" className="fh-sec">{lookbookTitle}</h2>
-            <span dir="ltr" className="font-serif text-[13px] leading-5 text-muted-foreground tabular-nums">
+            <span dir="ltr" className="text-[13px] leading-5 text-muted-foreground tabular-nums">
               {`${toPersianDigits(lookIndex + 1)} / ${toPersianDigits(looks.length)}`}
             </span>
           </div>
@@ -425,7 +433,7 @@ export function QwenCustomerHome() {
         <div className="border-t border-border/70 pt-10 text-center">
           <p className="fh-end text-foreground">وقتشه خودتو مهمون کنی.</p>
           <button type="button"
-            className="mx-auto mt-5 flex h-12 items-center justify-center rounded-full bg-primary px-10 text-[15px] font-bold text-primary-foreground shadow-elevated active:bg-primary/90 disabled:opacity-60"
+            className="mx-auto mt-5 flex h-13 items-center justify-center rounded-full bg-primary px-10 text-[15px] font-bold text-primary-foreground shadow-elevated active:bg-primary/90 disabled:opacity-60"
             onClick={() => openBooking()}
             disabled={!loaded || activeServices.length === 0}>
             <span>{activeServices.length ? (salon.homepage_cta_label || "شروع رزرو") : "رزرو موقتاً بسته است"}</span>
@@ -475,7 +483,7 @@ export function QwenCustomerHome() {
             : gallery[0] ?? null;
           return (
             <div className="flex flex-col gap-4">
-              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-muted">
+              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[20px] bg-muted">
                 {src ? (
                   <Image key={`${activeLook.key}-${src}`} src={src} alt={activeLook.name} fill unoptimized
                     sizes="430px" className="object-cover"
@@ -535,18 +543,18 @@ export function QwenCustomerHome() {
         <nav className="flex flex-col" aria-label="منوی سالن">
           {user ? (
             <>
-              <button type="button" className="flex w-full items-center gap-3 border-b border-border px-1 py-3.5 text-start text-sm font-medium hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/bookings"); }}>
+              <button type="button" className="flex w-full items-center px-1 py-4 text-start text-[15px] font-medium hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/bookings"); }}>
                 <span>نوبت‌های من</span>
               </button>
-              <button type="button" className="flex w-full items-center gap-3 border-b border-border px-1 py-3.5 text-start text-sm font-medium hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/profile"); }}>
+              <button type="button" className="flex w-full items-center px-1 py-4 text-start text-[15px] font-medium hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/profile"); }}>
                 <span>پروفایل من</span>
               </button>
-              <button type="button" className="flex w-full items-center gap-3 px-1 py-3.5 text-start text-sm font-medium text-destructive hover:bg-destructive/10" onClick={() => setConfirmLogout(true)}>
+              <button type="button" className="flex w-full items-center px-1 py-4 text-start text-[15px] font-medium text-destructive hover:bg-destructive/10" onClick={() => setConfirmLogout(true)}>
                 <span>خروج از حساب</span>
               </button>
             </>
           ) : (
-            <button type="button" className="flex w-full items-center gap-3 px-1 py-3.5 text-start text-sm font-medium hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/login"); }}>
+            <button type="button" className="flex w-full items-center px-1 py-4 text-start text-[15px] font-medium hover:bg-muted" onClick={() => { setDrawerOpen(false); router.push("/login"); }}>
               <span>ورود به حساب</span>
             </button>
           )}
