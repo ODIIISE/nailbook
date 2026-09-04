@@ -61,6 +61,14 @@ export default function RootLayout({
             variable face; Instrument Serif is the Latin editorial accent. */}
         <link rel="preload" href="https://cdn.jsdelivr.net/gh/aminabedi68/Estedad@v7.3/fonts/webfonts/variable/Estedad-FD%5BKSHD%2Cwght%5D.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="https://cdn.jsdelivr.net/npm/@fontsource/instrument-serif@5.3.0/files/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        {/* Lux homepage faces (Great Vibes script, Playfair Display, Poppins). */}
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link href="https://cdn.jsdelivr.net/fontsource/css/great-vibes@latest/index.css" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/fontsource/css/playfair-display@latest/500.css" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/fontsource/css/playfair-display@latest/600.css" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/fontsource/css/poppins@latest/300.css" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/fontsource/css/poppins@latest/400.css" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/fontsource/css/poppins@latest/500.css" rel="stylesheet" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

@@ -3,9 +3,18 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 // Files allowed to reference these patterns: this test itself (it defines the
-// patterns), and haptics (vibration feedback is not visual motion).
-const ALLOWED = (file: string) =>
-  file.includes("no-motion.test") || file.replaceAll("\\", "/").endsWith("src/lib/haptics.ts");
+// patterns), haptics (vibration feedback is not visual motion), and the Lux
+// homepage (motion is an explicit, user-approved part of that approved mock;
+// the rest of the app remains motion-free).
+const ALLOWED = (file: string) => {
+  const f = file.replaceAll("\\", "/");
+  return (
+    f.includes("no-motion.test") ||
+    f.endsWith("src/lib/haptics.ts") ||
+    f.endsWith("src/components/landing/lux-home.module.css") ||
+    f.endsWith("src/components/landing/lux-home.tsx")
+  );
+};
 
 const MOTION = ["framer-motion", "tw-animate-css"].map((s) => new RegExp(s));
 const CSS_PROP = /\b(transition|animation|will-change)\s*:/;

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import { QwenCustomerHome } from "@/components/landing/customer-home";
+import { LuxHome } from "@/components/landing/lux-home";
 import { SalonGuard } from "@/components/ui/salon-guard";
 
 import { toast } from "sonner";
@@ -26,11 +26,7 @@ export function SalonBooking() {
 
   return (
     <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
-    <div className="relative min-h-screen">
-      <div className="relative z-10">
-        <QwenCustomerHome />
-      </div>
-    </div>
+      <LuxHome />
     </SalonGuard>
   );
 }
