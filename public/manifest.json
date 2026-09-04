@@ -4,8 +4,8 @@
   "description": "رزرو آنلاین نوبت ناخن",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#faf8f5",
-  "theme_color": "#ffffff",
+  "background_color": "#faf7f2",
+  "theme_color": "#faf7f2",
   "orientation": "portrait",
   "icons": [
     {

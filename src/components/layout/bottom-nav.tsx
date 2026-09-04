@@ -20,15 +20,15 @@ const ITEMS: NavItem[] = [
 ];
 
 /**
- * Customer bottom tab bar — minimal, hairline-top, instant active states.
- * Active = filled-dark icon + bold label (never color alone: weight differs).
+ * Customer bottom tab bar — warm, calm, consumer-grade.
+ * Active = filled icon + bold label (never color alone: weight differs too).
  */
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t bg-background"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/95 backdrop-blur-sm"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       aria-label="ناوبری اصلی"
     >
@@ -41,14 +41,11 @@ export function BottomNav() {
               href={href}
               onClick={() => haptic.tap()}
               aria-current={active ? "page" : undefined}
-              className="relative flex h-16 flex-1 flex-col items-center justify-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="relative flex h-16 flex-1 flex-col items-center justify-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
             >
-              <span
-                aria-hidden="true"
-                className={`absolute top-0 h-[2px] w-8 rounded-full bg-foreground ${active ? "" : "hidden"}`}
-              />
               <Icon
                 className={`h-[22px] w-[22px] ${active ? "text-foreground" : "text-muted-foreground"}`}
+                strokeWidth={active ? 2.4 : 2}
               />
               <span className={`text-[11px] leading-none ${active ? "font-bold text-foreground" : "font-medium text-muted-foreground"}`}>
                 {label}

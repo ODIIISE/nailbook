@@ -1,13 +1,13 @@
 # Forehand Nailbook — Design System
 
-> Barebone stock shadcn. One zinc palette, two themes, zero motion, Persian-first.
+> Warm atelier. One cream/ink palette, two themes, zero motion, Persian-first.
 > This document is the implementation source of truth. Spec: `docs/superpowers/specs/2026-09-03-frontend-rebuild-design.md`.
 
 ---
 
 ## 1. Principles
 
-1. **Stock shadcn, no theming.** Default structure, default behavior, zinc palette. Premium comes from consistency, spacing discipline, and typography — not effects.
+1. **Stock shadcn structure, warm brand skin.** Default shadcn behavior and component structure; the palette is a warm cream/ink atelier (§3). Premium comes from consistency, spacing discipline, imagery, and typography — not effects.
 2. **Zero motion.** No CSS `transition`/`animation`, no `animate-*` classes, no framer-motion, no View Transitions, no drag/swipe physics. State changes are instant. Enforced by `src/lib/no-motion.test.ts`.
 3. **Persian-first.** RTL via logical properties (`ps/pe/ms/me/start/end`) — never physical (`pl/pr/ml/mr`). Persian digits via `toPersianDigits`. Jalali dates. `dir="ltr"` islands for phone numbers, times, tracking codes.
 4. **One palette, no per-salon theming.** Multi-tenant, but the product has one visual identity.
@@ -27,13 +27,13 @@ Do not add raw hex values to components. Use semantic tokens; categorical colors
 
 ## 3. Tokens
 
-### Semantic (zinc — light)
+### Semantic (warm atelier — light)
 
-`--background: #ffffff` · `--foreground: #09090b` · `--card/popover: #ffffff` · `--primary: #18181b` · `--primary-foreground: #fafafa` · `--secondary/muted/accent: #f4f4f5` · `--muted-foreground: #52525b` · `--destructive: #dc2626` · `--success: #16a34a` · `--warning: #b45309` · `--border/input: #e4e4e7` · `--ring: #a1a1aa` · `--radius: 10px`
+`--background: #faf7f2` · `--foreground: #2a231e` · `--card/popover: #ffffff` · `--primary: #2a231e` · `--primary-foreground: #faf7f2` · `--secondary/muted: #f1ece4` · `--muted-foreground: #7d7166` · `--accent: #f6ede4` · `--accent-foreground: #4a3f36` · `--accent-soft: #f3e4da` · `--accent-foreground-soft: #8a6552` · `--destructive: #dc2626` · `--success: #16a34a` · `--warning: #b45309` · `--border/input: #eae3d9` · `--ring: #b0a396` · `--radius: 12px`
 
-### Semantic (zinc — dark, `.dark`)
+### Semantic (warm espresso — dark, `.dark`)
 
-`--background: #09090b` · `--foreground: #fafafa` · `--card/popover: #101012` · `--primary: #fafafa` · `--primary-foreground: #18181b` · `--secondary/muted/accent: #1c1c1f` · `--muted-foreground: #a1a1aa` · `--destructive: #ef4444` · `--success: #22c55e` · `--warning: #f59e0b` · `--border/input: #26262a` · `--ring: #52525b`
+`--background: #171310` · `--foreground: #f5f0e9` · `--card/popover: #1f1a15` · `--primary: #f5f0e9` · `--primary-foreground: #241d17` · `--secondary/muted/accent: #2a231c` · `--muted-foreground: #b3a598` · `--accent-soft: #33261e` · `--accent-foreground-soft: #d9a68c` · `--destructive: #ef4444` · `--success: #22c55e` · `--warning: #f59e0b` · `--border/input: #332b23` · `--ring: #7d7166`
 
 Derived radii: `sm = radius-4px`, `md = radius-2px`, `lg = radius`, `xl = radius+4px`.
 Elevation: `--shadow-xs/card/elevated/floating` (subtle, layered; dark mode uses inset highlight).

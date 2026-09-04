@@ -44,6 +44,8 @@
   --color-success: var(--success);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-foreground-soft: var(--accent-foreground-soft);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -81,29 +83,31 @@
   color-scheme: light;
   /* Phone-frame width: fill narrow phones fully, cap on wide phones/desktop. */
   --frame-max-w: min(100vw, 480px);
-  /* ── Stock shadcn zinc — Light ── */
-  --background: #ffffff;
-  --foreground: #09090b;
+  /* ── Warm atelier — Light ── */
+  --background: #faf7f2;
+  --foreground: #2a231e;
   --card: #ffffff;
-  --card-foreground: #09090b;
+  --card-foreground: #2a231e;
   --popover: #ffffff;
-  --popover-foreground: #09090b;
-  --primary: #18181b;
-  --primary-foreground: #fafafa;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-  --muted: #f4f4f5;
-  --muted-foreground: #52525b;
-  --accent: #f4f4f5;
-  --accent-foreground: #18181b;
+  --popover-foreground: #2a231e;
+  --primary: #2a231e;
+  --primary-foreground: #faf7f2;
+  --secondary: #f1ece4;
+  --secondary-foreground: #2a231e;
+  --muted: #f1ece4;
+  --muted-foreground: #7d7166;
+  --accent: #f6ede4;
+  --accent-foreground: #4a3f36;
+  --accent-soft: #f3e4da;
+  --accent-foreground-soft: #8a6552;
   --destructive: #dc2626;
   --success: #16a34a;
   --warning: #b45309;
   --accent-now: #2563eb;
-  --border: #e4e4e7;
-  --input: #e4e4e7;
-  --ring: #a1a1aa;
-  --radius: 10px;
+  --border: #eae3d9;
+  --input: #eae3d9;
+  --ring: #b0a396;
+  --radius: 12px;
 
   /* ── Booking surface tokens (semantic aliases) ── */
   --booking-cta-bg: var(--card);
@@ -112,36 +116,38 @@
   --booking-sheet-scrim: rgba(0, 0, 0, 0.42);
 
   /* ── Elevation ── */
-  --shadow-xs: 0 1px 2px rgba(9, 9, 11, 0.04);
-  --shadow-card: 0 1px 2px rgba(9, 9, 11, 0.04), 0 2px 8px rgba(9, 9, 11, 0.04);
-  --shadow-elevated: 0 2px 4px rgba(9, 9, 11, 0.06), 0 8px 24px rgba(9, 9, 11, 0.08);
-  --shadow-floating: 0 4px 8px rgba(9, 9, 11, 0.08), 0 16px 40px rgba(9, 9, 11, 0.14);
+  --shadow-xs: 0 1px 2px rgba(42, 35, 30, 0.04);
+  --shadow-card: 0 1px 2px rgba(42, 35, 30, 0.04), 0 2px 8px rgba(42, 35, 30, 0.04);
+  --shadow-elevated: 0 2px 4px rgba(42, 35, 30, 0.06), 0 8px 24px rgba(42, 35, 30, 0.08);
+  --shadow-floating: 0 4px 8px rgba(42, 35, 30, 0.08), 0 16px 40px rgba(42, 35, 30, 0.14);
 }
 
-/* ── Stock shadcn zinc — Dark ── */
+/* ── Warm espresso — Dark ── */
 .dark {
   color-scheme: dark;
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #101012;
-  --card-foreground: #fafafa;
-  --popover: #101012;
-  --popover-foreground: #fafafa;
-  --primary: #fafafa;
-  --primary-foreground: #18181b;
-  --secondary: #1c1c1f;
-  --secondary-foreground: #fafafa;
-  --muted: #1c1c1f;
-  --muted-foreground: #a1a1aa;
-  --accent: #1c1c1f;
-  --accent-foreground: #fafafa;
+  --background: #171310;
+  --foreground: #f5f0e9;
+  --card: #1f1a15;
+  --card-foreground: #f5f0e9;
+  --popover: #1f1a15;
+  --popover-foreground: #f5f0e9;
+  --primary: #f5f0e9;
+  --primary-foreground: #241d17;
+  --secondary: #2a231c;
+  --secondary-foreground: #f5f0e9;
+  --muted: #2a231c;
+  --muted-foreground: #b3a598;
+  --accent: #2a231c;
+  --accent-foreground: #f5f0e9;
+  --accent-soft: #33261e;
+  --accent-foreground-soft: #d9a68c;
   --destructive: #ef4444;
   --success: #22c55e;
   --warning: #f59e0b;
   --accent-now: #3b82f6;
-  --border: #26262a;
-  --input: #26262a;
-  --ring: #52525b;
+  --border: #332b23;
+  --input: #332b23;
+  --ring: #7d7166;
 
   /* ── Booking surface tokens (semantic aliases) ── */
   --booking-cta-bg: var(--card);
