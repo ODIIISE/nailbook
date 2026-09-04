@@ -20,6 +20,20 @@
   font-weight: 400;
   font-display: swap;
 }
+/* Markazi Text — Persian display serif for editorial headlines (arabic subset
+   covers Persian letters + digits). Used only via the .fh-* display classes. */
+@font-face {
+  font-family: 'Markazi Text';
+  src: url('https://cdn.jsdelivr.net/npm/@fontsource/markazi-text@5.3.0/files/markazi-text-arabic-500-normal.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Markazi Text';
+  src: url('https://cdn.jsdelivr.net/npm/@fontsource/markazi-text@5.3.0/files/markazi-text-arabic-700-normal.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
 
 @font-face {
   font-family: 'Vazirmatn';
@@ -53,6 +67,7 @@
   --color-foreground: var(--foreground);
   --font-sans: 'Estedad', 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --font-display: 'Markazi Text', 'Estedad', 'Vazirmatn', Georgia, serif;
   --font-mono: 'SF Mono', SFMono-Regular, Consolas, monospace;
   --color-ring: var(--ring);
   --color-input: var(--input);
@@ -126,6 +141,12 @@
   --ring: #b0a396;
   --radius: 12px;
 
+  /* ── Homepage editorial tokens (champagne CTA on espresso) ── */
+  --fh-cta-bg: #e9d7bd;
+  --fh-cta-bg-hover: #f2e4cf;
+  --fh-cta-bg-active: #ddc8a9;
+  --fh-cta-fg: #261a0e;
+
   /* ── Booking surface tokens (semantic aliases) ── */
   --booking-cta-bg: var(--card);
   --booking-cta-border: var(--border);
@@ -182,26 +203,31 @@
 /* ── Paper theme (legacy tokens preserved for back-compat; not used in new UI) ── */
 
 /* ── Homepage editorial type scale (scoped: .fh-* classes) ──
-   Persian display sizes for the customer homepage. Persian line-heights are
-   tuned manually; letter-spacing stays 0 on Arabic script (joining breaks). */
+   Persian display sizes for the customer homepage. Markazi Text (Persian
+   display serif) carries headlines; Estedad handles UI/body. Markazi is a
+   short-x-height face — sizes run larger and line-heights tighter than a
+   geometric sans. Letter-spacing stays 0 on Arabic script (joining breaks). */
 
 .fh-hero {
-  font-size: 34px;
-  line-height: 1.35;
-  font-weight: 800;
+  font-family: 'Markazi Text', 'Estedad', 'Vazirmatn', Georgia, serif;
+  font-size: 46px;
+  line-height: 1.18;
+  font-weight: 700;
   letter-spacing: 0;
 }
 
 .fh-sec {
-  font-size: 21px;
-  line-height: 1.4;
+  font-family: 'Markazi Text', 'Estedad', 'Vazirmatn', Georgia, serif;
+  font-size: 30px;
+  line-height: 1.25;
   font-weight: 700;
   letter-spacing: 0;
 }
 
 .fh-end {
-  font-size: 22px;
-  line-height: 1.5;
+  font-family: 'Markazi Text', 'Estedad', 'Vazirmatn', Georgia, serif;
+  font-size: 34px;
+  line-height: 1.3;
   font-weight: 700;
   letter-spacing: 0;
 }
@@ -213,8 +239,18 @@
   font-weight: 400;
 }
 
+/* Small Latin kicker with generous tracking (Latin only — never Persian). */
+.fh-kicker {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+}
+
 @media (min-width: 480px) {
-  .fh-hero { font-size: 38px; }
+  .fh-hero { font-size: 54px; }
+  .fh-sec { font-size: 34px; }
+  .fh-end { font-size: 40px; }
 }
 
 /* ── Base ── */
