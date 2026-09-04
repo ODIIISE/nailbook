@@ -293,7 +293,7 @@ export function QwenCustomerHome() {
       </section>
 
       {/* ── ACTIVE BOOKINGS ── */}
-      <section className="mt-8" aria-labelledby="active-bookings-title">
+      <section className="mt-12" aria-labelledby="active-bookings-title">
         <div className="flex items-center gap-2">
           <IconReceipt className="h-5 w-5 text-foreground" />
           <h2 id="active-bookings-title" className="text-[15px] font-bold">نوبت‌های فعال</h2>
@@ -327,7 +327,7 @@ export function QwenCustomerHome() {
 
       {/* ── GALLERY ── */}
       {looks.length > 0 && (
-        <section className="mt-8" aria-labelledby="gallery-title">
+        <section className="mt-12" aria-labelledby="gallery-title">
           <div className="flex items-center gap-2">
             <IconGallery className="h-5 w-5 text-foreground" />
             <h2 id="gallery-title" className="text-[15px] font-bold">گالری</h2>
@@ -361,7 +361,7 @@ export function QwenCustomerHome() {
       )}
 
       {/* ── PRIMARY CTA ── */}
-      <div className="mt-8">
+      <div className="mt-12">
         <button type="button"
           className="flex h-14 w-full items-center justify-center gap-2.5 rounded-xl bg-primary text-base font-bold text-primary-foreground disabled:opacity-60"
           onClick={() => openBooking()}
@@ -372,7 +372,7 @@ export function QwenCustomerHome() {
       </div>
 
       {/* ── INFO STRIP: hours + socials (quiet) ── */}
-      <section className="mt-10 border-t border-border pb-2 pt-5" aria-label="تماس با سالن">
+      <section className="mt-12 border-t border-border pb-2 pt-8" aria-label="تماس با سالن">
         <p className="text-center text-xs leading-6 text-muted-foreground">{formatHours(salon.working_hours_text, workingHours)}</p>
         <nav className="mt-3 flex justify-center gap-2" aria-label="تماس با سالن">
           {salon.phone && (
