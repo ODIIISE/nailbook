@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
     const ALLOWED_FIELDS = new Set([
       "name", "description", "slogan", "phone", "address", "city", "instagram_handle", "portrait_image_url",
       "hero_image_url", "logo_url", "splash_title", "splash_slogan", "splash_logo_url",
+      "home_gallery_urls",
       "homepage_kicker", "homepage_cta_label", "homepage_micro", "lookbook_title", "booking_success_title",
       "working_hours_text",
       "working_hours", "specific_days_off",
@@ -66,7 +67,15 @@ export async function POST(request: NextRequest) {
     }
 
     if (safeUpdates.allow_overflow !== undefined && typeof safeUpdates.allow_overflow !== "boolean") {
-      return NextResponse.json({ error: "مقدار تمدید ساعت نامعتبر است" }, { status: 400 });
+      return NextResponse.json({ error: "????? ????? ???? ??????? ???" }, { status: 400 });
+    }
+    if (
+      safeUpdates.home_gallery_urls !== undefined &&
+      (!Array.isArray(safeUpdates.home_gallery_urls) ||
+        safeUpdates.home_gallery_urls.length > 3 ||
+        safeUpdates.home_gallery_urls.some((u) => u !== null && typeof u !== "string"))
+    ) {
+      return NextResponse.json({ error: "فرمت گالری صفحه اصلی نامعتبر است" }, { status: 400 });
     }
     if (safeUpdates.working_hours !== undefined && !isValidWorkingHours(safeUpdates.working_hours)) {
       return NextResponse.json({ error: "ساعات کاری نامعتبر است" }, { status: 400 });
@@ -125,6 +134,9 @@ export async function POST(request: NextRequest) {
       }
       if (safeUpdates.hero_image_url !== undefined) {
         await client.query(updateSql("hero_image_url"), [safeUpdates.hero_image_url, salonId]);
+      }
+      if (safeUpdates.home_gallery_urls !== undefined) {
+        await client.query(updateSql("home_gallery_urls"), [JSON.stringify(safeUpdates.home_gallery_urls), salonId]);
       }
       if (safeUpdates.logo_url !== undefined) {
         await client.query(updateSql("logo_url"), [safeUpdates.logo_url, salonId]);

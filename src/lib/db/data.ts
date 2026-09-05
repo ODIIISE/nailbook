@@ -172,6 +172,9 @@ function normalizeSalon(value: unknown): SalonInfo | null {
     instagram_handle: typeof value.instagram_handle === "string" ? value.instagram_handle : "",
     portrait_image_url: typeof value.portrait_image_url === "string" ? value.portrait_image_url : null,
     hero_image_url: typeof value.hero_image_url === "string" ? value.hero_image_url : null,
+    home_gallery_urls: Array.isArray(value.home_gallery_urls)
+      ? value.home_gallery_urls.slice(0, 3).map((u) => (typeof u === "string" && u ? u : null))
+      : [],
     logo_url: typeof value.logo_url === "string" ? value.logo_url : null,
     splash_title: typeof value.splash_title === "string" ? value.splash_title : "Forehand Nail",
     splash_slogan: typeof value.splash_slogan === "string" ? value.splash_slogan : "Nail Art Studio",

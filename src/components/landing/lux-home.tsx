@@ -1,34 +1,62 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
+  type TouchEvent as ReactTouchEvent,
 } from "react";
 import { useRouter } from "next/navigation";
+import { useSalon } from "@/lib/salon-context";
 import styles from "./lux-home.module.css";
 
 const d = (v: string) => ({ "--d": v }) as CSSProperties;
 
+/* Demo slides shown until the owner uploads their own homepage gallery
+ * (owner settings → «گالری صفحه اصلی»). Owner URLs always win. */
+const FALLBACK_SLIDES = [
+  "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=800&h=600&q=85",
+  "https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=800&h=600&q=85",
+  "https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=800&h=600&q=85",
+];
+
+const SLIDE_MS = 4500;
+const SWIPE_PX = 48;
+
 export function LuxHome() {
   const router = useRouter();
+  const { salon, highlights } = useSalon();
 
   const [ready, setReady] = useState(false);
+  const [settled, setSettled] = useState(false);
   const [splashGone, setSplashGone] = useState(false);
-  const [imgOn, setImgOn] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [toastShow, setToastShow] = useState(false);
+  const [slide, setSlide] = useState(0);
+  const [autoplayTick, setAutoplayTick] = useState(0);
+  const [lookbookOpen, setLookbookOpen] = useState(false);
+  const [addrOpen, setAddrOpen] = useState(false);
 
   const scrollRef = useRef<HTMLElement | null>(null);
   const parRef = useRef<HTMLDivElement | null>(null);
   const tiltRef = useRef<HTMLDivElement | null>(null);
   const badgeRef = useRef<HTMLDivElement | null>(null);
-  const imgRef = useRef<HTMLImageElement | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const addrTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchRef = useRef<{ x: number; y: number } | null>(null);
 
-  /* Splash → choreography (load + fallback) */
+  /* Owner-managed slideshow images (fall back to demo set until configured) */
+  const slides = useMemo(() => {
+    const own = (salon?.home_gallery_urls ?? []).filter((u): u is string => Boolean(u));
+    return own.length ? own.slice(0, 3) : FALLBACK_SLIDES;
+  }, [salon?.home_gallery_urls]);
+
+  /* Splash → choreography (load + fallback), then settle to hand
+   * transform control back to :active press feedback. */
   useEffect(() => {
     const boot = () => {
       setReady(true);
@@ -37,16 +65,12 @@ export function LuxHome() {
     const fallback = setTimeout(boot, 2800);
     const delay = document.readyState === "complete" ? 500 : 1500;
     const t = setTimeout(boot, delay);
+    const settle = setTimeout(() => setSettled(true), 2100);
     return () => {
       clearTimeout(t);
       clearTimeout(fallback);
+      clearTimeout(settle);
     };
-  }, []);
-
-  /* Image settle-in (covers cached images that never fire onLoad) */
-  useEffect(() => {
-    const img = imgRef.current;
-    if (img?.complete && img.naturalWidth) setImgOn(true);
   }, []);
 
   /* Scroll parallax (media + counter-parallax badge) */
@@ -114,7 +138,7 @@ export function LuxHome() {
     };
   }, []);
 
-  /* Toast feedback */
+  /* Toast feedback (header bag/menu only — real actions below use real links) */
   const toast = (m: string) => {
     setToastMsg(m);
     setToastShow(true);
@@ -122,24 +146,77 @@ export function LuxHome() {
     toastTimer.current = setTimeout(() => setToastShow(false), 2100);
   };
 
+  /* Address panel above the footer — auto-dismisses */
+  const showAddress = useCallback(() => {
+    setAddrOpen(true);
+    if (addrTimer.current) clearTimeout(addrTimer.current);
+    addrTimer.current = setTimeout(() => setAddrOpen(false), 4200);
+  }, []);
+
+  /* Slideshow: autoplay every 4.5s; manual swipe/dot resets the timer */
+  useEffect(() => {
+    if (slides.length < 2) return;
+    const id = setInterval(
+      () => setSlide((s) => (s + 1) % slides.length),
+      SLIDE_MS,
+    );
+    return () => clearInterval(id);
+  }, [slides.length, autoplayTick]);
+
+  const goToSlide = (i: number) => {
+    setSlide(((i % slides.length) + slides.length) % slides.length);
+    setAutoplayTick((t) => t + 1);
+  };
+
+  const onTouchStart = (e: ReactTouchEvent) => {
+    const t = e.touches[0];
+    touchRef.current = { x: t.clientX, y: t.clientY };
+  };
+  const onTouchEnd = (e: ReactTouchEvent) => {
+    const start = touchRef.current;
+    touchRef.current = null;
+    if (!start || slides.length < 2) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    /* Horizontal intent only — never hijack vertical page scrolling. */
+    if (Math.abs(dx) < SWIPE_PX || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    goToSlide(dx < 0 ? slide + 1 : slide - 1);
+  };
+
+  /* Lookbook sheet: Escape closes */
+  useEffect(() => {
+    if (!lookbookOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLookbookOpen(false);
+    };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, [lookbookOpen]);
+
   /* Haptics (delegated; no-op where unsupported, e.g. iOS Safari) */
   const buzz = (e: ReactPointerEvent) => {
     if ((e.target as HTMLElement).closest("button") && "vibrate" in navigator)
       navigator.vibrate(8);
   };
 
+  const lookbookTitle = salon?.lookbook_title || "نمونه‌کارها";
+  const instagramUrl = salon?.instagram_handle
+    ? `https://instagram.com/${salon.instagram_handle.replace(/^@/, "")}`
+    : null;
+
   return (
     <div
       dir="ltr"
       lang="en"
-      className={`${styles.viewport} ${ready ? styles.rootReady : ""}`}
+      className={`${styles.viewport} ${ready ? styles.rootReady : ""} ${settled ? styles.settled : ""}`}
       onPointerDown={buzz}
     >
       <div className={styles.app}>
         <div className={styles.ambient} aria-hidden="true" />
 
-        {/* Header — bag top-left, wordmark center, menu top-right */}
-        <header className={styles.header + " " + styles.rv} style={d(".1s")}>
+        {/* Header — inbox left, wordmark center, menu right */}
+        <header className={`${styles.header} ${styles.rv}`} style={d(".1s")}>
           <button className={styles.iconBtn} aria-label="Bag" onClick={() => toast("🤍 Your bag is empty")}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="m9.2 12.5 2 2 3.8-3.8" /></svg>
           </button>
@@ -154,38 +231,60 @@ export function LuxHome() {
         <main className={styles.scroll} ref={scrollRef}>
           {/* Hero */}
           <section className={styles.hero}>
-            <p className={styles.script + " " + styles.rvBlur} style={d(".2s")}>Welcome to</p>
-            <h1 className={styles.heroTitle + " " + styles.rvBlur} style={d(".32s")}>Forehand Nail Studio</h1>
-            <p dir="rtl" lang="fa" className={styles.lede + " " + styles.rv} style={d(".46s")}>
+            <p className={`${styles.script} ${styles.rvBlur}`} style={d(".2s")}>Welcome to</p>
+            <h1 className={`${styles.heroTitle} ${styles.rvBlur}`} style={d(".32s")}>Forehand Nail Studio</h1>
+            <p dir="rtl" lang="fa" className={`${styles.lede} ${styles.rv}`} style={d(".46s")}>
               تجربه‌ای آرام و دقیق برای ناخن‌هایی که امضای تو هستند
             </p>
 
-            <figure className={styles.media + " " + styles.rvBlur} style={d(".6s")}>
+            <figure className={`${styles.media} ${styles.rvBlur}`} style={d(".6s")}>
               <div className={styles.parallax} ref={parRef}>
                 <div className={styles.tilt} ref={tiltRef}>
-                  <div className={styles.frame}>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- mock fidelity: plain img with breathe/opacity choreography */}
-                    <img
-                      ref={imgRef}
-                      width={600}
-                      height={450}
-                      fetchPriority="high"
-                      src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=800&h=600&q=85"
-                      alt="Beauty portrait — hand with manicure resting near the face"
-                      className={imgOn ? "on" : undefined}
-                      onLoad={() => setImgOn(true)}
-                    />
+                  <div
+                    className={styles.frame}
+                    onTouchStart={onTouchStart}
+                    onTouchEnd={onTouchEnd}
+                  >
+                    {slides.map((src, i) => (
+                      // eslint-disable-next-line @next/next/no-img-element -- fixed-frame crossfade slides (see lux-home.module.css)
+                      <img
+                        key={src}
+                        src={src}
+                        alt={`نمونه کار ناخن ${i + 1}`}
+                        width={800}
+                        height={600}
+                        fetchPriority={i === 0 ? "high" : undefined}
+                        decoding="async"
+                        draggable={false}
+                        className={`${styles.slide} ${i === slide ? styles.slideOn : ""}`}
+                      />
+                    ))}
                   </div>
-                  {/* Rotating badge */}
+                  {/* Slide dots */}
+                  <div className={styles.dots} role="tablist" aria-label="تصاویر صفحه اصلی">
+                    {slides.map((_, i) => (
+                      <button
+                        key={i}
+                        role="tab"
+                        aria-selected={i === slide}
+                        aria-label={`تصویر ${i + 1}`}
+                        className={`${styles.dotBtn} ${i === slide ? styles.dotBtnOn : ""}`}
+                        onClick={() => goToSlide(i)}
+                      >
+                        <span />
+                      </button>
+                    ))}
+                  </div>
+                  {/* Circular editorial label → nail-work gallery */}
                   <div className={styles.badge} ref={badgeRef}>
                     <div className={styles.badgeFloat}>
                       <svg className={styles.ring} viewBox="0 0 100 100" aria-hidden="true">
                         <circle cx="50" cy="50" r="49" fill="#e8e0d5" />
                         <path id="ringPath" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0" fill="none" />
-                        <text><textPath href="#ringPath">SHOP THE COLLECTION • SHOP THE COLLECTION •</textPath></text>
+                        <text><textPath href="#ringPath">EXPLORE NAIL DESIGNS • EXPLORE NAIL DESIGNS •</textPath></text>
                       </svg>
-                      <button className={styles.badgeCore} aria-label="Shop the collection" onClick={() => toast("🛍️ Collection preview soon")}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 6 15 12 9 18" /></svg>
+                      <button className={styles.badgeCore} aria-label="Explore nail designs" onClick={() => setLookbookOpen(true)}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 6 15 12 9 18" /></svg>
                       </button>
                     </div>
                   </div>
@@ -197,31 +296,91 @@ export function LuxHome() {
 
         {/* CTAs — pinned to the bottom of the device */}
         <footer className={styles.cta}>
+          {addrOpen && (
+            <div dir="rtl" className={styles.addrCard} role="status">
+              {salon?.address?.trim() ? salon.address : "آدرس سالن ثبت نشده است"}
+            </div>
+          )}
           <button dir="rtl" className={`${styles.btn} ${styles.btnPrimary} ${styles.rvPop}`} style={d(".85s")} onClick={() => router.push("/book")}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="m9.2 12.5 2 2 3.8-3.8" /></svg>
             <span className={styles.btnFa}>رزرو نوبت</span>
           </button>
-          <button dir="rtl" className={`${styles.btn} ${styles.btnGhost} ${styles.rvPop}`} style={d(".95s")} onClick={() => router.push("/book")}>
+          <button dir="rtl" className={`${styles.btn} ${styles.btnGhost} ${styles.rvPop}`} style={d(".95s")} onClick={() => setLookbookOpen(true)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"><path d="M12 3c.7 3.9 2.4 5.6 6.3 6.3-3.9.7-5.6 2.4-6.3 6.3-.7-3.9-2.4-5.6-6.3-6.3C9.6 8.6 11.3 6.9 12 3z" /></svg>
-            <span className={styles.btnFa}>مشاهده خدمات</span>
+            <span className={styles.btnFa}>مشاهده نمونه کارها</span>
           </button>
           <div className={styles.contacts}>
-            <button className={styles.iconBtn} aria-label="Call the salon" onClick={() => toast("📞 Calling the salon…")}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8.1 10a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.6 2z" /></svg>
-            </button>
-            <button className={styles.iconBtn} aria-label="Instagram" onClick={() => toast("📸 Instagram — coming soon")}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
-            </button>
-            <button className={styles.iconBtn} aria-label="Location" onClick={() => toast("📍 Location — coming soon")}>
+            {salon?.phone?.trim() ? (
+              <a className={styles.iconBtn} href={`tel:${salon.phone.replace(/\s+/g, "")}`} aria-label="Call the salon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8.1 10a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.6 2z" /></svg>
+              </a>
+            ) : (
+              <button className={styles.iconBtn} aria-label="Call the salon" onClick={() => toast("شماره تماس ثبت نشده است")}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8.1 10a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.6 2z" /></svg>
+              </button>
+            )}
+            {instagramUrl ? (
+              <a className={styles.iconBtn} href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+              </a>
+            ) : (
+              <button className={styles.iconBtn} aria-label="Instagram" onClick={() => toast("اینستاگرام ثبت نشده است")}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+              </button>
+            )}
+            <button className={styles.iconBtn} aria-label="Location" onClick={showAddress}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
             </button>
           </div>
+
+          {/* Bag/menu toast — sits centered just above the footer controls */}
+          <div className={`${styles.toast} ${toastShow ? styles.toastShow : ""}`} role="status" aria-live="polite">
+            {toastMsg}
+          </div>
         </footer>
 
+        {/* Lookbook sheet — the nail-work portfolio experience */}
+        {lookbookOpen && (
+          <div className={styles.sheetScrim} onClick={() => setLookbookOpen(false)} role="presentation">
+            <div
+              dir="rtl"
+              role="dialog"
+              aria-modal="true"
+              aria-label={lookbookTitle}
+              className={styles.sheet}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={styles.sheetHead}>
+                <span className={styles.sheetTitle}>{lookbookTitle}</span>
+                <button className={styles.iconBtn} aria-label="بستن" onClick={() => setLookbookOpen(false)}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                </button>
+              </div>
+              <div className={styles.sheetBody}>
+                {highlights.length === 0 ? (
+                  <p className={styles.sheetEmpty}>هنوز نمونه‌کاری ثبت نشده است.</p>
+                ) : (
+                  highlights
+                    .slice()
+                    .sort((a, b) => a.sort_order - b.sort_order)
+                    .map((h) => (
+                      <button key={h.id} className={styles.lookCard} onClick={() => router.push(`/book?look=${h.id}`)}>
+                        <span className={styles.lookThumb}>
+                          {h.cover_url && (
+                            // eslint-disable-next-line @next/next/no-img-element -- cover thumbnails inside the Lux sheet
+                            <img src={h.cover_url} alt={h.name} loading="lazy" />
+                          )}
+                        </span>
+                        <span className={styles.lookName}>{h.name}</span>
+                      </button>
+                    ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className={styles.grain} aria-hidden="true" />
-        <div className={`${styles.toast} ${toastShow ? styles.toastShow : ""}`} role="status" aria-live="polite">
-          {toastMsg}
-        </div>
       </div>
 
       {/* Launch splash */}

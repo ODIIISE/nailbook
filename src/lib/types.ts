@@ -17,6 +17,8 @@ export interface SalonInfo {
   instagram_handle: string;
   portrait_image_url: string | null;
   hero_image_url: string | null;
+  /** Up to 3 customer-homepage slideshow slots; null keeps the position. */
+  home_gallery_urls: Array<string | null>;
   logo_url: string | null;
   splash_title: string;
   splash_slogan: string;

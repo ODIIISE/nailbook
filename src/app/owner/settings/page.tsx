@@ -28,6 +28,13 @@ export default function OwnerSettingsPage() {
       const [splashLogoUrl, setSplashLogoUrl] = useState(salon.splash_logo_url || "");
   const [portraitUrl, setPortraitUrl] = useState(salon.portrait_image_url || "");
   const [heroUrl, setHeroUrl] = useState(salon.hero_image_url || "");
+  // Homepage gallery (3 customer-facing slideshow slots; null keeps the slot)
+  const [galleryUrls, setGalleryUrls] = useState<Array<string | null>>(
+    salon.home_gallery_urls ?? [null, null, null],
+  );
+  const [galleryUploading, setGalleryUploading] = useState<number | null>(null);
+  const [galleryCrop, setGalleryCrop] = useState<{ index: number; src: string } | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const [portraitUploading, setPortraitUploading] = useState(false);
   const [heroUploading, setHeroUploading] = useState(false);
   const [splashUploading, setSplashUploading] = useState(false);
@@ -217,6 +224,53 @@ export default function OwnerSettingsPage() {
     }
   };
 
+  // ─── Homepage gallery (3 slideshow slots) ───
+  const handleGalleryFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const index = Number(galleryInputRef.current?.dataset.index ?? "-1");
+    const file = e.target.files?.[0];
+    if (index < 0 || !file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("حجم فایل بیشتر از ۵ مگابایت است");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setGalleryCrop({ index, src: reader.result as string });
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleGalleryCropComplete = async (blob: Blob) => {
+    const index = galleryCrop?.index ?? -1;
+    setGalleryCrop(null);
+    if (index < 0) return;
+    setGalleryUploading(index);
+    try {
+      const formData = new FormData();
+      formData.append("file", blob, `home-gallery-${index + 1}.jpg`);
+      const res = await fetch("/api/upload-logo", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("upload");
+      const data = await res.json();
+      if (!data.url) throw new Error("upload");
+      const next = [...galleryUrls];
+      next[index] = data.url;
+      await updateSalon({ home_gallery_urls: next });
+      setGalleryUrls(next);
+      toast.success(`تصویر ${index + 1} ذخیره شد`);
+    } catch {
+      toast.error("خطا در آپلود تصویر");
+    } finally {
+      setGalleryUploading(null);
+    }
+  };
+
+  const handleGalleryRemove = async (index: number) => {
+    const next = [...galleryUrls];
+    next[index] = null;
+    await updateSalon({ home_gallery_urls: next });
+    setGalleryUrls(next);
+    toast.success(`تصویر ${index + 1} حذف شد`);
+  };
+
   return (
     <SalonGuard>
     <div className="px-4 py-4 space-y-6">
@@ -359,6 +413,63 @@ export default function OwnerSettingsPage() {
           <div className="text-small text-muted-foreground">افقی، حداکثر ۵ مگابایت. بدون این تصویر، رنگ گرم پیش‌فرض نمایش داده می‌شود.</div>
         </div>
         {heroUrl && <button type="button" onClick={async () => { setHeroUrl(""); await updateSalon({ hero_image_url: null }); toast.success("تصویر حذف شد"); }} className="text-small text-destructive hover:underline">حذف تصویر</button>}
+      </Card>
+
+      {/* Homepage gallery — 3 customer-facing slideshow slots */}
+      <Card className="p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Camera className="h-4 w-4 text-primary" />
+          <h3 className="font-semibold text-foreground">گالری صفحه اصلی</h3>
+        </div>
+        <p className="text-small text-muted-foreground -mt-2">
+          سه تصویر اسلایدشو صفحه اصلی مشتریان. جای خالی خودکار با تصویر نمونه پر می‌شود. مربع یا افقی، حداکثر ۵ مگابایت.
+        </p>
+        <input
+          ref={galleryInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleGalleryFileSelect}
+          className="hidden"
+        />
+        <div className="grid grid-cols-3 gap-3">
+          {[0, 1, 2].map((index) => {
+            const url = galleryUrls[index] || "";
+            const uploading = galleryUploading === index;
+            return (
+              <div key={index} className="space-y-1.5">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-muted">
+                  {url ? (
+                    <Image src={url} alt={`تصویر ${index + 1} گالری`} fill unoptimized className="object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center"><Sparkles className="h-5 w-5 text-muted-foreground" /></div>
+                  )}
+                  <button
+                    type="button"
+                    data-index={index}
+                    onClick={() => {
+                      if (galleryInputRef.current) {
+                        galleryInputRef.current.dataset.index = String(index);
+                        galleryInputRef.current.click();
+                      }
+                    }}
+                    disabled={galleryUploading !== null}
+                    aria-label={`تغییر تصویر ${index + 1}`}
+                    className="absolute bottom-1 left-1 grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-50"
+                  >
+                    <Camera className="h-3.5 w-3.5" />
+                  </button>
+                  {uploading && <div className="absolute inset-0 grid place-items-center bg-background/60 text-caption">در حال آپلود…</div>}
+                </div>
+                <div className="flex items-center justify-between text-caption text-muted-foreground">
+                  <span>تصویر {index + 1}</span>
+                  {url && (
+                    <button type="button" onClick={() => handleGalleryRemove(index)} className="text-destructive hover:underline">حذف</button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </Card>
 
       {/* Customer-facing text — every brand string shown to customers */}
@@ -566,6 +677,15 @@ export default function OwnerSettingsPage() {
           onCropComplete={handleHeroCropComplete}
           onCancel={() => setHeroCropImage(null)}
           aspect={16 / 9}
+        />
+      )}
+      {/* Crop Modal (homepage gallery slot) */}
+      {galleryCrop && (
+        <ImageCrop
+          image={galleryCrop.src}
+          onCropComplete={handleGalleryCropComplete}
+          onCancel={() => setGalleryCrop(null)}
+          aspect={4 / 3}
         />
       )}
       {splashCropImage && (

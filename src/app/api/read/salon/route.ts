@@ -97,6 +97,20 @@ export async function GET() {
     }
     if (!rows[0]) return NextResponse.json(null);
     const s = rows[0];
+    // Homepage gallery (migration 023) — fetched separately so deployments
+    // that have not run the migration yet still load the salon fine.
+    let homeGalleryUrls: Array<string | null> = [];
+    try {
+      const g = salonId
+        ? await sql.query(`SELECT home_gallery_urls FROM salons ${whereClause}`, [salonId])
+        : await sql`SELECT home_gallery_urls FROM salon_info LIMIT 1`;
+      const raw = g.rows[0]?.home_gallery_urls;
+      if (Array.isArray(raw)) {
+        homeGalleryUrls = raw.slice(0, 3).map((u) => (typeof u === "string" && u ? u : null));
+      }
+    } catch {
+      /* column not migrated yet — keep empty */
+    }
     const optimizerSettings = hasHybridFields ? normalizeOptimizerSettings(s) : {
       optimization_mode: "hybrid" as const,
       suggestion_limit: 3,
@@ -113,6 +127,7 @@ export async function GET() {
       instagram_handle: s.instagram_handle || "",
       portrait_image_url: s.portrait_image_url || null,
       hero_image_url: s.hero_image_url,
+      home_gallery_urls: homeGalleryUrls,
       logo_url: s.logo_url,
       splash_title: hasSplashFields ? (s.splash_title || "Forehand Nail") : "Forehand Nail",
       splash_slogan: hasSplashFields ? (s.splash_slogan || "Nail Art Studio") : "Nail Art Studio",
