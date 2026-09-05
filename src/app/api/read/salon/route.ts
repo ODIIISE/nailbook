@@ -132,7 +132,7 @@ export async function GET() {
       splash_title: hasSplashFields ? (s.splash_title || "Forehand Nail") : "Forehand Nail",
       splash_slogan: hasSplashFields ? (s.splash_slogan || "Nail Art Studio") : "Nail Art Studio",
       splash_logo_url: hasSplashFields ? (s.splash_logo_url || null) : null,
-      homepage_kicker: s.homepage_kicker || "NAIL · CARE · RITUAL",
+      homepage_kicker: s.homepage_kicker || "Welcome to",
       homepage_cta_label: s.homepage_cta_label || "شروع رزرو",
       homepage_micro: s.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا",
       lookbook_title: s.lookbook_title || "نمونه‌کارها",

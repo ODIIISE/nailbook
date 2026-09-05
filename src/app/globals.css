@@ -13,37 +13,6 @@
   font-weight: 100 900;
   font-display: swap;
 }
-/* Instrument Serif — Latin editorial accent (kickers, numerals) only. */
-@font-face {
-  font-family: 'Instrument Serif';
-  src: url('https://cdn.jsdelivr.net/npm/@fontsource/instrument-serif@5.3.0/files/instrument-serif-latin-400-normal.woff2') format('woff2');
-  font-weight: 400;
-  font-display: swap;
-}
-/* Markazi Text — Persian display serif for editorial headlines (arabic subset
-   covers Persian letters + digits). Used only via the .fh-* display classes. */
-@font-face {
-  font-family: 'Markazi Text';
-  src: url('https://cdn.jsdelivr.net/npm/@fontsource/markazi-text@5.3.0/files/markazi-text-arabic-500-normal.woff2') format('woff2');
-  font-weight: 500;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Markazi Text';
-  src: url('https://cdn.jsdelivr.net/npm/@fontsource/markazi-text@5.3.0/files/markazi-text-arabic-700-normal.woff2') format('woff2');
-  font-weight: 700;
-  font-display: swap;
-}
-
-/* Gulzar — Persian Nastaliq calligraphic accent for the small editorial
-   script line (used only via .fh-script). */
-@font-face {
-  font-family: 'Gulzar';
-  src: url('https://cdn.jsdelivr.net/npm/@fontsource/gulzar@5.3.0/files/gulzar-arabic-400-normal.woff2') format('woff2');
-  font-weight: 400;
-  font-display: swap;
-}
-
 @font-face {
   font-family: 'Vazirmatn';
   src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2') format('woff2');
@@ -75,8 +44,6 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: 'Estedad', 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
-  --font-display: 'Markazi Text', 'Estedad', 'Vazirmatn', Georgia, serif;
   --font-mono: 'SF Mono', SFMono-Regular, Consolas, monospace;
   --color-ring: var(--ring);
   --color-input: var(--input);
@@ -150,12 +117,6 @@
   --ring: #b0a396;
   --radius: 12px;
 
-  /* ── Homepage editorial tokens (champagne CTA on espresso) ── */
-  --fh-cta-bg: #e9d7bd;
-  --fh-cta-bg-hover: #f2e4cf;
-  --fh-cta-bg-active: #ddc8a9;
-  --fh-cta-fg: #261a0e;
-
   /* ── Booking surface tokens (semantic aliases) ── */
   --booking-cta-bg: var(--card);
   --booking-cta-border: var(--border);
@@ -207,70 +168,6 @@
   --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 2px 8px rgba(0, 0, 0, 0.5);
   --shadow-elevated: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 8px 24px rgba(0, 0, 0, 0.55);
   --shadow-floating: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 16px 40px rgba(0, 0, 0, 0.65);
-}
-
-/* ── Paper theme (legacy tokens preserved for back-compat; not used in new UI) ── */
-
-/* ── Homepage editorial type scale (scoped: .fh-* classes) ──
-   Persian display sizes for the customer homepage. Markazi Text (Persian
-   display serif) carries headlines; Estedad handles UI/body. Markazi is a
-   short-x-height face — sizes run larger and line-heights tighter than a
-   geometric sans. Letter-spacing stays 0 on Arabic script (joining breaks). */
-
-.fh-hero {
-  font-family: 'Markazi Text', 'Estedad', 'Vazirmatn', Georgia, serif;
-  font-size: 46px;
-  line-height: 1.18;
-  font-weight: 500;
-  letter-spacing: 0;
-}
-
-.fh-sec {
-  font-family: 'Markazi Text', 'Estedad', 'Vazirmatn', Georgia, serif;
-  font-size: 30px;
-  line-height: 1.25;
-  font-weight: 500;
-  letter-spacing: 0;
-}
-
-.fh-end {
-  font-family: 'Markazi Text', 'Estedad', 'Vazirmatn', Georgia, serif;
-  font-size: 34px;
-  line-height: 1.3;
-  font-weight: 500;
-  letter-spacing: 0;
-}
-
-/* Small calligraphic script line above the hero headline. Nastaliq descends
-   deeply — keep generous line-height and let the block breathe. */
-.fh-script {
-  font-family: 'Gulzar', 'Markazi Text', 'Estedad', 'Vazirmatn', serif;
-  font-size: 20px;
-  line-height: 2.1;
-  font-weight: 400;
-  letter-spacing: 0;
-}
-
-.fh-num {
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-size: 32px;
-  line-height: 1;
-  font-weight: 400;
-}
-
-/* Small Latin kicker with generous tracking (Latin only — never Persian). */
-.fh-kicker {
-  font-family: 'Instrument Serif', Georgia, serif;
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0.24em;
-}
-
-@media (min-width: 480px) {
-  .fh-hero { font-size: 54px; }
-  .fh-sec { font-size: 34px; }
-  .fh-end { font-size: 40px; }
-  .fh-script { font-size: 24px; }
 }
 
 /* ── Base ── */

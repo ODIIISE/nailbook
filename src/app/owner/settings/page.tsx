@@ -43,7 +43,7 @@ export default function OwnerSettingsPage() {
   const portraitFileInputRef = useRef<HTMLInputElement>(null);
   const heroFileInputRef = useRef<HTMLInputElement>(null);
   // ── Customer-facing text (brand copy shown to customers) ──
-  const [homepageKicker, setHomepageKicker] = useState(salon.homepage_kicker || "NAIL · CARE · RITUAL");
+  const [homepageKicker, setHomepageKicker] = useState(salon.homepage_kicker || "Welcome to");
   const [homepageCtaLabel, setHomepageCtaLabel] = useState(salon.homepage_cta_label || "شروع رزرو");
   const [homepageMicro, setHomepageMicro] = useState(salon.homepage_micro || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا");
   const [lookbookTitle, setLookbookTitle] = useState(salon.lookbook_title || "نمونه‌کارها");
@@ -176,7 +176,7 @@ export default function OwnerSettingsPage() {
         name: name.trim(), slogan, description, phone: phone.trim(), address, city,
         instagram_handle: instagramHandle.replace(/^@/, "").trim(),
         working_hours_text: workingHoursText,
-        homepage_kicker: homepageKicker.trim() || "NAIL · CARE · RITUAL",
+        homepage_kicker: homepageKicker.trim() || "Welcome to",
         homepage_cta_label: homepageCtaLabel.trim() || "شروع رزرو",
         homepage_micro: homepageMicro.trim() || "بدون تماس تلفنی · زمان‌های آزاد همین‌جا",
         lookbook_title: lookbookTitle.trim() || "نمونه‌کارها",
@@ -484,7 +484,7 @@ export default function OwnerSettingsPage() {
 
         <div>
           <Label className="text-caption" htmlFor="settings-field-9">نوشته بالای نام برند (انگلیسی)</Label>
-          <Input id="settings-field-9" value={homepageKicker} onChange={(e) => setHomepageKicker(e.target.value)} className="mt-1" dir="ltr" placeholder="NAIL · CARE · RITUAL" maxLength={40} />
+          <Input id="settings-field-9" value={homepageKicker} onChange={(e) => setHomepageKicker(e.target.value)} className="mt-1" dir="ltr" placeholder="Welcome to" maxLength={40} />
           <p className="text-small text-muted-foreground mt-1">در بالای نام سالن در صفحه اصلی.</p>
         </div>
 

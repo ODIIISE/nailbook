@@ -11,6 +11,7 @@ import {
   type TouchEvent as ReactTouchEvent,
 } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -56,6 +57,8 @@ export function LuxHome() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const addrTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchRef = useRef<{ x: number; y: number } | null>(null);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
+  const sheetRef = useRef<HTMLDivElement | null>(null);
 
   /* Owner-managed slideshow images (fall back to demo set until configured) */
   const slides = useMemo(() => {
@@ -213,6 +216,13 @@ export function LuxHome() {
     return () => removeEventListener("keydown", onKey);
   }, [lookbookOpen, drawerOpen]);
 
+  /* Move keyboard focus into the open dialog (a11y: role=dialog + aria-modal
+     means the background is inert — focus must not stay behind it). */
+  useEffect(() => {
+    if (drawerOpen) drawerRef.current?.focus();
+    else if (lookbookOpen) sheetRef.current?.focus();
+  }, [drawerOpen, lookbookOpen]);
+
   /* Haptics (delegated; no-op where unsupported, e.g. iOS Safari) */
   const buzz = (e: ReactPointerEvent) => {
     if ((e.target as HTMLElement).closest("button") && "vibrate" in navigator)
@@ -231,9 +241,9 @@ export function LuxHome() {
   };
 
   const lookbookTitle = salon?.lookbook_title || "نمونه‌کارها";
-  const instagramUrl = salon?.instagram_handle
-    ? `https://instagram.com/${salon.instagram_handle.replace(/^@/, "")}`
-    : null;
+  /* Strip a leading @ plus any path/protocol fragments the owner may have pasted. */
+  const instagramHandle = salon?.instagram_handle?.trim().replace(/^@+/, "").split(/[/?#]/)[0] || "";
+  const instagramUrl = instagramHandle ? `https://instagram.com/${encodeURIComponent(instagramHandle)}` : null;
 
   return (
     <div
@@ -245,12 +255,10 @@ export function LuxHome() {
       <div className={styles.app}>
         <div className={styles.ambient} aria-hidden="true" />
 
-        {/* Header — inbox left, wordmark center, menu right */}
+        {/* Header — wordmark center, menu right */}
         <header className={`${styles.header} ${styles.rv}`} style={d(".1s")}>
-          <button className={styles.iconBtn} aria-label="Bag" onClick={() => toast("🤍 Your bag is empty")}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="m9.2 12.5 2 2 3.8-3.8" /></svg>
-          </button>
-          <span className={styles.logo}>Forehand</span>
+          <span aria-hidden="true" />
+          <span className={styles.logo}>{salon?.splash_title || "Forehand"}</span>
           <span className={styles.r}>
             <button className={styles.iconBtn} aria-label="Menu" aria-expanded={drawerOpen} onClick={openDrawer}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="4" y1="8" x2="20" y2="8" /><line x1="4" y1="13" x2="20" y2="13" /><line x1="4" y1="18" x2="12" y2="18" /></svg>
@@ -261,10 +269,10 @@ export function LuxHome() {
         <main className={styles.scroll} ref={scrollRef}>
           {/* Hero */}
           <section className={styles.hero}>
-            <p className={`${styles.script} ${styles.rvBlur}`} style={d(".2s")}>Welcome to</p>
-            <h1 className={`${styles.heroTitle} ${styles.rvBlur}`} style={d(".32s")}>Forehand Nail Studio</h1>
+            <p className={`${styles.script} ${styles.rvBlur}`} style={d(".2s")}>{salon?.homepage_kicker?.trim() || "Welcome to"}</p>
+            <h1 className={`${styles.heroTitle} ${styles.rvBlur}`} style={d(".32s")}>{salon?.name?.trim() || "Forehand Nail Studio"}</h1>
             <p dir="rtl" lang="fa" className={`${styles.lede} ${styles.rv}`} style={d(".46s")}>
-              تجربه‌ای آرام و دقیق برای ناخن‌هایی که امضای تو هستند
+              {salon?.slogan?.trim() || "تجربه‌ای آرام و دقیق برای ناخن‌هایی که امضای تو هستند"}
             </p>
 
             <figure className={`${styles.media} ${styles.rvBlur}`} style={d(".6s")}>
@@ -332,10 +340,10 @@ export function LuxHome() {
               <button className={styles.addrClose} aria-label="بستن" onClick={closeAddress}>{X_ICON}</button>
             </div>
           )}
-          <button dir="rtl" className={`${styles.btn} ${styles.btnPrimary} ${styles.rvPop}`} style={d(".85s")} onClick={() => router.push("/book")}>
+          <Link dir="rtl" href="/book" className={`${styles.btn} ${styles.btnPrimary} ${styles.rvPop}`} style={d(".85s")}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="m9.2 12.5 2 2 3.8-3.8" /></svg>
-            <span className={styles.btnFa}>رزرو نوبت</span>
-          </button>
+            <span className={styles.btnFa}>{salon?.homepage_cta_label?.trim() || "رزرو نوبت"}</span>
+          </Link>
           <button dir="rtl" className={`${styles.btn} ${styles.btnGhost} ${styles.rvPop}`} style={d(".95s")} onClick={() => setLookbookOpen(true)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"><path d="M12 3c.7 3.9 2.4 5.6 6.3 6.3-3.9.7-5.6 2.4-6.3 6.3-.7-3.9-2.4-5.6-6.3-6.3C9.6 8.6 11.3 6.9 12 3z" /></svg>
             <span className={styles.btnFa}>نمونه کارها</span>
@@ -376,9 +384,11 @@ export function LuxHome() {
           <div className={styles.sheetScrim} onClick={() => setDrawerOpen(false)} role="presentation">
             <div
               dir="rtl"
+              ref={drawerRef}
               role="dialog"
               aria-modal="true"
               aria-label="منوی سالن"
+              tabIndex={-1}
               className={styles.drawer}
               onClick={(e) => e.stopPropagation()}
             >
@@ -389,29 +399,29 @@ export function LuxHome() {
               <nav className={styles.drawerNav} aria-label="منوی سالن">
                 {user ? (
                   <>
-                    <button className={styles.drawerItem} onClick={() => { setDrawerOpen(false); router.push("/bookings"); }}>
+                    <Link className={styles.drawerItem} href="/bookings" onClick={() => setDrawerOpen(false)}>
                       <span>نوبت‌های من</span>
-                    </button>
-                    <button className={styles.drawerItem} onClick={() => { setDrawerOpen(false); router.push("/profile"); }}>
+                    </Link>
+                    <Link className={styles.drawerItem} href="/profile" onClick={() => setDrawerOpen(false)}>
                       <span>پروفایل من</span>
-                    </button>
+                    </Link>
                     <button className={`${styles.drawerItem} ${styles.drawerItemDanger}`} onClick={() => setConfirmLogout(true)}>
                       <span>خروج از حساب</span>
                     </button>
                   </>
                 ) : (
-                  <button className={styles.drawerItem} onClick={() => { setDrawerOpen(false); router.push("/login"); }}>
+                  <Link className={styles.drawerItem} href="/login" onClick={() => setDrawerOpen(false)}>
                     <span>ورود به حساب</span>
-                  </button>
+                  </Link>
                 )}
                 <button className={styles.drawerItem} onClick={() => { setDrawerOpen(false); setLookbookOpen(true); }}>
                   <span>نمونه کارها</span>
                 </button>
               </nav>
               <div className={styles.drawerFoot}>
-                <button className={styles.drawerOwner} onClick={() => { setDrawerOpen(false); router.push("/owner/login"); }}>
+                <Link className={styles.drawerOwner} href="/owner/login" onClick={() => setDrawerOpen(false)}>
                   ورود مدیر
-                </button>
+                </Link>
                 {salon?.working_hours_text?.trim() && (
                   <p className={styles.drawerMeta}>{salon.working_hours_text}</p>
                 )}
@@ -428,9 +438,11 @@ export function LuxHome() {
           <div className={styles.sheetScrim} onClick={() => setLookbookOpen(false)} role="presentation">
             <div
               dir="rtl"
+              ref={sheetRef}
               role="dialog"
               aria-modal="true"
               aria-label={lookbookTitle}
+              tabIndex={-1}
               className={styles.sheet}
               onClick={(e) => e.stopPropagation()}
             >
@@ -446,7 +458,7 @@ export function LuxHome() {
                     .slice()
                     .sort((a, b) => a.sort_order - b.sort_order)
                     .map((h) => (
-                      <button key={h.id} className={styles.lookCard} onClick={() => router.push(`/book?look=${h.id}`)}>
+                      <Link key={h.id} href={`/book?look=${h.id}`} className={styles.lookCard} onClick={() => setLookbookOpen(false)}>
                         <span className={styles.lookThumb}>
                           {h.cover_url && (
                             // eslint-disable-next-line @next/next/no-img-element -- cover thumbnails inside the Lux sheet
@@ -454,7 +466,7 @@ export function LuxHome() {
                           )}
                         </span>
                         <span className={styles.lookName}>{h.name}</span>
-                      </button>
+                      </Link>
                     ))
                 )}
               </div>
