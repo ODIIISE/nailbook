@@ -179,7 +179,7 @@ function normalizeSalon(value: unknown): SalonInfo | null {
     splash_title: typeof value.splash_title === "string" ? value.splash_title : "Forehand Nail",
     splash_slogan: typeof value.splash_slogan === "string" ? value.splash_slogan : "Nail Art Studio",
     splash_logo_url: typeof value.splash_logo_url === "string" ? value.splash_logo_url : null,
-    homepage_kicker: typeof value.homepage_kicker === "string" ? value.homepage_kicker : "Welcome to",
+    homepage_kicker: typeof value.homepage_kicker === "string" ? value.homepage_kicker : "NAIL · CARE · RITUAL",
     homepage_cta_label: typeof value.homepage_cta_label === "string" ? value.homepage_cta_label : "شروع رزرو",
     homepage_micro: typeof value.homepage_micro === "string" ? value.homepage_micro : "بدون تماس تلفنی · زمان‌های آزاد همین‌جا",
     lookbook_title: typeof value.lookbook_title === "string" ? value.lookbook_title : "نمونه‌کارها",
