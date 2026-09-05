@@ -11,7 +11,9 @@ import {
   type TouchEvent as ReactTouchEvent,
 } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import styles from "./lux-home.module.css";
 
 const d = (v: string) => ({ "--d": v }) as CSSProperties;
@@ -19,17 +21,21 @@ const d = (v: string) => ({ "--d": v }) as CSSProperties;
 /* Demo slides shown until the owner uploads their own homepage gallery
  * (owner settings → «گالری صفحه اصلی»). Owner URLs always win. */
 const FALLBACK_SLIDES = [
-  "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=800&h=600&q=85",
-  "https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=800&h=600&q=85",
-  "https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=800&h=600&q=85",
+  "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=700&h=840&q=85",
+  "https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=700&h=840&q=85",
+  "https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=700&h=840&q=85",
 ];
 
 const SLIDE_MS = 4500;
 const SWIPE_PX = 48;
+const X_ICON = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+);
 
 export function LuxHome() {
   const router = useRouter();
   const { salon, highlights } = useSalon();
+  const { user, logout } = useAuth();
 
   const [ready, setReady] = useState(false);
   const [settled, setSettled] = useState(false);
@@ -40,6 +46,8 @@ export function LuxHome() {
   const [autoplayTick, setAutoplayTick] = useState(0);
   const [lookbookOpen, setLookbookOpen] = useState(false);
   const [addrOpen, setAddrOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   const scrollRef = useRef<HTMLElement | null>(null);
   const parRef = useRef<HTMLDivElement | null>(null);
@@ -138,20 +146,28 @@ export function LuxHome() {
     };
   }, []);
 
-  /* Toast feedback (header bag/menu only — real actions below use real links) */
+  /* Toast feedback — dismissible */
   const toast = (m: string) => {
     setToastMsg(m);
     setToastShow(true);
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToastShow(false), 2100);
+    toastTimer.current = setTimeout(() => setToastShow(false), 2600);
+  };
+  const closeToast = () => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToastShow(false);
   };
 
-  /* Address panel above the footer — auto-dismisses */
+  /* Address panel above the footer — auto-dismisses or closable */
   const showAddress = useCallback(() => {
     setAddrOpen(true);
     if (addrTimer.current) clearTimeout(addrTimer.current);
-    addrTimer.current = setTimeout(() => setAddrOpen(false), 4200);
+    addrTimer.current = setTimeout(() => setAddrOpen(false), 6000);
   }, []);
+  const closeAddress = () => {
+    if (addrTimer.current) clearTimeout(addrTimer.current);
+    setAddrOpen(false);
+  };
 
   /* Slideshow: autoplay every 4.5s; manual swipe/dot resets the timer */
   useEffect(() => {
@@ -184,20 +200,34 @@ export function LuxHome() {
     goToSlide(dx < 0 ? slide + 1 : slide - 1);
   };
 
-  /* Lookbook sheet: Escape closes */
+  /* Escape closes any open layer (drawer / lookbook sheet) */
   useEffect(() => {
-    if (!lookbookOpen) return;
+    if (!lookbookOpen && !drawerOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLookbookOpen(false);
+      if (e.key === "Escape") {
+        setLookbookOpen(false);
+        setDrawerOpen(false);
+      }
     };
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
-  }, [lookbookOpen]);
+  }, [lookbookOpen, drawerOpen]);
 
   /* Haptics (delegated; no-op where unsupported, e.g. iOS Safari) */
   const buzz = (e: ReactPointerEvent) => {
     if ((e.target as HTMLElement).closest("button") && "vibrate" in navigator)
       navigator.vibrate(8);
+  };
+
+  const openDrawer = () => {
+    setConfirmLogout(false);
+    setDrawerOpen(true);
+  };
+  const handleLogout = async () => {
+    setConfirmLogout(false);
+    setDrawerOpen(false);
+    await logout();
+    router.push("/login");
   };
 
   const lookbookTitle = salon?.lookbook_title || "نمونه‌کارها";
@@ -222,7 +252,7 @@ export function LuxHome() {
           </button>
           <span className={styles.logo}>Forehand</span>
           <span className={styles.r}>
-            <button className={styles.iconBtn} aria-label="Menu" onClick={() => toast("✦ Full menu coming soon")}>
+            <button className={styles.iconBtn} aria-label="Menu" aria-expanded={drawerOpen} onClick={openDrawer}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="4" y1="8" x2="20" y2="8" /><line x1="4" y1="13" x2="20" y2="13" /><line x1="4" y1="18" x2="12" y2="18" /></svg>
             </button>
           </span>
@@ -298,7 +328,8 @@ export function LuxHome() {
         <footer className={styles.cta}>
           {addrOpen && (
             <div dir="rtl" className={styles.addrCard} role="status">
-              {salon?.address?.trim() ? salon.address : "آدرس سالن ثبت نشده است"}
+              <span>{salon?.address?.trim() ? salon.address : "آدرس سالن ثبت نشده است"}</span>
+              <button className={styles.addrClose} aria-label="بستن" onClick={closeAddress}>{X_ICON}</button>
             </div>
           )}
           <button dir="rtl" className={`${styles.btn} ${styles.btnPrimary} ${styles.rvPop}`} style={d(".85s")} onClick={() => router.push("/book")}>
@@ -307,7 +338,7 @@ export function LuxHome() {
           </button>
           <button dir="rtl" className={`${styles.btn} ${styles.btnGhost} ${styles.rvPop}`} style={d(".95s")} onClick={() => setLookbookOpen(true)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"><path d="M12 3c.7 3.9 2.4 5.6 6.3 6.3-3.9.7-5.6 2.4-6.3 6.3-.7-3.9-2.4-5.6-6.3-6.3C9.6 8.6 11.3 6.9 12 3z" /></svg>
-            <span className={styles.btnFa}>مشاهده نمونه کارها</span>
+            <span className={styles.btnFa}>نمونه کارها</span>
           </button>
           <div className={styles.contacts}>
             {salon?.phone?.trim() ? (
@@ -335,9 +366,62 @@ export function LuxHome() {
 
           {/* Bag/menu toast — sits centered just above the footer controls */}
           <div className={`${styles.toast} ${toastShow ? styles.toastShow : ""}`} role="status" aria-live="polite">
-            {toastMsg}
+            <span className={styles.toastMsg}>{toastMsg}</span>
+            <button className={styles.toastClose} aria-label="بستن" onClick={closeToast}>{X_ICON}</button>
           </div>
         </footer>
+
+        {/* Menu drawer — old structure, Lux design language */}
+        {drawerOpen && (
+          <div className={styles.sheetScrim} onClick={() => setDrawerOpen(false)} role="presentation">
+            <div
+              dir="rtl"
+              role="dialog"
+              aria-modal="true"
+              aria-label="منوی سالن"
+              className={styles.drawer}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={styles.sheetHead}>
+                <span className={styles.sheetTitle}>{salon?.name || "منو"}</span>
+                <button className={styles.iconBtn} aria-label="بستن" onClick={() => setDrawerOpen(false)}>{X_ICON}</button>
+              </div>
+              <nav className={styles.drawerNav} aria-label="منوی سالن">
+                {user ? (
+                  <>
+                    <button className={styles.drawerItem} onClick={() => { setDrawerOpen(false); router.push("/bookings"); }}>
+                      <span>نوبت‌های من</span>
+                    </button>
+                    <button className={styles.drawerItem} onClick={() => { setDrawerOpen(false); router.push("/profile"); }}>
+                      <span>پروفایل من</span>
+                    </button>
+                    <button className={`${styles.drawerItem} ${styles.drawerItemDanger}`} onClick={() => setConfirmLogout(true)}>
+                      <span>خروج از حساب</span>
+                    </button>
+                  </>
+                ) : (
+                  <button className={styles.drawerItem} onClick={() => { setDrawerOpen(false); router.push("/login"); }}>
+                    <span>ورود به حساب</span>
+                  </button>
+                )}
+                <button className={styles.drawerItem} onClick={() => { setDrawerOpen(false); setLookbookOpen(true); }}>
+                  <span>نمونه کارها</span>
+                </button>
+              </nav>
+              <div className={styles.drawerFoot}>
+                <button className={styles.drawerOwner} onClick={() => { setDrawerOpen(false); router.push("/owner/login"); }}>
+                  ورود مدیر
+                </button>
+                {salon?.working_hours_text?.trim() && (
+                  <p className={styles.drawerMeta}>{salon.working_hours_text}</p>
+                )}
+                {salon?.address?.trim() && (
+                  <p className={styles.drawerMeta}>{salon.address}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Lookbook sheet — the nail-work portfolio experience */}
         {lookbookOpen && (
@@ -352,9 +436,7 @@ export function LuxHome() {
             >
               <div className={styles.sheetHead}>
                 <span className={styles.sheetTitle}>{lookbookTitle}</span>
-                <button className={styles.iconBtn} aria-label="بستن" onClick={() => setLookbookOpen(false)}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                </button>
+                <button className={styles.iconBtn} aria-label="بستن" onClick={() => setLookbookOpen(false)}>{X_ICON}</button>
               </div>
               <div className={styles.sheetBody}>
                 {highlights.length === 0 ? (
@@ -392,6 +474,22 @@ export function LuxHome() {
           </div>
         </div>
       )}
+
+      {/* Logout confirmation (old drawer structure) */}
+      <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
+        <AlertDialogContent className="max-w-[300px] rounded-2xl p-5">
+          <AlertDialogHeader>
+            <AlertDialogTitle>خروج از حساب</AlertDialogTitle>
+            <AlertDialogDescription>
+              مطمئن هستید که می‌خواهید از حساب خود خارج شوید؟ نوبت‌های شما محفوظ می‌ماند.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>انصراف</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={handleLogout}>خروج</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
