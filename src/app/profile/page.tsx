@@ -18,7 +18,7 @@ import { parseGregorianDateKey } from "@/lib/time";
 import { compactToman } from "@/lib/pricing";
 
 const STATUS_PILL_BASE =
-  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold";
+  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-micro font-bold";
 
 const STATUS_MAP: Record<string, { label: string; cls: string; dot: string }> = {
   reserved: { label: "ثبت شده", cls: "bg-primary/10 text-primary", dot: "bg-primary" },
@@ -318,7 +318,7 @@ export default function ProfilePage() {
                 <b className="block text-sm font-extrabold tracking-wide" dir="ltr">{displayDigits(user.phone)}</b>
               )}
               {!editingPhone && (
-                <span className="mt-1 block text-[11px] leading-relaxed text-muted-foreground">این شماره هویت ورود شماست؛ نوبت‌های قبلی با تغییر شماره به‌صورت خودکار منتقل می‌شوند.</span>
+                <span className="mt-1 block text-micro leading-relaxed text-muted-foreground">این شماره هویت ورود شماست؛ نوبت‌های قبلی با تغییر شماره به‌صورت خودکار منتقل می‌شوند.</span>
               )}
             </div>
             {editingPhone ? (
@@ -391,7 +391,7 @@ export default function ProfilePage() {
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
                     <span className="min-w-0 flex-1">
                       <b className="block truncate text-sm font-bold">{getServiceName(booking.service_id)}</b>
-                      <small className="mt-0.5 block text-[11px] text-muted-foreground">{jalaliShort(booking.date_gregorian)}</small>
+                      <small className="mt-0.5 block text-micro text-muted-foreground">{jalaliShort(booking.date_gregorian)}</small>
                     </span>
                     <StatusPill status={status} />
                   </div>
@@ -403,11 +403,11 @@ export default function ProfilePage() {
                   <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
                     <b className="text-sm font-extrabold">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
                     <span className="flex items-center gap-2.5">
-                      <small dir="ltr" className="text-[10px] font-bold text-muted-foreground">#{booking.id.slice(-4).toUpperCase()}</small>
+                      <small dir="ltr" className="text-micro font-bold text-muted-foreground">#{booking.id.slice(-4).toUpperCase()}</small>
                       {CANCELABLE.has(booking.status) && (
                         <button
                           type="button"
-                          className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-3.5 text-[11px] font-extrabold ${
+                          className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-3.5 text-micro font-extrabold ${
                             confirmingCancel === booking.id
                               ? "bg-destructive text-white"
                               : "border border-border bg-muted text-foreground"

@@ -653,7 +653,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
               )}
               <div className="min-w-0 flex-1">
                 <b className="block text-xs font-extrabold">رزرو این مدل: {look.name}</b>
-                <span className="mt-0.5 block text-[11px] text-primary-foreground/70">خدمت مرتبط انتخاب شده؛ افزودنی‌ها را هرطور خواستی تغییر بده</span>
+                <span className="mt-0.5 block text-micro text-primary-foreground/70">خدمت مرتبط انتخاب شده؛ افزودنی‌ها را هرطور خواستی تغییر بده</span>
               </div>
               <button
                 type="button"
@@ -692,7 +692,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2">
                         <b className="text-sm font-bold">{s.name}</b>
-                        {s.is_popular && <span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-extrabold text-primary">پرطرفدار</span>}
+                        {s.is_popular && <span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-micro font-extrabold text-primary">پرطرفدار</span>}
                       </span>
                       <span className="my-0.5 block text-xs text-muted-foreground">{s.description || "رزرو آنلاین"} · {toPersianDigits(s.duration_minutes)} دقیقه</span>
                       <span className="flex items-center">
@@ -713,7 +713,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
                       {serviceAddons.length > 0 ? (
                         <>
                           <div className="flex items-center justify-between border-t border-dashed border-border px-0.5 pb-1 pt-3">
-                            <span className="text-[11px] font-extrabold text-primary">افزودنی‌ها · اختیاری</span>
+                            <span className="text-micro font-extrabold text-primary">افزودنی‌ها · اختیاری</span>
                             <button
                               type="button"
                               onClick={() => setSelectedAddons([])}
@@ -915,9 +915,9 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
               disabled={blocked}
               aria-pressed={d.isSelected}
               aria-label={`${d.isToday ? "امروز" : d.isTomorrow ? "فردا" : d.weekday} ${toPersianDigits(d.jalaliDay)} ${d.jalaliMonth}`}>
-              <span className={`text-[10px] font-bold ${d.isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{d.isToday ? "امروز" : d.isTomorrow ? "فردا" : d.weekday}</span>
+              <span className={`text-micro font-bold ${d.isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{d.isToday ? "امروز" : d.isTomorrow ? "فردا" : d.weekday}</span>
               <span className="text-lg font-extrabold">{toPersianDigits(d.jalaliDay)}</span>
-              <span className={`text-[10px] font-medium ${d.isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{d.isOff ? "تعطیل" : d.isFullyBooked ? "تکمیل" : d.jalaliMonth.slice(0, 5)}</span>
+              <span className={`text-micro font-medium ${d.isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{d.isOff ? "تعطیل" : d.isFullyBooked ? "تکمیل" : d.jalaliMonth.slice(0, 5)}</span>
             </button>
           );
         })}
@@ -1002,7 +1002,7 @@ function SlotChip({ slot, selected, onSelect, suggest = false }: { slot: TimeSlo
       onClick={() => { if (available) onSelect(slot.time); }}
       aria-label={`${formatted} ${available ? "موجود" : slot.booked || slot.locked ? "رزرو شده" : "غیرقابل رزرو"}`}>
       <span dir="ltr" className="leading-tight">{formatted}</span>
-      {suggest && <i className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2 py-px text-[9px] font-extrabold not-italic text-primary-foreground" aria-hidden="true">پیشنهادی</i>}
+      {suggest && <i className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2 py-px text-micro font-extrabold not-italic text-primary-foreground" aria-hidden="true">پیشنهادی</i>}
     </button>
   );
 }
@@ -1073,7 +1073,7 @@ function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; o
           </button>
         </div>
         <div className="mb-1.5 grid grid-cols-7 gap-1">
-          {PERSIAN_WEEKDAYS.map((w) => <span key={w} className="py-1 text-center text-[11px] font-extrabold text-muted-foreground">{w}</span>)}
+          {PERSIAN_WEEKDAYS.map((w) => <span key={w} className="py-1 text-center text-micro font-extrabold text-muted-foreground">{w}</span>)}
         </div>
         <div className="grid grid-cols-7 gap-1">
           {cells.map((cell, i) =>

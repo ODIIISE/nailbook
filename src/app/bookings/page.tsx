@@ -17,7 +17,7 @@ import type { Booking } from "@/lib/types";
 
 // Shared status pill: bg/text per state + leading dot color.
 const STATUS_PILL_BASE =
-  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold";
+  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-micro font-bold";
 
 const STATUS_MAP: Record<string, { label: string; cls: string; dot: string }> = {
   reserved: { label: "ثبت شده", cls: "bg-primary/10 text-primary", dot: "bg-primary" },
@@ -166,7 +166,7 @@ export default function BookingsPage() {
             <Calendar className="h-5 w-5" aria-hidden="true" />
           </span>
           <span className="min-w-0">
-            <span className="block text-[9px] font-extrabold tracking-[0.24em] text-muted-foreground uppercase" dir="ltr">HISTORY</span>
+            <span className="block text-micro font-extrabold tracking-[0.24em] text-muted-foreground uppercase" dir="ltr">HISTORY</span>
             <h3 id="booking-history-title" className="mt-0.5 text-base font-extrabold">تاریخچه نوبت‌ها</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">{toPersianDigits(myBookings.length)} نوبت ثبت‌شده</p>
           </span>
@@ -215,7 +215,7 @@ export default function BookingsPage() {
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
                         <span className="min-w-0 flex-1">
                           <b className="block truncate text-sm font-bold">{getServiceName(booking.service_id)}</b>
-                          <small className="mt-0.5 block text-[11px] text-muted-foreground">{booking.customer_name || "مشتری"}</small>
+                          <small className="mt-0.5 block text-micro text-muted-foreground">{booking.customer_name || "مشتری"}</small>
                         </span>
                         <StatusPill status={status} />
                       </div>
@@ -226,12 +226,12 @@ export default function BookingsPage() {
                       </div>
                       {addonNames.length > 0 && (
                         <div className="mt-2.5 flex flex-wrap gap-1.5">
-                          {addonNames.map((name) => <span key={name} className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold text-secondary-foreground">{name}</span>)}
+                          {addonNames.map((name) => <span key={name} className="rounded-full bg-muted px-2.5 py-1 text-micro font-bold text-secondary-foreground">{name}</span>)}
                         </div>
                       )}
                       <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
                         <b className="text-sm font-extrabold">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
-                        <small dir="ltr" className="text-[10px] font-bold text-muted-foreground">#{booking.id.slice(-4).toUpperCase()}</small>
+                        <small dir="ltr" className="text-micro font-bold text-muted-foreground">#{booking.id.slice(-4).toUpperCase()}</small>
                       </div>
                     </button>
                   );

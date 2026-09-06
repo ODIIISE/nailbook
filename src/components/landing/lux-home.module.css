@@ -13,6 +13,11 @@
   --accent-ink: #241708;
   --cream: #e8e0d5;
   --line: rgba(243, 236, 226, 0.14);
+  --danger: #ef6b5e;
+  /* Editorial surface treatments (frozen values, single definition). */
+  --surface-deep: #211c18;
+  --grad-frame: linear-gradient(160deg, #3a2c22, #1d1712);
+  --grad-core: linear-gradient(180deg, #2c2622, #211c18);
   --ease: cubic-bezier(0.22, 0.9, 0.28, 1);
   --spring: cubic-bezier(0.34, 1.55, 0.44, 1);
   /* Golden-ratio type scale (φ = 1.618) — description → display title */
@@ -26,7 +31,7 @@
 
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: var(--z-editorial);
   display: flex;
   justify-content: center;
   overflow: hidden;
@@ -79,7 +84,7 @@
 .grain {
   position: absolute;
   inset: 0;
-  z-index: 45;
+  z-index: var(--z-texture);
   pointer-events: none;
   opacity: 0.05;
   background-size: 180px;
@@ -87,6 +92,8 @@
 }
 
 /* ── Splash ───────────────────────────────────────────── */
+/* Homepage-internal z sub-stack (below ladder slots, order is intentional):
+   splash 50 boot overlay > sheet scrim 70 > toast 60 > addrCard 20. */
 .splash {
   position: fixed;
   inset: 0;
@@ -155,12 +162,14 @@
 }
 
 /* Identical interaction for every icon control: hover brightens,
-   press scales down, focus gets the gold ring (see .app :focus-visible). */
+   press scales down, focus gets the gold ring (see .app :focus-visible).
+   40px visual / ≥44px horizontal hit axis — keeps the frozen footer
+   height byte-identical. */
 .iconBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.625rem;
+  padding: 0.625rem 0.75rem;
   border: 0;
   border-radius: 0.75rem;
   color: var(--ink);
@@ -275,7 +284,7 @@
   aspect-ratio: 5 / 6;
   border-radius: 1.875rem;
   overflow: hidden;
-  background: linear-gradient(160deg, #3a2c22, #1d1712);
+  background: var(--grad-frame);
   box-shadow: 0 2.75rem 5.5rem -2rem rgba(0, 0, 0, 0.7), 0 1.125rem 2.25rem -1.125rem rgba(0, 0, 0, 0.5);
 }
 
@@ -315,7 +324,23 @@
 }
 
 .dotBtn {
+  position: relative;
   padding: 6px;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  display: inline-flex;
+}
+
+/* Dots: 44px horizontal hit targets (adjacent-dot separability is the
+   critical axis); vertical stays compact to preserve the frozen one-viewport
+   hero — the frame itself carries the swipe gesture as the primary control.
+   Equal padding/negative margin keeps every visual position identical. */
+.dotBtn {
+  position: relative;
+  padding: 6px 13px;
+  margin: 0 -13px;
   background: transparent;
   border: 0;
   font: inherit;
@@ -378,13 +403,21 @@
   height: 34px;
   border: 0;
   border-radius: 50%;
-  background: linear-gradient(180deg, #2c2622, #211c18);
+  background: var(--grad-core);
   color: var(--ink);
   font: inherit;
   display: grid;
   place-items: center;
   box-shadow: 0 0.375rem 0.875rem rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.07);
   transition: transform 0.18s var(--spring);
+}
+
+/* 44px hit area for the 34px core — no visual change. */
+.badgeCore::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
 }
 
 .badgeCore:active {
@@ -511,6 +544,7 @@
   bottom: calc(100% + 0.75rem);
   left: var(--page-padding);
   right: var(--page-padding);
+  /* Homepage-internal sub-stack slot (see .splash). */
   z-index: 20;
   display: flex;
   align-items: flex-start;
@@ -520,7 +554,7 @@
   border-radius: 1.125rem;
   padding: 0.875rem 1.125rem;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.9;
   font-weight: 400;
   color: var(--ink);
@@ -545,7 +579,7 @@
 .sheetScrim {
   position: absolute;
   inset: 0;
-  z-index: 70;
+  z-index: var(--z-sheet);
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
@@ -565,7 +599,7 @@
   max-height: 78%;
   display: flex;
   flex-direction: column;
-  background: #211c18;
+  background: var(--surface-deep);
   border: 1px solid var(--line);
   border-bottom: 0;
   border-radius: 1.625rem 1.625rem 0 0;
@@ -588,7 +622,7 @@
 
 .sheetTitle {
   font-family: 'Estedad', 'Vazirmatn', sans-serif;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--ink);
 }
@@ -611,7 +645,7 @@
   text-align: center;
   color: var(--muted);
   font-family: 'Estedad', 'Vazirmatn', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 2;
   padding: 1.5rem 0;
 }
@@ -627,7 +661,7 @@
   flex-direction: column;
   overflow-y: auto;
   scrollbar-width: none;
-  background: #211c18;
+  background: var(--surface-deep);
   border: 1px solid var(--line);
   border-right: 0;
   padding: 1.125rem 1rem calc(1.25rem + var(--safe-b));
@@ -652,6 +686,7 @@
   display: flex;
   align-items: center;
   width: 100%;
+  /* 44px minimum touch target: 14px text on 1.9 line-height + 0.875rem paddings. */
   padding: 0.875rem 0.25rem;
   border: 0;
   border-bottom: 1px solid var(--line);
@@ -659,11 +694,11 @@
   color: var(--ink);
   font: inherit;
   font-family: 'Estedad', 'Vazirmatn', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   text-align: start;
   border-radius: 0.5rem;
-  transition: background 0.2s;
+  transition: background var(--duration-micro);
 }
 
 .drawerItem:hover {
@@ -675,7 +710,7 @@
 }
 
 .drawerItemDanger {
-  color: #ef6b5e;
+  color: var(--danger);
 }
 
 .drawerFoot {
@@ -690,7 +725,8 @@
   font: inherit;
   font-family: 'Estedad', 'Vazirmatn', sans-serif;
   font-size: 12px;
-  padding: 0;
+  /* 44px touch target while keeping the quiet inline look. */
+  padding: 1rem 0;
   cursor: pointer;
 }
 
@@ -702,7 +738,7 @@
 .drawerMeta {
   margin-top: 0.5rem;
   font-family: 'Estedad', 'Vazirmatn', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 2;
   color: var(--muted);
 }
@@ -724,7 +760,7 @@
   aspect-ratio: 3 / 4;
   border-radius: 16px;
   overflow: hidden;
-  background: linear-gradient(160deg, #3a2c22, #1d1712);
+  background: var(--grad-frame);
   border: 1px solid var(--line);
 }
 
@@ -738,7 +774,7 @@
 
 .lookName {
   font-family: 'Estedad', 'Vazirmatn', sans-serif;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--ink);
   white-space: nowrap;
@@ -797,6 +833,8 @@
 /* ── Toast ────────────────────────────────────────────── */
 .toast {
   position: absolute;
+  /* Homepage-internal sub-stack slot (see .splash) — above the footer
+     controls, deliberately below the sheet scrim. */
   z-index: 60;
   left: var(--page-padding);
   right: var(--page-padding);
@@ -815,7 +853,7 @@
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   font-family: 'Estedad', 'Vazirmatn', sans-serif;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.9;
   padding: 0.625rem 0.75rem 0.625rem 1rem;
@@ -830,6 +868,7 @@
 
 .toastClose,
 .addrClose {
+  position: relative;
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -841,6 +880,14 @@
   color: var(--ink);
   opacity: 0.7;
   transition: opacity 0.15s, background 0.2s;
+}
+
+/* 44px hit area around the 24px close affordance — no visual change. */
+.toastClose::after,
+.addrClose::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
 }
 
 .toastClose:hover,
@@ -879,15 +926,11 @@
   }
 }
 
+/* Reduced motion: the global [data-motion] reset (globals.css) neutralizes
+   animations/transitions on this surface. This block only restores the
+   visible end-state of the entrance choreography and makes the slideshow
+   an instant image change. */
 @media (prefers-reduced-motion: reduce) {
-  .viewport *,
-  .viewport *::before,
-  .viewport *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-
   .rootReady .rv,
   .rootReady .rvBlur,
   .rootReady .rvPop,

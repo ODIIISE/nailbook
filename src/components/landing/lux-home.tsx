@@ -239,6 +239,7 @@ export function LuxHome() {
     <div
       dir="ltr"
       lang="en"
+      data-motion=""
       className={`${styles.viewport} ${ready ? styles.rootReady : ""} ${settled ? styles.settled : ""}`}
       onPointerDown={buzz}
     >
@@ -309,7 +310,7 @@ export function LuxHome() {
                   <div className={styles.badge} ref={badgeRef}>
                     <div className={styles.badgeFloat}>
                       <svg className={styles.ring} viewBox="0 0 100 100" aria-hidden="true">
-                        <circle cx="50" cy="50" r="49" fill="#e8e0d5" />
+                        <circle cx="50" cy="50" r="49" fill="var(--cream)" />
                         <path id="ringPath" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0" fill="none" />
                         <text><textPath href="#ringPath">EXPLORE NAIL DESIGNS • EXPLORE NAIL DESIGNS •</textPath></text>
                       </svg>

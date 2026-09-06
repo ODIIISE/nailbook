@@ -5,8 +5,7 @@ import { Card } from "@/components/ui/card";
 import { User, Ban, Clock, CreditCard, CheckCircle2, Loader, XCircle, Layers, DollarSign, Calendar, AlertTriangle } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
-import { STATUS_CONFIG } from "@/lib/constants";
-import { servicePalette, themeColor } from "@/lib/design-tokens";
+import { blockedTimePalette, servicePalette, STATUS_CONFIG, themeColor } from "@/lib/design-tokens";
 import { useIsDark } from "@/lib/hooks/use-is-dark";
 import type { Booking, Service, Addon } from "@/lib/types";
 
@@ -280,13 +279,13 @@ export function Timeline({
             {blockedTimes.map((block, idx) => {
               const pos = getBlockPosition(block.start_time, block.end_time, startHour);
               const isConfirming = confirmRemoveIndex === idx;
-              const wb = t("#FFF8E1", "#1F1A0E");
-              const wbBorder = t("rgba(180,83,9,0.4)", "rgba(245,158,11,0.3)");
-              const wt = t("#B45309", "#F59E0B");
-              const wst = t("rgba(146,64,14,0.95)", "rgba(245,158,11,0.7)");
-              const wf = t("rgba(245,158,11,0.5)", "rgba(245,158,11,0.5)");
-              const wa = t("#F59E0B", "#FBBF24");
-              const bh = t("#FFF3E0", "#2A2312");
+              const wb = t(blockedTimePalette.bg.light, blockedTimePalette.bg.dark);
+              const wbBorder = t(blockedTimePalette.border.light, blockedTimePalette.border.dark);
+              const wt = t(blockedTimePalette.text.light, blockedTimePalette.text.dark);
+              const wst = t(blockedTimePalette.textStrong.light, blockedTimePalette.textStrong.dark);
+              const wf = t(blockedTimePalette.border.light, blockedTimePalette.border.dark);
+              const wa = t(blockedTimePalette.accentBar.light, blockedTimePalette.accentBar.dark);
+              const bh = t(blockedTimePalette.bgHover.light, blockedTimePalette.bgHover.dark);
 
               return (
                 <div key={`blk-${idx}`} className="absolute start-12 end-2 z-10" style={{ top: pos.top, height: pos.height }}>
@@ -311,11 +310,11 @@ export function Timeline({
                       tabIndex={0}
                       aria-label={`حذف زمان استراحت ${blockedTimes[idx]?.start_time ?? ""}`}
                       className={`h-full border overflow-hidden flex cursor-pointer`}
-                      style={{ backgroundColor: t("#FFF8E1", "#1F1A0E"), borderColor: wbBorder }}
+                      style={{ backgroundColor: wb, borderColor: wbBorder }}
                       onClick={() => setConfirmRemoveIndex(idx)}
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setConfirmRemoveIndex(idx); }}
                       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = bh)}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = t("#FFF8E1", "#1F1A0E"))}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = wb)}
                     >
                       <div className="w-[3px] shrink-0" style={{ backgroundColor: wa as string }} />
                       <div className="flex-1 min-w-0 p-2">

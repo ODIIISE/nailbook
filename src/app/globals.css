@@ -184,6 +184,7 @@
   --z-base: 0;
   --z-sticky: 10;
   --z-header: 40;
+  --z-texture: 45;
   --z-dropdown: 50;
   --z-popover: 60;
   --z-sheet: 70;
@@ -251,6 +252,23 @@
   --shadow-floating: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 16px 40px rgba(0, 0, 0, 0.65);
 }
 
+
+/* ── Reduced motion (§40): reduce transforms/parallax/loops, keep feedback.
+    Scoped to elements opting into the motion system (Editorial mode); the
+    rest of the app is motion-free by default and needs no override. */
+@media (prefers-reduced-motion: reduce) {
+  [data-motion] *,
+  [data-motion] *::before,
+  [data-motion] *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
+  [data-motion] [data-motion-persist] {
+    animation-duration: 0.01ms;
+    transition-duration: 0.01ms;
+  }
+}
 
 /* ── Base ── */
 
@@ -394,6 +412,13 @@
   .text-caption {
     font-size: 12px;
     line-height: 1.45;
+    font-weight: 500;
+  }
+  /* Micro: the absolute minimum — non-interactive metadata only
+     (badges, kickers, weekday initials). Content text stays ≥ 12px. */
+  .text-micro {
+    font-size: 11px;
+    line-height: 1.4;
     font-weight: 500;
   }
   .text-small {

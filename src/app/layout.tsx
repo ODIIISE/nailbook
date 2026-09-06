@@ -34,6 +34,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
+  // <meta name="theme-color"> cannot read CSS variables — these hexes are the
+  // documented mirror of --night-900 (globals.css primitive). Update together.
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#171310" },
     { media: "(prefers-color-scheme: dark)", color: "#171310" },

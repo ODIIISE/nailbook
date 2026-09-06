@@ -80,7 +80,7 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </Link>
         <div className="text-center">
-          <span className="block text-[9px] font-extrabold tracking-[0.24em] text-muted-foreground" dir="ltr">
+          <span className="block text-micro font-extrabold tracking-[0.24em] text-muted-foreground" dir="ltr">
             NAILBOOK
           </span>
           <h2 className="text-lg font-bold">تأیید نوبت</h2>
@@ -107,7 +107,7 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
               </span>
             )}
             <span className="text-sm font-extrabold">{booking.salon_name}</span>
-            <span className={`ms-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold ${status.cls}`}>
+            <span className={`ms-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-micro font-bold ${status.cls}`}>
               <i className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
               {status.label}
             </span>

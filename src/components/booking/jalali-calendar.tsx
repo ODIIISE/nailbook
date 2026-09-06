@@ -384,7 +384,7 @@ function CalendarModal({
           </button>
         </div>
 
-        <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-muted-foreground">
+        <div className="grid grid-cols-7 gap-1 text-center text-micro font-bold text-muted-foreground">
           {PERSIAN_WEEKDAYS_SHORT.map((wd) => (
             <div key={wd} className="py-1">
               {wd}

@@ -47,7 +47,7 @@ export function BottomNav() {
                 className={`h-6 w-6 ${active ? "text-foreground" : "text-muted-foreground"}`}
                 strokeWidth={active ? 2.2 : 1.8}
               />
-              <span className={`text-[11px] leading-none ${active ? "font-semibold text-foreground" : "font-medium text-muted-foreground"}`}>
+              <span className={`text-micro leading-none ${active ? "font-semibold text-foreground" : "font-medium text-muted-foreground"}`}>
                 {label}
               </span>
             </Link>
