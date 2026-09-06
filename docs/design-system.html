@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Forehand Nailbook · Design System (Live)</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/aminabedi68/Estedad@v7.3/fonts/webfonts/variable/Estedad-FD%5BKSHD%2Cwght%5D.css">
+<style>
+  /* ════════════════════════════════════════════════════════════
+     This page documents the LIVE implemented system. Every value
+     below is copied 1:1 from src/app/globals.css, src/lib/design-tokens.ts
+     and src/components/landing/lux-home.module.css. When those change,
+     update this page — it is a mirror, not a source of truth.
+     ════════════════════════════════════════════════════════════ */
+  :root {
+    /* ── Warm atelier — Light (globals.css :root) ── */
+    --background:#faf7f2; --foreground:#2a231e; --card:#ffffff; --popover:#ffffff;
+    --primary:#2a231e; --primary-foreground:#faf7f2; --secondary:#f1ece4;
+    --secondary-foreground:#2a231e; --muted:#f1ece4; --muted-foreground:#7d7166;
+    --accent:#f6ede4; --accent-foreground:#4a3f36; --accent-soft:#f3e4da;
+    --accent-foreground-soft:#8a6552; --destructive:#dc2626; --success:#16a34a;
+    --warning:#b45309; --border:#eae3d9; --input:#eae3d9; --ring:#b0a396; --radius:12px;
+    --shadow-xs:0 1px 2px rgba(42,35,30,.04);
+    --shadow-card:0 1px 2px rgba(42,35,30,.04),0 2px 8px rgba(42,35,30,.04);
+    --shadow-elevated:0 2px 4px rgba(42,35,30,.06),0 8px 24px rgba(42,35,30,.08);
+    --shadow-floating:0 4px 8px rgba(42,35,30,.08),0 16px 40px rgba(42,35,30,.14);
+    /* ── Field / button heights (globals.css @theme) ── */
+    --field-xs:32px;--field-sm:36px;--field-md:40px;--field-lg:44px;--field-xl:48px;
+    --btn-xs:28px;--btn-sm:32px;--btn-md:36px;--btn-lg:40px;--btn-xl:48px;--btn-2xl:56px;
+    --frame-max-w:min(100vw,480px);
+    /* page chrome */
+    --page-bg:#faf7f2; --page-ink:#2a231e; --page-mut:#7d7166; --page-line:#eae3d9;
+  }
+  .dark {
+    /* ── Warm espresso — Dark (globals.css .dark) ── */
+    --background:#171310; --foreground:#f5f0e9; --card:#241d17; --popover:#241d17;
+    --primary:#f5f0e9; --primary-foreground:#241d17; --secondary:#2b241d;
+    --secondary-foreground:#f5f0e9; --muted:#2b241d; --muted-foreground:#beb1a3;
+    --accent:#2b241d; --accent-foreground:#f5f0e9; --accent-soft:#382a21;
+    --accent-foreground-soft:#dfa98b; --destructive:#ef4444; --success:#22c55e;
+    --warning:#f59e0b; --border:#3a3128; --input:#3a3128; --ring:#7d7166;
+    --shadow-xs:0 1px 2px rgba(0,0,0,.4);
+    --shadow-card:0 1px 0 rgba(255,255,255,.04) inset,0 2px 8px rgba(0,0,0,.5);
+    --shadow-elevated:0 1px 0 rgba(255,255,255,.05) inset,0 8px 24px rgba(0,0,0,.55);
+    --shadow-floating:0 1px 0 rgba(255,255,255,.06) inset,0 16px 40px rgba(0,0,0,.65);
+    --page-bg:#171310; --page-ink:#f5f0e9; --page-mut:#beb1a3; --page-line:#3a3128;
+    color-scheme:dark;
+  }
+  /* ── Lux homepage tokens (lux-home.module.css, espresso+gold) ── */
+  .lux-chip {
+    --lux-bg:#171310; --lux-ink:#f3ece2; --lux-muted:#a89e92; --lux-gold:#e2bd97;
+    --lux-accent:#f2cdad; --lux-accent-ink:#241708; --lux-cream:#e8e0d5;
+    --lux-line:rgba(243,236,226,.14);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { scroll-behavior:smooth; }
+  body {
+    font-family:'Estedad','Vazirmatn',system-ui,sans-serif;
+    background:var(--page-bg); color:var(--page-ink);
+    -webkit-font-smoothing:antialiased; transition:background .2s,color .2s;
+    font-feature-settings:"ss02";
+  }
+  ::selection { background:var(--accent-foreground-soft); color:var(--card); }
+  :focus-visible { outline:2px solid var(--lux-gold,#e2bd97); outline-offset:3px; border-radius:4px; }
+  code, .mono { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; direction:ltr; }
+
+  /* ── page shell ── */
+  .shell { max-width:1060px; margin:0 auto; padding:0 24px 120px; }
+  header.top {
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(14px);
+    background:color-mix(in srgb, var(--page-bg) 82%, transparent);
+    border-bottom:1px solid var(--page-line);
+  }
+  .top-in { max-width:1060px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; gap:14px; }
+  .mark { width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg,#e2bd97,#8a6552); display:grid; place-items:center; color:#241708; font-weight:800; font-size:15px; flex-shrink:0; }
+  .brand-txt { flex:1; min-width:0; }
+  .brand-txt b { display:block; font-size:15px; font-weight:800; }
+  .brand-txt span { font-size:10.5px; color:var(--page-mut); letter-spacing:.16em; }
+  .btn-theme { border:1.5px solid var(--page-line); background:var(--card); color:var(--page-ink); border-radius:12px; padding:8px 14px; font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  .btn-theme:hover { border-color:var(--ring); }
+
+  .hero { padding:56px 0 40px; }
+  .kicker { font-size:11px; font-weight:700; letter-spacing:.22em; color:var(--page-mut); direction:ltr; text-align:right; }
+  .hero h1 { font-size:clamp(28px,5vw,40px); font-weight:800; line-height:1.25; margin:10px 0 14px; }
+  .hero p { color:var(--page-mut); font-size:14.5px; line-height:2; max-width:62ch; }
+  .hero .en { direction:ltr; text-align:left; font-size:12px; color:var(--page-mut); margin-top:14px; letter-spacing:.04em; }
+
+  nav.jump { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 40px; }
+  nav.jump a {
+    text-decoration:none; color:var(--page-ink); font-size:12px; font-weight:600;
+    border:1px solid var(--page-line); background:var(--card); border-radius:999px; padding:7px 14px;
+    box-shadow:var(--shadow-xs);
+  }
+  nav.jump a:hover { border-color:var(--ring); }
+
+  section { margin:0 0 64px; scroll-margin-top:90px; }
+  .sec-head { display:flex; align-items:baseline; gap:14px; margin-bottom:6px; }
+  .sec-head .n { font-size:20px; font-weight:800; color:var(--accent-foreground-soft); }
+  .sec-head h2 { font-size:22px; font-weight:800; }
+  .sec-head .en { margin-inline-start:auto; font-size:9.5px; font-weight:800; letter-spacing:.22em; color:var(--page-mut); direction:ltr; }
+  .sec-sub { color:var(--page-mut); font-size:13px; line-height:2; margin-bottom:22px; max-width:70ch; }
+
+  .grid { display:grid; gap:14px; min-width:0; }
+  .grid > * { min-width:0; }
+  .g2 { grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); }
+  .g3 { grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); }
+  .g4 { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
+
+  .swatch {
+    background:var(--card); border:1px solid var(--page-line); border-radius:14px;
+    padding:14px; box-shadow:var(--shadow-xs); cursor:pointer; position:relative;
+    transition:border-color .15s;
+  }
+  .swatch:hover { border-color:var(--ring); }
+  .swatch .chip { height:56px; border-radius:10px; border:1px solid var(--page-line); margin-bottom:10px; }
+  .swatch b { display:block; font-size:12.5px; font-weight:800; }
+  .swatch code { display:block; font-size:10.5px; color:var(--page-mut); margin-top:3px; }
+  .swatch small { position:absolute; inset-inline-end:12px; top:12px; font-size:9.5px; font-weight:700; color:var(--accent-foreground-soft); opacity:0; transition:opacity .15s; }
+  .swatch:hover small, .swatch.copied small { opacity:1; }
+
+  .panel { background:var(--card); border:1px solid var(--page-line); border-radius:16px; padding:20px; box-shadow:var(--shadow-xs); }
+  .panel h4 { font-size:13px; font-weight:800; margin-bottom:4px; }
+  .panel .hint { font-size:11.5px; color:var(--page-mut); margin-bottom:16px; line-height:1.9; }
+
+  /* typography rows */
+  .t-row { display:flex; align-items:baseline; justify-content:space-between; gap:16px; padding:14px 0; border-bottom:1px solid var(--page-line); }
+  .t-row:last-child { border-bottom:0; }
+  .t-meta { font-size:10.5px; color:var(--page-mut); direction:ltr; white-space:nowrap; }
+  .t-meta b { color:var(--page-ink); }
+
+  /* real components (mirror of src/components/ui/) */
+  .rbtn {
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    border:1px solid transparent; border-radius:999px; font-family:inherit;
+    font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;
+    background:var(--primary); color:var(--primary-foreground);
+    box-shadow:var(--shadow-xs); height:var(--btn-lg); padding:0 20px;
+  }
+  .rbtn:hover { background:color-mix(in srgb,var(--primary) 85%, transparent); }
+  .rbtn:active { translate:0 1px; }
+  .rbtn.outline { background:var(--background); border-color:var(--border); color:var(--foreground); box-shadow:none; }
+  .rbtn.outline:hover { background:var(--muted); }
+  .rbtn.ghost { background:transparent; color:var(--foreground); box-shadow:none; }
+  .rbtn.ghost:hover { background:var(--muted); }
+  .rbtn.destructive { background:color-mix(in srgb,var(--destructive) 10%,transparent); color:var(--destructive); box-shadow:none; }
+  .rbtn.link { background:transparent; color:var(--primary); box-shadow:none; text-decoration:underline; text-underline-offset:4px; padding:0; }
+  .rbtn.xl { height:var(--btn-xl); padding:0 22px; font-size:14.5px; }
+  .rbtn[disabled] { opacity:.5; pointer-events:none; }
+  .rbtn .spin { width:16px; height:16px; border:2px solid currentColor; border-top-color:transparent; border-radius:50%; }
+
+  .rinp {
+    width:100%; border:1px solid var(--input); background:transparent; color:var(--foreground);
+    border-radius:14px; height:var(--field-xl); padding:0 14px; font:inherit; font-size:15px;
+    outline:none;
+  }
+  .rinp::placeholder { color:var(--muted-foreground); }
+  .rinp:focus-visible { border-color:var(--ring); box-shadow:0 0 0 3px color-mix(in srgb,var(--ring) 50%,transparent); }
+  .rinp.invalid { border-color:var(--destructive); box-shadow:0 0 0 3px color-mix(in srgb,var(--destructive) 20%,transparent); }
+
+  .rbadge { display:inline-flex; align-items:center; gap:6px; border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700; border:1px solid transparent; }
+
+  .rcard { background:var(--card); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-card); padding:16px; overflow:hidden; position:relative; }
+  .rcard h5 { font-size:16px; font-weight:700; }
+  .rcard p { font-size:13px; color:var(--muted-foreground); line-height:1.9; margin-top:6px; }
+
+  .rskel { border-radius:12px; background:linear-gradient(90deg, color-mix(in oklab,var(--muted) 80%,transparent) 25%, color-mix(in oklab,var(--muted) 100%,transparent) 50%, color-mix(in oklab,var(--muted) 80%,transparent) 75%); background-size:200% 100%; height:14px; }
+  .rskel + .rskel { margin-top:10px; }
+
+  /* lux demo (scoped exception) */
+  .lux-demo {
+    background:#171310; border:1px solid rgba(243,236,226,.14); border-radius:20px; padding:22px;
+    color:#f3ece2; display:flex; flex-direction:column; align-items:center; gap:14px;
+  }
+  .lux-demo .lword { font-family:'Great Vibes',cursive; font-size:34px; color:#e2bd97; text-shadow:0 0 30px rgba(226,189,151,.28); }
+  .lux-demo .ltitle { font-family:'Playfair Display',Georgia,serif; font-weight:600; font-size:31.4px; line-height:1.18; letter-spacing:.4px; }
+  .lux-demo .lbtn {
+    height:clamp(3.25rem,6.87dvh,58px); width:100%; max-width:340px; border-radius:999px; border:0;
+    background:linear-gradient(180deg,#f6d6b8,#eec6a2); color:#241708; font-family:'Estedad','Vazirmatn',sans-serif;
+    font-size:16px; font-weight:500; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 18px 36px -14px rgba(242,205,173,.42), inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  .lux-demo .lbtn.ghost { background:rgba(255,255,255,.02); border:1.5px solid rgba(243,236,226,.14); color:#f3ece2; font-weight:400; box-shadow:none; }
+  .lux-demo .lframe { aspect-ratio:5/6; width:min(240px,100%); border-radius:1.875rem; overflow:hidden; background:linear-gradient(160deg,#3a2c22,#1d1712); box-shadow:0 2.75rem 5.5rem -2rem rgba(0,0,0,.7); position:relative; }
+  .lux-demo .lframe::after { content:""; position:absolute; inset:0; border-radius:inherit; box-shadow:inset 0 1px 0 rgba(255,255,255,.16), inset 0 0 0 1px rgba(255,255,255,.06); }
+  .lux-demo .ldots { display:flex; gap:5px; justify-content:center; }
+  .lux-demo .ldots i { width:6px; height:6px; border-radius:99px; background:rgba(243,236,226,.14); }
+  .lux-demo .ldots i.on { width:18px; background:#e8e0d5; }
+  .lux-demo .lbadge { position:relative; width:56px; height:56px; margin-top:-2px; }
+  .lux-demo .lbadge .ring { position:absolute; inset:0; animation:lspin 18s linear infinite; }
+  .lux-demo .lbadge .core { position:absolute; inset:0; margin:auto; width:34px; height:34px; border-radius:50%; border:0; background:linear-gradient(180deg,#2c2622,#211c18); color:#f3ece2; display:grid; place-items:center; box-shadow:0 6px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.07); }
+  @keyframes lspin { to { transform:rotate(360deg); } }
+  @media (prefers-reduced-motion:reduce) { .lux-demo .lbadge .ring { animation:none; } }
+
+  .tbl { width:100%; border-collapse:collapse; font-size:12.5px; }
+  .tbl-scroll { overflow-x:auto; }
+  .tbl th { text-align:start; font-size:11px; color:var(--page-mut); font-weight:700; padding:8px 10px; border-bottom:1px solid var(--page-line); }
+  .tbl td { padding:9px 10px; border-bottom:1px solid var(--page-line); vertical-align:middle; }
+  .tbl td:first-child { font-weight:600; }
+
+  .pill-dot { width:12px; height:12px; border-radius:4px; display:inline-block; margin-inline-end:8px; vertical-align:-1px; border:1px solid var(--page-line); }
+
+  .note {
+    border:1px solid var(--page-line); border-inline-start:3px solid var(--accent-foreground-soft);
+    background:var(--accent); border-radius:12px; padding:14px 16px; font-size:12.5px; line-height:2; color:var(--foreground);
+  }
+  .note.warn { border-inline-start-color:var(--warning); }
+
+  footer.foot { border-top:1px solid var(--page-line); margin-top:40px; padding-top:24px; color:var(--page-mut); font-size:11.5px; line-height:2; }
+  @media (max-width:640px){
+    .g2,.g3 { grid-template-columns:1fr; }
+    .g4 { grid-template-columns:1fr 1fr; }
+    .t-row { flex-direction:column; gap:4px; }
+    .lux-demo .lbtn, .lux-demo .ltitle { max-width:100%; }
+  }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/css/great-vibes@latest/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/css/playfair-display@latest/600.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="mark">ف</div>
+    <div class="brand-txt">
+      <b>Forehand Nailbook — سیستم طراحی</b>
+      <span dir="ltr">DESIGN SYSTEM · LIVE MIRROR</span>
+    </div>
+    <button class="btn-theme" id="themeBtn" aria-label="تغییر حالت روشن/تیره">🌙 تیره</button>
+  </div>
+</header>
+
+<div class="shell">
+
+  <div class="hero">
+    <div class="kicker">FOREHAND NAILBOOK · v1.0</div>
+    <h1>یک پالت گرم، دو تم، صفر حرکت — و یک استثنای لوکس</h1>
+    <p>
+      این صفحه آینه‌ی <b>چیزی که واقعاً پیاده‌سازی شده</b> است — نه چیزی که باید باشد.
+      همه‌ی مقدارها ۱:۱ از <code>globals.css</code>، <code>design-tokens.ts</code> و <code>lux-home.module.css</code> کپی شده‌اند.
+      روی هر سواچ کلیک کنید تا مقدار آن کپی شود.
+    </p>
+    <div class="en">Warm atelier (light + dark) for the whole app · Lux espresso/gold as a scoped homepage exception · Estedad FD typography · Persian-first RTL.</div>
+  </div>
+
+  <nav class=" jump" aria-label="فهرست بخش‌ها">
+    <a href="#color">رنگ</a>
+    <a href="#type">تایپوگرافی</a>
+    <a href="#scale">مقیاس و شعاع</a>
+    <a href="#elev">سطوح و ارتفاع</a>
+    <a href="#buttons">دکمه‌ها</a>
+    <a href="#inputs">فرم‌ها</a>
+    <a href="#status">وضعیت‌ها</a>
+    <a href="#categorical">پالت‌های داده‌محور</a>
+    <a href="#lux">استثنای لوکس (صفحه اصلی)</a>
+    <a href="#motion">سیاست حرکت</a>
+    <a href="#inventory">فهرست کامپوننت‌ها</a>
+    <a href="#rules">قواعد</a>
+  </nav>
+
+  <!-- ═══════════ 1. COLOR ═══════════ -->
+  <section id="color">
+    <div class="sec-head"><span class="n">۰۱</span><h2>رنگ — آتلیه گرم</h2><span class="en">SEMANTIC TOKENS</span></div>
+    <p class="sec-sub">
+      یک پالت معنایی برای کل اپ (به‌جز صفحه اصلی لوکس). توکن معنایی همیشه — رنگ خام در کامپوننت ممنوع.
+      با کلید تیره‌ی بالا، کل جدول را در تم اسپرسو هم ببینید.
+    </p>
+    <div class="grid g4" id="swatches"></div>
+    <div class="note" style="margin-top:18px">
+      قاعده‌ی متغیر-اول: همیشه <code>bg-primary</code>، <code>text-muted-foreground</code>، <code>border-border</code> — هرگز <code>bg-white</code> یا <code>text-black</code> خام.
+      تم تیره فقط با کلاس <code>.dark</code> روی <code>&lt;html&gt;</code> و از طریق همین توکن‌ها کار می‌کند.
+    </div>
+  </section>
+
+  <!-- ═══════════ 2. TYPE ═══════════ -->
+  <section id="type">
+    <div class="sec-head"><span class="n">۰۲</span><h2>تایپوگرافی — استعداد FD</h2><span class="en">TYPE SCALE</span></div>
+    <p class="sec-sub">
+      یک فونت: <b>Estedad FD</b> (وزن متغیر ۱۰۰–۹۰۰، ارقام فارسی) از CDN با preload. فونت لاتین نمایشی ممنوع — «فورهند» با همین فونت نوشته می‌شود.
+      <code>font-synthesis: none</code> سراسری است (ایتالیک ساختگی ممنوع). ارقام لاتین/کدها داخل <code>dir="ltr"</code>.
+    </p>
+    <div class="panel" id="typerows"></div>
+  </section>
+
+  <!-- ═══════════ 3. SCALE ═══════════ -->
+  <section id="scale">
+    <div class="sec-head"><span class="n">۰۳</span><h2>شعاع، فاصله، قاب</h2><span class="en">RADIUS · SPACING · FRAME</span></div>
+    <div class="grid g2">
+      <div class="panel">
+        <h4>شعاع‌ها (از <code>--radius: 12px</code>)</h4>
+        <div class="hint">مقادیر مشتق‌شده — همه از یک توکن پایه.</div>
+        <div class="grid g4" id="radiusRow"></div>
+      </div>
+      <div class="panel">
+        <h4>ارتفاع‌های استاندارد</h4>
+        <div class="hint">دکمه‌ها و فیلدها هرگز ارتفاع دلخواه نمی‌گیرند — از این نردبان.</div>
+        <table class="tbl">
+          <tr><th>دکمه</th><th>فیلد</th></tr>
+          <tr><td><span class="pill-dot" style="background:var(--primary)"></span>xs ۲۸px … 2xl ۵۶px</td><td><span class="pill-dot" style="background:var(--primary)"></span>xs ۳۲px … xl ۴۸px</td></tr>
+          <tr><td colspan="2" dir="ltr" style="font-family:ui-monospace;font-size:11px">--btn-xs:28 · sm:32 · md:36 · lg:40 · xl:48 · 2xl:56&nbsp;&nbsp;|&nbsp;&nbsp;--field-xs:32 · sm:36 · md:40 · lg:44 · xl:48</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="note" style="margin-top:14px">
+      قاب مشترک: <code>--frame-max-w: min(100vw, 480px)</code> — موبایل‌اول؛ دسکتاپ فقط وسط‌چین می‌کند. گوتر صفحه <code>px-5</code>، ریتم بخش‌ها <code>space-y-*</code>، لایه امن <code>env(safe-area-inset-*)</code>.
+      هدف لمس حداقل ۴۴px.
+    </div>
+  </section>
+
+  <!-- ═══════════ 4. ELEVATION ═══════════ -->
+  <section id="elev">
+    <div class="sec-head"><span class="n">۰۴</span><h2>سطح و سایه</h2><span class="en">SURFACES · ELEVATION</span></div>
+    <p class="sec-sub">سه سطح از <code>--shadow-xs</code> تا <code>--shadow-floating</code>. در تم تیره، ارتفاع با های‌لایت داخلی + هاله‌ی سیاه ساخته می‌شود، نه سایه‌ی رنگی.</p>
+    <div class="grid g3">
+      <div class="panel" style="box-shadow:var(--shadow-xs)"><h4>surface / xs</h4><div class="hint">کارت‌های عادی — <code>.surface</code></div></div>
+      <div class="panel" style="box-shadow:var(--shadow-elevated)"><h4>surface-strong / elevated</h4><div class="hint">کارت‌های برجسته — <code>.surface-strong</code></div></div>
+      <div class="panel" style="box-shadow:var(--shadow-floating)"><h4>surface-floating</h4><div class="hint">پاپ‌اور و شیت‌ها — <code>.surface-floating</code></div></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 5. BUTTONS ═══════════ -->
+  <section id="buttons">
+    <div class="sec-head"><span class="n">۰۵</span><h2>دکمه‌ها</h2><span class="en">BUTTONS</span></div>
+    <p class="sec-sub">شادک‌نوی روی <code>@base-ui/react</code> — آینه‌ی <code>src/components/ui/button.tsx</code>. دکمه‌ی اصلی عمل = رنگ مرکب (espresso روی کرم).</p>
+    <div class="panel" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+      <button class="rbtn xl">شروع رزرو</button>
+      <button class="rbtn outline">انصراف</button>
+      <button class="rbtn ghost">نمونه کارها</button>
+      <button class="rbtn destructive">حذف نوبت</button>
+      <button class="rbtn link">مشاهده همه</button>
+      <button class="rbtn" disabled>غیرفعال</button>
+      <button class="rbtn"><span class="spin"></span> در حال ثبت…</button>
+    </div>
+    <div class="note" style="margin-top:14px">
+      قاعده‌ها: دکمه‌ی تمام‌عرض CTA با <code>h-12</code>/<code>h-14</code>؛ دکمه‌ی آیکونی گرد ۴۴px؛ حالت بارگذاری همیشه اسپینر + برچسب متنی، نه اسپینر تنها.
+      <b>حرکت نداریم</b> — تغییر حالت‌ها فوری‌اند؛ فقط <code>:active</code> یک پیکسل پایین می‌رود.
+    </div>
+  </section>
+
+  <!-- ═══════════ 6. INPUTS ═══════════ -->
+  <section id="inputs">
+    <div class="sec-head"><span class="n">۰۶</span><h2>فرم‌ها</h2><span class="en">INPUTS · FIELDS</span></div>
+    <div class="grid g2">
+      <div class="panel">
+        <h4>فیلدها — ارتفاع xl پیش‌فرض</h4>
+        <div class="hint">حاشیه با <code>--input</code>، فوکوس با رینگ ۳px نیمه‌شفاف.</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <input class="rinp" placeholder="شماره موبایل — ۰۹۱۲۱۲۳۴۵۶۷">
+          <input class="rinp" value="نام سالن — Forehand Nail Studio">
+          <input class="rinp invalid" value="شماره نامعتبر">
+        </div>
+      </div>
+      <div class="panel">
+        <h4>الگوی مقادیر</h4>
+        <div class="hint">ارقام فارسی خودکار؛ شماره/زمان <code>dir="ltr"</code>؛ تقویم جلالی.</div>
+        <table class="tbl">
+          <tr><th>نمونه</th><th>رندر</th></tr>
+          <tr><td>قیمت</td><td><b dir="rtl">۴۵۰٬۰۰۰ تومان</b></td></tr>
+          <tr><td>زمان</td><td dir="ltr">14:30</td></tr>
+          <tr><td>تاریخ جلالی</td><td dir="rtl">۱۵ شهریور ۱۴۰۵</td></tr>
+          <tr><td>تلفن</td><td dir="ltr">0912-123-4567</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 7. STATUS ═══════════ -->
+  <section id="status">
+    <div class="sec-head"><span class="n">۰۷</span><h2>نشان‌های وضعیت</h2><span class="en">STATUS BADGES</span></div>
+    <p class="sec-sub">منبع واحد: <code>statusBadgeClass</code> در <code>design-tokens.ts</code> — همه با پس‌زمینه‌ی ۱۰٪ و رنگ معنایی، theme-aware.</p>
+    <div class="panel" style="display:flex;flex-wrap:wrap;gap:10px" id="statusRow"></div>
+  </section>
+
+  <!-- ═══════════ 8. CATEGORICAL ═══════════ -->
+  <section id="categorical">
+    <div class="sec-head"><span class="n">۰۸</span><h2>پالت‌های داده‌محور</h2><span class="en">CATEGORICAL PALETTES</span></div>
+    <p class="sec-sub">رنگ‌های خام فقط اینجا مجازند — برای دیتا (تایم‌لاین، چارت)، نه UI.</p>
+    <div class="grid g2">
+      <div class="panel">
+        <h4>پالت خدمات تایم‌لاین</h4>
+        <div class="hint"><code>servicePalette</code> — بلوک‌های رزرو در تقویم مدیر.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="svcRow"></div>
+      </div>
+      <div class="panel">
+        <h4>رنگ‌های چارت مدیر</h4>
+        <div class="hint"><code>chartColors</code> — وضعیت رزروها در داشبورد.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="chartRow"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 9. LUX ═══════════ -->
+  <section id="lux">
+    <div class="sec-head"><span class="n">۰۹</span><h2>استثنای لوکس — صفحه اصلی</h2><span class="en">SCOPED EXCEPTION</span></div>
+    <p class="sec-sub">
+      صفحه‌ی اصلی مشتری یک <b>استثنای عمدی و تأییدشده</b> است: اسپرسو + طلایی، فونت‌های Great Vibes / Playfair، و حرکت
+      (موتور نوسان، پارالاکس، اسلایدشو) — همه فقط داخل <code>lux-home.module.css</code> زندانی‌اند و به بقیه اپ نشت نمی‌کنند.
+      بقیه‌ی اپ صفر-حرکت می‌ماند و این استثنا در <code>no-motion.test.ts</code> صریحاً allowlist شده.
+    </p>
+    <div class="grid g2">
+      <div class="lux-demo">
+        <div class="lword">Forehand</div>
+        <div class="ltitle">Forehand Nail Studio</div>
+        <div style="font-size:12px;color:#a89e92;line-height:1.9">تجربه‌ای آرام و دقیق برای ناخن‌هایی که امضای تو هستند</div>
+        <div class="lframe"></div>
+        <div class="ldots"><i></i><i class="on"></i><i></i></div>
+      </div>
+      <div>
+        <div class="panel" style="margin-bottom:14px">
+          <h4>توکن‌های لوکس (محلی به ماژول)</h4>
+          <div class="tbl-scroll"><table class="tbl" id="luxTable"></table></div>
+        </div>
+        <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+          <h4>دکمه‌های لوکس — با فونت استعداد</h4>
+          <button class="lbtn lux-target" style="all:unset;display:flex;align-items:center;justify-content:center;height:clamp(3.25rem,6.87dvh,58px);max-width:340px;width:100%;border-radius:999px;background:linear-gradient(180deg,#f6d6b8,#eec6a2);color:#241708;font-size:16px;font-weight:500;box-shadow:0 18px 36px -14px rgba(242,205,173,.42),inset 0 1px 0 rgba(255,255,255,.5)">رزرو نوبت</button>
+          <button class="lbtn lux-target ghost" style="all:unset;display:flex;align-items:center;justify-content:center;height:clamp(3.25rem,6.87dvh,58px);max-width:340px;width:100%;border-radius:999px;border:1.5px solid rgba(243,236,226,.14);background:rgba(255,255,255,.02);color:#f3ece2;font-size:16px;font-weight:400">نمونه کارها</button>
+        </div>
+      </div>
+    </div>
+    <div class="note warn" style="margin-top:14px">
+      مرز: استایل لوکس فقط در <code>lux-home.*</code> می‌ماند. هیچ توکن لوکسی به <code>globals.css</code> اضافه نمی‌شود و هیچ کلاسی از آن در روت‌های دیگر استفاده نمی‌شود.
+      صفحه اصلی عمداً یک-ویوپورت است (۱۰۰dvh) و به ارتفاع صفحه پاسخ می‌دهد؛ همه‌ی روت‌های دیگر اسکرول عادی دارند.
+    </div>
+  </section>
+
+  <!-- ═══════════ 10. MOTION ═══════════ -->
+  <section id="motion">
+    <div class="sec-head"><span class="n">۱۰</span><h2>سیاست حرکت</h2><span class="en">MOTION POLICY</span></div>
+    <div class="grid g2">
+      <div class="panel">
+        <h4>بقیه‌ی اپ — صفر حرکت</h4>
+        <div class="hint">تغییر حالت‌ها فوری‌اند. این یک انتخاب برند است، نه محدودیت فنی.</div>
+        <ul style="font-size:12.5px;line-height:2.2;padding-inline-start:18px">
+          <li>ممنوع: <code>transition</code> · <code>animation</code> · <code>animate-*</code> · <code>framer-motion</code> · drag/swipe</li>
+          <li>مجاز: بازخورد لمسی (haptics) — فیدبک است نه حرکت</li>
+          <li>نیروی قانون: <code>no-motion.test.ts</code> بیلد را می‌شکند</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h4>صفحه اصلی لوکس — حرکت تأییدشده</h4>
+        <div class="hint">فقط transform/opacity؛ رندر با کاهش-حرکت کاربر محترم است.</div>
+        <ul style="font-size:12.5px;line-height:2.2;padding-inline-start:18px">
+          <li>اسلایدشو: فریم ثابت ۵:۶ + <code>object-fit:cover</code>، اتوپلی که به تعامل کاربر تن می‌دهد</li>
+          <li>ورود یک‌باره (choreography) سپس توقف — حلقه‌ی بی‌پایان فقط: رینگ مداری + درخشش CTA</li>
+          <li>پاسخ به ارتفاع: کلمپ‌های dvh — چیدمان مرجع ۸۴۴px پیکسل‌به‌پیکسل حفظ می‌شود</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 11. INVENTORY ═══════════ -->
+  <section id="inventory">
+    <div class="sec-head"><span class="n">۱۱</span><h2>فهرست کامپوننت‌ها</h2><span class="en">COMPONENT INVENTORY</span></div>
+    <div class="grid g3">
+      <div class="panel">
+        <h4>پایه‌ها</h4>
+        <div class="hint"><code>src/components/ui/</code></div>
+        <div style="font-size:12px;line-height:2.1">
+          Button · Card · Input · Label · Select · Tabs · Badge · Switch · Separator · Skeleton · Tooltip
+        </div>
+      </div>
+      <div class="panel">
+        <h4>لایه‌ها</h4>
+        <div class="hint">همه با focus-trap + Escape + بک‌دراپ</div>
+        <div style="font-size:12px;line-height:2.1">
+          Dialog · AlertDialog · Sheet · Drawer · BottomSheet · DropdownMenu · Sonner (toast)
+        </div>
+      </div>
+      <div class="panel">
+        <h4>ویژه‌ی دامنه</h4>
+        <div class="hint">از این‌ها خارج از کاربردشان نسازید</div>
+        <div style="font-size:12px;line-height:2.1">
+          ImageCrop · ServiceImage · StickyActionBar · SalonGuard · ThemeToggle · ErrorBoundary · LuxHome (صفحه اصلی)
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 12. RULES ═══════════ -->
+  <section id="rules">
+    <div class="sec-head"><span class="n">۱۲</span><h2>قواعد طلایی</h2><span class="en">DO & DON'T</span></div>
+    <div class="grid g2">
+      <div class="panel">
+        <h4>بکن ✅</h4>
+        <ul style="font-size:12.5px;line-height:2.3;padding-inline-start:18px">
+          <li>توکن معنایی — همیشه</li>
+          <li>خصوصیت منطقی (<code>ps/pe/ms/me/start/end</code>) — هرگز فیزیکی</li>
+          <li>ارقام فارسی + تاریخ جلالی؛ <code>dir="ltr"</code> برای شماره/زمان</li>
+          <li>هدف لمس ≥ ۴۴px، فوکوس‌رینگ، Escape روی همه‌ی لایه‌ها</li>
+          <li>قبل از UI جدید: اول دیتاستیت‌ها (خالی/بارگذاری/خطا/جزیی)</li>
+          <li>چک نهایی: <code>npm run check</code> + بررسی واقعی ۳۹۰px و ≥۱۲۸۰px، هر دو تم، بدون خطای کنسول</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h4>نکن ❌</h4>
+        <ul style="font-size:12.5px;line-height:2.3;padding-inline-start:18px">
+          <li>هگز خام در کامپوننت (فقط در <code>design-tokens.ts</code> برای دیتا)</li>
+          <li>حرکت خارج از LuxHome — تست گیت اجازه نمی‌دهد</li>
+          <li>فونت لاتین نمایشی در اپ اصلی</li>
+          <li>کارت داخل کارت؛ سایه‌ی رنگی در تم تیره</li>
+          <li>استایل لوکس بیرون از <code>lux-home.*</code> — نشت ممنوع</li>
+          <li>ویژگی قلابی: toast الکی، «به‌زودی»، دیتای نمایشی hardcode شده</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <b>Forehand Nailbook · Design System 1.0 (live mirror)</b> — ساخته‌شده از توکن‌های واقعی داخل <code>globals.css</code> و <code>design-tokens.ts</code> و <code>lux-home.module.css</code>.
+    وقتی آن‌ها تغییر کنند، این صفحه باید به‌روز شود. سواچ‌ها با کلیک کپی می‌شوند.
+  </footer>
+</div>
+
+<script>
+  /* ── theme toggle ── */
+  const btn = document.getElementById('themeBtn');
+  const root = document.documentElement;
+  const setTheme = (dark) => {
+    root.classList.toggle('dark', dark);
+    btn.textContent = dark ? '☀️ روشن' : '🌙 تیره';
+    try { localStorage.setItem('ds-theme', dark ? 'dark' : 'light'); } catch (e) {}
+  };
+  let saved = null; try { saved = localStorage.getItem('ds-theme'); } catch (e) {}
+  setTheme(saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches);
+  btn.addEventListener('click', () => setTheme(!root.classList.contains('dark')));
+
+  /* ── copy-on-click ── */
+  const copy = (el, val) => {
+    const done = () => { el.classList.add('copied'); const s = el.querySelector('small') || el; const old = s.textContent; if (el.querySelector('small')) { s.textContent = 'کپی شد ✓'; setTimeout(() => s.textContent = 'Click to copy', 900); } };
+    try { navigator.clipboard.writeText(val).then(done, done); } catch (e) { done(); }
+  };
+
+  /* ── semantic swatches (exact globals.css values, light + dark) ── */
+  const semantic = [
+    ['background · کرم کاغذی', '--background', '#faf7f2', '#171310', 'پس‌زمینه صفحه'],
+    ['foreground · اسپرسو', '--foreground', '#2a231e', '#f5f0e9', 'متن اصلی'],
+    ['card · سفید', '--card', '#ffffff', '#241d17', 'کارت و شیت'],
+    ['primary', '--primary', '#2a231e', '#f5f0e9', 'اکشن اصلی'],
+    ['secondary / muted', '--secondary', '#f1ece4', '#2b241d', 'سطح ثانویه'],
+    ['muted-foreground', '--muted-foreground', '#7d7166', '#beb1a3', 'متن محو'],
+    ['accent', '--accent', '#f6ede4', '#2b241d', 'های‌لایت تعامل'],
+    ['accent-soft', '--accent-soft', '#f3e4da', '#382a21', 'انتخاب/آیکون'],
+    ['accent-fg-soft', '--accent-foreground-soft', '#8a6552', '#dfa98b', 'تأکید گرم'],
+    ['border / input', '--border', '#eae3d9', '#3a3128', 'حاشیه‌ها'],
+    ['ring', '--ring', '#b0a396', '#7d7166', 'فوکوس‌رینگ'],
+    ['destructive', '--destructive', '#dc2626', '#ef4444', 'خطا/حذف'],
+    ['success', '--success', '#16a34a', '#22c55e', 'موفقیت'],
+    ['warning', '--warning', '#b45309', '#f59e0b', 'هشدار'],
+  ];
+  const sw = document.getElementById('swatches');
+  semantic.forEach(([name, token, light, dark, use]) => {
+    const d = document.createElement('div');
+    d.className = 'swatch';
+    d.innerHTML = `<div class="chip" style="background:var(${token})"></div><b>${name}</b><code>${token}</code><small>Click to copy</small>
+      <div style="display:flex;gap:4px;margin-top:6px"><span class="mono" style="font-size:9px;color:var(--page-mut)">${light}</span><span class="mono" style="font-size:9px;color:var(--page-mut)">· ${dark}</span></div>`;
+    d.addEventListener('click', () => copy(d, token + ': ' + light + ' / ' + dark));
+    sw.appendChild(d);
+  });
+
+  /* ── type scale (globals.css utilities) ── */
+  const typeRows = [
+    ['.text-display', '28px', '700', 'نمایش/قهرمان', 'برای تیترهای بزرگ صفحات'],
+    ['.text-h1', '24px', '700', 'تیتر صفحه', 'عنوان اصلی هر صفحه'],
+    ['.text-h2', '20px', '600', 'عنوان بخش', 'هدر کارت‌ها'],
+    ['.text-h3', '16px', '600', 'زیرعنوان', 'عنوان آیتم'],
+    ['.text-body-lg', '16px', '400', 'متن بزرگ', 'متن خواندنی مهم'],
+    ['.text-body', '14px', '400', 'متن بدنه', 'پیش‌فرض'],
+    ['.text-caption', '12px', '500', 'کپشن', 'برچسب و متادیتا'],
+    ['.text-small', '12px', '400', 'کوچک', 'کف نردبان — کوچک‌تر ممنوع'],
+  ];
+  const tr = document.getElementById('typerows');
+  typeRows.forEach(([cls, size, weight, fa, use]) => {
+    const d = document.createElement('div');
+    d.className = 't-row';
+    d.innerHTML = `<div style="${cls === '.text-display' ? 'font-size:28px;line-height:1.15;font-weight:700;letter-spacing:-.02em' : cls === '.text-h1' ? 'font-size:24px;line-height:1.2;font-weight:700;letter-spacing:-.015em' : cls === '.text-h2' ? 'font-size:20px;line-height:1.25;font-weight:600;letter-spacing:-.01em' : cls === '.text-h3' ? 'font-size:16px;line-height:1.35;font-weight:600' : cls === '.text-body-lg' ? 'font-size:16px;line-height:1.6;font-weight:400' : cls === '.text-body' ? 'font-size:14px;line-height:1.55;font-weight:400' : cls === '.text-caption' ? 'font-size:12px;line-height:1.45;font-weight:500' : 'font-size:12px;line-height:1.4;font-weight:400'}">خدمتت را انتخاب کن</div><div class="t-meta"><b>${cls}</b> · ${size} · ${weight} — ${use}</div>`;
+    tr.appendChild(d);
+  });
+
+  /* ── radius ── */
+  const radiuses = [['r-sm', '8px', 'چیپ/بج'], ['r-md', '10px', 'بج'], ['r-lg = radius', '12px', 'پایه'], ['r-xl', '16px', 'مودال']];
+  const rr = document.getElementById('radiusRow');
+  radiuses.forEach(([n, v, use]) => {
+    const d = document.createElement('div');
+    d.className = 'swatch';
+    d.innerHTML = `<div class="chip" style="border-radius:${v};background:var(--accent);height:44px"></div><b>${n}</b><code>${v}</code><small>Click to copy</small>`;
+    d.addEventListener('click', () => copy(d, n + ': ' + v));
+    rr.appendChild(d);
+  });
+
+  /* ── status badges (design-tokens.ts) ── */
+  const statuses = [
+    ['pending', 'در انتظار', 'bg-muted text-muted-foreground'],
+    ['reserved', 'رزرو شده', 'bg-primary/10 text-primary'],
+    ['confirmed', 'تأیید شده', 'bg-success/10 text-success'],
+    ['in_progress', 'در حال انجام', 'bg-amber-500/10 text-amber-700'],
+    ['completed', 'تمام شده', 'bg-violet-500/10 text-violet-700'],
+    ['cancelled', 'لغو شده', 'bg-destructive/10 text-destructive'],
+    ['no_show', 'نیامده', 'bg-amber-500/10 text-amber-700'],
+  ];
+  const srow = document.getElementById('statusRow');
+  statuses.forEach(([key, fa, cls]) => {
+    const color = key === 'pending' ? 'var(--muted-foreground)' : key === 'reserved' ? 'var(--primary)' : key === 'confirmed' ? 'var(--success)' : key === 'completed' ? '#6d28d9' : key === 'cancelled' ? 'var(--destructive)' : '#b45309';
+    const bg = key === 'pending' ? 'var(--muted)' : `color-mix(in srgb, ${color} 10%, transparent)`;
+    const d = document.createElement('span');
+    d.className = 'rbadge';
+    d.style.cssText = `background:${bg};color:${color}`;
+    d.textContent = fa;
+    d.title = cls;
+    d.addEventListener('click', () => copy(d.parentElement, cls));
+    srow.appendChild(d);
+  });
+  const hintS = document.createElement('div');
+  hintS.style.cssText = 'width:100%;font-size:11px;color:var(--page-mut);margin-top:8px';
+  hintS.textContent = 'منبع: statusBadgeClass — روی هر نشان کلیک کنید تا کلاس آن کپی شود.';
+  srow.appendChild(hintS);
+
+  /* ── categorical palettes (design-tokens.ts) ── */
+  const svc = [["#FDA4AF","#FFF5F6"],["#FCD34D","#FFFCF0"],["#6EE7B7","#F0FDF8"],["#93C5FD","#F0F7FF"],["#C4B5FD","#F5F3FF"]];
+  const svcRow = document.getElementById('svcRow');
+  svc.forEach(([accent, bg], i) => {
+    const d = document.createElement('div');
+    d.style.cssText = `width:86px;height:56px;border-radius:12px;background:${bg};border:1.5px solid ${accent};display:flex;align-items:center;justify-content:center;color:${accent};font-size:11px;font-weight:700;cursor:pointer`;
+    d.textContent = `سرویس ${['۱','۲','۳','۴','۵'][i]}`;
+    d.addEventListener('click', () => copy(d, accent));
+    svcRow.appendChild(d);
+  });
+  const chart = [["رزرو","#18181B","#FAFAFA"],["تأیید","#16A34A","#22C55E"],["تکمیل","#7C3AED","#A78BFA"],["لغو","#DC2626","#EF4444"],["محور","#A1A1AA","#52525B"]];
+  const chartRow = document.getElementById('chartRow');
+  chart.forEach(([name, light, dark]) => {
+    const d = document.createElement('div');
+    d.style.cssText = `display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;background:var(--card);border:1px solid var(--page-line);border-radius:10px;padding:8px 12px;cursor:pointer`;
+    d.innerHTML = `<span class="pill-dot" style="background:${light};border:0"></span>${name} <span class="mono" style="font-size:9.5px;color:var(--page-mut)">${light}·${dark}</span>`;
+    d.addEventListener('click', () => copy(d, light + ' / ' + dark));
+    chartRow.appendChild(d);
+  });
+
+  /* ── lux tokens (lux-home.module.css) ── */
+  const lux = [
+    ['--bg', '#171310', 'اسپرسوی پایه'],
+    ['--ink', '#f3ece2', 'متن لوکس'],
+    ['--muted', '#a89e92', 'متن محو'],
+    ['--gold', '#e2bd97', 'طلایی — ورد‌مارک'],
+    ['--accent', '#f2cdad', 'شامپاینی — CTA'],
+    ['--cream', '#e8e0d5', 'کرم — نقاط فعال'],
+  ];
+  const lt = document.getElementById('luxTable');
+  lux.forEach(([tok, val, use]) => {
+    const tr2 = document.createElement('tr');
+    tr2.style.cursor = 'pointer';
+    tr2.innerHTML = `<td><span class="pill-dot" style="background:${val};border:0"></span><code>${tok}</code></td><td class="mono" style="font-size:11px">${val}</td><td style="font-size:11.5px;color:var(--page-mut)">${use}</td>`;
+    tr2.addEventListener('click', () => copy(lt, tok + ': ' + val));
+    lt.appendChild(tr2);
+  });
+</script>
+</body>
+</html>
