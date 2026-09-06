@@ -11,9 +11,8 @@ import {
   type TouchEvent as ReactTouchEvent,
 } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useMenu } from "@/components/layout/menu-context";
 import styles from "./lux-home.module.css";
 
 const d = (v: string) => ({ "--d": v }) as CSSProperties;
@@ -35,7 +34,7 @@ const X_ICON = (
 export function LuxHome() {
   const router = useRouter();
   const { salon, highlights } = useSalon();
-  const { user, logout } = useAuth();
+  const { openMenu } = useMenu();
 
   const [ready, setReady] = useState(false);
   const [settled, setSettled] = useState(false);
@@ -46,8 +45,6 @@ export function LuxHome() {
   const [autoplayTick, setAutoplayTick] = useState(0);
   const [lookbookOpen, setLookbookOpen] = useState(false);
   const [addrOpen, setAddrOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [confirmLogout, setConfirmLogout] = useState(false);
 
   const scrollRef = useRef<HTMLElement | null>(null);
   const parRef = useRef<HTMLDivElement | null>(null);
@@ -200,18 +197,15 @@ export function LuxHome() {
     goToSlide(dx < 0 ? slide + 1 : slide - 1);
   };
 
-  /* Escape closes any open layer (drawer / lookbook sheet) */
+  /* Escape closes the lookbook sheet (the app menu handles its own Escape) */
   useEffect(() => {
-    if (!lookbookOpen && !drawerOpen) return;
+    if (!lookbookOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setLookbookOpen(false);
-        setDrawerOpen(false);
-      }
+      if (e.key === "Escape") setLookbookOpen(false);
     };
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
-  }, [lookbookOpen, drawerOpen]);
+  }, [lookbookOpen]);
 
   /* Haptics (delegated; no-op where unsupported, e.g. iOS Safari) */
   const buzz = (e: ReactPointerEvent) => {
@@ -220,14 +214,7 @@ export function LuxHome() {
   };
 
   const openDrawer = () => {
-    setConfirmLogout(false);
-    setDrawerOpen(true);
-  };
-  const handleLogout = async () => {
-    setConfirmLogout(false);
-    setDrawerOpen(false);
-    await logout();
-    router.push("/login");
+    openMenu();
   };
 
   const lookbookTitle = salon?.lookbook_title || "نمونه‌کارها";
@@ -253,7 +240,7 @@ export function LuxHome() {
           </button>
           <span className={styles.logo}>Forehand</span>
           <span className={styles.r}>
-            <button className={styles.iconBtn} aria-label="Menu" aria-expanded={drawerOpen} onClick={openDrawer}>
+            <button className={styles.iconBtn} aria-label="Menu" onClick={openDrawer}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="4" y1="8" x2="20" y2="8" /><line x1="4" y1="13" x2="20" y2="13" /><line x1="4" y1="18" x2="12" y2="18" /></svg>
             </button>
           </span>
@@ -372,57 +359,8 @@ export function LuxHome() {
           </div>
         </footer>
 
-        {/* Menu drawer — old structure, Lux design language */}
-        {drawerOpen && (
-          <div className={styles.sheetScrim} onClick={() => setDrawerOpen(false)} role="presentation">
-            <div
-              dir="rtl"
-              role="dialog"
-              aria-modal="true"
-              aria-label="منوی سالن"
-              className={styles.drawer}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className={styles.sheetHead}>
-                <span className={styles.sheetTitle}>{salon?.name || "منو"}</span>
-                <button className={styles.iconBtn} aria-label="بستن" onClick={() => setDrawerOpen(false)}>{X_ICON}</button>
-              </div>
-              <nav className={styles.drawerNav} aria-label="منوی سالن">
-                {user ? (
-                  <>
-                    <button className={styles.drawerItem} onClick={() => { setDrawerOpen(false); router.push("/bookings"); }}>
-                      <span>نوبت‌های من</span>
-                    </button>
-                    <button className={styles.drawerItem} onClick={() => { setDrawerOpen(false); router.push("/profile"); }}>
-                      <span>پروفایل من</span>
-                    </button>
-                    <button className={`${styles.drawerItem} ${styles.drawerItemDanger}`} onClick={() => setConfirmLogout(true)}>
-                      <span>خروج از حساب</span>
-                    </button>
-                  </>
-                ) : (
-                  <button className={styles.drawerItem} onClick={() => { setDrawerOpen(false); router.push("/login"); }}>
-                    <span>ورود به حساب</span>
-                  </button>
-                )}
-                <button className={styles.drawerItem} onClick={() => { setDrawerOpen(false); setLookbookOpen(true); }}>
-                  <span>نمونه کارها</span>
-                </button>
-              </nav>
-              <div className={styles.drawerFoot}>
-                <button className={styles.drawerOwner} onClick={() => { setDrawerOpen(false); router.push("/owner/login"); }}>
-                  ورود مدیر
-                </button>
-                {salon?.working_hours_text?.trim() && (
-                  <p className={styles.drawerMeta}>{salon.working_hours_text}</p>
-                )}
-                {salon?.address?.trim() && (
-                  <p className={styles.drawerMeta}>{salon.address}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Menu drawer — one unified, role-aware menu (menu-context) is
+            mounted app-wide in Providers; openDrawer toggles it. */}
 
         {/* Lookbook sheet — the nail-work portfolio experience */}
         {lookbookOpen && (
@@ -475,22 +413,6 @@ export function LuxHome() {
           </div>
         </div>
       )}
-
-      {/* Logout confirmation (old drawer structure) */}
-      <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
-        <AlertDialogContent className="max-w-[300px] rounded-2xl p-5">
-          <AlertDialogHeader>
-            <AlertDialogTitle>خروج از حساب</AlertDialogTitle>
-            <AlertDialogDescription>
-              مطمئن هستید که می‌خواهید از حساب خود خارج شوید؟ نوبت‌های شما محفوظ می‌ماند.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>انصراف</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleLogout}>خروج</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

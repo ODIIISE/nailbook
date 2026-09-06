@@ -323,6 +323,38 @@
   }
 }
 
+/* ── Unified hamburger menu (Atelier surface) ─────────────── */
+/* Entrance motion only (transform/opacity) via motion tokens;
+   motion-governance allows raw CSS here as part of the system. */
+.menu-overlay-in {
+  animation: menuFadeIn var(--duration-standard) var(--ease-standard) both;
+}
+.menu-panel-in {
+  animation: menuPanelIn var(--duration-standard) var(--ease-standard) both;
+}
+@keyframes menuFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes menuPanelIn {
+  from { transform: translateX(-100%); }
+  to { transform: none; }
+}
+/* RTL drawer slides from the start edge; mirror the slide direction. */
+[dir="rtl"] .menu-panel-in {
+  animation-name: menuPanelInRtl;
+}
+@keyframes menuPanelInRtl {
+  from { transform: translateX(100%); }
+  to { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-overlay-in,
+  .menu-panel-in {
+    animation-duration: 0.01ms;
+  }
+}
+
 /* ── Backdrop accent (monochromatic, calm) ── */
 
 .gradient-bg {
