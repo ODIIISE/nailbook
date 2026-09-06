@@ -211,7 +211,7 @@ export default function ProfilePage() {
           </div>
           <span className="h-11 w-11" />
         </header>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8 pt-2">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
           <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card">
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-muted text-muted-foreground">
               <User className="h-7 w-7" aria-hidden="true" />
@@ -251,7 +251,7 @@ export default function ProfilePage() {
         <span className="h-11 w-11" />
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8 pt-2">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
         <div className="mx-auto my-2.5 flex h-20 w-20 items-center justify-center rounded-full border border-border bg-muted text-2xl font-bold text-foreground shadow-card" aria-hidden="true">{initial}</div>
 
         <section className="overflow-hidden rounded-lg border border-border bg-card shadow-card" aria-labelledby="profile-details-title">

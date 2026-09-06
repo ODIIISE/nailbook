@@ -124,7 +124,7 @@ export default function LoginPage() {
         <span className="h-11 w-11" />
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(34px,calc(34px+env(safe-area-inset-bottom)))] pt-[clamp(18px,7dvh,64px)]">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-[max(34px,calc(34px+env(safe-area-inset-bottom)))] pt-[clamp(18px,7dvh,64px)]">
         {step === "phone" && (
           <div className="w-full rounded-xl border border-border bg-card p-5 shadow-card">
             <p className="mb-3.5 text-sm font-extrabold">شماره موبایل خود را وارد کنید</p>

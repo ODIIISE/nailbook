@@ -265,7 +265,7 @@ function OwnerDashboardContent() {
         </div>
 
         {/* Today overview: revenue + count + next appointment, all in one compact strip. */}
-        <Card className="p-4 surface-interactive">
+        <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-caption font-bold text-foreground">
               {(() => {

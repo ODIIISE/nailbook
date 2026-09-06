@@ -252,18 +252,18 @@
     <a href="#inputs">فرم‌ها</a>
     <a href="#status">وضعیت‌ها</a>
     <a href="#categorical">پالت‌های داده‌محور</a>
-    <a href="#lux">استثنای لوکس (صفحه اصلی)</a>
-    <a href="#motion">سیاست حرکت</a>
+    <a href="#lux">حالت ادیتوریال (صفحه اصلی)</a>
+    <a href="#motion">سیستم حرکت</a>
     <a href="#inventory">فهرست کامپوننت‌ها</a>
     <a href="#rules">قواعد</a>
   </nav>
 
   <!-- ═══════════ 1. COLOR ═══════════ -->
   <section id="color">
-    <div class="sec-head"><span class="n">۰۱</span><h2>رنگ — آتلیه گرم</h2><span class="en">SEMANTIC TOKENS</span></div>
+    <div class="sec-head"><span class="n">۰۱</span><h2>رنگ — سه لایه‌ی توکن</h2><span class="en">PRIMITIVE → SEMANTIC</span></div>
     <p class="sec-sub">
-      یک پالت معنایی برای کل اپ (به‌جز صفحه اصلی لوکس). توکن معنایی همیشه — رنگ خام در کامپوننت ممنوع.
-      با کلید تیره‌ی بالا، کل جدول را در تم اسپرسو هم ببینید.
+      معماری توکن: <b>پایه</b> (مقادیر خام: espresso/cream/night) ← <b>معنایی</b> (هدف: همین جدول) ← <b>کامپوننتی</b>.
+      کامپوننت فقط لایه‌ی معنایی را می‌بیند. حالت‌ها (آتلیه روشن/تیره) فقط لایه‌ی معنایی را بازنگاشت می‌کنند — نه واژگان جدید.
     </p>
     <div class="grid g4" id="swatches"></div>
     <div class="note" style="margin-top:18px">
@@ -393,9 +393,9 @@
   <section id="lux">
     <div class="sec-head"><span class="n">۰۹</span><h2>استثنای لوکس — صفحه اصلی</h2><span class="en">SCOPED EXCEPTION</span></div>
     <p class="sec-sub">
-      صفحه‌ی اصلی مشتری یک <b>استثنای عمدی و تأییدشده</b> است: اسپرسو + طلایی، فونت‌های Great Vibes / Playfair، و حرکت
-      (موتور نوسان، پارالاکس، اسلایدشو) — همه فقط داخل <code>lux-home.module.css</code> زندانی‌اند و به بقیه اپ نشت نمی‌کنند.
-      بقیه‌ی اپ صفر-حرکت می‌ماند و این استثنا در <code>no-motion.test.ts</code> صریحاً allowlist شده.
+      صفحه‌ی اصلی مشتری، بیان پرچم‌دار <b>حالت ادیتوریال</b> است — نه استثنا: اسپرسو + طلایی، فونت‌های Great Vibes / Playfair و حرکت
+      (کریوگرافی ورود، پارالاکس، اسلایدشو). استایل‌های این حالت عمداً <b>محلی به <code>lux-home.module.css</code></b> می‌مانند
+      (جداسازی §48) تا به آتلیه نشت نکنند — اما از همان قواعد سیستم (توکن، دسترس‌پذیری، RTL) پیروی می‌کند.
     </p>
     <div class="grid g2">
       <div class="lux-demo">
@@ -407,42 +407,41 @@
       </div>
       <div>
         <div class="panel" style="margin-bottom:14px">
-          <h4>توکن‌های لوکس (محلی به ماژول)</h4>
+          <h4>توکن‌های ادیتوریال (محلی به ماژول)</h4>
           <div class="tbl-scroll"><table class="tbl" id="luxTable"></table></div>
         </div>
         <div class="panel" style="display:flex;flex-direction:column;gap:12px">
-          <h4>دکمه‌های لوکس — با فونت استعداد</h4>
+          <h4>دکمه‌های ادیتوریال — با فونت استعداد</h4>
           <button class="lbtn lux-target" style="all:unset;display:flex;align-items:center;justify-content:center;height:clamp(3.25rem,6.87dvh,58px);max-width:340px;width:100%;border-radius:999px;background:linear-gradient(180deg,#f6d6b8,#eec6a2);color:#241708;font-size:16px;font-weight:500;box-shadow:0 18px 36px -14px rgba(242,205,173,.42),inset 0 1px 0 rgba(255,255,255,.5)">رزرو نوبت</button>
           <button class="lbtn lux-target ghost" style="all:unset;display:flex;align-items:center;justify-content:center;height:clamp(3.25rem,6.87dvh,58px);max-width:340px;width:100%;border-radius:999px;border:1.5px solid rgba(243,236,226,.14);background:rgba(255,255,255,.02);color:#f3ece2;font-size:16px;font-weight:400">نمونه کارها</button>
         </div>
       </div>
     </div>
     <div class="note warn" style="margin-top:14px">
-      مرز: استایل لوکس فقط در <code>lux-home.*</code> می‌ماند. هیچ توکن لوکسی به <code>globals.css</code> اضافه نمی‌شود و هیچ کلاسی از آن در روت‌های دیگر استفاده نمی‌شود.
+      مرز: استایل ادیتوریال فقط در <code>lux-home.*</code> می‌ماند — هیچ توکن ادیتوریالی به <code>globals.css</code> اضافه نمی‌شود و هیچ کلاسی از آن در روت‌های دیگر استفاده نمی‌شود.
       صفحه اصلی عمداً یک-ویوپورت است (۱۰۰dvh) و به ارتفاع صفحه پاسخ می‌دهد؛ همه‌ی روت‌های دیگر اسکرول عادی دارند.
     </div>
   </section>
 
   <!-- ═══════════ 10. MOTION ═══════════ -->
   <section id="motion">
-    <div class="sec-head"><span class="n">۱۰</span><h2>سیاست حرکت</h2><span class="en">MOTION POLICY</span></div>
+    <div class="sec-head"><span class="n">۱۰</span><h2>سیستم حرکت</h2><span class="en">MOTION SYSTEM</span></div>
+    <p class="sec-sub">
+      حرکت مجاز و توکنی است — «هر چه کاربردی‌تر، محدودتر». پنج نردبان زمانی در <code>globals.css</code> تعریف شده و
+      اجرا با تست <code>motion-governance.test.ts</code> تضمین می‌شود: کتابخانه‌ی انیمیشن ممنوع؛ حرکت خام CSS فقط در سیستم، ادیتوریال و پریمیتیوهای استوک؛ CSS اپ باید از توکن استفاده کند.
+    </p>
     <div class="grid g2">
       <div class="panel">
-        <h4>بقیه‌ی اپ — صفر حرکت</h4>
-        <div class="hint">تغییر حالت‌ها فوری‌اند. این یک انتخاب برند است، نه محدودیت فنی.</div>
-        <ul style="font-size:12.5px;line-height:2.2;padding-inline-start:18px">
-          <li>ممنوع: <code>transition</code> · <code>animation</code> · <code>animate-*</code> · <code>framer-motion</code> · drag/swipe</li>
-          <li>مجاز: بازخورد لمسی (haptics) — فیدبک است نه حرکت</li>
-          <li>نیروی قانون: <code>no-motion.test.ts</code> بیلد را می‌شکند</li>
-        </ul>
+        <h4>توکن‌های زمان (globals.css)</h4>
+        <div class="tbl-scroll"><table class="tbl" id="motionTable"></table></div>
       </div>
       <div class="panel">
-        <h4>صفحه اصلی لوکس — حرکت تأییدشده</h4>
-        <div class="hint">فقط transform/opacity؛ رندر با کاهش-حرکت کاربر محترم است.</div>
+        <h4>قواعد هر حالت</h4>
         <ul style="font-size:12.5px;line-height:2.2;padding-inline-start:18px">
-          <li>اسلایدشو: فریم ثابت ۵:۶ + <code>object-fit:cover</code>، اتوپلی که به تعامل کاربر تن می‌دهد</li>
-          <li>ورود یک‌باره (choreography) سپس توقف — حلقه‌ی بی‌پایان فقط: رینگ مداری + درخشش CTA</li>
-          <li>پاسخ به ارتفاع: کلمپ‌های dvh — چیدمان مرجع ۸۴۴px پیکسل‌به‌پیکسل حفظ می‌شود</li>
+          <li><b>آتلیه</b>: فقط instant / micro / standard — تغییر حالت‌ها سریع و بی‌سروصدا</li>
+          <li><b>ادیتوریال</b>: expressive / editorial مجاز — کریوگرافی ورود، پارالاکس، اسلایدشو</li>
+          <li>همیشه فقط <code>transform</code>/<code>opacity</code>؛ <code>prefers-reduced-motion</code> محترم است</li>
+          <li>بارگذاری دکمه: اسپینر + برچسب متنی، هرگز اسپینر تنها</li>
         </ul>
       </div>
     </div>
@@ -632,6 +631,25 @@
     d.innerHTML = `<span class="pill-dot" style="background:${light};border:0"></span>${name} <span class="mono" style="font-size:9.5px;color:var(--page-mut)">${light}·${dark}</span>`;
     d.addEventListener('click', () => copy(d, light + ' / ' + dark));
     chartRow.appendChild(d);
+  });
+
+  /* ── motion tokens (globals.css) ── */
+  const motionTokens = [
+    ['--duration-instant', '60ms', 'تعویض حالت، سوییچ'],
+    ['--duration-micro', '150ms', 'هاور، فشردن، ظهور کوچک'],
+    ['--duration-standard', '240ms', 'پنل‌ها، شیت‌ها، محو'],
+    ['--duration-expressive', '450ms', 'تأکید ویژه'],
+    ['--duration-editorial', '900ms', 'کریوگرافی صفحه اصلی'],
+    ['--ease-standard', 'cubic-bezier(.22,.9,.28,1)', 'خروج آرام'],
+    ['--ease-spring', 'cubic-bezier(.34,1.55,.44,1)', 'فشردن بازیگوش'],
+  ];
+  const mt2 = document.getElementById('motionTable');
+  motionTokens.forEach(([tok, val, use]) => {
+    const tr3 = document.createElement('tr');
+    tr3.style.cursor = 'pointer';
+    tr3.innerHTML = `<td><code>${tok}</code></td><td class="mono" style="font-size:11px">${val}</td><td style="font-size:11.5px;color:var(--page-mut)">${use}</td>`;
+    tr3.addEventListener('click', () => copy(mt2, tok + ': ' + val));
+    mt2.appendChild(tr3);
   });
 
   /* ── lux tokens (lux-home.module.css) ── */

@@ -118,7 +118,7 @@ export default function BookingsPage() {
           </div>
           <span className="h-11 w-11" />
         </header>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8 pt-2">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
           <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card">
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-muted text-muted-foreground">
               <User className="h-7 w-7" aria-hidden="true" />
@@ -157,7 +157,7 @@ export default function BookingsPage() {
         <span className="h-11 w-11" />
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8 pt-2">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
         <section
           className="relative mb-3 flex items-center gap-3 overflow-hidden rounded-xl border border-border bg-card p-4"
           aria-labelledby="booking-history-title"

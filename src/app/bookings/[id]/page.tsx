@@ -88,7 +88,7 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
         <span />
       </header>
 
-      <div className="min-h-0 flex-1 px-5 pb-8 pt-2">
+      <div className="min-h-0 flex-1 page-gutter pb-8 pt-2">
         <div className="rounded-lg border border-border bg-card p-4 shadow-card">
           {/* Salon */}
           <div className="flex items-center gap-3">

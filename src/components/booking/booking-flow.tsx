@@ -643,7 +643,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
 
       {/* Steps */}
       <div className="relative min-h-0 flex-1 overflow-hidden">
-        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain px-5 pb-8 ${step === "service" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
+        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "service" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
           {look && (
             <div className="mb-3.5 flex items-center gap-3 rounded-lg bg-primary p-3 text-primary-foreground">
               {look.cover_url ? (
@@ -767,7 +767,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
           </div>
         </section>
 
-        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain px-5 pb-8 ${step === "time" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
+        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "time" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
           <TimeStep
             days={days}
             selectedDate={selectedDate}
@@ -781,7 +781,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
           />
         </section>
 
-        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain px-5 pb-8 ${step === "review" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
+        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "review" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
           <ReviewStep
             service={selectedService}
             lookName={look && !lookCleared ? look.name : null}
@@ -809,7 +809,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
           />
         </section>
 
-        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain px-5 pb-8 ${step === "success" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
+        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "success" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
           <SuccessStep
             service={selectedService}
             lookName={look && !lookCleared ? look.name : null}
@@ -833,7 +833,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
 
       {/* Sticky CTA */}
       {step !== "success" && (
-        <footer className="border-t border-border bg-background/95 px-5 pb-[calc(14px+env(safe-area-inset-bottom))] pt-2.5">
+        <footer className="border-t border-border bg-background/95 page-gutter pb-[calc(14px+env(safe-area-inset-bottom))] pt-2.5">
           <button
             type="button"
             className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-extrabold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
