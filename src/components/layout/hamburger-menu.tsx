@@ -5,8 +5,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  CalendarClock,
   Clock,
   Globe,
+  History,
   Images,
   LayoutDashboard,
   LogIn,
@@ -59,17 +61,27 @@ function MenuLink({
   tone?: MenuTone;
 }) {
   const { closeMenu } = useMenu();
+  const pathname = usePathname();
   const danger = tone === "danger";
+  // Exact match for /owner, prefix match elsewhere so /owner/users marks its item.
+  const active = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
   return (
     <Link
       href={href}
+      aria-current={active ? "page" : undefined}
       onClick={() => {
         haptic.tap();
         closeMenu();
       }}
-      className={`${ITEM_BASE} ${danger ? "text-destructive hover:bg-destructive/10" : "text-foreground"}`}
+      className={`${ITEM_BASE} font-semibold ${
+        danger
+          ? "text-destructive hover:bg-destructive/10"
+          : active
+            ? "bg-muted text-primary"
+            : "text-foreground"
+      }`}
     >
-      {icon ? <span className={danger ? ICON_DANGER : ICON_MUTED} aria-hidden="true">{icon}</span> : null}
+      {icon ? <span className={danger ? ICON_DANGER : active ? "text-primary" : ICON_MUTED} aria-hidden="true">{icon}</span> : null}
       <span>{label}</span>
     </Link>
   );
@@ -325,14 +337,18 @@ function OwnerContent({ onRequestLogout }: { onRequestLogout: () => void }) {
   return (
     <>
       <OwnerAccountCard />
-      <div className="mt-3 space-y-1">
+      <p className="mt-3 mb-1 px-3 text-micro font-bold text-muted-foreground">روزانه</p>
+      <div className="space-y-1">
         <MenuLink href="/owner" icon={<LayoutDashboard className="h-4 w-4" />} label="داشبورد و تقویم" />
-        <MenuLink href="/owner/highlights" icon={<Images className="h-4 w-4" />} label="نمونه‌کارها" />
-        <MenuLink href="/owner/services" icon={<Scissors className="h-4 w-4" />} label="خدمات" />
-        <MenuLink href="/owner/users" icon={<Users className="h-4 w-4" />} label="مشتری‌ها" />
+        <MenuLink href="/owner/schedule" icon={<CalendarClock className="h-4 w-4" />} label="ساعات کاری" />
+        <MenuLink href="/owner/activity" icon={<History className="h-4 w-4" />} label="تاریخچه فعالیت" />
       </div>
       <Separator className="my-4" />
+      <p className="mb-1 px-3 text-micro font-bold text-muted-foreground">مدیریت</p>
       <div className="space-y-1">
+        <MenuLink href="/owner/services" icon={<Scissors className="h-4 w-4" />} label="خدمات" />
+        <MenuLink href="/owner/users" icon={<Users className="h-4 w-4" />} label="مشتری‌ها" />
+        <MenuLink href="/owner/highlights" icon={<Images className="h-4 w-4" />} label="نمونه‌کارها" />
         <MenuLink href="/owner/settings" icon={<Settings className="h-4 w-4" />} label="تنظیمات سالن" />
       </div>
       <Separator className="my-4" />
