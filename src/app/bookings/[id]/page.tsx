@@ -14,6 +14,7 @@ export const metadata = {
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   reserved: { label: "ثبت شده", cls: "bg-primary/10 text-primary" },
   confirmed: { label: "تأیید شده", cls: "bg-success/10 text-success" },
+  in_progress: { label: "در حال انجام", cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400" },
   pending: { label: "در انتظار", cls: "bg-muted text-muted-foreground" },
   completed: { label: "انجام شده", cls: "bg-success/10 text-success" },
   cancelled: { label: "لغو شده", cls: "bg-destructive/10 text-destructive" },

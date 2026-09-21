@@ -19,11 +19,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { phone, code, roleContext } = body ?? {};
 
-    console.log("[verify-otp] env check:", {
-      customerSecretSet: Boolean(process.env.CUSTOMER_SESSION_SECRET),
-      nodeEnv: process.env.NODE_ENV,
-    });
-
     if (!phone || !code) {
       return NextResponse.json({ error: "شماره و کد الزامی است" }, { status: 400 });
     }

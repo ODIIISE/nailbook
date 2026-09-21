@@ -12,7 +12,7 @@
  * All config from database, all times in Asia/Tehran.
  */
 
-import { getTehranDateKey, getTehranNow } from "./time";
+import { getTehranDateKey, getTehranNow, parseGregorianDateKey } from "./time";
 import { gregorianToJalali, jalaliToGregorian, DAYS_IN_MONTH, isJalaliLeapYear } from "./jalali";
 
 // ─── Types ───
@@ -580,7 +580,11 @@ export function getNearestAvailableSlot(
   specificDaysOff: string[] = []
 ): { date: Date; time: string } | null {
   const now = getTehranNow();
-  const todayJalali = gregorianToJalali(new Date(now.dateKey));
+  // Parse the date key at UTC noon (canonical pattern in this codebase) — a
+  // bare `new Date("YYYY-MM-DD")` is UTC midnight, and jalaali.toJalaali reads
+  // local time parts, so on any machine east of Tehran the scan started a day
+  // early and its first day skipped the nowMinutes filter entirely.
+  const todayJalali = gregorianToJalali(parseGregorianDateKey(now.dateKey));
 
   for (let offset = 0; offset < 14; offset++) {
     let jy = todayJalali.jy;

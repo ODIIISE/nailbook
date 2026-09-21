@@ -22,6 +22,7 @@ const STATUS_PILL_BASE =
 const STATUS_MAP: Record<string, { label: string; cls: string; dot: string }> = {
   reserved: { label: "ثبت شده", cls: "bg-primary/10 text-primary", dot: "bg-primary" },
   confirmed: { label: "تأیید شده", cls: "bg-success/10 text-success", dot: "bg-success" },
+  in_progress: { label: "در حال انجام", cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400", dot: "bg-amber-500" },
   pending: { label: "در انتظار", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
   completed: { label: "انجام شده", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
   cancelled: { label: "لغو شده", cls: "bg-destructive/10 text-destructive", dot: "bg-destructive" },
@@ -91,13 +92,14 @@ export default function BookingsPage() {
   // are instant — no slide-out lifecycle). cancelBooking catches its own
   // errors and returns false on failure — only claim success when the server
   // actually cancelled the booking.
-  const handleCancel = useCallback(async (id: string) => {
+  const handleCancel = useCallback(async (id: string): Promise<boolean> => {
     const result = await cancelBooking(id);
     if (result.success) {
       toast.success("نوبت لغو شد");
-    } else {
-      toast.error(result.error || "خطا در لغو نوبت — لطفاً دوباره تلاش کنید");
+      return true;
     }
+    toast.error(result.error || "خطا در لغو نوبت — لطفاً دوباره تلاش کنید");
+    return false;
   }, [cancelBooking]);
 
   if (!user) {
@@ -201,7 +203,9 @@ export default function BookingsPage() {
                   const endM = parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
                   const duration = endM >= startM ? endM - startM : endM + 24 * 60 - startM;
                   const addonNames = getAddonNames(booking.selected_addons || []);
-                  const price = getServicePrice(booking.service_id);
+                  // Price snapshot (migration 022) first — a repriced or deleted
+                  // service must not rewrite what the customer actually booked.
+                  const price = booking.price_total ?? getServicePrice(booking.service_id);
 
                   return (
                     <button
@@ -266,7 +270,7 @@ function BookingDetailSheet({
 }: {
   booking: Booking;
   onClose: () => void;
-  onCancel: (id: string) => void;
+  onCancel: (id: string) => Promise<boolean>;
   getServiceName: (id: string) => string;
   getAddonNames: (ids: string[]) => string[];
   getServicePrice: (id: string) => number | null;
@@ -284,7 +288,7 @@ function BookingDetailSheet({
   const time = booking.start_time.slice(0, 5);
   const endTime = booking.end_time.slice(0, 5);
   const addonNames = getAddonNames(booking.selected_addons || []);
-  const price = getServicePrice(booking.service_id);
+  const price = booking.price_total ?? getServicePrice(booking.service_id);
   const canCancel = booking.status === "reserved" || booking.status === "confirmed";
 
   // Rebuild: sheets render instantly — close just unmounts, no exit phase.
@@ -315,9 +319,10 @@ function BookingDetailSheet({
     cancelingRef.current = true;
     setConfirming(false);
     try {
-      await Promise.resolve(onCancel(booking.id));
-      // Cancel succeeded — close the sheet.
-      requestClose();
+      // Close only when the server actually cancelled — a failed attempt must
+      // keep the sheet open (with the rolled-back status) so the user can retry.
+      const ok = await onCancel(booking.id);
+      if (ok) requestClose();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "خطا در لغو نوبت");
     } finally {

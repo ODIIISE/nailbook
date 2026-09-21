@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("./time", () => ({
+  parseGregorianDateKey: (dateKey: string) => {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey);
+    if (!match) return new Date(NaN);
+    const [, y, m, d] = match;
+    // Same contract as the real helper: UTC noon anchor.
+    return new Date(Date.UTC(Number(y), Number(m) - 1, Number(d), 12));
+  },
   getTehranDateKey: (value: Date) => {
     const year = value.getFullYear();
     const month = String(value.getMonth() + 1).padStart(2, "0");

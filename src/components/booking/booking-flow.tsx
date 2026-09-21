@@ -557,7 +557,12 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
       const isConflict = isPast
         || result.error?.includes("قبلاً رزرو شده")
         || result.error?.includes("همین الان رزرو شد")
-        || result.error?.includes("مسدود شده");
+        || result.error?.includes("مسدود شده")
+        // DAY_OFF / TIME_OUTSIDE_WORKING_HOURS also reach the client as conflict
+        // errors (server sets conflict: true) — refresh slots and step back so
+        // the picker reflects reality instead of leaving a stale selection.
+        || result.error?.includes("تعطیل است")
+        || result.error?.includes("خارج از ساعات کاری");
       if (isConflict) {
         await refreshBookings();
         setSelectedTime(null);

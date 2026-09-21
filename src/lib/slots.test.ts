@@ -8,6 +8,13 @@ import {
 
 // Mock time.ts to control "now" in tests
 vi.mock("./time", () => ({
+  parseGregorianDateKey: (dateKey: string) => {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey);
+    if (!match) return new Date(NaN);
+    const [, y, m, d] = match;
+    // Same contract as the real helper: UTC noon anchor.
+    return new Date(Date.UTC(Number(y), Number(m) - 1, Number(d), 12));
+  },
   getTehranDateKey: (date: Date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");

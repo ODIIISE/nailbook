@@ -47,6 +47,12 @@ interface FarazSmsConfig {
 let cachedFarazSmsConfig: FarazSmsConfig | null | undefined;
 let cachedClient: FarazSMS | null | undefined;
 
+/** Verbose per-send logging is opt-in: an unconditional log used to print the
+ * recipient phone and the raw provider response in production logs. */
+function smsDebugLogEnabled(): boolean {
+  return process.env.NODE_ENV !== "production" || process.env.DEBUG_SMS === "true";
+}
+
 function getFarazSmsConfig(): FarazSmsConfig | null {
   if (cachedFarazSmsConfig !== undefined) return cachedFarazSmsConfig;
 
@@ -89,7 +95,7 @@ class FarazSmsProvider implements SmsProvider {
         );
         return { success: false, error: "سرویس پیامک پیکربندی نشده است" };
       }
-      console.log(`[SMS] OTP for ${phone}: ${code}`);
+      if (smsDebugLogEnabled()) console.log(`[SMS] OTP for ${phone}: ${code}`);
       return { success: true };
     }
 
@@ -103,12 +109,14 @@ class FarazSmsProvider implements SmsProvider {
       const attributes: Record<string, string> = {};
       attributes[config.patternVar] = code;
 
-      console.log("[SMS] Sending via official FarazSMS SDK:", {
-        patternCode: config.patternCode,
-        recipient: mobile,
-        lineNumber: config.lineNumber,
-        patternVar: config.patternVar,
-      });
+      if (smsDebugLogEnabled()) {
+        console.log("[SMS] Sending via official FarazSMS SDK:", {
+          patternCode: config.patternCode,
+          recipient: mobile,
+          lineNumber: config.lineNumber,
+          patternVar: config.patternVar,
+        });
+      }
 
       const result = await client.sendPattern(
         config.patternCode,
@@ -117,7 +125,7 @@ class FarazSmsProvider implements SmsProvider {
         config.lineNumber
       );
 
-      console.log("[SMS] FarazSMS SDK response:", JSON.stringify(result, null, 2));
+      if (smsDebugLogEnabled()) console.log("[SMS] FarazSMS SDK response:", JSON.stringify(result, null, 2));
       return { success: true, response: result };
     } catch (error) {
       if (error instanceof FarazError) {
@@ -133,7 +141,7 @@ class FarazSmsProvider implements SmsProvider {
 
 class ConsoleSmsProvider implements SmsProvider {
   async sendOTP(phone: string, code: string): Promise<SmsSendResult> {
-    console.log(`[SMS] OTP for ${phone}: ${code}`);
+    if (smsDebugLogEnabled()) console.log(`[SMS] OTP for ${phone}: ${code}`);
     return { success: true };
   }
 }

@@ -23,6 +23,7 @@ const STATUS_PILL_BASE =
 const STATUS_MAP: Record<string, { label: string; cls: string; dot: string }> = {
   reserved: { label: "ثبت شده", cls: "bg-primary/10 text-primary", dot: "bg-primary" },
   confirmed: { label: "تأیید شده", cls: "bg-success/10 text-success", dot: "bg-success" },
+  in_progress: { label: "در حال انجام", cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400", dot: "bg-amber-500" },
   pending: { label: "در انتظار", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
   completed: { label: "انجام شده", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
   cancelled: { label: "لغو شده", cls: "bg-destructive/10 text-destructive", dot: "bg-destructive" },
@@ -370,7 +371,8 @@ export default function ProfilePage() {
               const startM = parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
               const endM = parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
               const duration = endM >= startM ? endM - startM : endM + 24 * 60 - startM;
-              const price = getServicePrice(booking.service_id);
+              // Price snapshot (migration 022) first — matches /bookings.
+              const price = booking.price_total ?? getServicePrice(booking.service_id);
 
               return (
                 <div

@@ -76,16 +76,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Help diagnose provider configuration in production without exposing secrets.
-    console.log("[send-otp] config check:", {
-      provider: process.env.SMS_PROVIDER || "default (farazsms)",
-      farazsmsApiKeySet: Boolean(process.env.FARAZSMS_API_KEY),
-      farazsmsLineNumberSet: Boolean(process.env.FARAZSMS_LINE_NUMBER),
-      farazsmsPatternCodeSet: Boolean(process.env.FARAZSMS_PATTERN_CODE),
-      farazsmsPatternVar: process.env.FARAZSMS_PATTERN_VAR || "var1",
-      phone: normalized,
-      roleContext: roleContext || "customer",
-    });
+    // Diagnose provider configuration — only when explicitly enabled. The
+    // unconditional version logged every caller's phone number in production.
+    if (process.env.DEBUG_SMS === "true") {
+      console.log("[send-otp] config check:", {
+        provider: process.env.SMS_PROVIDER || "default (farazsms)",
+        farazsmsApiKeySet: Boolean(process.env.FARAZSMS_API_KEY),
+        farazsmsLineNumberSet: Boolean(process.env.FARAZSMS_LINE_NUMBER),
+        farazsmsPatternCodeSet: Boolean(process.env.FARAZSMS_PATTERN_CODE),
+        farazsmsPatternVar: process.env.FARAZSMS_PATTERN_VAR || "var1",
+        phone: normalized,
+        roleContext: roleContext || "customer",
+      });
+    }
 
     // Owner flow gate: only actually send an OTP when the phone already has
     // the owner role. The RESPONSE is uniform with the eligible path (same
