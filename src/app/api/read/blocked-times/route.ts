@@ -14,6 +14,9 @@ export async function GET() {
       : await sql`SELECT date_gregorian, start_time, end_time FROM blocked_times ORDER BY date_gregorian`;
     return NextResponse.json({ blockedTimes: rows });
   } catch {
-    return NextResponse.json({ blockedTimes: [] });
+    // A failed read must NOT look like an empty list. The client keeps its
+    // last-known blocks on non-OK responses; a 200 [] here would make the
+    // next full-replace PUT wipe every saved block server-side.
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

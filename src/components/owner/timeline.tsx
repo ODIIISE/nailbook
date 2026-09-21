@@ -173,7 +173,7 @@ export function Timeline({
 
         {/* Half-hour dots */}
         {hourMarks.slice(0, -1).map((_, i) => (
-          <div key={`h-${i}`} className="absolute h-px" style={{ top: (i + 0.5) * HOUR_HEIGHT, left: 44, right: 0, backgroundImage: dotPattern }} />
+          <div key={`h-${i}`} className="absolute h-px" style={{ top: (i + 0.5) * HOUR_HEIGHT, insetInlineStart: 44, insetInlineEnd: 0, backgroundImage: dotPattern }} />
         ))}
 
         {hasContent ? (
@@ -334,7 +334,7 @@ export function Timeline({
             {/* Now indicator: 2px live line + 8px pulsing dot in the time gutter.
                 Reference: Cal.com / Motion day-view "now" indicator. */}
             {showNow && (
-              <div id="timeline-now" className="absolute z-20 pointer-events-none" style={{ top: nowPosition, left: 44, right: 0 }}>
+              <div id="timeline-now" className="absolute z-20 pointer-events-none" style={{ top: nowPosition, insetInlineStart: 44, insetInlineEnd: 0 }}>
                 <div className="relative h-[2px] w-full">
                   {/* Pulse halo behind the dot */}
                   <div className="absolute -start-1 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full opacity-60"

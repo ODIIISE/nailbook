@@ -124,6 +124,11 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   const specificDaysOffRef = useRef(specificDaysOff);
   const authSyncKeyRef = useRef<string | null>(null);
   const bookingsRequestRef = useRef(0);
+  // Full-replace guard for blocked times: the PUT deletes everything the
+  // client didn't send, so a write before the initial read succeeded (DB
+  // down, network error) would silently wipe every saved block. Refuse
+  // writes until one read has succeeded.
+  const blockedTimesLoadedRef = useRef(false);
   // Late-bound handle so mutation handlers can reconcile immediately after a
   // successful write without reordering hook declarations.
   const refreshBookingsRef = useRef<((scope?: "owner" | "default") => Promise<void>) | null>(null);
@@ -178,6 +183,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
           setBlockedTimes(blockedData.blockedTimes);
         }
         if (bookingsData !== null) setBookings(bookingsData);
+        if (blockedData !== null) blockedTimesLoadedRef.current = true;
       } catch (e) {
         if (!controller.signal.aborted) {
           devLog("Failed to load salon data:", e);
@@ -256,6 +262,11 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleUpdateBlockedTimes = useCallback(async (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>): Promise<{ success: boolean; error?: string }> => {
+    if (!blockedTimesLoadedRef.current) {
+      // The saved list was never read; a full-replace here would delete
+      // every block the client hasn't seen. Force a refresh first.
+      return { success: false, error: "زمان‌های استراحت بارگذاری نشده‌اند — صفحه را رفرش کنید" };
+    }
     // Capture previous state from functional update to avoid stale closure
     let prevBlocks: typeof blockedTimes = [];
     setBlockedTimes((prev) => {

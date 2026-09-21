@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  CalendarDays,
   Clock,
   Globe,
   Images,
@@ -327,8 +326,7 @@ function OwnerContent({ onRequestLogout }: { onRequestLogout: () => void }) {
     <>
       <OwnerAccountCard />
       <div className="mt-3 space-y-1">
-        <MenuLink href="/owner" icon={<LayoutDashboard className="h-4 w-4" />} label="داشبورد" />
-        <MenuLink href="/owner" icon={<CalendarDays className="h-4 w-4" />} label="رزروها و تقویم" />
+        <MenuLink href="/owner" icon={<LayoutDashboard className="h-4 w-4" />} label="داشبورد و تقویم" />
         <MenuLink href="/owner/highlights" icon={<Images className="h-4 w-4" />} label="نمونه‌کارها" />
         <MenuLink href="/owner/services" icon={<Scissors className="h-4 w-4" />} label="خدمات" />
         <MenuLink href="/owner/users" icon={<Users className="h-4 w-4" />} label="مشتری‌ها" />
