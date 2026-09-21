@@ -5,8 +5,6 @@ import {
   formatJalaliDate,
   formatJalaliDateShort,
   formatJalaliTime,
-  getJalaliWeekdayName,
-  getJalaliWeekdayFullName,
   isJalaliLeapYear,
 } from "./jalali";
 
@@ -58,23 +56,6 @@ describe("formatJalaliTime", () => {
   it("should format time with Persian digits", () => {
     expect(formatJalaliTime("12:30")).toBe("۱۲:۳۰");
     expect(formatJalaliTime("09:00")).toBe("۰۹:۰۰");
-  });
-});
-
-describe("getJalaliWeekdayName", () => {
-  it("should return short Persian weekday names", () => {
-    // 2026-07-14 is Tuesday
-    const date = new Date(2026, 6, 14);
-    const name = getJalaliWeekdayName(date);
-    expect(name).toBe("س"); // سه‌شنبه (Tuesday)
-  });
-});
-
-describe("getJalaliWeekdayFullName", () => {
-  it("should return full Persian weekday names", () => {
-    const date = new Date(2026, 6, 14);
-    const name = getJalaliWeekdayFullName(date);
-    expect(name).toBe("سه‌شنبه");
   });
 });
 

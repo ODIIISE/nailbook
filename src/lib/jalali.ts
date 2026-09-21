@@ -1,7 +1,6 @@
 import * as jalaali from "jalaali-js";
 
 const PERSIAN_WEEKDAYS = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
-const PERSIAN_WEEKDAYS_FULL = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
 const PERSIAN_MONTHS = [
   "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
   "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند",
@@ -62,20 +61,6 @@ export function formatJalaliDateShort(
   return `${toPersianDigits(day)} ${PERSIAN_MONTHS[month - 1]}`;
 }
 
-export function getJalaliWeekdayName(date: Date): string {
-  const dayOfWeek = date.getDay();
-  // JS: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
-  // Persian: 0=Shanbeh(Sat), 1=Yekshanbeh(Sun), 2=Doshanbeh(Mon), 3=Seshanbeh(Tue), 4=Chaharshanbeh(Wed), 5=Panjshanbeh(Thu), 6=Jomeh(Fri)
-  const mapping = [1, 2, 3, 4, 5, 6, 0];
-  return PERSIAN_WEEKDAYS[mapping[dayOfWeek]];
-}
-
-export function getJalaliWeekdayFullName(date: Date): string {
-  const dayOfWeek = date.getDay();
-  const mapping = [1, 2, 3, 4, 5, 6, 0];
-  return PERSIAN_WEEKDAYS_FULL[mapping[dayOfWeek]];
-}
-
 export function getJalaliMonthName(month: number): string {
   return PERSIAN_MONTHS[month - 1];
 }
@@ -86,6 +71,8 @@ export function formatJalaliTime(time: string): string {
 }
 
 export { PERSIAN_WEEKDAYS, PERSIAN_MONTHS, DAYS_IN_MONTH, JS_TO_IRAN_DAY };
+// NOTE: JS_TO_IRAN_DAY maps JS getDay() (0=Sun) → Persian weekday index (0=Sat);
+// reuse it with PERSIAN_WEEKDAYS for weekday names instead of local mappings.
 
 export function isJalaliLeapYear(jy: number): boolean {
   return jalaali.isLeapJalaaliYear(jy);

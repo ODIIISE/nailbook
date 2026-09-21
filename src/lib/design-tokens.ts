@@ -52,19 +52,6 @@ export const STATUS_CONFIG_DARK: Record<string, { color: string; bg: string }> =
   no_show: { color: "#FBBF24", bg: "#451A03" },
 };
 
-// ── Chart Colors (admin dashboard) ──
-export const chartColors = {
-  reserved: { light: "#18181B", dark: "#FAFAFA" },
-  confirmed: { light: "#16A34A", dark: "#22C55E" },
-  completed: { light: "#7C3AED", dark: "#A78BFA" },
-  cancelled: { light: "#DC2626", dark: "#EF4444" },
-  bar: { light: "#18181B", dark: "#FAFAFA" },
-  axis: { light: "#A1A1AA", dark: "#52525B" },
-  tooltipBg: { light: "#FFFFFF", dark: "#101012" },
-  tooltipBorder: { light: "#E4E4E7", dark: "#26262A" },
-  tooltipText: { light: "#09090B", dark: "#FAFAFA" },
-} as const;
-
 // ── Status Badge Classes (single source of truth for status pills) ──
 // Tailwind utility classes for rendered status badges. Uses semantic tokens
 // (primary/success/violet/rose/destructive) so badges stay theme-aware.

@@ -113,7 +113,6 @@ export async function middleware(request: NextRequest) {
     "/api/owner",
     "/api/update-salon",
     "/api/upload",
-    "/api/manual-reserve",
   ];
   const isOwnerApi =
     ownerApiPaths.some((p) => pathname === p || pathname.startsWith(p + "/")) ||
@@ -151,7 +150,6 @@ export const config = {
     "/api/owner/:path*",
     "/api/update-salon",
     "/api/upload/:path*",
-    "/api/manual-reserve",
     "/api/owner-logout",
     "/api/:path*",
   ],
