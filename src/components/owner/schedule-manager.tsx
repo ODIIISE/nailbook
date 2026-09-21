@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Save, Copy, HelpCircle } from "lucide-react";
+import { Save, Copy, HelpCircle, Undo2 } from "lucide-react";
 import {
   Tooltip,
   TooltipTrigger,
@@ -18,10 +18,11 @@ import {
   jalaliToGregorian,
   getJalaliMonthDays,
   getJalaliMonthName,
+  formatJalaliDateShort,
   JS_TO_IRAN_DAY,
 } from "@/lib/jalali";
 import type { WorkingHours } from "@/lib/slots";
-import { getTehranDateKey } from "@/lib/time";
+import { getTehranDateKey, parseGregorianDateKey } from "@/lib/time";
 
 interface ScheduleManagerProps {
   workingHours: WorkingHours;
@@ -206,6 +207,17 @@ function JalaliMonthGrid({
   );
 }
 
+// ─── Helpers ───
+
+// Render a stored "YYYY-MM-DD" day-off key as the user-facing Jalali date;
+// fall back to the raw key for anything the parser can't canonicalize.
+function formatDayOffChip(dateKey: string): string {
+  const date = parseGregorianDateKey(dateKey);
+  if (!date) return dateKey;
+  const j = gregorianToJalali(date);
+  return formatJalaliDateShort(j.jy, j.jm, j.jd);
+}
+
 // ─── Main Component ───
 
 export function ScheduleManager({
@@ -243,7 +255,7 @@ export function ScheduleManager({
   useEffect(() => {
     // Don't wipe local edits when the parent re-fetches props.
     // The user must explicitly Save (which round-trips new props) or Discard
-    // (TODO: wire up a discard button) before a re-fetch can reset the form.
+    // before a re-fetch can reset the form.
     if (hasChanges) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setHours({ ...workingHours });
@@ -263,6 +275,25 @@ export function ScheduleManager({
   }, [workingHours, specificDaysOff, initialEarly, initialLate, initialThreshold, initialProximity, initialOverflow, initialOverflowMinutes, initialInterval, initialBuffer, initialOptimizationMode, initialSuggestionLimit, initialMinUsefulGapMinutes, hasChanges]);
 
   const markChanged = () => setHasChanges(true);
+
+  // Reset the form from server props (resolves the long-standing TODO): the
+  // effect above deliberately keeps dirty state, so discarding must be explicit.
+  const discardChanges = () => {
+    setHasChanges(false);
+    setHours({ ...workingHours });
+    setDaysOff([...specificDaysOff]);
+    setEarlyExtraHours(initialEarly);
+    setLateExtraHours(initialLate);
+    setExpandThreshold(initialThreshold);
+    setProximityWindowHours(initialProximity);
+    setAllowOverflow(initialOverflow);
+    setOverflowMinutes(initialOverflowMinutes);
+    setSlotInterval(initialInterval);
+    setSlotBuffer(initialBuffer);
+    setOptimizationMode(initialOptimizationMode);
+    setSuggestionLimit(initialSuggestionLimit);
+    setMinUsefulGapMinutes(initialMinUsefulGapMinutes);
+  };
 
   const toggleDay = (key: string) => {
     const current = hours[key];
@@ -347,17 +378,31 @@ export function ScheduleManager({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <div>
           <h3 className="font-semibold text-foreground">ساعات کاری</h3>
           <p className="text-xs text-muted-foreground mt-1">
             روزهای فعال و ساعت‌ها را تنظیم کنید
           </p>
         </div>
-        <Button size="sm" onClick={handleSave} disabled={!hasChanges || isSaving} className="bg-foreground text-background hover:bg-foreground/90">
-          <Save className={`h-4 w-4 ml-1 ${isSaving ? "" : ""}`} />
-          {isSaving ? "در حال ذخیره..." : "ذخیره"}
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          {hasChanges && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={discardChanges}
+              disabled={isSaving}
+              className="text-muted-foreground"
+            >
+              <Undo2 className="h-4 w-4 ml-1" />
+              انصراف
+            </Button>
+          )}
+          <Button size="sm" onClick={handleSave} disabled={!hasChanges || isSaving} className="bg-foreground text-background hover:bg-foreground/90">
+            <Save className={`h-4 w-4 ml-1 ${isSaving ? "" : ""}`} />
+            {isSaving ? "در حال ذخیره..." : "ذخیره"}
+          </Button>
+        </div>
       </div>
 
       {/* ─── Section 1: Working Hours ─── */}
@@ -666,20 +711,21 @@ export function ScheduleManager({
         </div>
 
         {daysOff.length > 0 && (
-          <div className="mt-3">
-            <p className="text-xs text-muted-foreground mb-2">
-              {toPersianDigits(daysOff.length)} روز تعطیل انتخاب شده
-            </p>
-            <div className="flex flex-wrap gap-1">
-              {[...daysOff].sort().slice(0, 10).map((d) => (
-                <button
-                  key={d}
-                  onClick={() => toggleSpecificDayOff(d)}
-                  className="px-2 py-0.5 rounded text-small bg-destructive/10 text-destructive hover:bg-destructive/20"
-                >
-                  {d} ×
-                </button>
-              ))}
+        <div className="mt-3">
+          <p className="text-xs text-muted-foreground mb-2">
+            {toPersianDigits(daysOff.length)} روز تعطیل انتخاب شده
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {[...daysOff].sort().slice(0, 10).map((d) => (
+              <button
+                key={d}
+                onClick={() => toggleSpecificDayOff(d)}
+                title={d}
+                className="px-2 py-0.5 rounded text-small bg-destructive/10 text-destructive hover:bg-destructive/20"
+              >
+                {formatDayOffChip(d)} ×
+              </button>
+            ))}
               {daysOff.length > 10 && (
                 <span className="text-small text-muted-foreground self-center">
                   +{toPersianDigits(daysOff.length - 10)} مورد دیگر

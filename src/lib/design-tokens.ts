@@ -78,6 +78,38 @@ export const statusBadgeClass: Record<string, string> = {
   no_show: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
 };
 
+// ── Activity Log Event Meta (owner activity page) ──
+// Semantic classes for activity dots + group labels; single source so the
+// activity page never hardcodes raw Tailwind palette colors. Dark variants
+// use the same /10 backgrounds — 500-level hues keep AA contrast on card.
+export const activityEventMeta: Record<string, { dot: string; label: string }> = {
+  booking: { dot: "bg-success", label: "نوبت" },
+  cancel: { dot: "bg-destructive", label: "نوبت" },
+  payment: { dot: "bg-amber-500", label: "پرداخت" },
+  user: { dot: "bg-primary", label: "کاربر" },
+  service: { dot: "bg-violet-500", label: "خدمت" },
+  highlight: { dot: "bg-pink-500", label: "هایلایت" },
+  settings: { dot: "bg-muted-foreground", label: "تنظیمات" },
+  block: { dot: "bg-amber-600 dark:bg-amber-400", label: "زمان" },
+  system: { dot: "bg-muted-foreground/60", label: "سیستم" },
+};
+
+/** Meta for an event_type, grouped by prefix (booking_*, user_*, …).
+ * Cancel/delete events get destructive dots; unknown types fall to system. */
+export function getActivityEventMeta(eventType: string): { dot: string; label: string } {
+  if (/cancel|delete|revert|denied|blocked_login/.test(eventType)) return activityEventMeta.cancel;
+  if (eventType.startsWith("booking_")) return activityEventMeta.booking;
+  if (eventType.startsWith("payment_")) return activityEventMeta.payment;
+  if (eventType.startsWith("user_") || eventType.startsWith("owner_")) return activityEventMeta.user;
+  if (eventType.startsWith("service_")) return activityEventMeta.service;
+  if (eventType.startsWith("addon_")) return activityEventMeta.service;
+  if (eventType.startsWith("highlight_")) return activityEventMeta.highlight;
+  if (eventType === "logo_updated") return activityEventMeta.settings;
+  if (eventType === "time_blocked" || eventType === "time_unblocked") return activityEventMeta.block;
+  if (eventType === "hours_updated" || eventType === "salon_updated" || eventType === "database_migrated") return activityEventMeta.settings;
+  return activityEventMeta.system;
+}
+
 // ── Theme-aware helper ──
 export function themeColor(light: string, dark: string, isDark: boolean): string {
   return isDark ? dark : light;

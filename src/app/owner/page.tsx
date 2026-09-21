@@ -25,7 +25,7 @@ const ManualReserveModal = dynamic(
 );
 import { JalaliCalendar } from "@/components/booking/jalali-calendar";
 import { SalonGuard } from "@/components/ui/salon-guard";
-import { Ban, ChevronLeft, Plus } from "lucide-react";
+import { Ban, ChevronLeft, Plus, ShieldAlert } from "lucide-react";
 import { formatPrice, toPersianDigits, gregorianToJalali, formatJalaliDate } from "@/lib/jalali";
 import { useSalon } from "@/lib/salon-context";
 import { getTehranDateKey, parseGregorianDateKey } from "@/lib/time";
@@ -239,7 +239,28 @@ function OwnerDashboardContent() {
       </div>
     );
   }
-  if (!user || !hasRole("owner")) return null;
+  // Never render a silent blank frame: if the session/role check failed or is
+  // still unconfirmed, show an explicit state with a way forward instead of
+  // null (the redirect effect above navigates away when it can).
+  if (!user || !hasRole("owner")) {
+    return (
+      <div className="px-4 py-4">
+        <Card className="flex flex-col items-center gap-3 p-8 text-center">
+          <ShieldAlert className="h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
+          <p className="text-body font-bold text-foreground">دسترسی مدیریت بررسی نشد</p>
+          <p className="text-small text-muted-foreground">احراز هویت کامل نشد یا نشست منقضی شده است.</p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-1"
+            onClick={() => router.replace("/owner/login")}
+          >
+            ورود مدیر
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <SalonGuard>

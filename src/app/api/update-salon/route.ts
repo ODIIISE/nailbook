@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (safeUpdates.allow_overflow !== undefined && typeof safeUpdates.allow_overflow !== "boolean") {
-      return NextResponse.json({ error: "????? ????? ???? ??????? ???" }, { status: 400 });
+      return NextResponse.json({ error: "مقدار اجازه تمدید نامعتبر است" }, { status: 400 });
     }
     if (
       safeUpdates.home_gallery_urls !== undefined &&

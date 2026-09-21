@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { User, Ban, Clock, CreditCard, Calendar, Settings, UserPlus, Trash2, Edit3, Plus, XCircle, Copy } from "lucide-react";
-import { toPersianDigits } from "@/lib/jalali";
+import { Clock, Copy } from "lucide-react";
+import { toPersianDigits, gregorianToJalali, PERSIAN_MONTHS } from "@/lib/jalali";
+import { getActivityEventMeta } from "@/lib/design-tokens";
 
 interface ActivityLogEntry {
   id: string;
@@ -22,33 +23,6 @@ interface ActivityLogProps {
   activeFilter: string;
 }
 
-const EVENT_CONFIG: Record<string, { icon: typeof User; dot: string; label: string }> = {
-  booking_created: { icon: Calendar, dot: "bg-green-500", label: "نوبت" },
-  booking_cancelled: { icon: XCircle, dot: "bg-red-500", label: "نوبت" },
-  booking_deleted: { icon: Trash2, dot: "bg-red-500", label: "نوبت" },
-  payment_received: { icon: CreditCard, dot: "bg-orange-500", label: "پرداخت" },
-  payment_reverted: { icon: CreditCard, dot: "bg-orange-500", label: "پرداخت" },
-  user_registered: { icon: UserPlus, dot: "bg-blue-500", label: "کاربر" },
-  user_updated: { icon: Edit3, dot: "bg-blue-500", label: "کاربر" },
-  user_deleted: { icon: Trash2, dot: "bg-red-500", label: "کاربر" },
-  user_login: { icon: User, dot: "bg-blue-500", label: "ورود" },
-  user_pin_reset: { icon: Edit3, dot: "bg-blue-500", label: "کاربر" },
-  service_created: { icon: Plus, dot: "bg-purple-500", label: "خدمت" },
-  service_updated: { icon: Edit3, dot: "bg-purple-500", label: "خدمت" },
-  service_deleted: { icon: Trash2, dot: "bg-red-500", label: "خدمت" },
-  addon_created: { icon: Plus, dot: "bg-purple-500", label: "افزودنی" },
-  addon_updated: { icon: Edit3, dot: "bg-purple-500", label: "افزودنی" },
-  addon_deleted: { icon: Trash2, dot: "bg-red-500", label: "افزودنی" },
-  highlight_uploaded: { icon: Plus, dot: "bg-pink-500", label: "هایلایت" },
-  logo_updated: { icon: Edit3, dot: "bg-gray-500", label: "لوگو" },
-  time_blocked: { icon: Ban, dot: "bg-yellow-500", label: "زمان" },
-  time_unblocked: { icon: Clock, dot: "bg-yellow-500", label: "زمان" },
-  hours_updated: { icon: Settings, dot: "bg-gray-500", label: "ساعات" },
-  salon_updated: { icon: Settings, dot: "bg-gray-500", label: "سالن" },
-  database_migrated: { icon: Settings, dot: "bg-gray-500", label: "سیستم" },
-  owner_login: { icon: User, dot: "bg-blue-500", label: "ورود" },
-};
-
 const FILTER_TABS = [
   { key: "all", label: "همه" },
   { key: "booking", label: "نوبت‌ها" },
@@ -58,7 +32,8 @@ const FILTER_TABS = [
 ];
 
 function getEventConfig(eventType: string) {
-  return EVENT_CONFIG[eventType] || { icon: Clock, dot: "bg-gray-400", label: "سیستم" };
+  const meta = getActivityEventMeta(eventType);
+  return { dot: meta.dot, label: meta.label };
 }
 
 function formatTime(isoString: string): string {
@@ -66,6 +41,14 @@ function formatTime(isoString: string): string {
   const h = String(date.getHours()).padStart(2, "0");
   const m = String(date.getMinutes()).padStart(2, "0");
   return toPersianDigits(`${h}:${m}`);
+}
+
+/** Jalali group header: "۲۱ شهریور" with year for non-current years. */
+function formatJalaliDayHeader(isoString: string): string {
+  const j = gregorianToJalali(new Date(isoString));
+  const nowJ = gregorianToJalali(new Date());
+  const base = `${toPersianDigits(j.jd)} ${PERSIAN_MONTHS[j.jm - 1]}`;
+  return j.jy === nowJ.jy ? base : `${base} ${toPersianDigits(j.jy)}`;
 }
 
 function formatDate(isoString: string): string {
@@ -77,25 +60,28 @@ function formatDate(isoString: string): string {
   if (date.toDateString() === today.toDateString()) return "امروز";
   if (date.toDateString() === yesterday.toDateString()) return "دیروز";
 
-  const day = date.getDate();
-  const month = date.getMonth() + 1;
-  return `${toPersianDigits(day)}/${toPersianDigits(month)}`;
+  return formatJalaliDayHeader(isoString);
 }
 
+/** Full Jalali timestamp for the detail modal: "۲۱ شهریور ۱۴۰۵، ۱۴:۳۰" */
 function formatFullDate(isoString: string): string {
+  const j = gregorianToJalali(new Date(isoString));
   const date = new Date(isoString);
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
   const h = String(date.getHours()).padStart(2, "0");
   const min = String(date.getMinutes()).padStart(2, "0");
-  return `${toPersianDigits(y)}/${toPersianDigits(m)}/${toPersianDigits(d)} — ${toPersianDigits(h)}:${toPersianDigits(min)}`;
+  return `${toPersianDigits(j.jd)} ${PERSIAN_MONTHS[j.jm - 1]} ${toPersianDigits(j.jy)}، ${toPersianDigits(h)}:${toPersianDigits(min)}`;
+}
+
+/** Gregorian date key for grouping (stable across render). */
+function dateKeyOf(isoString: string): string {
+  const d = new Date(isoString);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
 function groupByDate(logs: ActivityLogEntry[]): Map<string, ActivityLogEntry[]> {
   const groups = new Map<string, ActivityLogEntry[]>();
   for (const log of logs) {
-    const dateKey = new Date(log.created_at).toDateString();
+    const dateKey = dateKeyOf(log.created_at);
     if (!groups.has(dateKey)) groups.set(dateKey, []);
     groups.get(dateKey)!.push(log);
   }
@@ -166,9 +152,9 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
                   <button
                     key={log.id}
                     onClick={() => setSelectedLog(log)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-muted/50 text-right"
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-muted/50 text-right transition-colors"
                   >
-                    <div className={`w-2 h-2 rounded-full shrink-0 ${config.dot}`} />
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${config.dot}`} aria-hidden="true" />
                     <div className="flex-1 min-w-0">
                       <p className="text-small text-foreground truncate leading-tight">{log.description}</p>
                     </div>

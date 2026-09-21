@@ -150,6 +150,11 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     async function load() {
       try {
         const signal = controller.signal;
+        // Bound every initial fetch: one hung request (mobile network stall,
+        // dead DB connection) otherwise pins loaded=false forever and the
+        // whole app reads as a blank page behind SalonGuard's skeleton.
+        const timeout = (ms: number): Promise<never> =>
+          new Promise((_, reject) => setTimeout(() => reject(new Error("load timeout")), ms));
         // Bookings load WITH everything else — fetching them only after
         // `loaded` flipped made cold opens flash every slot as free.
         const [salonData, servicesData, addonsData, highlightsData, blockedData, bookingsData] = await Promise.all([
@@ -161,6 +166,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
             .then(async (r) => (r.ok ? await r.json() : null))
             .catch(() => null),
           fetchBookings("default"),
+          timeout(12000),
         ]);
         if (signal.aborted) return;
         // Adopt results whenever the fetch SUCCEEDED — including empty lists.
