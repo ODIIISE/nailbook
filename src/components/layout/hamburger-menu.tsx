@@ -5,12 +5,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  CalendarClock,
   Clock,
   Globe,
-  History,
   Images,
-  LayoutDashboard,
   LogIn,
   LogOut,
   MapPin,
@@ -214,9 +211,6 @@ function AccountCard({ onRequestLogout }: { onRequestLogout?: () => void }) {
     );
   }
 
-  const cardActionCls =
-    "flex min-h-11 items-center rounded-lg px-2 text-small font-semibold text-foreground hover:bg-muted";
-
   return (
     <section aria-label="حساب کاربری" className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-center gap-3">
@@ -230,56 +224,25 @@ function AccountCard({ onRequestLogout }: { onRequestLogout?: () => void }) {
       </div>
 
       <div className="mt-3 flex min-h-11 items-center justify-between gap-2 border-t border-border pt-3">
+        {/* Navbar-covered destinations (نوبت‌ها/پروفایل) intentionally live
+          * only in the bottom navbar — see specs/001-two-tier-navigation. */}
         {activeCount > 0 ? (
-          <>
-            <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-micro font-bold text-primary">
-              {toPersianDigits(activeCount)} رزرو فعال
-            </span>
-            <Link
-              href="/bookings"
-              onClick={() => {
-                haptic.tap();
-                closeMenu();
-              }}
-              className="-my-2 inline-flex self-stretch items-center gap-1 px-2 text-micro font-bold text-primary"
-            >
-              مشاهده رزروها
-              <ArrowLeft className="h-3 w-3" aria-hidden="true" />
-            </Link>
-          </>
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-micro font-bold text-primary">
+            {toPersianDigits(activeCount)} رزرو فعال
+          </span>
         ) : (
           <span className="text-small text-muted-foreground">رزرو فعالی ندارید</span>
         )}
       </div>
 
       <div className="mt-2 space-y-0.5 border-t border-border pt-2">
-        <Link
-          href="/profile"
-          onClick={() => {
-            haptic.tap();
-            closeMenu();
-          }}
-          className={cardActionCls}
-        >
-          پروفایل
-        </Link>
-        <Link
-          href="/bookings"
-          onClick={() => {
-            haptic.tap();
-            closeMenu();
-          }}
-          className={cardActionCls}
-        >
-          رزروهای من
-        </Link>
         <button
           type="button"
           onClick={() => {
             haptic.tap();
             onRequestLogout?.();
           }}
-          className={`${cardActionCls} text-destructive hover:bg-destructive/10`}
+          className="flex min-h-11 w-full items-center rounded-lg px-2 text-small font-semibold text-destructive hover:bg-destructive/10"
         >
           خروج از حساب
         </button>
@@ -337,14 +300,10 @@ function OwnerContent({ onRequestLogout }: { onRequestLogout: () => void }) {
   return (
     <>
       <OwnerAccountCard />
-      <p className="mt-3 mb-1 px-3 text-micro font-bold text-muted-foreground">روزانه</p>
-      <div className="space-y-1">
-        <MenuLink href="/owner" icon={<LayoutDashboard className="h-4 w-4" />} label="داشبورد و تقویم" />
-        <MenuLink href="/owner/schedule" icon={<CalendarClock className="h-4 w-4" />} label="ساعات کاری" />
-        <MenuLink href="/owner/activity" icon={<History className="h-4 w-4" />} label="تاریخچه فعالیت" />
-      </div>
-      <Separator className="my-4" />
-      <p className="mb-1 px-3 text-micro font-bold text-muted-foreground">مدیریت</p>
+      {/* Primary owner destinations (داشبورد، ساعات، تاریخچه) live in the
+        * bottom navbar — the menu carries only secondary management surfaces
+        * (specs/001-two-tier-navigation). */}
+      <p className="mt-3 mb-1 px-3 text-micro font-bold text-muted-foreground">مدیریت</p>
       <div className="space-y-1">
         <MenuLink href="/owner/services" icon={<Scissors className="h-4 w-4" />} label="خدمات" />
         <MenuLink href="/owner/users" icon={<Users className="h-4 w-4" />} label="مشتری‌ها" />
