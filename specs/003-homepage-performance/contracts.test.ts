@@ -1,4 +1,4 @@
-import { readFileSync, existsSync, statSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { resolve } from "node:path";
 
@@ -16,32 +16,23 @@ import { resolve } from "node:path";
 const root = process.cwd();
 const src = (p: string) => readFileSync(resolve(root, p), "utf8");
 
-describe("specs/003 mascot contracts", () => {
-  it("homepage hero points at the glasses sheets, never the cat", () => {
+describe("specs/003 mascot contracts (reverted to slideshow)", () => {
+  it("homepage hero is the original slideshow again — no mascot references", () => {
     const luxHome = src("src/components/landing/lux-home.tsx");
-    expect(luxHome).toContain("/mascots/glasses-directions.webp");
-    expect(luxHome).toContain("/mascots/glasses-reactions.webp");
-    expect(luxHome).not.toContain("/mascots/cat-directions.webp");
-    expect(luxHome).not.toContain("/mascots/cat-reactions.webp");
+    expect(luxHome).toContain("goToSlide");
+    expect(luxHome).not.toMatch(/TouchMascot|touch-mascot|mascots\//i);
   });
 
-  it("glasses sheets exist, are WebP, and weigh <= 300KB each; cat sheets are gone", () => {
-    for (const f of ["public/mascots/glasses-directions.webp", "public/mascots/glasses-reactions.webp"]) {
-      expect(existsSync(resolve(root, f)), `${f} should exist`).toBe(true);
-      const bytes = statSync(resolve(root, f)).size;
-      expect(bytes, `${f} should be <= 300KB (got ${bytes}B)`).toBeLessThanOrEqual(300 * 1024);
-    }
-    expect(existsSync(resolve(root, "public/mascots/cat-directions.webp"))).toBe(false);
-    expect(existsSync(resolve(root, "public/mascots/cat-reactions.webp"))).toBe(false);
+  it("mascot artifacts are fully removed", () => {
+    expect(existsSync(resolve(root, "public/mascots"))).toBe(false);
+    expect(existsSync(resolve(root, "src/components/landing/touch-mascot.tsx"))).toBe(false);
   });
 
-  it("no source file references the cat sheets anymore", () => {
-    const luxHome = src("src/components/landing/lux-home.tsx");
+  it("no source file references mascots anymore", () => {
     const salonBooking = src("src/components/landing/salon-booking.tsx");
     const bookingFlow = src("src/components/booking/booking-flow.tsx");
-    for (const content of [luxHome, salonBooking, bookingFlow]) {
-      expect(content).not.toContain("cat-directions");
-      expect(content).not.toContain("cat-reactions");
+    for (const content of [src("src/components/landing/lux-home.tsx"), salonBooking, bookingFlow]) {
+      expect(content).not.toContain("mascots/");
     }
   });
 });
@@ -63,11 +54,12 @@ describe("specs/003 dependency hygiene", () => {
 });
 
 describe("specs/003 homepage shell contract", () => {
-  it("homepage is not gated behind SalonGuard; shell renders before data", () => {
+  it("homepage is not gated behind a full-page skeleton; SSR fix kept", () => {
     const salonBooking = src("src/components/landing/salon-booking.tsx");
     expect(salonBooking).not.toContain("SalonGuard");
-    // hero renders immediately, CTAs wait for the critical payload
-    expect(salonBooking).toContain("ctasEnabled");
+    // the useSearchParams Suspense isolation (hero server-renders) stays
+    expect(salonBooking).toContain("Suspense");
+    expect(salonBooking).toContain("WelcomeToast");
   });
 
   it("bootstrap endpoint exists and caches public scope only", () => {

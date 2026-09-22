@@ -258,7 +258,7 @@
   font-family: 'Estedad', 'Vazirmatn', sans-serif;
 }
 
-/* ── Hero media: fixed frame hosting the interactive mascot ───────── */
+/* ── Hero media: fixed frame, 3-slide crossfade ───────── */
 /* The dvh term caps the 5/6 frame's height on short viewports; on reference
    devices 300px governs and nothing changes. */
 .media {
@@ -279,7 +279,7 @@
 
 .frame {
   position: relative;
-  /* FIXED frame: identical box regardless of content — width, height, radius.
+  /* FIXED frame: identical box for every slide — width, height, radius.
      5/6 portrait ≈ 1.5× the height of the previous 4/3 frame. */
   aspect-ratio: 5 / 6;
   border-radius: 1.875rem;
@@ -298,13 +298,68 @@
   z-index: 2;
 }
 
-/* The mascot sits centered inside the frame; the badge stays clear of it. */
-.mascotStage {
+.slide {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.85s var(--ease);
+}
+
+.slideOn {
+  opacity: 1;
+}
+
+/* ── Slide dots ───────────────────────────────────────── */
+.dots {
   display: flex;
-  align-items: center;
   justify-content: center;
+  gap: 0.125rem;
+  margin-top: clamp(0.375rem, 1.2dvh, 0.625rem);
+}
+
+.dotBtn {
+  position: relative;
+  padding: 6px;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  display: inline-flex;
+}
+
+/* Dots: 44px horizontal hit targets (adjacent-dot separability is the
+   critical axis); vertical stays compact to preserve the frozen one-viewport
+   hero — the frame itself carries the swipe gesture as the primary control.
+   Equal padding/negative margin keeps every visual position identical. */
+.dotBtn {
+  position: relative;
+  padding: 6px 13px;
+  margin: 0 -13px;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  display: inline-flex;
+}
+
+.dotBtn span {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+  transition: width 0.35s var(--ease), background 0.35s var(--ease);
+}
+
+.dotBtnOn span {
+  width: 18px;
+  background: var(--cream);
 }
 
 /* ── Circular editorial label ─────────────────────────── */
@@ -419,13 +474,6 @@
 
 .btn:active {
   transform: scale(0.955);
-}
-
-/* Data still arriving (specs/003): shell is interactive but CTAs wait for
-   the critical payload. Dimmed, non-interactive, no press feedback. */
-.btn:disabled {
-  opacity: 0.55;
-  pointer-events: none;
 }
 
 .btn svg {
@@ -787,7 +835,8 @@
 
 /* Reduced motion: the global [data-motion] reset (globals.css) neutralizes
    animations/transitions on this surface. This block only restores the
-   visible end-state of the entrance choreography. */
+   visible end-state of the entrance choreography and makes the slideshow
+   an instant image change. */
 @media (prefers-reduced-motion: reduce) {
   .rootReady .rv,
   .rootReady .rvBlur,
@@ -798,6 +847,11 @@
     opacity: 1;
     transform: none;
     filter: none;
+  }
+
+  /* Reduced motion: slideshow becomes a simple instant image change. */
+  .slide {
+    transition: none;
   }
 
   .badge .ring {

@@ -3,24 +3,35 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
+  type TouchEvent as ReactTouchEvent,
 } from "react";
 import { useRouter } from "next/navigation";
 import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "@/components/layout/menu-context";
-import { TouchMascot } from "@/components/landing/touch-mascot";
 import styles from "./lux-home.module.css";
 
 const d = (v: string) => ({ "--d": v }) as CSSProperties;
 
+/* Demo slides shown until the owner uploads their own homepage gallery
+ * (owner settings → «گالری صفحه اصلی»). Owner URLs always win. */
+const FALLBACK_SLIDES = [
+  "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=700&h=840&q=85",
+  "https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=700&h=840&q=85",
+  "https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=700&h=840&q=85",
+];
+
+const SLIDE_MS = 4500;
+const SWIPE_PX = 48;
 const X_ICON = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
 );
 
-export function LuxHome({ ctasEnabled = true }: { ctasEnabled?: boolean }) {
+export function LuxHome() {
   const router = useRouter();
   const { salon, highlights } = useSalon();
   const { openMenu } = useMenu();
@@ -30,6 +41,8 @@ export function LuxHome({ ctasEnabled = true }: { ctasEnabled?: boolean }) {
   const [splashGone, setSplashGone] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [toastShow, setToastShow] = useState(false);
+  const [slide, setSlide] = useState(0);
+  const [autoplayTick, setAutoplayTick] = useState(0);
   const [lookbookOpen, setLookbookOpen] = useState(false);
   const [addrOpen, setAddrOpen] = useState(false);
 
@@ -39,6 +52,13 @@ export function LuxHome({ ctasEnabled = true }: { ctasEnabled?: boolean }) {
   const badgeRef = useRef<HTMLDivElement | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const addrTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchRef = useRef<{ x: number; y: number } | null>(null);
+
+  /* Owner-managed slideshow images (fall back to demo set until configured) */
+  const slides = useMemo(() => {
+    const own = (salon?.home_gallery_urls ?? []).filter((u): u is string => Boolean(u));
+    return own.length ? own.slice(0, 3) : FALLBACK_SLIDES;
+  }, [salon?.home_gallery_urls]);
 
   /* Splash → choreography (load + fallback), then settle to hand
    * transform control back to :active press feedback. */
@@ -146,6 +166,37 @@ export function LuxHome({ ctasEnabled = true }: { ctasEnabled?: boolean }) {
     setAddrOpen(false);
   };
 
+  /* Slideshow: autoplay every 4.5s; manual swipe/dot resets the timer */
+  useEffect(() => {
+    if (slides.length < 2) return;
+    const id = setInterval(
+      () => setSlide((s) => (s + 1) % slides.length),
+      SLIDE_MS,
+    );
+    return () => clearInterval(id);
+  }, [slides.length, autoplayTick]);
+
+  const goToSlide = (i: number) => {
+    setSlide(((i % slides.length) + slides.length) % slides.length);
+    setAutoplayTick((t) => t + 1);
+  };
+
+  const onTouchStart = (e: ReactTouchEvent) => {
+    const t = e.touches[0];
+    touchRef.current = { x: t.clientX, y: t.clientY };
+  };
+  const onTouchEnd = (e: ReactTouchEvent) => {
+    const start = touchRef.current;
+    touchRef.current = null;
+    if (!start || slides.length < 2) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    /* Horizontal intent only — never hijack vertical page scrolling. */
+    if (Math.abs(dx) < SWIPE_PX || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    goToSlide(dx < 0 ? slide + 1 : slide - 1);
+  };
+
   /* Escape closes the lookbook sheet (the app menu handles its own Escape) */
   useEffect(() => {
     if (!lookbookOpen) return;
@@ -206,17 +257,41 @@ export function LuxHome({ ctasEnabled = true }: { ctasEnabled?: boolean }) {
 
             <figure className={`${styles.media} ${styles.rvBlur}`} style={d(".6s")}>
               <div className={styles.parallax} ref={parRef}>
-                <div className={styles.tilt} ref={tiltRef}>                  <div className={styles.frame}>
-                    {/* Interactive mascot (specs/002) — replaces the hero
-                     * slideshow test. Touch: the cat looks at your finger;
-                     * tap it for reactions. Desktop: follows the cursor. */}
-                    <div className={styles.mascotStage}>
-                      <TouchMascot
-                        directions="/mascots/glasses-directions.webp"
-                        reactions="/mascots/glasses-reactions.webp"
-                        size={160}
+                <div className={styles.tilt} ref={tiltRef}>
+                  <div
+                    className={styles.frame}
+                    onTouchStart={onTouchStart}
+                    onTouchEnd={onTouchEnd}
+                  >
+                    {slides.map((src, i) => (
+                      // eslint-disable-next-line @next/next/no-img-element -- fixed-frame crossfade slides (see lux-home.module.css)
+                      <img
+                        key={src}
+                        src={src}
+                        alt={`نمونه کار ناخن ${i + 1}`}
+                        width={800}
+                        height={600}
+                        fetchPriority={i === 0 ? "high" : undefined}
+                        decoding="async"
+                        draggable={false}
+                        className={`${styles.slide} ${i === slide ? styles.slideOn : ""}`}
                       />
-                    </div>
+                    ))}
+                  </div>
+                  {/* Slide dots */}
+                  <div className={styles.dots} role="tablist" aria-label="تصاویر صفحه اصلی">
+                    {slides.map((_, i) => (
+                      <button
+                        key={i}
+                        role="tab"
+                        aria-selected={i === slide}
+                        aria-label={`تصویر ${i + 1}`}
+                        className={`${styles.dotBtn} ${i === slide ? styles.dotBtnOn : ""}`}
+                        onClick={() => goToSlide(i)}
+                      >
+                        <span />
+                      </button>
+                    ))}
                   </div>
                   {/* Circular editorial label → nail-work gallery */}
                   <div className={styles.badge} ref={badgeRef}>
@@ -245,11 +320,11 @@ export function LuxHome({ ctasEnabled = true }: { ctasEnabled?: boolean }) {
               <button className={styles.addrClose} aria-label="بستن" onClick={closeAddress}>{X_ICON}</button>
             </div>
           )}
-          <button dir="rtl" className={`${styles.btn} ${styles.btnPrimary} ${styles.rvPop}`} style={d(".85s")} disabled={!ctasEnabled} aria-disabled={!ctasEnabled} onClick={() => router.push("/book")}>
+          <button dir="rtl" className={`${styles.btn} ${styles.btnPrimary} ${styles.rvPop}`} style={d(".85s")} onClick={() => router.push("/book")}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="m9.2 12.5 2 2 3.8-3.8" /></svg>
             <span className={styles.btnFa}>رزرو نوبت</span>
           </button>
-          <button dir="rtl" className={`${styles.btn} ${styles.btnGhost} ${styles.rvPop}`} style={d(".95s")} disabled={!ctasEnabled} aria-disabled={!ctasEnabled} onClick={() => setLookbookOpen(true)}>
+          <button dir="rtl" className={`${styles.btn} ${styles.btnGhost} ${styles.rvPop}`} style={d(".95s")} onClick={() => setLookbookOpen(true)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"><path d="M12 3c.7 3.9 2.4 5.6 6.3 6.3-3.9.7-5.6 2.4-6.3 6.3-.7-3.9-2.4-5.6-6.3-6.3C9.6 8.6 11.3 6.9 12 3z" /></svg>
             <span className={styles.btnFa}>نمونه کارها</span>
           </button>

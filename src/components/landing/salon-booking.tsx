@@ -4,7 +4,6 @@ import { Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { LuxHome } from "@/components/landing/lux-home";
-import { useSalon } from "@/lib/salon-context";
 
 import { toast } from "sonner";
 
@@ -34,19 +33,15 @@ function WelcomeToast() {
 }
 
 export function SalonBooking() {
-  // specs/003: the shell (navbar + hero + mascot) renders immediately — the
-  // old full-page skeleton gate hid everything until the slowest of six
-  // fetches landed. LuxHome already falls back per-field when data is still
-  // empty, so the page is interactive from the first paint; only the CTAs
-  // wait for the critical payload.
-  const { loaded } = useSalon();
+  // specs/003: the shell renders immediately — the old full-page skeleton
+  // gate hid everything until the slowest of six fetches landed.
 
   return (
     <>
       <Suspense fallback={null}>
         <WelcomeToast />
       </Suspense>
-      <LuxHome ctasEnabled={loaded} />
+      <LuxHome />
     </>
   );
 }
