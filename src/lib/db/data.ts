@@ -227,6 +227,60 @@ export function handleAuthExpiry(res: Response): boolean {
   return true;
 }
 
+export type BootstrapPayload = {
+  salon: SalonInfo | null;
+  services: Service[] | null;
+  addons: Addon[] | null;
+  highlights: Highlight[] | null;
+  /** Present only on scope=all (undefined = not requested). null = failed. */
+  bookings?: Booking[] | null;
+  blockedTimes?: Array<{ date_gregorian: string; start_time: string; end_time: string }> | null;
+};
+
+/**
+ * One consolidated initial payload (specs/003) replacing the six parallel
+ * endpoint fetches. Sections are independent: a failed section arrives as
+ * null so the caller can adopt partial results and/or fall back to the
+ * individual endpoint it replaced.
+ */
+export async function fetchBootstrap(scope: "home" | "all" = "all"): Promise<BootstrapPayload | null> {
+  try {
+    const res = await fetch(`/api/read/bootstrap?scope=${scope}`, { credentials: "include" });
+    if (!res.ok) return null;
+    const data = await readJson(res);
+    if (!isRecord(data)) return null;
+    const blockedTimes = Array.isArray(data.blockedTimes)
+      ? (data.blockedTimes as unknown[]).filter(
+          (row): row is { date_gregorian: string; start_time: string; end_time: string } =>
+            isRecord(row) &&
+            typeof row.date_gregorian === "string" &&
+            typeof row.start_time === "string" &&
+            typeof row.end_time === "string"
+        )
+      : null;
+    return {
+      salon: data.salon == null ? null : normalizeSalon(data.salon),
+      services: Array.isArray(data.services)
+        ? data.services.map(normalizeService).filter((item): item is Service => item !== null)
+        : null,
+      addons: Array.isArray(data.addons)
+        ? data.addons.map(normalizeAddon).filter((item): item is Addon => item !== null)
+        : null,
+      highlights: Array.isArray(data.highlights)
+        ? data.highlights.map(normalizeHighlight).filter((item): item is Highlight => item !== null)
+        : null,
+      bookings: data.bookings === undefined
+        ? undefined
+        : Array.isArray(data.bookings)
+          ? data.bookings.map(normalizeBooking).filter((item): item is Booking => item !== null)
+          : null,
+      blockedTimes,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchSalonInfo(): Promise<SalonInfo | null> {
   try {
     const res = await fetch("/api/read/salon");

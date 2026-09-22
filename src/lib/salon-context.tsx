@@ -9,6 +9,8 @@ import type { WorkingHours } from "@/lib/slots";
 const devLog = process.env.NODE_ENV === "development" ? console.error : () => {};
 import { toast } from "sonner";
 import {
+  fetchBootstrap,
+  type BootstrapPayload,
   fetchSalonInfo,
   fetchServices,
   fetchAddons,
@@ -147,60 +149,119 @@ export function SalonProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const controller = new AbortController();
+    const signal = controller.signal;
+    // Bound every fetch: one hung request (mobile network stall, dead DB
+    // connection) otherwise pins loaded=false forever and the whole app
+    // reads as a blank page behind SalonGuard's skeleton.
+    const withTimeout = <T,>(p: Promise<T>, ms = 10_000): Promise<T> =>
+      Promise.race([
+        p,
+        new Promise<T>((_, reject) => setTimeout(() => reject(new Error("load timeout")), ms)),
+      ]);
+
     async function load() {
-      try {
-        const signal = controller.signal;
-        // Bound every initial fetch: one hung request (mobile network stall,
-        // dead DB connection) otherwise pins loaded=false forever and the
-        // whole app reads as a blank page behind SalonGuard's skeleton.
-        const timeout = (ms: number): Promise<never> =>
-          new Promise((_, reject) => setTimeout(() => reject(new Error("load timeout")), ms));
-        // Bookings load WITH everything else — fetching them only after
-        // `loaded` flipped made cold opens flash every slot as free.
-        const [salonData, servicesData, addonsData, highlightsData, blockedData, bookingsData] = await Promise.all([
-          fetchSalonInfo(),
-          fetchServices(),
-          fetchAddons(),
-          fetchHighlights(),
+      // One consolidated invocation instead of six parallel round-trips
+      // (each was its own serverless instance + DB connection — the page
+      // waited on the slowest of six, measured 4s+ cold).
+      const bootstrap = await withTimeout(fetchBootstrap("all")).catch(() => null);
+      if (signal.aborted) return;
+
+      if (bootstrap) {
+        adoptBootstrap(bootstrap);
+      } else {
+        await loadViaIndividualEndpoints();
+      }
+      if (!signal.aborted) setLoaded(true);
+    }
+
+    // Adopt payload-by-payload. All-or-nothing was wrong twice over: a single
+    // failed fetch discarded every other successful payload, and any data
+    // arriving after the 12s guard discarded everything AND fired the false
+    // "خطا در بارگذاری اطلاعات" toast. Only a critical payload (salon or
+    // services) failing justifies the toast; the rest degrade to empty lists.
+    function adoptBootstrap(b: BootstrapPayload) {
+      if (b.salon) {
+        setSalon(b.salon);
+        // Derive hours from the SAME response — the provider previously hit
+        // /api/read/salon twice per load (once via fetchWorkingHours).
+        if (b.salon.working_hours && Object.keys(b.salon.working_hours).length > 0) {
+          setWorkingHours(b.salon.working_hours);
+        }
+        setSpecificDaysOff(b.salon.specific_days_off || []);
+      }
+      if (b.services !== null) setServices(b.services);
+      if (b.addons !== null) setAddons(b.addons);
+      if (b.highlights !== null) setHighlights(b.highlights);
+      if (b.blockedTimes !== null && b.blockedTimes !== undefined) {
+        setBlockedTimes(b.blockedTimes);
+        blockedTimesLoadedRef.current = true;
+      }
+      if (b.bookings !== null && b.bookings !== undefined) setBookings(b.bookings);
+      const criticalFailure = b.salon === null || b.services === null;
+      if (criticalFailure) {
+        devLog("Bootstrap incomplete: critical payload failed", {
+          salon: b.salon === null,
+          services: b.services === null,
+        });
+        toast.error("خطا در بارگذاری اطلاعات", {
+          description: "لطفاً صفحه را رفرش کنید",
+          duration: 5000,
+        });
+      }
+    }
+
+    // Fallback path: the original six endpoints (used when bootstrap is
+    // unavailable). Same allSettled adoption as the bootstrap path.
+    async function loadViaIndividualEndpoints() {
+      const [salonR, servicesR, addonsR, highlightsR, blockedR, bookingsR] = await Promise.allSettled([
+        withTimeout(fetchSalonInfo()),
+        withTimeout(fetchServices()),
+        withTimeout(fetchAddons()),
+        withTimeout(fetchHighlights()),
+        withTimeout(
           fetch("/api/read/blocked-times", { signal })
             .then(async (r) => (r.ok ? await r.json() : null))
-            .catch(() => null),
-          fetchBookings("default"),
-          timeout(12000),
-        ]);
-        if (signal.aborted) return;
-        // Adopt results whenever the fetch SUCCEEDED — including empty lists.
-        // The old `if (arr.length)` guard kept stale data after "delete the
-        // last item" and, worse, left blockedTimes as [] after a failed fetch
-        // so the next full-replace PUT silently wiped every saved block.
-        if (salonData) {
-          setSalon(salonData);
-          // Derive hours from the SAME response — the provider previously hit
-          // /api/read/salon twice per load (once via fetchWorkingHours).
-          if (salonData.working_hours && Object.keys(salonData.working_hours).length > 0) {
-            setWorkingHours(salonData.working_hours);
-          }
-          setSpecificDaysOff(salonData.specific_days_off || []);
+            .catch(() => null)
+        ),
+        withTimeout(fetchBookings("default")),
+      ]);
+      if (signal.aborted) return;
+
+      // Adopt results whenever the fetch SUCCEEDED — including empty lists.
+      // The old `if (arr.length)` guard kept stale data after "delete the
+      // last item" and, worse, left blockedTimes as [] after a failed fetch
+      // so the next full-replace PUT silently wiped every saved block.
+      const salonData = salonR.status === "fulfilled" ? salonR.value : null;
+      const servicesData = servicesR.status === "fulfilled" ? servicesR.value : null;
+      const addonsData = addonsR.status === "fulfilled" ? addonsR.value : null;
+      const highlightsData = highlightsR.status === "fulfilled" ? highlightsR.value : null;
+      const blockedData = blockedR.status === "fulfilled" ? blockedR.value : null;
+      const bookingsData = bookingsR.status === "fulfilled" ? bookingsR.value : null;
+      if (salonData) {
+        setSalon(salonData);
+        if (salonData.working_hours && Object.keys(salonData.working_hours).length > 0) {
+          setWorkingHours(salonData.working_hours);
         }
-        if (servicesData !== null) setServices(servicesData);
-        if (addonsData !== null) setAddons(addonsData);
-        if (highlightsData !== null) setHighlights(highlightsData);
-        if (blockedData !== null && Array.isArray(blockedData.blockedTimes)) {
-          setBlockedTimes(blockedData.blockedTimes);
-        }
-        if (bookingsData !== null) setBookings(bookingsData);
-        if (blockedData !== null) blockedTimesLoadedRef.current = true;
-      } catch (e) {
-        if (!controller.signal.aborted) {
-          devLog("Failed to load salon data:", e);
-          toast.error("خطا در بارگذاری اطلاعات", {
-            description: "لطفاً صفحه را رفرش کنید",
-            duration: 5000,
-          });
-        }
+        setSpecificDaysOff(salonData.specific_days_off || []);
       }
-      if (!controller.signal.aborted) setLoaded(true);
+      if (servicesData !== null) setServices(servicesData);
+      if (addonsData !== null) setAddons(addonsData);
+      if (highlightsData !== null) setHighlights(highlightsData);
+      if (blockedData !== null && Array.isArray(blockedData.blockedTimes)) {
+        setBlockedTimes(blockedData.blockedTimes);
+      }
+      if (bookingsData !== null) setBookings(bookingsData);
+      if (blockedData !== null) blockedTimesLoadedRef.current = true;
+      const criticalFailure = salonData === null || servicesData === null;
+      if (criticalFailure) {
+        devLog("Failed to load salon data:", { salon: salonData === null, services: servicesData === null });
+        toast.error("خطا در بارگذاری اطلاعات", {
+          description: "لطفاً صفحه را رفرش کنید",
+          duration: 5000,
+        });
+      }
     }
+
     load();
     return () => controller.abort();
   }, []);

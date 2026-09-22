@@ -4,13 +4,19 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { LuxHome } from "@/components/landing/lux-home";
-import { SalonGuard } from "@/components/ui/salon-guard";
+import { useSalon } from "@/lib/salon-context";
 
 import { toast } from "sonner";
 
 export function SalonBooking() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // specs/003: the shell (navbar + hero + mascot) renders immediately — the
+  // old full-page skeleton gate hid everything until the slowest of six
+  // fetches landed. LuxHome already falls back per-field when data is still
+  // empty, so the page is interactive from the first paint; only the CTAs
+  // wait for the critical payload.
+  const { loaded } = useSalon();
 
   useEffect(() => {
     const welcome = searchParams.get("welcome");
@@ -25,8 +31,8 @@ export function SalonBooking() {
   }, [router, searchParams]);
 
   return (
-    <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
-      <LuxHome />
-    </SalonGuard>
+    <>
+      <LuxHome ctasEnabled={loaded} />
+    </>
   );
 }

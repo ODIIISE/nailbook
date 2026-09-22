@@ -20,7 +20,7 @@ const X_ICON = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
 );
 
-export function LuxHome() {
+export function LuxHome({ ctasEnabled = true }: { ctasEnabled?: boolean }) {
   const router = useRouter();
   const { salon, highlights } = useSalon();
   const { openMenu } = useMenu();
@@ -212,8 +212,8 @@ export function LuxHome() {
                      * tap it for reactions. Desktop: follows the cursor. */}
                     <div className={styles.mascotStage}>
                       <TouchMascot
-                        directions="/mascots/cat-directions.webp"
-                        reactions="/mascots/cat-reactions.webp"
+                        directions="/mascots/glasses-directions.webp"
+                        reactions="/mascots/glasses-reactions.webp"
                         size={160}
                       />
                     </div>
@@ -245,11 +245,11 @@ export function LuxHome() {
               <button className={styles.addrClose} aria-label="بستن" onClick={closeAddress}>{X_ICON}</button>
             </div>
           )}
-          <button dir="rtl" className={`${styles.btn} ${styles.btnPrimary} ${styles.rvPop}`} style={d(".85s")} onClick={() => router.push("/book")}>
+          <button dir="rtl" className={`${styles.btn} ${styles.btnPrimary} ${styles.rvPop}`} style={d(".85s")} disabled={!ctasEnabled} aria-disabled={!ctasEnabled} onClick={() => router.push("/book")}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="m9.2 12.5 2 2 3.8-3.8" /></svg>
             <span className={styles.btnFa}>رزرو نوبت</span>
           </button>
-          <button dir="rtl" className={`${styles.btn} ${styles.btnGhost} ${styles.rvPop}`} style={d(".95s")} onClick={() => setLookbookOpen(true)}>
+          <button dir="rtl" className={`${styles.btn} ${styles.btnGhost} ${styles.rvPop}`} style={d(".95s")} disabled={!ctasEnabled} aria-disabled={!ctasEnabled} onClick={() => setLookbookOpen(true)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"><path d="M12 3c.7 3.9 2.4 5.6 6.3 6.3-3.9.7-5.6 2.4-6.3 6.3-.7-3.9-2.4-5.6-6.3-6.3C9.6 8.6 11.3 6.9 12 3z" /></svg>
             <span className={styles.btnFa}>نمونه کارها</span>
           </button>

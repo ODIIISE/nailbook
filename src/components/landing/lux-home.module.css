@@ -421,6 +421,13 @@
   transform: scale(0.955);
 }
 
+/* Data still arriving (specs/003): shell is interactive but CTAs wait for
+   the critical payload. Dimmed, non-interactive, no press feedback. */
+.btn:disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .btn svg {
   flex-shrink: 0;
 }
