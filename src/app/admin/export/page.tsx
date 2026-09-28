@@ -68,7 +68,7 @@ export default function AdminExportPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h2 className="text-xl font-extrabold">خروجی داده</h2>
+      <h2 className="text-xl font-bold">خروجی داده</h2>
 
       <div className="p-5 rounded-2xl border border-border space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

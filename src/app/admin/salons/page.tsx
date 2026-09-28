@@ -37,7 +37,7 @@ export default function AdminSalonsPage() {
           <Button variant="ghost" size="icon" onClick={() => router.push("/admin")} className="rounded-full">
             <ArrowRight className="h-4 w-4" />
           </Button>
-          <h2 className="text-xl font-extrabold">مدیریت سالن‌ها</h2>
+          <h2 className="text-xl font-bold">مدیریت سالن‌ها</h2>
         </div>
         <Button onClick={() => router.push("/admin/salons/new")} className="gap-2 rounded-full" size="sm">
           <Plus className="h-4 w-4" />

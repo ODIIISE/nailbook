@@ -135,7 +135,7 @@ export default function NewSalonPage() {
         <Button variant="ghost" size="icon" onClick={() => router.push("/admin/salons")} className="rounded-full">
           <ArrowRight className="h-4 w-4" />
         </Button>
-        <h2 className="text-xl font-extrabold">سالن جدید</h2>
+        <h2 className="text-xl font-bold">سالن جدید</h2>
       </div>
 
       {/* Progress Steps */}

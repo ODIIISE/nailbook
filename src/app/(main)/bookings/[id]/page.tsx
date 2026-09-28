@@ -75,13 +75,13 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
       <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
         <Link
           href="/"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+          className="icon-btn text-foreground"
           aria-label="بازگشت"
         >
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </Link>
         <div className="text-center">
-          <span className="block text-micro font-extrabold tracking-[0.24em] text-muted-foreground" dir="ltr">
+          <span className="block text-kicker text-muted-foreground" dir="ltr">
             NAILBOOK
           </span>
           <h2 className="text-lg font-bold">تأیید نوبت</h2>
@@ -107,7 +107,7 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
                 {String(booking.salon_name || "FN").slice(0, 2)}
               </span>
             )}
-            <span className="text-sm font-extrabold">{booking.salon_name}</span>
+            <span className="text-sm font-bold">{booking.salon_name}</span>
             <span className={`ms-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-micro font-bold ${status.cls}`}>
               <i className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
               {status.label}
@@ -166,7 +166,7 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
         <div className="mt-4">
           <Link
             href="/"
-            className="flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-extrabold text-primary-foreground"
+            className="flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground"
           >
             رزرو نوبت جدید
           </Link>

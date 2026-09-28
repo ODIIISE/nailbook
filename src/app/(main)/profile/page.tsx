@@ -200,14 +200,14 @@ export default function ProfilePage() {
         <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
           <button
             type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+            className="icon-btn text-foreground"
             onClick={goBack}
             aria-label="بازگشت"
           >
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
           <div className="min-w-0 overflow-hidden text-center">
-            <span className="block text-xs font-extrabold text-primary">حساب کاربری</span>
+            <span className="block text-xs font-bold text-primary">حساب کاربری</span>
             <h2 className="truncate text-lg font-bold">پروفایل</h2>
           </div>
           <span className="h-11 w-11" />
@@ -217,11 +217,11 @@ export default function ProfilePage() {
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-muted text-muted-foreground">
               <User className="h-7 w-7" aria-hidden="true" />
             </div>
-            <h3 className="text-sm font-extrabold">وارد شوید</h3>
+            <h3 className="text-sm font-bold">وارد شوید</h3>
             <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">برای مشاهده پروفایل و نوبت‌های خود، با شماره موبایل وارد شوید.</p>
             <button
               type="button"
-              className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-extrabold text-primary-foreground"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground"
               onClick={() => router.push("/login")}
             >
               ورود
@@ -239,14 +239,14 @@ export default function ProfilePage() {
       <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
         <button
           type="button"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+          className="icon-btn text-foreground"
           onClick={goBack}
           aria-label="بازگشت"
         >
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </button>
         <div className="min-w-0 overflow-hidden text-center">
-          <span className="block text-xs font-extrabold text-primary">حساب کاربری</span>
+          <span className="block text-xs font-bold text-primary">حساب کاربری</span>
           <h2 className="truncate text-lg font-bold">پروفایل</h2>
         </div>
         <span className="h-11 w-11" />
@@ -258,8 +258,8 @@ export default function ProfilePage() {
         <section className="overflow-hidden rounded-lg border border-border bg-card shadow-card" aria-labelledby="profile-details-title">
           <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/50 px-4 pb-3 pt-4">
             <div className="min-w-0">
-              <span className="mb-0.5 block text-xs font-extrabold text-primary">حساب کاربری</span>
-              <h3 id="profile-details-title" className="text-base font-extrabold">مشخصات شما</h3>
+              <span className="mb-0.5 block text-xs font-bold text-primary">حساب کاربری</span>
+              <h3 id="profile-details-title" className="text-base font-bold">مشخصات شما</h3>
             </div>
             <User className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
           </div>
@@ -280,7 +280,7 @@ export default function ProfilePage() {
                   aria-label="نام"
                 />
               ) : (
-                <b className="block break-words text-sm font-extrabold">{user.name || "بدون نام"}</b>
+                <b className="block break-words text-sm font-bold">{user.name || "بدون نام"}</b>
               )}
             </div>
             {editing ? (
@@ -288,12 +288,12 @@ export default function ProfilePage() {
                 <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-50" onClick={saveEdit} disabled={saving} aria-label="ذخیره نام" title="ذخیره نام">
                   {saving ? <span className="h-3.5 w-3.5 rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
                 </button>
-                <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm" onClick={cancelEdit} aria-label="انصراف از ویرایش نام" title="انصراف">
+                <button type="button" className="icon-btn text-muted-foreground" onClick={cancelEdit} aria-label="انصراف از ویرایش نام" title="انصراف">
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             ) : (
-              <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm" onClick={startEdit} aria-label="ویرایش نام" title="ویرایش نام">
+              <button type="button" className="icon-btn text-muted-foreground" onClick={startEdit} aria-label="ویرایش نام" title="ویرایش نام">
                 <Pencil className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
@@ -316,7 +316,7 @@ export default function ProfilePage() {
                   aria-label="شماره موبایل"
                 />
               ) : (
-                <b className="block text-sm font-extrabold tracking-wide" dir="ltr">{displayDigits(user.phone)}</b>
+                <b className="block text-sm font-bold tracking-wide" dir="ltr">{displayDigits(user.phone)}</b>
               )}
               {!editingPhone && (
                 <span className="mt-1 block text-micro leading-relaxed text-muted-foreground">این شماره هویت ورود شماست؛ نوبت‌های قبلی با تغییر شماره به‌صورت خودکار منتقل می‌شوند.</span>
@@ -327,12 +327,12 @@ export default function ProfilePage() {
                 <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-50" onClick={savePhone} disabled={savingPhone} aria-label="ذخیره شماره موبایل" title="ذخیره شماره موبایل">
                   {savingPhone ? <span className="h-3.5 w-3.5 rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
                 </button>
-                <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm" onClick={cancelPhoneEdit} aria-label="انصراف از ویرایش شماره" title="انصراف">
+                <button type="button" className="icon-btn text-muted-foreground" onClick={cancelPhoneEdit} aria-label="انصراف از ویرایش شماره" title="انصراف">
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             ) : (
-              <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm" onClick={startPhoneEdit} aria-label="ویرایش شماره موبایل" title="ویرایش شماره موبایل">
+              <button type="button" className="icon-btn text-muted-foreground" onClick={startPhoneEdit} aria-label="ویرایش شماره موبایل" title="ویرایش شماره موبایل">
                 <Pencil className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
@@ -342,10 +342,10 @@ export default function ProfilePage() {
         <section className="mt-6" aria-labelledby="profile-history-title">
           <div className="mb-3 flex items-end justify-between gap-2.5">
             <div className="min-w-0">
-              <span className="mb-0.5 block text-xs font-extrabold text-primary">رزروها</span>
-              <h3 id="profile-history-title" className="text-base font-extrabold">نوبت‌های من</h3>
+              <span className="mb-0.5 block text-xs font-bold text-primary">رزروها</span>
+              <h3 id="profile-history-title" className="text-base font-bold">نوبت‌های من</h3>
             </div>
-            <button type="button" className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-2 text-xs font-extrabold text-primary" onClick={() => router.push("/bookings")}>
+            <button type="button" className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-2 text-xs font-bold text-primary" onClick={() => router.push("/bookings")}>
               همه نوبت‌ها
               <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
@@ -356,9 +356,9 @@ export default function ProfilePage() {
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
               <Calendar className="h-6 w-6" aria-hidden="true" />
             </div>
-            <h3 className="text-sm font-extrabold">نوبتی ندارید</h3>
+            <h3 className="text-sm font-bold">نوبتی ندارید</h3>
             <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">هنوز نوبتی رزرو نکرده‌اید. همین حالا اولین نوبت خود را بگیرید.</p>
-            <button type="button" className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-extrabold text-primary-foreground" onClick={() => router.push("/")}>
+            <button type="button" className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground" onClick={() => router.push("/")}>
               رزرو نوبت
             </button>
           </div>
@@ -403,13 +403,13 @@ export default function ProfilePage() {
                     <span>· {toPersianDigits(duration)} دقیقه</span>
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
-                    <b className="text-sm font-extrabold">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
+                    <b className="text-sm font-bold">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
                     <span className="flex items-center gap-2.5">
                       <small dir="ltr" className="text-micro font-bold text-muted-foreground">#{booking.id.slice(-4).toUpperCase()}</small>
                       {CANCELABLE.has(booking.status) && (
                         <button
                           type="button"
-                          className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-3.5 text-micro font-extrabold ${
+                          className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-3.5 text-micro font-bold ${
                             confirmingCancel === booking.id
                               ? "bg-destructive text-white"
                               : "border border-border bg-muted text-foreground"
@@ -430,7 +430,7 @@ export default function ProfilePage() {
 
         <button
           type="button"
-          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 text-sm font-extrabold text-destructive"
+          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 text-sm font-bold text-destructive"
           onClick={() => setConfirmLogout(true)}
         >
           <LogOut className="h-4 w-4" aria-hidden="true" />
@@ -439,7 +439,7 @@ export default function ProfilePage() {
       </div>
 
       <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
-        <AlertDialogContent className="max-w-[300px] rounded-2xl p-5 ring-0 border-border shadow-elevated">
+        <AlertDialogContent className="max-w-[300px]">
           <AlertDialogHeader>
             <AlertDialogTitle>خروج از حساب</AlertDialogTitle>
             <AlertDialogDescription>

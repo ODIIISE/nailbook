@@ -145,18 +145,23 @@
   --secondary: var(--cream-200);
   --secondary-foreground: var(--espresso-900);
   --muted: var(--cream-200);
-  --muted-foreground: var(--espresso-40);
+  /* WCAG AA on background (5.46), card (5.84) and muted (4.96) — the old
+     #7d7166 was 4.44/4.74/4.04. Dark mode keeps --night-200 (7.9:1 on card). */
+  --muted-foreground: #6f6357;
   --accent: var(--cream-100);
   --accent-foreground: var(--espresso-70);
   --accent-soft: var(--cream-150);
-  --accent-foreground-soft: var(--espresso-60);
+  /* WCAG AA on blush (6.04) and rose wash (5.63) — old #8a6552 hit 4.47/4.16. */
+  --accent-foreground-soft: #75513f;
   --destructive: var(--red-600);
   --success: var(--green-600);
   --warning: var(--amber-700);
   --accent-now: var(--blue-600);
   --border: var(--cream-250);
   --input: var(--cream-250);
-  --ring: var(--espresso-25);
+  /* Focus/contrast ring: espresso-40 at 4.44:1 on background — the taupe
+     #b0a396 sat at 2.31:1, below the 3:1 non-text minimum. */
+  --ring: var(--espresso-40);
 
   /* ── LAYOUT ── */
   /* Phone-frame width: fill narrow phones fully, cap on wide phones/desktop. */
@@ -164,11 +169,13 @@
   /* The one page gutter (§28). Full-bleed sections opt out deliberately. */
   --page-gutter: 1.25rem;
 
-  /* ── LAYER 2 · ELEVATION — flat / raised / overlay / modal ── */
-  --shadow-xs: 0 1px 2px rgba(42, 35, 30, 0.04);
-  --shadow-card: 0 1px 2px rgba(42, 35, 30, 0.04), 0 2px 8px rgba(42, 35, 30, 0.04);
-  --shadow-elevated: 0 2px 4px rgba(42, 35, 30, 0.06), 0 8px 24px rgba(42, 35, 30, 0.08);
-  --shadow-floating: 0 4px 8px rgba(42, 35, 30, 0.08), 0 16px 40px rgba(42, 35, 30, 0.14);
+  /* ── LAYER 2 · ELEVATION — flat / raised / overlay / modal ──
+     Alphas tuned so the four steps are distinguishable on cream/white while
+     staying soft; old 0.04-alpha ladder rendered near-invisible. */
+  --shadow-xs: 0 1px 2px rgba(42, 35, 30, 0.06);
+  --shadow-card: 0 1px 2px rgba(42, 35, 30, 0.06), 0 3px 10px rgba(42, 35, 30, 0.07);
+  --shadow-elevated: 0 2px 6px rgba(42, 35, 30, 0.08), 0 12px 28px rgba(42, 35, 30, 0.12);
+  --shadow-floating: 0 4px 10px rgba(42, 35, 30, 0.1), 0 20px 44px rgba(42, 35, 30, 0.16);
 
   /* ── LAYER 2 · MOTION — instant/micro/standard/expressive/editorial (§20) ── */
   /* Functional screens use instant/micro/standard only (§21). */
@@ -201,6 +208,8 @@
   --input-bg: transparent;
   --input-border: var(--input);
   --input-focus-ring: var(--ring);
+  /* Component-scope focus radius (§ base focus-visible). Keep single source. */
+  --focus-radius: 6px;
   --dialog-bg: var(--popover);
   --dialog-shadow: var(--shadow-elevated);
   --toast-bg: var(--popover);
@@ -309,7 +318,7 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
-    border-radius: 6px;
+    border-radius: var(--focus-radius);
   }
   button, a, [role="button"] {
     cursor: pointer;
@@ -442,11 +451,39 @@
     font-weight: 500;
   }
   /* Micro: the absolute minimum — non-interactive metadata only
-     (badges, kickers, weekday initials). Content text stays ≥ 12px. */
+     (badges, kickers, weekday initials). Content text stays ≥ 12px.
+     Kickers: use .text-kicker — never hand-write tracking-[N em]. */
   .text-micro {
     font-size: 11px;
     line-height: 1.4;
     font-weight: 500;
+  }
+  /* All-caps eyebrow/kicker for Latin metadata (HISTORY, ACCOUNT, …).
+     Pages previously hand-rolled text-micro + font-extrabold + tracking-[0.24em]. */
+  .text-kicker {
+    font-size: 11px;
+    line-height: 1.4;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+  }
+  /* 44px square header control (back / edit / cancel). Replaces the
+     copy-pasted `flex h-11 w-11 … border-border bg-card shadow-sm` block
+     that appeared on ~12 pages. Color intentionally not set so pages can
+     override with text-muted-foreground. Works on <button> and <Link>. */
+  .icon-btn {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    box-shadow: var(--shadow-xs);
+  }
+  .icon-btn:hover {
+    background: var(--muted);
   }
   .text-small {
     font-size: 12px;

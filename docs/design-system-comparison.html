@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Forehand · مقایسه سیستم‌های طراحی متن‌باز</title>
+
+<!-- ══ Real daisyUI 5 (MIT) from CDN ══ -->
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5/daisyui.css" rel="stylesheet" type="text/css"/>
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css"/>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+<style>
+/* ══════════════════════════════════════════════════════════
+   Font (same as the app)
+   ══════════════════════════════════════════════════════════ */
+@font-face{
+  font-family:'Estedad';
+  src:url('https://cdn.jsdelivr.net/gh/aminabedi68/Estedad@v7.3/fonts/webfonts/variable/Estedad-FD%5BKSHD%2Cwght%5D.woff2') format('woff2-variations');
+  font-weight:100 900;
+  font-display:swap;
+}
+
+/* ══════════════════════════════════════════════════════════
+   Reference tokens — the app's actual globals.css values
+   ══════════════════════════════════════════════════════════ */
+:root{
+  --cream-0:#ffffff; --cream-50:#faf7f2; --cream-100:#f6ede4; --cream-150:#f3e4da;
+  --cream-200:#f1ece4; --cream-250:#eae3d9;
+  --espresso-25:#b0a396; --espresso-40:#7d7166; --espresso-60:#8a6552;
+  --espresso-70:#4a3f36; --espresso-900:#2a231e; --espresso-950:#261a0e;
+  --night-900:#171310; --night-850:#241d17; --night-800:#2b241d; --night-700:#33261e;
+  --night-650:#382a21; --night-600:#3a3128; --night-200:#beb1a3; --night-50:#f5f0e9;
+  --red-600:#dc2626; --green-600:#16a34a; --amber-700:#b45309; --blue-600:#2563eb;
+
+  --background:var(--cream-50); --foreground:var(--espresso-900);
+  --card:var(--cream-0); --popover:var(--cream-0);
+  --primary:var(--espresso-900); --primary-foreground:var(--cream-50);
+  --secondary:var(--cream-200); --muted:var(--cream-200);
+  --muted-foreground:#6f6357;
+  --accent:var(--cream-100); --accent-foreground:var(--espresso-70);
+  --accent-soft:var(--cream-150); --accent-foreground-soft:#75513f;
+  --destructive:var(--red-600); --success:var(--green-600); --warning:var(--amber-700);
+  --border:var(--cream-250); --input:var(--cream-250); --ring:var(--espresso-40);
+  --shadow-xs:0 1px 2px rgba(42,35,30,.06);
+  --shadow-card:0 1px 2px rgba(42,35,30,.06),0 3px 10px rgba(42,35,30,.07);
+  --shadow-elevated:0 2px 6px rgba(42,35,30,.08),0 12px 28px rgba(42,35,30,.12);
+}
+html.dark-compare{ color-scheme:dark;
+  --background:var(--night-900); --foreground:var(--night-50);
+  --card:var(--night-850); --popover:var(--night-850);
+  --primary:var(--night-50); --primary-foreground:var(--night-850);
+  --secondary:var(--night-800); --muted:var(--night-800);
+  --muted-foreground:var(--night-200);
+  --accent:var(--night-800); --accent-foreground:var(--night-50);
+  --accent-soft:var(--night-650); --accent-foreground-soft:var(--night-100);
+  --border:var(--night-600); --input:var(--night-600); --ring:var(--espresso-40);
+  --shadow-xs:0 1px 2px rgba(0,0,0,.4);
+  --shadow-card:inset 0 1px 0 rgba(255,255,255,.04),0 2px 8px rgba(0,0,0,.5);
+  --shadow-elevated:inset 0 1px 0 rgba(255,255,255,.05),0 8px 24px rgba(0,0,0,.55);
+}
+
+/* ══════════════════════════════════════════════════════════
+   Custom daisyUI themes: the current skin expressed as theme config
+   ══════════════════════════════════════════════════════════ */
+[data-theme="forehand"]{
+  color-scheme:light;
+  --color-base-100:#faf7f2; --color-base-200:#f1ece4; --color-base-300:#eae3d9;
+  --color-base-content:#2a231e;
+  --color-primary:#2a231e; --color-primary-content:#faf7f2;
+  --color-secondary:#f1ece4; --color-secondary-content:#4a3f36;
+  --color-accent:#f6ede4; --color-accent-content:#75513f;
+  --color-neutral:#2a231e; --color-neutral-content:#faf7f2;
+  --color-info:#2563eb; --color-info-content:#ffffff;
+  --color-success:#16a34a; --color-success-content:#ffffff;
+  --color-warning:#b45309; --color-warning-content:#ffffff;
+  --color-error:#dc2626; --color-error-content:#ffffff;
+  --radius-selector:8px; --radius-field:12px; --radius-box:16px;
+  --size-selector:.25rem; --size-field:.25rem; --border:1px;
+  --depth:0; --noise:0;
+}
+[data-theme="forehand-dark"]{
+  color-scheme:dark;
+  --color-base-100:#241d17; --color-base-200:#2b241d; --color-base-300:#3a3128;
+  --color-base-content:#f5f0e9;
+  --color-primary:#f5f0e9; --color-primary-content:#241d17;
+  --color-secondary:#2b241d; --color-secondary-content:#beb1a3;
+  --color-accent:#382a21; --color-accent-content:#dfa98b;
+  --color-neutral:#171310; --color-neutral-content:#f5f0e9;
+  --color-info:#3b82f6; --color-info-content:#ffffff;
+  --color-success:#22c55e; --color-success-content:#0a0a0a;
+  --color-warning:#f59e0b; --color-warning-content:#0a0a0a;
+  --color-error:#ef4444; --color-error-content:#ffffff;
+  --radius-selector:8px; --radius-field:12px; --radius-box:16px;
+  --size-selector:.25rem; --size-field:.25rem; --border:1px;
+  --depth:0; --noise:0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   Page chrome (neutral — not part of any candidate)
+   ══════════════════════════════════════════════════════════ */
+body{margin:0;background:#efece7;color:#1c1917;font-family:'Estedad','Vazirmatn',system-ui,sans-serif}
+html.dark-compare body{background:#141210;color:#e7e5e4}
+.page-head{background:#1c1917;color:#fafaf9;padding:28px 24px 22px}
+html.dark-compare .page-head{background:#000}
+.page-head h1{margin:0 0 6px;font-size:22px;font-weight:800}
+.page-head p{margin:0;font-size:13px;opacity:.75;max-width:80ch;line-height:1.7}
+.hero-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 24px;background:#292524;border-bottom:1px solid #44403c;position:sticky;top:0;z-index:50}
+.hero-bar .spacer{flex:1}
+.chip{font-size:12px;color:#d6d3d1;padding:5px 12px;border-radius:999px;background:#1c1917;border:1px solid #44403c}
+.chip b{color:#fff}
+.hero-bar button{cursor:pointer;font-family:inherit;font-size:13px;padding:8px 16px;border-radius:999px;border:1px solid #57534e;background:#1c1917;color:#e7e5e4;transition:background .15s}
+.hero-bar button:hover{background:#44403c}
+
+.columns{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:18px 24px 8px}
+@media(max-width:1150px){.columns{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.columns{grid-template-columns:1fr}}
+.col{border-radius:16px;border:1px solid #d6d3d1;background:#ffffff;overflow:hidden;display:flex;flex-direction:column}
+html.dark-compare .col{background:#1c1917;border-color:#44403c}
+.col-head{padding:12px 16px;font-size:12.5px;font-weight:700;border-bottom:1px solid #e7e5e4;display:flex;justify-content:space-between;align-items:center;gap:8px}
+html.dark-compare .col-head{border-color:#44403c;color:#e7e5e4;background:#292524}
+.col-head .tag{font-size:10px;font-weight:600;padding:3px 8px;border-radius:999px;background:#f5f5f4;color:#57534e;border:1px solid #e7e5e4;direction:ltr}
+html.dark-compare .col-head .tag{background:#44403c;color:#d6d3d1;border-color:#57534e}
+.col-body{padding:16px;display:flex;flex-direction:column;gap:12px;flex:1}
+.spec{font-size:11px;line-height:1.7;color:#78716c;margin:0}
+html.dark-compare .spec{color:#a8a29e}
+.spec code{font-size:10.5px;background:#f5f5f4;border:1px solid #e7e5e4;padding:1px 5px;border-radius:4px;font-family:ui-monospace,monospace;direction:ltr;display:inline-block}
+html.dark-compare .spec code{background:#292524;border-color:#44403c;color:#d6d3d1}
+.spec b{color:#44403c}
+html.dark-compare .spec b{color:#d6d3d1}
+
+/* ── Reference column: the app's current components ── */
+.fh-page{background:var(--background);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;color:var(--foreground)}
+.fh-kicker{font-size:11px;font-weight:700;letter-spacing:.24em;color:var(--muted-foreground)}
+.fh-h{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0}
+.fh-sub{font-size:12px;color:var(--muted-foreground);margin:0;line-height:1.55}
+.fh-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow-card)}
+.fh-card h4{margin:0;font-size:16px;font-weight:600}
+.fh-input{display:flex;align-items:center;height:44px;border:1px solid var(--input);border-radius:12px;background:transparent;padding:0 14px;color:var(--muted-foreground);font-size:14px}
+.fh-btn{display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 20px;border-radius:999px;font-size:14px;font-weight:600;border:1px solid transparent;cursor:pointer;font-family:inherit}
+.fh-btn-primary{background:var(--primary);color:var(--primary-foreground)}
+.fh-btn-outline{background:var(--card);color:var(--foreground);border-color:var(--border)}
+.fh-btn-ghost{background:transparent;color:var(--foreground)}
+.fh-btn-outline:hover,.fh-btn-ghost:hover{background:var(--muted)}
+.fh-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fh-badge{display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:999px;font-size:11px;font-weight:600}
+.fh-badge-accent{background:var(--accent-soft);color:var(--accent-foreground-soft)}
+.fh-badge-outline{background:transparent;color:var(--muted-foreground);border:1px solid var(--border)}
+.fh-tabs{display:flex;background:var(--muted);border-radius:999px;padding:4px;gap:2px}
+.fh-tab{padding:8px 16px;border-radius:999px;font-size:13px;color:var(--muted-foreground);cursor:pointer}
+.fh-tab.on{background:var(--card);color:var(--foreground);box-shadow:var(--shadow-xs);font-weight:600}
+.fh-switch{width:52px;height:32px;border-radius:999px;background:var(--primary);position:relative}
+.fh-switch i{position:absolute;top:4px;inset-inline-start:4px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.fh-switch.off{background:var(--muted);border:1px solid var(--border)}
+.fh-switch.off i{inset-inline-start:24px;background:var(--muted-foreground)}
+.fh-alert{background:color-mix(in oklab,var(--success) 10%,var(--card));border:1px solid color-mix(in oklab,var(--success) 30%,transparent);border-radius:12px;padding:12px 14px;font-size:12.5px}
+
+/* ── HeroUI v3 recreation (token-faithful) ── */
+.hu-scope{background:var(--background);color:var(--foreground);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.hu-kicker{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted-foreground)}
+.hu-h{font-size:20px;font-weight:700;margin:0}
+.hu-sub{font-size:12px;color:var(--muted-foreground);margin:0}
+.hu-card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.hu-card-in{padding:16px;display:flex;flex-direction:column;gap:4px}
+.hu-card-in h4{margin:0;font-size:16px;font-weight:600}
+.hu-field{height:42px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--muted-foreground);display:flex;align-items:center;padding:0 12px;font-size:13.5px}
+.hu-btn{display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 16px;border-radius:10px;font-size:13.5px;font-weight:600;border:none;cursor:pointer;font-family:inherit}
+.hu-btn-primary{background:#5b4fe9;color:#fff}
+.hu-btn-bordered{background:transparent;color:inherit;border:1px solid var(--border)}
+.hu-btn-light{background:var(--muted);color:inherit}
+.hu-chip{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:8px;font-size:11.5px;font-weight:600;background:color-mix(in oklab,#5b4fe9 12%,transparent);color:#5b4fe9}
+html.dark-compare .hu-chip{background:color-mix(in oklab,#8b7ff5 20%,transparent);color:#b7aef8}
+.hu-chip-o{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:8px;font-size:11.5px;font-weight:600;border:1px solid var(--border);color:var(--muted-foreground)}
+.hu-tabs{display:flex;gap:4px;background:var(--muted);border-radius:10px;padding:4px}
+.hu-tab{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--muted-foreground);cursor:pointer}
+.hu-tab.on{background:var(--card);color:var(--foreground);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.hu-switch{width:44px;height:26px;border-radius:999px;background:#5b4fe9;position:relative;flex-shrink:0}
+.hu-switch i{position:absolute;top:3px;inset-inline-start:3px;width:20px;height:20px;border-radius:50%;background:#fff}
+.hu-switch.off{background:var(--border)}
+.hu-switch.off i{inset-inline-start:21px}
+.hu-note{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px}
+html.dark-compare .hu-btn-primary{background:#7a6ff0}
+
+/* ── tables ── */
+section.block{padding:22px 24px 6px}
+section.block h2{font-size:17px;font-weight:800;margin:0 0 4px}
+html.dark-compare section.block h2{color:#f5f5f4}
+section.block p.lead{margin:0 0 14px;font-size:13px;color:#78716c;max-width:95ch;line-height:1.7}
+html.dark-compare section.block p.lead{color:#a8a29e}
+.tbl-wrap{overflow-x:auto;border:1px solid #d6d3d1;border-radius:14px;background:#fff;margin:0 24px 8px}
+html.dark-compare .tbl-wrap{background:#1c1917;border-color:#44403c}
+table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:720px}
+th{background:#fafaf9;text-align:right;padding:10px 14px;font-size:11px;font-weight:700;color:#57534e;border-bottom:1px solid #e7e5e4;white-space:nowrap}
+html.dark-compare th{background:#292524;color:#d6d3d1;border-color:#44403c}
+td{padding:10px 14px;border-bottom:1px solid #f0efec;color:#44403c;vertical-align:top}
+html.dark-compare td{border-color:#292524;color:#d6d3d1}
+tr:last-child td{border-bottom:none}
+td code{font-size:11px;background:#f5f5f4;border:1px solid #e7e5e4;padding:1px 5px;border-radius:4px;font-family:ui-monospace,monospace;direction:ltr;display:inline-block}
+html.dark-compare td code{background:#292524;border-color:#44403c}
+.rating{display:inline-flex;gap:3px;align-items:center;justify-content:center;min-width:44px;height:24px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.rating-hi{background:#dcfce7;color:#166534}
+html.dark-compare .rating-hi{background:#14532d;color:#bbf7d0}
+.rating-mid{background:#fef3c7;color:#92400e}
+html.dark-compare .rating-mid{background:#78350f;color:#fde68a}
+.rating-lo{background:#fee2e2;color:#991b1b}
+html.dark-compare .rating-lo{background:#7f1d1d;color:#fecaca}
+footer{padding:26px 24px 40px;font-size:12px;color:#a8a29e;line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <h1>Forehand × سیستم‌های طراحی متن‌باز</h1>
+  <p>ستون مرجع، پوسته فعلی برنامه است (توکن‌های واقعی globals.css). ستون‌های daisyUI با CSS واقعی daisyUI 5 از CDN رندر شده‌اند — «stock» یعنی همان چیزی که نصب می‌کنید، و «Forehand tint» همان سیستم با یک بلوک تم سفارشی. HeroUI به‌صورت وفادار به توکن‌های مستندش بازسازی شده است.</p>
+</div>
+
+<div class="hero-bar">
+  <button id="btn-light" type="button">☀️ روشن</button>
+  <button id="btn-dark" type="button">🌙 تیره</button>
+  <span class="spacer"></span>
+  <span class="chip">چیدمان: <b>RTL فارسی</b></span>
+  <span class="chip">daisyUI: <b>CDN واقعی v5</b></span>
+  <span class="chip">HeroUI: <b>بازسازی توکن‌محور</b></span>
+</div>
+
+<section class="block">
+  <h2>۱ · مؤلفه‌ها در برابر هم — یک صفحه نمونه</h2>
+  <p class="lead">یک صفحه نمونه با دکمه، کارت، فیلد، badge، تب، سوییچ و alert — در چهار ستون: پوسته فعلی، daisyUI stock، daisyUI با تم برند Forehand، و بازسازی HeroUI. هر ستون فقط کلاس‌های واقعی همان سیستم را استفاده می‌کند.</p>
+</section>
+
+<div class="columns">
+
+  <!-- ══ COLUMN 1 · current Forehand skin (reference) ══ -->
+  <div class="col">
+    <div class="col-head"><span>پوسته فعلی (مرجع)</span><span class="tag">globals.css</span></div>
+    <div class="col-body">
+      <div class="fh-page">
+        <div>
+          <div class="fh-kicker">نوبت‌ها</div>
+          <h3 class="fh-h">نوبت‌های امروز</h3>
+          <p class="fh-sub">۳ نوبت فعال · ۱۲ شهریور</p>
+        </div>
+        <div class="fh-card">
+          <h4>رنگ و کوتاری — سارا</h4>
+          <p class="fh-sub">۱۶:۳۰ · ۹۰ دقیقه · ۸۵۰,۰۰۰ تومان</p>
+        </div>
+        <div class="fh-input">جست‌وجوی مشتری…</div>
+        <div class="fh-row">
+          <button class="fh-btn fh-btn-primary" type="button">ثبت نوبت</button>
+          <button class="fh-btn fh-btn-outline" type="button">انصراف</button>
+          <button class="fh-btn fh-btn-ghost" type="button">بیشتر</button>
+        </div>
+        <div class="fh-row">
+          <span class="fh-badge fh-badge-accent">تأیید شده</span>
+          <span class="fh-badge fh-badge-outline">در انتظار</span>
+        </div>
+        <div class="fh-tabs">
+          <div class="fh-tab on">همه</div>
+          <div class="fh-tab">امروز</div>
+          <div class="fh-tab">آینده</div>
+        </div>
+        <div class="fh-row">
+          <div class="fh-switch"><i></i></div>
+          <div class="fh-switch off"><i></i></div>
+        </div>
+        <div class="fh-alert">نوبت با موفقیت ثبت شد.</div>
+      </div>
+      <p class="spec">پوسته دست‌نویس در <code>globals.css</code> — معماری توکن سه‌لایه، ولی <b>هر مقدار را خودمان نگه می‌داریم</b>: اصلاح کنتراست، نردبان شعاع، آلفای سایه. رفتار از Base UI + CVA.</p>
+    </div>
+  </div>
+
+  <!-- ══ COLUMN 2 · daisyUI stock ══ -->
+  <div class="col">
+    <div class="col-head"><span>daisyUI 5 · stock</span><span class="tag">cupcake</span></div>
+    <div class="col-body">
+      <div id="dstock" data-theme="cupcake" style="background:var(--color-base-100);color:var(--color-base-content);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:.24em;color:color-mix(in oklab,currentColor 55%,transparent)">نوبت‌ها</div>
+          <h3 style="font-size:20px;font-weight:700;margin:0">نوبت‌های امروز</h3>
+          <p style="font-size:12px;color:color-mix(in oklab,currentColor 55%,transparent);margin:0">۳ نوبت فعال · ۱۲ شهریور</p>
+        </div>
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body" style="padding:16px;gap:4px">
+            <h4 class="card-title" style="font-size:16px">رنگ و کوتاری — سارا</h4>
+            <p style="font-size:12px;color:color-mix(in oklab,currentColor 55%,transparent);margin:0">۱۶:۳۰ · ۹۰ دقیقه · ۸۵۰,۰۰۰ تومان</p>
+          </div>
+        </div>
+        <input class="input w-full" placeholder="جست‌وجوی مشتری…"/>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn btn-primary btn-sm" type="button">ثبت نوبت</button>
+          <button class="btn btn-outline btn-sm" type="button">انصراف</button>
+          <button class="btn btn-ghost btn-sm" type="button">بیشتر</button>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="badge badge-accent">تأیید شده</span>
+          <span class="badge badge-outline">در انتظار</span>
+        </div>
+        <div role="tablist" class="tabs tabs-box">
+          <a role="tab" class="tab tab-active">همه</a>
+          <a role="tab" class="tab">امروز</a>
+          <a role="tab" class="tab">آینده</a>
+        </div>
+        <div class="flex gap-2 items-center">
+          <input type="checkbox" class="toggle toggle-primary" checked="checked"/>
+          <input type="checkbox" class="toggle"/>
+        </div>
+        <div role="alert" class="alert alert-success"><span>نوبت با موفقیت ثبت شد.</span></div>
+      </div>
+      <p class="spec">بدون هیچ تنظیمی — مارک‌آپ واقعی کتابخانه: <code>.btn .btn-primary</code>، <code>.card</code>، <code>.badge</code>، <code>.tabs-box</code>، <code>.toggle</code>، <code>.alert</code>. رنگ‌ها از <code>--color-*</code> و شعاع‌ها از <code>--radius-box/field/selector</code> هر تم.</p>
+    </div>
+  </div>
+
+  <!-- ══ COLUMN 3 · daisyUI Forehand-tinted ══ -->
+  <div class="col">
+    <div class="col-head"><span>daisyUI 5 · Forehand tint</span><span class="tag">custom theme</span></div>
+    <div class="col-body">
+      <div id="dtint" data-theme="forehand" style="background:var(--color-base-100);color:var(--color-base-content);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:.24em;color:color-mix(in oklab,currentColor 55%,transparent)">نوبت‌ها</div>
+          <h3 style="font-size:20px;font-weight:700;margin:0">نوبت‌های امروز</h3>
+          <p style="font-size:12px;color:color-mix(in oklab,currentColor 55%,transparent);margin:0">۳ نوبت فعال · ۱۲ شهریور</p>
+        </div>
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body" style="padding:16px;gap:4px">
+            <h4 class="card-title" style="font-size:16px">رنگ و کوتاری — سارا</h4>
+            <p style="font-size:12px;color:color-mix(in oklab,currentColor 55%,transparent);margin:0">۱۶:۳۰ · ۹۰ دقیقه · ۸۵۰,۰۰۰ تومان</p>
+          </div>
+        </div>
+        <input class="input w-full" placeholder="جست‌وجوی مشتری…"/>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn btn-primary btn-sm" type="button">ثبت نوبت</button>
+          <button class="btn btn-outline btn-sm" type="button">انصراف</button>
+          <button class="btn btn-ghost btn-sm" type="button">بیشتر</button>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="badge badge-accent">تأیید شده</span>
+          <span class="badge badge-outline">در انتظار</span>
+        </div>
+        <div role="tablist" class="tabs tabs-box">
+          <a role="tab" class="tab tab-active">همه</a>
+          <a role="tab" class="tab">امروز</a>
+          <a role="tab" class="tab">آینده</a>
+        </div>
+        <div class="flex gap-2 items-center">
+          <input type="checkbox" class="toggle toggle-primary" checked="checked"/>
+          <input type="checkbox" class="toggle"/>
+        </div>
+        <div role="alert" class="alert alert-success"><span>نوبت با موفقیت ثبت شد.</span></div>
+      </div>
+      <p class="spec">همان مؤلفه‌های daisyUI با <b>یک بلوک تم</b>: <code>[data-theme=forehand]{--color-base-100:#faf7f2; --color-primary:#2a231e; --radius-box:16px; …}</code>. کل پوسته فعلی به‌صورت پیکربندی تم؛ تم تیره هم مشمول است.</p>
+    </div>
+  </div>
+
+  <!-- ══ COLUMN 4 · HeroUI v3 recreation ══ -->
+  <div class="col">
+    <div class="col-head"><span>HeroUI v3 · بازسازی</span><span class="tag">BEM · React Aria</span></div>
+    <div class="col-body">
+      <div class="hu-scope">
+        <div>
+          <div class="hu-kicker">نوبت‌ها</div>
+          <h3 class="hu-h">نوبت‌های امروز</h3>
+          <p class="hu-sub">۳ نوبت فعال · ۱۲ شهریور</p>
+        </div>
+        <div class="hu-card">
+          <div class="hu-card-in">
+            <h4>رنگ و کوتاری — سارا</h4>
+            <p class="hu-sub">۱۶:۳۰ · ۹۰ دقیقه · ۸۵۰,۰۰۰ تومان</p>
+          </div>
+        </div>
+        <div class="hu-field">جست‌وجوی مشتری…</div>
+        <div class="flex flex-wrap gap-2">
+          <button class="hu-btn hu-btn-primary" type="button">ثبت نوبت</button>
+          <button class="hu-btn hu-btn-bordered" type="button">انصراف</button>
+          <button class="hu-btn hu-btn-light" type="button">بیشتر</button>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="hu-chip">تأیید شده</span>
+          <span class="hu-chip-o">در انتظار</span>
+        </div>
+        <div class="hu-tabs">
+          <div class="hu-tab on">همه</div>
+          <div class="hu-tab">امروز</div>
+          <div class="hu-tab">آینده</div>
+        </div>
+        <div class="hu-note">
+          <span>یادآوری پیامکی</span>
+          <span class="hu-switch"><i></i></span>
+        </div>
+        <div class="hu-note" style="background:color-mix(in oklab,var(--success) 10%,var(--card));border:1px solid color-mix(in oklab,var(--success) 30%,transparent);border-radius:10px;padding:10px 12px">نوبت با موفقیت ثبت شد.</div>
+      </div>
+      <p class="spec">معماری CSS-first: <code>@import "@heroui/styles"</code> + کلاس‌های BEM مثل <code>.button--primary</code> و <code>.tabs__tab</code>. توکن‌های معنایی با الگوی <code>--background/--foreground</code>. در عمل، primitives از Base UI به React Aria جایگزین می‌شوند.</p>
+    </div>
+  </div>
+
+</div>
+
+<section class="block">
+  <h2>۲ · معیارها در برابر نیازهای واقعی برنامه</h2>
+  <p class="lead">نیازهای مستند پروژه: touch-first فارسی با RTL اجباری، Tailwind CSS v4، پریمیتیوهای Base UI، و اولویت WCAG AA. امتیازها بر اساس سورس هر کتابخانه است، نه بازاریابی آن.</p>
+</section>
+
+<div class="tbl-wrap">
+<table>
+  <thead>
+    <tr><th>معیار</th><th>پوسته فعلی</th><th>daisyUI 5</th><th>HeroUI v3</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>متن‌باز و رایگان</td>
+      <td>✅ متعلق به خودتان</td>
+      <td><span class="rating rating-hi">MIT ✅</span></td>
+      <td><span class="rating rating-hi">MIT ✅</span></td>
+    </tr>
+    <tr>
+      <td>سازگاری Tailwind v4</td>
+      <td>✅ فعال</td>
+      <td><span class="rating rating-hi">پلاگین رسمی</span></td>
+      <td><span class="rating rating-hi">بومی v4</span></td>
+    </tr>
+    <tr>
+      <td>RTL فارسی</td>
+      <td>✅ logical props</td>
+      <td><span class="rating rating-hi">کامل</span></td>
+      <td><span class="rating rating-hi">کامل</span></td>
+    </tr>
+    <tr>
+      <td>توکن معنایی + موتور تم</td>
+      <td>⚠️ دست‌ساز و خودنگهدار</td>
+      <td><span class="rating rating-hi">۳۵+ تم آماده</span></td>
+      <td><span class="rating rating-hi">Theme Builder</span></td>
+    </tr>
+    <tr>
+      <td>سرچشمه رفتار (a11y / focus / RTL)</td>
+      <td>Base UI — می‌ماند</td>
+      <td><span class="rating rating-hi">Base UI دست‌نخورده</span></td>
+      <td><span class="rating rating-lo">جایگزینی با React Aria</span></td>
+    </tr>
+    <tr>
+      <td>دامنه مهاجرت</td>
+      <td>—</td>
+      <td><span class="rating rating-hi">کوچک تا متوسط</span></td>
+      <td><span class="rating rating-lo">بزرگ</span></td>
+    </tr>
+    <tr>
+      <td>جلوه پیش‌فرض بدون تنظیم</td>
+      <td>⚠️ نیازمند نگهداری مداوم</td>
+      <td><span class="rating rating-mid">خوب</span></td>
+      <td><span class="rating rating-hi">عالی</span></td>
+    </tr>
+    <tr>
+      <td>سطح آستانه یادگیری برای تیم</td>
+      <td>بالا (سند داخلی لازم)</td>
+      <td><span class="rating rating-hi">کم</span></td>
+      <td><span class="rating rating-mid">متوسط</span></td>
+    </tr>
+    <tr>
+      <td>ریسک کلی</td>
+      <td>—</td>
+      <td><span class="rating rating-hi">کم</span></td>
+      <td><span class="rating rating-lo">زیاد</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<section class="block">
+  <h2>۳ · نگاشت مهاجرت در صورت انتخاب daisyUI</h2>
+  <p class="lead">نگاشت یک‌به‌یک پوسته فعلی به daisyUI. چون تمام صفحات از primitives در <code>src/components/ui/</code> استفاده می‌کنند، تغییر فقط در لایهprimitive و تم اعمال می‌شود — بدون بازنویسی صفحات.</p>
+</section>
+
+<div class="tbl-wrap">
+<table>
+  <thead>
+    <tr><th>پوسته فعلی</th><th>معادل daisyUI</th><th>نتیجه</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>--background / --card / --muted</code></td>
+      <td><code>--color-base-100/200/300</code> + <code>--color-base-content</code></td>
+      <td>فقط مقادیر عوض می‌شوند</td>
+    </tr>
+    <tr>
+      <td><code>--primary / --primary-foreground</code></td>
+      <td><code>--color-primary(-content)</code></td>
+      <td>فقط مقادیر عوض می‌شوند</td>
+    </tr>
+    <tr>
+      <td><code>--muted-foreground</code> (دستی، مستعد خرابی کنتراست)</td>
+      <td><code>color-mix(base-content 55%)</code></td>
+      <td>مشتق از سیستم — دیگر قابل خراب‌شدن نیست</td>
+    </tr>
+    <tr>
+      <td><code>--radius: 8/10/12/16</code> پراکنده</td>
+      <td><code>--radius-selector / field / box</code></td>
+      <td>سه توکن به‌جای مقادیر ad-hoc</td>
+    </tr>
+    <tr>
+      <td><code>--shadow-xs/card/elevated/floating</code></td>
+      <td><code>--depth</code> + سایه‌های توکن‌محور</td>
+      <td>نردبان ارتفاع استاندارد و نگهداری‌شده</td>
+    </tr>
+    <tr>
+      <td>variantهای CVA در primitives</td>
+      <td><code>.btn .btn-primary .btn-soft</code></td>
+      <td>CVA نگه داشته می‌شود، مقادیر از کلاس‌ها می‌آیند</td>
+    </tr>
+    <tr>
+      <td>dark mode دست‌ساز (بلوک <code>.dark</code>)</td>
+      <td><code>[data-theme=forehand-dark]</code></td>
+      <td>دو بلوک تم، صفر CSS سفارشی</td>
+    </tr>
+    <tr>
+      <td>رفتار Base UI (dialog، select، …)</td>
+      <td>بدون تغییر</td>
+      <td>صفر ریسک رفتاری</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<footer>
+  هر دو گزینه کاملاً متن‌باز (MIT) و بومی Tailwind v4 هستند. daisyUI = کمترین ریسک با حفظ رفتار Base UI؛ HeroUI = بالاترین جلوه پیش‌فرض در ازای مهاجرت کامل primitives.
+  صفحه اصلی برنامه در هر سناریو دست‌نخورده می‌ماند.
+</footer>
+
+<script>
+(function(){
+  var root = document.documentElement;
+  var dstock = document.getElementById('dstock');
+  var dtint = document.getElementById('dtint');
+  function applyDark(on){
+    root.classList.toggle('dark-compare', on);
+    dstock.setAttribute('data-theme', on ? 'dim' : 'cupcake');
+    dtint.setAttribute('data-theme', on ? 'forehand-dark' : 'forehand');
+  }
+  document.getElementById('btn-light').addEventListener('click', function(){ applyDark(false); });
+  document.getElementById('btn-dark').addEventListener('click', function(){ applyDark(true); });
+})();
+</script>
+
+</body>
+</html>

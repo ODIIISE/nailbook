@@ -616,7 +616,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
       <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
         <button
           type="button"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+          className="icon-btn text-foreground"
           onClick={handleBack}
           aria-label="بازگشت"
           style={{ visibility: step === "success" ? "hidden" : "visible" }}
@@ -625,7 +625,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </button>
         <div className="min-w-0 overflow-hidden text-center">
-          <span className="block text-xs font-extrabold text-primary">{STEP_KICKER[step]}</span>
+          <span className="block text-xs font-bold text-primary">{STEP_KICKER[step]}</span>
           <h2 key={step} className="truncate text-lg font-bold">{(step === "success" ? (salon.booking_success_title || SUCCESS_TITLE_DEFAULT) : STEP_TITLES[step])}</h2>
         </div>
         <span className="h-11 w-11" />
@@ -657,7 +657,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/10"><Images className="h-5 w-5" aria-hidden="true" /></span>
               )}
               <div className="min-w-0 flex-1">
-                <b className="block text-xs font-extrabold">رزرو این مدل: {look.name}</b>
+                <b className="block text-xs font-bold">رزرو این مدل: {look.name}</b>
                 <span className="mt-0.5 block text-micro text-primary-foreground/70">خدمت مرتبط انتخاب شده؛ افزودنی‌ها را هرطور خواستی تغییر بده</span>
               </div>
               <button
@@ -671,7 +671,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
             </div>
           )}
 
-          <p className="mb-2.5 mt-3 text-xs font-extrabold text-muted-foreground">انتخاب خدمت</p>
+          <p className="mb-2.5 mt-3 text-xs font-bold text-muted-foreground">انتخاب خدمت</p>
           <div className="flex flex-col gap-3">
             {activeServices.map((s) => {
               const isSelected = selectedService?.id === s.id;
@@ -697,11 +697,11 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2">
                         <b className="text-sm font-bold">{s.name}</b>
-                        {s.is_popular && <span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-micro font-extrabold text-primary">پرطرفدار</span>}
+                        {s.is_popular && <span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-micro font-bold text-primary">پرطرفدار</span>}
                       </span>
                       <span className="my-0.5 block text-xs text-muted-foreground">{s.description || "رزرو آنلاین"} · {toPersianDigits(s.duration_minutes)} دقیقه</span>
                       <span className="flex items-center">
-                        <span className="text-sm font-extrabold">از {compactToman(Number(s.price))}</span>
+                        <span className="text-sm font-bold">از {compactToman(Number(s.price))}</span>
                       </span>
                     </span>
                     <span
@@ -718,7 +718,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
                       {serviceAddons.length > 0 ? (
                         <>
                           <div className="flex items-center justify-between border-t border-dashed border-border px-0.5 pb-1 pt-3">
-                            <span className="text-micro font-extrabold text-primary">افزودنی‌ها · اختیاری</span>
+                            <span className="text-micro font-bold text-primary">افزودنی‌ها · اختیاری</span>
                             <button
                               type="button"
                               onClick={() => setSelectedAddons([])}
@@ -747,7 +747,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
                                   <b className="block text-sm font-bold">{a.name}</b>
                                   <small className="mt-0.5 block text-xs text-muted-foreground">+{toPersianDigits(a.duration_minutes)} دقیقه</small>
                                 </span>
-                                <span className="shrink-0 text-xs font-extrabold text-primary">+{compactToman(Number(a.price))}</span>
+                                <span className="shrink-0 text-xs font-bold text-primary">+{compactToman(Number(a.price))}</span>
                               </button>
                             );
                           })}
@@ -757,7 +757,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
                       )}
                       <div className="mt-3.5 flex items-center justify-between rounded-lg bg-muted px-3.5 py-3 text-xs text-muted-foreground">
                         <span>انتخاب شما</span>
-                        <b className="text-sm font-extrabold text-foreground">{compactToman(subtotal)} · {toPersianDigits(subDur)} دقیقه</b>
+                        <b className="text-sm font-bold text-foreground">{compactToman(subtotal)} · {toPersianDigits(subDur)} دقیقه</b>
                       </div>
                     </div>
                   )}
@@ -841,7 +841,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
         <footer className="border-t border-border bg-background/95 page-gutter pb-[calc(14px+env(safe-area-inset-bottom))] pt-2.5">
           <button
             type="button"
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-extrabold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-bold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
             disabled={!ctaState.ok || isBookingLoading}
             onClick={() => {
               if (isBookingLoading) return;
@@ -856,7 +856,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
               <span>{ctaState.label}</span>
             )}
             {ctaState.chips && !isBookingLoading && (
-              <span className="rounded-full bg-primary-foreground/15 px-3 py-0.5 text-xs font-extrabold">{ctaState.chips}</span>
+              <span className="rounded-full bg-primary-foreground/15 px-3 py-0.5 text-xs font-bold">{ctaState.chips}</span>
             )}
             {!isBookingLoading && <ArrowLeft className="h-5 w-5 opacity-70" aria-hidden="true" />}
           </button>
@@ -899,11 +899,11 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
   return (
     <div>
       <div className="mb-2.5 flex items-center justify-between">
-        <span className="text-xs font-extrabold text-muted-foreground">انتخاب تاریخ</span>
+        <span className="text-xs font-bold text-muted-foreground">انتخاب تاریخ</span>
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="flex h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-extrabold text-primary"
+          className="flex h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-primary"
         >
           <CalendarDays className="h-4 w-4" aria-hidden="true" /> تقویم
         </button>
@@ -921,7 +921,7 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
               aria-pressed={d.isSelected}
               aria-label={`${d.isToday ? "امروز" : d.isTomorrow ? "فردا" : d.weekday} ${toPersianDigits(d.jalaliDay)} ${d.jalaliMonth}`}>
               <span className={`text-micro font-bold ${d.isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{d.isToday ? "امروز" : d.isTomorrow ? "فردا" : d.weekday}</span>
-              <span className="text-lg font-extrabold">{toPersianDigits(d.jalaliDay)}</span>
+              <span className="text-lg font-bold">{toPersianDigits(d.jalaliDay)}</span>
               <span className={`text-micro font-medium ${d.isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{d.isOff ? "تعطیل" : d.isFullyBooked ? "تکمیل" : d.jalaliMonth.slice(0, 5)}</span>
             </button>
           );
@@ -930,7 +930,7 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
 
       {showModal && <MonthModal selectedDate={selectedDate} onSelect={(d) => { onSelectDate(d); setShowModal(false); }} onClose={() => setShowModal(false)} />}
 
-      <div className="mb-3.5 flex items-center justify-center gap-2 rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm font-extrabold">
+      <div className="mb-3.5 flex items-center justify-center gap-2 rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm font-bold">
         <CalendarDays className="h-4 w-4 text-primary" aria-hidden="true" />
         <span>{selectedDateText}</span>
       </div>
@@ -940,14 +940,14 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
             <Clock className="h-7 w-7" strokeWidth={1.7} aria-hidden="true" />
           </div>
-          <h3 className="text-base font-extrabold">{emptyReason === "full" ? "این روز کاملاً پر شده" : "برای این روز ساعت کاری نداریم"}</h3>
+          <h3 className="text-base font-bold">{emptyReason === "full" ? "این روز کاملاً پر شده" : "برای این روز ساعت کاری نداریم"}</h3>
           <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-sm leading-relaxed text-muted-foreground">{emptyReason === "full"
             ? `همه زمان‌های مناسب برای ${serviceName} گرفته شده‌اند.`
             : "برای این روز زمان قابل رزرو نداریم؛ روز دیگری را انتخاب کنید."}</p>
           <button
             type="button"
             onClick={onGoToNextDay}
-            className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-extrabold text-primary-foreground"
+            className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground"
           >
             {emptyReason === "full" ? "برنامه فردا را ببینید" : "روز بعد را بررسی کنید"}
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -962,7 +962,7 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
               <section className="mb-4 rounded-lg border border-primary/25 bg-primary/5 p-3.5" aria-label="پیشنهاد نوبت">
                 <div className="mb-3 flex items-baseline gap-2">
                   <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 shrink-0 self-center fill-primary"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z" /></svg>
-                  <span className="text-sm font-extrabold text-primary">پیشنهاد نوبت</span>
+                  <span className="text-sm font-bold text-primary">پیشنهاد نوبت</span>
                   <span className="text-xs font-semibold text-muted-foreground">بهترین زمان‌ها برای {serviceName}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
@@ -980,7 +980,7 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
             if (!slots.length) return null;
             return (
               <div key={g.key} className="mb-3.5">
-                <div className="mb-2 mt-3 flex items-center gap-1.5 text-xs font-extrabold text-foreground">
+                <div className="mb-2 mt-3 flex items-center gap-1.5 text-xs font-bold text-foreground">
                   <svg viewBox="0 0 24 24" aria-hidden="true" strokeWidth={2} className="h-3.5 w-3.5 fill-none stroke-current">{meta.icon}</svg>
                   {meta.label}
                 </div>
@@ -1007,7 +1007,7 @@ function SlotChip({ slot, selected, onSelect, suggest = false }: { slot: TimeSlo
       onClick={() => { if (available) onSelect(slot.time); }}
       aria-label={`${formatted} ${available ? "موجود" : slot.booked || slot.locked ? "رزرو شده" : "غیرقابل رزرو"}`}>
       <span dir="ltr" className="leading-tight">{formatted}</span>
-      {suggest && <i className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2 py-px text-micro font-extrabold not-italic text-primary-foreground" aria-hidden="true">پیشنهادی</i>}
+      {suggest && <i className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2 py-px text-micro font-bold not-italic text-primary-foreground" aria-hidden="true">پیشنهادی</i>}
     </button>
   );
 }
@@ -1066,19 +1066,19 @@ function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; o
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div ref={dialogRef} tabIndex={-1} className="relative w-full max-w-sm rounded-xl border border-border bg-card p-4 shadow-card" role="dialog" aria-modal="true" aria-label="تقویم">
         <div className="mb-3 flex items-center justify-between">
-          <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm" onClick={() => shiftMonth(-1)} aria-label="ماه قبل">
+          <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground" onClick={() => shiftMonth(-1)} aria-label="ماه قبل">
             <ArrowLeft className="h-4 w-4 rotate-180" aria-hidden="true" />
           </button>
           <div className="min-w-0 text-center">
-            <b className="block text-xl font-extrabold">{PERSIAN_MONTHS[viewMonth - 1]}</b>
+            <b className="block text-xl font-bold">{PERSIAN_MONTHS[viewMonth - 1]}</b>
             <span className="text-xs font-semibold text-muted-foreground">{toPersianDigits(viewYear)}</span>
           </div>
-          <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm" onClick={() => shiftMonth(1)} aria-label="ماه بعد">
+          <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground" onClick={() => shiftMonth(1)} aria-label="ماه بعد">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
         <div className="mb-1.5 grid grid-cols-7 gap-1">
-          {PERSIAN_WEEKDAYS.map((w) => <span key={w} className="py-1 text-center text-micro font-extrabold text-muted-foreground">{w}</span>)}
+          {PERSIAN_WEEKDAYS.map((w) => <span key={w} className="py-1 text-center text-micro font-bold text-muted-foreground">{w}</span>)}
         </div>
         <div className="grid grid-cols-7 gap-1">
           {cells.map((cell, i) =>
@@ -1140,7 +1140,7 @@ function ReviewStep(props: ReviewStepProps) {
         <div className="flex items-center gap-3.5 p-4">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Clock className="h-4 w-4" aria-hidden="true" /></span>
           <span className="min-w-0 flex-1">
-            <b className="block text-sm font-extrabold">{service?.name ?? "—"}{lookName ? ` · مدل ${lookName}` : ""}</b>
+            <b className="block text-sm font-bold">{service?.name ?? "—"}{lookName ? ` · مدل ${lookName}` : ""}</b>
             <small className="mt-0.5 block text-xs text-muted-foreground">{toPersianDigits(totalDuration)} دقیقه · {compactToman(totalPrice)}</small>
           </span>
         </div>
@@ -1149,7 +1149,7 @@ function ReviewStep(props: ReviewStepProps) {
             {addons.map((a) => (
               <div key={a.id} className="flex items-center justify-between py-1 text-xs text-muted-foreground">
                 <span>+ {a.name} (+{toPersianDigits(a.duration_minutes)} د)</span>
-                <b className="font-extrabold text-primary">+{compactToman(Number(a.price))}</b>
+                <b className="font-bold text-primary">+{compactToman(Number(a.price))}</b>
               </div>
             ))}
           </div>
@@ -1157,23 +1157,23 @@ function ReviewStep(props: ReviewStepProps) {
         <div className="flex items-center gap-3 border-t border-dashed border-border px-4 py-3">
           <CalendarDays className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
           <span className="flex-1 text-xs text-muted-foreground">تاریخ</span>
-          <span className="text-sm font-extrabold">{toPersianDigits(dateParts.day)} {dateParts.month}</span>
-          <button type="button" onClick={onEditTime} className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-extrabold text-primary">ویرایش</button>
+          <span className="text-sm font-bold">{toPersianDigits(dateParts.day)} {dateParts.month}</span>
+          <button type="button" onClick={onEditTime} className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">ویرایش</button>
         </div>
         <div className="flex items-center gap-3 border-t border-dashed border-border px-4 py-3">
           <Clock className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
           <span className="flex-1 text-xs text-muted-foreground">ساعت</span>
-          <span className="text-sm font-extrabold">{time ? <span dir="ltr">{toPersianDigits(time)} تا {toPersianDigits(endTime)}</span> : "—"}</span>
-          <button type="button" onClick={onEditTime} className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-extrabold text-primary">ویرایش</button>
+          <span className="text-sm font-bold">{time ? <span dir="ltr">{toPersianDigits(time)} تا {toPersianDigits(endTime)}</span> : "—"}</span>
+          <button type="button" onClick={onEditTime} className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">ویرایش</button>
         </div>
         <div className="flex items-center justify-between bg-muted px-4 py-3.5 text-sm font-semibold text-foreground">
           <span>مجموع · پرداخت در سالن</span>
-          <b className="text-base font-extrabold">{compactToman(totalPrice)}</b>
+          <b className="text-base font-bold">{compactToman(totalPrice)}</b>
         </div>
       </div>
 
       <div className="mb-3.5 rounded-lg border border-border bg-card p-4 shadow-card">
-        <p className="mb-3.5 text-sm font-extrabold">مشخصات شما</p>
+        <p className="mb-3.5 text-sm font-bold">مشخصات شما</p>
 
         <div className="mb-3">
           <label htmlFor="booking-name" className="mb-1.5 block text-xs font-bold text-muted-foreground">نام {nameRequired ? "(الزامی)" : "(قابل ویرایش)"}</label>
@@ -1184,13 +1184,13 @@ function ReviewStep(props: ReviewStepProps) {
         {user ? (
           <div className="flex items-center gap-3 rounded-lg border border-success/25 bg-muted p-3">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success"><Check className="h-4 w-4" strokeWidth={3} /></span>
-            <span className="min-w-0 flex-1"><b className="block text-sm font-extrabold">شماره تأیید شده</b><small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(user.phone)}</small></span>
+            <span className="min-w-0 flex-1"><b className="block text-sm font-bold">شماره تأیید شده</b><small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(user.phone)}</small></span>
           </div>
         ) : otpState === "verified" ? (
           <div className="flex items-center gap-3 rounded-lg border border-success/25 bg-muted p-3">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success"><Check className="h-4 w-4" strokeWidth={3} /></span>
-            <span className="min-w-0 flex-1"><b className="block text-sm font-extrabold">شماره تأیید شد</b><small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(authPhone)}</small></span>
-            <button type="button" onClick={onChangePhone} className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-extrabold text-primary">تغییر شماره</button>
+            <span className="min-w-0 flex-1"><b className="block text-sm font-bold">شماره تأیید شد</b><small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(authPhone)}</small></span>
+            <button type="button" onClick={onChangePhone} className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">تغییر شماره</button>
           </div>
         ) : (
           <>
@@ -1202,7 +1202,7 @@ function ReviewStep(props: ReviewStepProps) {
                 placeholder="۰۹۱۲۱۲۳۴۵۶۷" autoComplete="tel" />
             </div>
             {otpState === "idle" && (
-              <button type="button" className="flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-extrabold text-primary-foreground disabled:opacity-50" disabled={!phoneValid || isAuthLoading} onClick={onSendOtp}>
+              <button type="button" className="flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:opacity-50" disabled={!phoneValid || isAuthLoading} onClick={onSendOtp}>
                 {isAuthLoading ? "در حال ارسال…" : "دریافت کد تأیید"}
               </button>
             )}
@@ -1212,7 +1212,7 @@ function ReviewStep(props: ReviewStepProps) {
                 <PinInput key={otpAttempt} length={6} onComplete={onVerifyCode} disabled={isAuthLoading} />
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <ResendOtpButton onResend={onSendOtp} disabled={isAuthLoading} />
-                  <button type="button" onClick={onChangePhone} className="rounded-lg px-2 py-1.5 text-xs font-extrabold text-primary">تغییر شماره</button>
+                  <button type="button" onClick={onChangePhone} className="rounded-lg px-2 py-1.5 text-xs font-bold text-primary">تغییر شماره</button>
                 </div>
               </div>
             )}
@@ -1275,15 +1275,15 @@ function SuccessStep(props: SuccessStepProps) {
       <div className="mx-auto mb-3.5 flex h-16 w-16 items-center justify-center rounded-full bg-success/10 text-success" aria-hidden="true">
         <Check className="h-8 w-8" strokeWidth={2.5} />
       </div>
-      <h3 className="text-2xl font-extrabold">رزرو تأیید شد!</h3>
+      <h3 className="text-2xl font-bold">رزرو تأیید شد!</h3>
       <p className="mb-4 mt-1 text-sm text-muted-foreground">پیامک تأیید برایت در راه است</p>
 
       <div className="mb-4 flex gap-2.5">
-        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-extrabold text-primary-foreground" onClick={() => { downloadIcs({ title: eventTitle, start, end, location: eventLocation, description: eventDescription }); setIcsAdded(true); haptic.tap(); }}>
+        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-primary-foreground" onClick={() => { downloadIcs({ title: eventTitle, start, end, location: eventLocation, description: eventDescription }); setIcsAdded(true); haptic.tap(); }}>
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           {icsAdded ? "به تقویم اضافه شد" : "افزودن به تقویم"}
         </button>
-        <a className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-extrabold text-foreground" href={googleCalendarUrl({ title: eventTitle, start, end, location: eventLocation, description: eventDescription })} target="_blank" rel="noopener noreferrer">
+        <a className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-bold text-foreground" href={googleCalendarUrl({ title: eventTitle, start, end, location: eventLocation, description: eventDescription })} target="_blank" rel="noopener noreferrer">
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           تقویم گوگل
         </a>
@@ -1307,11 +1307,11 @@ function SuccessStep(props: SuccessStepProps) {
       />
 
       <div className="mt-4 flex gap-2.5">
-        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-extrabold text-primary-foreground" onClick={() => { haptic.tap(); router.push("/bookings"); }}>
+        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-primary-foreground" onClick={() => { haptic.tap(); router.push("/bookings"); }}>
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           مشاهده نوبت‌های من
         </button>
-        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-extrabold text-foreground" onClick={() => { haptic.tap(); router.push("/"); }}>
+        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-bold text-foreground" onClick={() => { haptic.tap(); router.push("/"); }}>
           بازگشت به خانه
         </button>
       </div>

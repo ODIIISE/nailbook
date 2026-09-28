@@ -105,7 +105,7 @@ export default function SalonDetailPage({ params }: { params: Promise<{ id: stri
           <ArrowRight className="h-4 w-4" />
         </Button>
         <div className="flex-1">
-          <h2 className="text-xl font-extrabold">{salon.name}</h2>
+          <h2 className="text-xl font-bold">{salon.name}</h2>
           <p className="text-sm text-muted-foreground">{salon.address || salon.slug}</p>
         </div>
         <Button
@@ -152,15 +152,15 @@ function OverviewTab({ salon }: { salon: Salon }) {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       <div className="p-4 rounded-2xl border border-border">
         <p className="text-xs text-muted-foreground mb-1">کاربران</p>
-        <p className="text-2xl font-extrabold">{parseInt(String(salon.user_count)) || 0}</p>
+        <p className="text-2xl font-bold">{parseInt(String(salon.user_count)) || 0}</p>
       </div>
       <div className="p-4 rounded-2xl border border-border">
         <p className="text-xs text-muted-foreground mb-1">رزروها</p>
-        <p className="text-2xl font-extrabold">{parseInt(String(salon.booking_count)) || 0}</p>
+        <p className="text-2xl font-bold">{parseInt(String(salon.booking_count)) || 0}</p>
       </div>
       <div className="p-4 rounded-2xl border border-border">
         <p className="text-xs text-muted-foreground mb-1">خدمات</p>
-        <p className="text-2xl font-extrabold">{parseInt(String(salon.service_count)) || 0}</p>
+        <p className="text-2xl font-bold">{parseInt(String(salon.service_count)) || 0}</p>
       </div>
     </div>
   );

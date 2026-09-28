@@ -480,7 +480,7 @@ export function ScheduleManager({
                   className={`
                     h-9 min-w-[40px] px-2 rounded-lg text-caption font-medium
                     ${slotInterval === v
-                      ? "bg-foreground text-background shadow-sm"
+                      ? "bg-foreground text-background shadow-xs"
                       : "bg-secondary text-foreground hover:bg-secondary/80"
                     }
                   `}

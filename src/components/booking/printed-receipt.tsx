@@ -71,7 +71,7 @@ function BookingQrCode({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="relative rounded-lg border border-border bg-card p-2 shadow-sm">
+      <div className="relative rounded-lg border border-border bg-card p-2 shadow-xs">
         {dataUrl ? (
           <Image
             src={dataUrl}
@@ -223,7 +223,7 @@ export function PrintedReceipt({
                 <>پیش‌فاکتور</>
               )}
             </div>
-            <h2 className="mt-2 text-2xl font-extrabold text-foreground">
+            <h2 className="mt-2 text-2xl font-bold text-foreground">
               {isFinal ? "ممنون از اعتماد شما!" : "آماده رزرو"}
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -294,7 +294,7 @@ export function PrintedReceipt({
             </div>
             <div className="flex items-center justify-between border-t border-dashed border-border pt-3">
               <span className="text-sm font-bold text-foreground">جمع کل</span>
-              <span className="text-xl font-extrabold tabular-nums text-foreground">
+              <span className="text-xl font-bold tabular-nums text-foreground">
                 {formatPrice(totalPrice)} تومان
               </span>
             </div>

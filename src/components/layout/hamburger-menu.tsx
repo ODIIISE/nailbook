@@ -423,7 +423,7 @@ export function HamburgerMenu() {
       </div>
 
       <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
-        <AlertDialogContent className="max-w-[300px] rounded-2xl p-5 ring-0 border-border shadow-elevated">
+        <AlertDialogContent className="max-w-[300px]">
           <AlertDialogHeader>
             <AlertDialogTitle>خروج از حساب</AlertDialogTitle>
             <AlertDialogDescription>

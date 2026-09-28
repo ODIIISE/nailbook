@@ -104,7 +104,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent showCloseButton={false} className="max-w-[340px] bg-card border border-border rounded-2xl p-5 shadow-elevated ring-0">
+      <DialogContent showCloseButton={false} className="max-w-[340px] bg-card">
         {/* Header */}
         <div className="flex items-center justify-between mb-3.5">
           <div className="flex items-center gap-2">
@@ -154,7 +154,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
               {selectedAddons.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {selectedAddons.map((addon) => (
-                    <span key={addon!.id} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[5px] text-small font-semibold`}
+                    <span key={addon!.id} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[8px] text-small font-semibold`}
                       style={{ backgroundColor: `${addonColor}` + "10", color: addonColor as string }}>
                       {addon!.name}
                     </span>
@@ -254,7 +254,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent className="max-w-[300px] bg-card border border-border rounded-2xl p-5 shadow-elevated ring-0">
+        <AlertDialogContent className="max-w-[300px] bg-card">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2" style={{ color: deleteColor as string }}>
               <AlertTriangle className="h-4 w-4" />

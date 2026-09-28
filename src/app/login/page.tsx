@@ -111,14 +111,14 @@ export default function LoginPage() {
       <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
         <button
           type="button"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+          className="icon-btn text-foreground"
           onClick={goBack}
           aria-label="بازگشت"
         >
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </button>
         <div className="min-w-0 overflow-hidden text-center">
-          <span className="block text-xs font-extrabold text-primary">{kicker}</span>
+          <span className="block text-xs font-bold text-primary">{kicker}</span>
           <h2 className="truncate text-lg font-bold">{title}</h2>
         </div>
         <span className="h-11 w-11" />
@@ -127,7 +127,7 @@ export default function LoginPage() {
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-[max(34px,calc(34px+env(safe-area-inset-bottom)))] pt-[clamp(18px,7dvh,64px)]">
         {step === "phone" && (
           <div className="w-full rounded-xl border border-border bg-card p-5 shadow-card">
-            <p className="mb-3.5 text-sm font-extrabold">شماره موبایل خود را وارد کنید</p>
+            <p className="mb-3.5 text-sm font-bold">شماره موبایل خود را وارد کنید</p>
             <div className="mb-3">
               <label htmlFor="login-phone" className="mb-1.5 block text-xs font-bold text-muted-foreground">شماره موبایل</label>
               <input
@@ -147,7 +147,7 @@ export default function LoginPage() {
             {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
             <button
               type="button"
-              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-extrabold text-primary-foreground disabled:opacity-50"
+              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:opacity-50"
               onClick={handlePhoneSubmit}
               disabled={isLoading || !isValidIranianPhone(normalizeDigits(phone))}
             >
@@ -158,11 +158,11 @@ export default function LoginPage() {
 
         {step === "otp" && (
           <div className="w-full rounded-xl border border-border bg-card p-5 shadow-card">
-            <p className="mb-3.5 text-sm font-extrabold">کد ۶ رقمی پیامک‌شده را وارد کنید</p>
+            <p className="mb-3.5 text-sm font-bold">کد ۶ رقمی پیامک‌شده را وارد کنید</p>
             <div className="mb-4 flex items-center gap-3 rounded-lg border border-success/25 bg-muted p-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">✓</span>
               <span className="min-w-0 flex-1">
-                <b className="block text-sm font-extrabold">شماره</b>
+                <b className="block text-sm font-bold">شماره</b>
                 <small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(phone)}</small>
               </span>
             </div>
@@ -178,7 +178,7 @@ export default function LoginPage() {
               />
               <button
                 type="button"
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-lg text-xs font-extrabold text-primary"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-lg text-xs font-bold text-primary"
                 onClick={() => { setStep("phone"); setError(""); }}
               >
                 تغییر شماره
@@ -189,7 +189,7 @@ export default function LoginPage() {
 
         {step === "name" && (
           <div className="w-full rounded-xl border border-border bg-card p-5 shadow-card">
-            <p className="mb-3.5 text-sm font-extrabold">نام و نام خانوادگی خود را وارد کنید</p>
+            <p className="mb-3.5 text-sm font-bold">نام و نام خانوادگی خود را وارد کنید</p>
             <div className="mb-3">
               <label htmlFor="login-name" className="mb-1.5 block text-xs font-bold text-muted-foreground">نام و نام خانوادگی</label>
               <input
@@ -207,7 +207,7 @@ export default function LoginPage() {
             {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
             <button
               type="button"
-              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-extrabold text-primary-foreground disabled:opacity-50"
+              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:opacity-50"
               onClick={handleNameSubmit}
               disabled={isLoading || !name.trim()}
             >

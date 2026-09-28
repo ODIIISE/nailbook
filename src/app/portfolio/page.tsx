@@ -17,7 +17,7 @@ export default function PortfolioPage() {
         <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
           <button
             type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+            className="icon-btn text-foreground"
             onClick={() => router.push("/")}
             aria-label="بازگشت"
           >
@@ -32,7 +32,7 @@ export default function PortfolioPage() {
         <div className="page-gutter min-h-0 flex-1 overflow-y-auto overscroll-contain pb-8 pt-2">
           {items.length === 0 ? (
             <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card">
-              <h3 className="text-sm font-extrabold">هنوز نمونه‌کاری ثبت نشده است</h3>
+              <h3 className="text-sm font-bold">هنوز نمونه‌کاری ثبت نشده است</h3>
               <p className="mx-auto mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">
                 به‌زودی مدل‌های جدید اضافه می‌شوند.
               </p>

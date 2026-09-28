@@ -163,7 +163,7 @@ export function JalaliCalendar({
           <button
             type="button"
             onClick={() => setShowModal(true)}
-            className="flex h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-extrabold text-primary"
+            className="flex h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-primary"
           >
             <CalendarDays className="h-4 w-4" aria-hidden="true" />
             تقویم
@@ -343,19 +343,19 @@ function CalendarModal({
             type="button"
             onClick={prevMonth}
             aria-label="ماه قبل"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+            className="icon-btn text-foreground"
           >
             <ChevronRight className="h-5 w-5" aria-hidden="true" />
           </button>
           <div className="text-center">
-            <p className="text-sm font-extrabold text-foreground">{PERSIAN_MONTHS[viewMonth - 1]}</p>
+            <p className="text-sm font-bold text-foreground">{PERSIAN_MONTHS[viewMonth - 1]}</p>
             <p className="text-xs text-muted-foreground">{toPersianDigits(viewYear)}</p>
           </div>
           <button
             type="button"
             onClick={nextMonth}
             aria-label="ماه بعد"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+            className="icon-btn text-foreground"
           >
             <ChevronLeft className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -367,7 +367,7 @@ function CalendarModal({
             type="button"
             onClick={() => setViewYear((y) => y - 1)}
             aria-label="سال قبل"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+            className="icon-btn text-foreground"
           >
             <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -378,7 +378,7 @@ function CalendarModal({
             type="button"
             onClick={() => setViewYear((y) => y + 1)}
             aria-label="سال بعد"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+            className="icon-btn text-foreground"
           >
             <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           </button>

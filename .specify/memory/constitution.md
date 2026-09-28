@@ -1,50 +1,109 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Nailbook UI Constitution
+
+The UI quality bar for Nailbook. Every UI change — by human or AI — is checked against
+this document. Findings reference principle numbers (e.g. "violates P6").
+Supersedes personal taste; amend only with the designer's explicit approval.
+
+**Version**: 1.0.0 | **Ratified**: 2026-09-28 | **Last Amended**: 2026-09-28
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Fix the right level first (L1→L4)
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+Severity is judged in this order. Never polish a lower level while a higher one is broken:
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+1. **L1 — UX**: user can't tell what to do, can't tell selected state, ambiguous errors, unexpected navigation, too many decisions.
+2. **L2 — Structure**: hierarchy, spacing, layout, grouping, responsive behavior.
+3. **L3 — Component consistency**: buttons, inputs, cards, dialogs, badges, icons.
+4. **L4 — Polish**: shadows, micro-spacing, icon alignment, motion, typography detail.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### II. The system is the source of truth
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+- One source of truth for every visual value: tokens in `src/app/globals.css`, roles in
+  `DESIGN-SYSTEM.md`. Never hardcode colors, radii, shadows, spacing, or durations.
+- No parallel vocabularies: no new token names, no one-off `rounded-[13px]`, no raw
+  `shadow-sm/md/lg`, no `font-extrabold` outside the editorial homepage.
+- Documentation must match implementation; when they diverge, fix the implementation,
+  then update the doc in the same change.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### III. Preserve, then improve
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- Preserve → extend → refactor → replace. Never delete-and-rebuild working code.
+- Business logic, Jalali/Persian behavior, and data flow are untouched by UI work
+  unless a L1 UX problem demands it — and then only with the designer's approval.
+- No fake features, no mock actions, no hardcoded demo data (repo AGENTS.md rule).
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+### IV. Persian-first RTL
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- Logical CSS only (`ps/pe`, `ms/me`, `start/end`); physical properties (`pl/pr`,
+  `ml/mr`, `left/right`) are bugs.
+- Persian digits and Jalali dates everywhere user-facing; `dir="ltr"` for phone
+  numbers, tracking codes, and times.
+- Test Persian text wrapping and mixed-script lines — clipping here is an L2 defect.
+
+### V. Touch-first interaction
+
+- 44×44px minimum touch targets; buttons never gain hover shadows (hover is a
+  desktop affordance).
+- Visible, predictable states: hover, focus-visible, active, disabled, selected,
+  loading. A state you can't see is a missing state.
+- Focus rings meet 3:1 non-text contrast; disabled content stays readable
+  (≥4.5:1 tint recipes, not `opacity-50`).
+
+### VI. WCAG AA is a floor, not a goal
+
+- Text: 4.5:1 (large text 3:1). Non-text essentials (icons, borders that carry
+  meaning, focus rings): 3:1.
+- Contrast is computed, not estimated. New color pairs ship with their ratios noted
+  in a comment.
+
+### VII. Elevation means something
+
+- The 4-step ladder (`shadow-xs` / `card` / `elevated` / `floating`) is the only
+  elevation vocabulary. Most surfaces are flat or `xs`.
+- If everything is elevated, nothing is. Borders and background steps come first;
+  shadows are the last resort.
+
+### VIII. Motion is governed, then crafted
+
+- Motion tokens (`--duration-*`, `--ease-*`) are the only timing vocabulary;
+  `motion-governance` tests enforce this.
+- Craft rules (Emil design-eng): enter = ease-out, exit = ease-in, emphasis =
+  spring; animate `transform`/`opacity` only; durations 150–450ms for UI feedback;
+  `prefers-reduced-motion` always honored; if motion doesn't aid orientation,
+  feedback, hierarchy, or transition — remove it.
+
+### IX. Three roles, never one
+
+Substantial UI changes run: **Designer** (the user decides direction) →
+**Implementer** → **independent Reviewer** (fresh-eyes critique of the *rendered*
+screen, not the code) → fix → re-verify. Proportional to size; one-line fixes skip
+the reviewer.
+
+### X. Done means verified
+
+The definition of done for any UI change:
+1. Renders correctly in a real browser, console clean.
+2. Screenshots at 375×667, 390×844, 430×932, ≥1280 desktop; RTL correct at all.
+3. `npm run check` green (lint + tsc + tests).
+4. Reviewed against this constitution; findings resolved or explicitly accepted.
+5. Before/after evidence exists (screenshot pair) for anything visual.
+
+## Additional Constraints
+
+- **Homepage is in scope** (designer decision, 2026-09-28). It keeps its editorial
+  character — emotion, discovery, trust — and is therefore exempt from weight-repetition
+  restraint (P2's `font-extrabold` ban) but NOT from contrast (P6), RTL (P4), or touch (P5).
+- Viewport targets mirror AGENTS.md: 375×667, 390×667, 390×740, 390×844, 430×932,
+  tablet, desktop, large desktop.
+- Skills used every phase: `review-animations` gates motion changes; `mobile-native`
+  audits native feel; `improve-animations` plans motion work; `prototype` for
+  multi-direction design decisions; `pick-ui-library` before any new dependency.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
-
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+- The designer (non-coder) approves direction at every phase gate; implementation
+  details are delegated.
+- Findings in audits are tagged with principle numbers and severity
+  (critical / high / medium / low).
+- Amendments: designer approves, version bumps, date updates.

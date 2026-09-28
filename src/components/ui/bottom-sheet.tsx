@@ -45,7 +45,7 @@ export function BottomSheet({ open, onClose, onClosed, title, children }: Bottom
         className="relative z-10 flex max-h-[88dvh] w-full max-w-[var(--frame-max-w)] flex-col rounded-t-xl border-t bg-popover pb-[env(safe-area-inset-bottom)] text-popover-foreground shadow-floating"
       >
         <div className="flex items-center justify-between border-b px-4 py-3">
-          <h2 className="text-base font-semibold">{title}</h2>
+          <h2 className="text-h3 leading-snug">{title}</h2>
           <button
             type="button"
             onClick={onClose}

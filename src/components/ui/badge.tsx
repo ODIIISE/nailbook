@@ -3,7 +3,9 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-[8px] border px-2.5 py-0.5 text-small font-semibold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  // Non-interactive element: no focus styles. Weight capped at 600 by the
+  // typography roles; text-caption (12/500) + slight tracking reads premium.
+  "inline-flex items-center rounded-[8px] border px-2.5 py-0.5 text-caption tracking-[0.01em]",
   {
     variants: {
       variant: {

@@ -61,7 +61,7 @@ export default function AdminImportPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h2 className="text-xl font-extrabold">ایمپورت سالن موجود</h2>
+      <h2 className="text-xl font-bold">ایمپورت سالن موجود</h2>
 
       <div className="p-5 rounded-2xl border border-border space-y-4">
         <p className="text-sm text-muted-foreground">

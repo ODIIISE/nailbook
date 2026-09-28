@@ -164,7 +164,7 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-extrabold">داشبورد</h2>
+        <h2 className="text-xl font-bold">داشبورد</h2>
         <Button onClick={() => router.push("/admin/salons")} className="gap-2 rounded-full" size="sm">
           <Plus className="h-4 w-4" />
           سالن جدید
@@ -335,11 +335,11 @@ function CustomersTab({ analytics }: { analytics: Analytics }) {
       <div className="grid grid-cols-2 gap-3">
         <div className="p-4 rounded-2xl border border-border">
           <p className="text-xs text-muted-foreground mb-1">مشتریان جدید</p>
-          <p className="text-2xl font-extrabold">{analytics.customerSplit?.new_customers || 0}</p>
+          <p className="text-2xl font-bold">{analytics.customerSplit?.new_customers || 0}</p>
         </div>
         <div className="p-4 rounded-2xl border border-border">
           <p className="text-xs text-muted-foreground mb-1">مشتریان بازگشتی</p>
-          <p className="text-2xl font-extrabold">{analytics.customerSplit?.returning_customers || 0}</p>
+          <p className="text-2xl font-bold">{analytics.customerSplit?.returning_customers || 0}</p>
         </div>
       </div>
 
@@ -437,7 +437,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: { icon: LucideIcon; 
         <span className="text-xs text-muted-foreground">{label}</span>
         <Icon className={`h-4 w-4 ${color}`} />
       </div>
-      <p className="text-lg font-extrabold">{value}</p>
+      <p className="text-lg font-bold">{value}</p>
       {sub && <p className="text-small text-muted-foreground mt-1">{sub}</p>}
     </div>
   );
@@ -446,7 +446,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: { icon: LucideIcon; 
 function QuickStat({ label, value }: { label: string; value: number }) {
   return (
     <div className="p-3 rounded-2xl border border-border text-center">
-      <p className="text-2xl font-extrabold">{value}</p>
+      <p className="text-2xl font-bold">{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );

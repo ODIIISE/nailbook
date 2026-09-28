@@ -312,7 +312,7 @@ function OwnerDashboardContent() {
             {/* Revenue (lead KPI) */}
             <div className="space-y-0.5 text-start">
               <p className="text-small text-muted-foreground font-medium">درآمد</p>
-              <p dir="ltr" className="text-h2 font-extrabold text-foreground tabular-nums tracking-tight leading-none">
+              <p dir="ltr" className="text-h2 font-bold text-foreground tabular-nums tracking-tight leading-none">
                 {formatPrice(accounting.paid)}
   </p>
               {accounting.unpaid > 0 ? (
@@ -327,7 +327,7 @@ function OwnerDashboardContent() {
             {/* Bookings count */}
             <div className="space-y-0.5 text-start border-x border-border px-3">
               <p className="text-small text-muted-foreground font-medium">نوبت</p>
-              <p dir="ltr" className="text-h2 font-extrabold text-foreground tabular-nums tracking-tight leading-none">
+              <p dir="ltr" className="text-h2 font-bold text-foreground tabular-nums tracking-tight leading-none">
                 {toPersianDigits(todayStats.count)}
   </p>
               {todayStats.unpaidCount > 0 ? (
@@ -342,7 +342,7 @@ function OwnerDashboardContent() {
             {/* Next appointment */}
             <div className="space-y-0.5 text-start">
               <p className="text-small text-muted-foreground font-medium">نوبت بعدی</p>
-              <p dir="ltr" className="text-h2 font-extrabold text-foreground tabular-nums tracking-tight leading-none">
+              <p dir="ltr" className="text-h2 font-bold text-foreground tabular-nums tracking-tight leading-none">
                 {todayStats.nextBooking
                   ? toPersianDigits(todayStats.nextBooking.start_time.slice(0, 5))
                   : "—"}

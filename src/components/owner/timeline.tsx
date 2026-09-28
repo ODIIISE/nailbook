@@ -265,7 +265,7 @@ export function Timeline({
                   aria-label={`${b.customer_name}، ${b.service?.name}، ${b.start_time.slice(0, 5)} تا ${b.end_time.slice(0, 5)}${b.paid ? "" : "، پرداخت نشده"}`}
                 >
                   <div
-                    className={`h-full rounded-xl overflow-hidden flex shadow-sm hover:shadow-md transition-shadow ${borderClass(isDark)} ${compact ? "items-stretch" : "flex-col"}`}
+                    className={`h-full rounded-xl overflow-hidden flex shadow-xs hover:shadow-card transition-shadow ${borderClass(isDark)} ${compact ? "items-stretch" : "flex-col"}`}
                     style={{ backgroundColor: style.bg }}
                   >
                     <div className={`flex min-w-0 ${compact ? "items-stretch" : "flex-1"}`}>
@@ -275,7 +275,7 @@ export function Timeline({
                         <div className="flex-1 min-w-0 flex items-center gap-2 pe-2 py-1.5">
                           <div className="flex items-center gap-1 min-w-0 shrink">
                             <User className={`h-[11px] w-[11px] shrink-0 ${textGhost}`} />
-                            <span className={`text-small font-extrabold truncate ${textPrimary}`}>{b.customer_name}</span>
+                            <span className={`text-small font-bold truncate ${textPrimary}`}>{b.customer_name}</span>
                           </div>
                           <span className={`text-small font-medium truncate min-w-0 shrink ${textSecondary}`}>
                             {b.service?.name}
@@ -304,7 +304,7 @@ export function Timeline({
                           <div className="flex items-center justify-between gap-1">
                             <div className="flex items-center gap-1.5 min-w-0">
                               <User className={`h-3 w-3 shrink-0 ${textGhost}`} />
-                              <span className={`text-small font-extrabold truncate leading-tight ${textPrimary}`}>{b.customer_name}</span>
+                              <span className={`text-small font-bold truncate leading-tight ${textPrimary}`}>{b.customer_name}</span>
                             </div>
                             <div className="flex items-center gap-1 px-1.5 py-0.5 shrink-0" style={{ backgroundColor: sc.bg, borderRadius: 6 }}>
                               <StatusIcon className="h-2.5 w-2.5" style={{ color: sc.color }} />
@@ -416,7 +416,7 @@ export function Timeline({
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2.5">
-              <div className={`w-[52px] h-[52px] rounded-[14px] ${dotBg} flex items-center justify-center`}>
+              <div className={`w-[52px] h-[52px] rounded-lg ${dotBg} flex items-center justify-center`}>
                 <Calendar className={`h-[22px] w-[22px] ${dotIcon}`} />
               </div>
               <p className={`text-body font-medium ${dotText}`}>برنامه‌ای برای این روز نیست</p>
