@@ -52,6 +52,8 @@ export default function LoginPage() {
 
   const verifiedUserRef = useRef<{ id: string } | null>(null);
 
+  const [otpAttempt, setOtpAttempt] = useState(0);
+
   const handleOtpSubmit = useCallback(async (enteredCode: string) => {
     setIsLoading(true);
     setError("");
@@ -67,6 +69,7 @@ export default function LoginPage() {
       }
     } else {
       setError(result.error || "کد نادرست است");
+      setOtpAttempt((a) => a + 1); // clear the PIN boxes for the next try
     }
   }, [phone, verifyOtp, router]);
 
@@ -145,11 +148,14 @@ export default function LoginPage() {
               />
             </div>
             {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
+            {/* Enabled while idle so an invalid number explains itself on tap
+                (the handler already shows the error) instead of a silently
+                dead button — no visible reason = missing state (P5). */}
             <button
               type="button"
-              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:opacity-50"
+              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/60"
               onClick={handlePhoneSubmit}
-              disabled={isLoading || !isValidIranianPhone(normalizeDigits(phone))}
+              disabled={isLoading}
             >
               {isLoading ? "در حال ارسال…" : "دریافت کد"}
             </button>
@@ -166,7 +172,7 @@ export default function LoginPage() {
                 <small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(phone)}</small>
               </span>
             </div>
-            <PinInput length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
+            <PinInput key={otpAttempt} length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
             {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
             <div className="mt-4 flex flex-col items-stretch gap-1.5 border-t border-border pt-3" aria-label="گزینه‌های کد ورود">
               <ResendOtpButton
@@ -207,9 +213,9 @@ export default function LoginPage() {
             {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
             <button
               type="button"
-              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:opacity-50"
+              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/60"
               onClick={handleNameSubmit}
-              disabled={isLoading || !name.trim()}
+              disabled={isLoading}
             >
               {isLoading ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
             </button>

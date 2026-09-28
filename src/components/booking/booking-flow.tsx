@@ -66,7 +66,7 @@ interface BookingFlowProps {
 
 export function BookingFlow({ initialServiceId = null, lookId = null }: BookingFlowProps) {
   const router = useRouter();
-  const { salon, workingHours, services, addons, highlights, bookings, blockedTimes, addBooking, refreshBookings, specificDaysOff, loaded } = useSalon();
+  const { salon, workingHours, services, addons, highlights, bookings, blockedTimes, addBooking, refreshBookings, specificDaysOff, loaded, loadFailed } = useSalon();
   const { user, sendOtp, verifyOtp, updateProfile } = useAuth();
 
   // ── Lifecycle ──
@@ -765,9 +765,23 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
               );
             })}
             {activeServices.length === 0 && (
-              <div className="rounded-lg border border-dashed border-border bg-card p-7 text-center text-sm text-muted-foreground">
-                هنوز خدمتی برای رزرو فعال نیست
-              </div>
+              loadFailed ? (
+                <div className="rounded-lg border border-dashed border-border bg-card p-7 text-center">
+                  <p className="text-sm font-bold text-foreground">خطا در بارگذاری خدمات</p>
+                  <p className="mt-1 text-xs text-muted-foreground">اتصال برقرار نشد — لطفاً صفحه را رفرش کنید.</p>
+                  <button
+                    type="button"
+                    className="mt-3 inline-flex h-11 items-center justify-center rounded-full border border-border bg-card px-5 text-sm font-bold text-foreground"
+                    onClick={() => window.location.reload()}
+                  >
+                    تلاش مجدد
+                  </button>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-border bg-card p-7 text-center text-sm text-muted-foreground">
+                  هنوز خدمتی برای رزرو فعال نیست
+                </div>
+              )
             )}
           </div>
         </section>
@@ -1158,13 +1172,13 @@ function ReviewStep(props: ReviewStepProps) {
           <CalendarDays className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
           <span className="flex-1 text-xs text-muted-foreground">تاریخ</span>
           <span className="text-sm font-bold">{toPersianDigits(dateParts.day)} {dateParts.month}</span>
-          <button type="button" onClick={onEditTime} className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">ویرایش</button>
+          <button type="button" onClick={onEditTime} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-primary/10 px-3 text-xs font-bold text-primary">ویرایش</button>
         </div>
         <div className="flex items-center gap-3 border-t border-dashed border-border px-4 py-3">
           <Clock className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
           <span className="flex-1 text-xs text-muted-foreground">ساعت</span>
           <span className="text-sm font-bold">{time ? <span dir="ltr">{toPersianDigits(time)} تا {toPersianDigits(endTime)}</span> : "—"}</span>
-          <button type="button" onClick={onEditTime} className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">ویرایش</button>
+          <button type="button" onClick={onEditTime} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-primary/10 px-3 text-xs font-bold text-primary">ویرایش</button>
         </div>
         <div className="flex items-center justify-between bg-muted px-4 py-3.5 text-sm font-semibold text-foreground">
           <span>مجموع · پرداخت در سالن</span>
@@ -1202,7 +1216,7 @@ function ReviewStep(props: ReviewStepProps) {
                 placeholder="۰۹۱۲۱۲۳۴۵۶۷" autoComplete="tel" />
             </div>
             {otpState === "idle" && (
-              <button type="button" className="flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:opacity-50" disabled={!phoneValid || isAuthLoading} onClick={onSendOtp}>
+              <button type="button" className="flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/60" disabled={!phoneValid || isAuthLoading} onClick={onSendOtp}>
                 {isAuthLoading ? "در حال ارسال…" : "دریافت کد تأیید"}
               </button>
             )}

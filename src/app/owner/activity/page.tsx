@@ -106,7 +106,7 @@ export default function ActivityPage() {
                 type="button"
                 onClick={loadMore}
                 disabled={loadingMore}
-                className="w-full py-2.5 mt-3 rounded-xl border border-border text-caption font-bold text-muted-foreground hover:bg-muted disabled:opacity-50"
+                className="w-full py-2.5 mt-3 rounded-xl border border-border text-caption font-bold text-muted-foreground hover:bg-muted disabled:text-foreground/60 disabled:pointer-events-none"
               >
                 {loadingMore ? "در حال بارگذاری…" : "نمایش لاگ‌های قدیمی‌تر"}
               </button>

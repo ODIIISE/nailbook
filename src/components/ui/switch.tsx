@@ -25,7 +25,7 @@ function Switch({ checked, onCheckedChange, disabled, className }: SwitchProps) 
         checked
           ? "bg-foreground border-foreground/20"
           : "bg-secondary border-border",
-        disabled && "cursor-not-allowed opacity-50",
+        disabled && "cursor-not-allowed opacity-60",
         className
       )}
     >

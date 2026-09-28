@@ -22,6 +22,12 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Pin the workspace root: a stray package-lock.json in the user home folder
+  // made Turbopack infer C:\\Users\\<user> as root, which 404s all API routes
+  // in `next dev` (pages compiled, route handlers never resolved).
+  turbopack: {
+    root: __dirname,
+  },
   images: {
     remotePatterns: [
       {

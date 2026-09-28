@@ -285,7 +285,7 @@ export default function ProfilePage() {
             </div>
             {editing ? (
               <div className="flex shrink-0 items-center gap-1.5">
-                <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-50" onClick={saveEdit} disabled={saving} aria-label="ذخیره نام" title="ذخیره نام">
+                <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/60" onClick={saveEdit} disabled={saving} aria-label="ذخیره نام" title="ذخیره نام">
                   {saving ? <span className="h-3.5 w-3.5 rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
                 </button>
                 <button type="button" className="icon-btn text-muted-foreground" onClick={cancelEdit} aria-label="انصراف از ویرایش نام" title="انصراف">
@@ -324,7 +324,7 @@ export default function ProfilePage() {
             </div>
             {editingPhone ? (
               <div className="flex shrink-0 items-center gap-1.5">
-                <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-50" onClick={savePhone} disabled={savingPhone} aria-label="ذخیره شماره موبایل" title="ذخیره شماره موبایل">
+                <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/60" onClick={savePhone} disabled={savingPhone} aria-label="ذخیره شماره موبایل" title="ذخیره شماره موبایل">
                   {savingPhone ? <span className="h-3.5 w-3.5 rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
                 </button>
                 <button type="button" className="icon-btn text-muted-foreground" onClick={cancelPhoneEdit} aria-label="انصراف از ویرایش شماره" title="انصراف">

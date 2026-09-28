@@ -40,6 +40,9 @@ interface SalonContextType {
   highlights: Highlight[];
   blockedTimes: Array<{ date_gregorian: string; start_time: string; end_time: string }>;
   loaded: boolean;
+  /** True when the initial load failed (network/DB) — consumers must not
+   *  render "no services" empty states for an actual load error. */
+  loadFailed: boolean;
   updateWorkingHours: (hours: WorkingHours) => Promise<void>;
   updateSpecificDaysOff: (daysOff: string[]) => Promise<void>;
   saveSchedule: (hours: WorkingHours, daysOff: string[]) => Promise<void>;
@@ -83,6 +86,7 @@ const EMPTY_SALON_CONTEXT: SalonContextType = {
   highlights: [],
   blockedTimes: [],
   loaded: false,
+  loadFailed: false,
   updateWorkingHours: async () => {},
   updateSpecificDaysOff: async () => {},
   saveSchedule: async () => {},
@@ -115,6 +119,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [blockedTimes, setBlockedTimes] = useState<Array<{ date_gregorian: string; start_time: string; end_time: string }>>([]);
   const [loaded, setLoaded] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   // Refs to avoid stale closures in callbacks
   const servicesRef = useRef(services);
@@ -254,6 +259,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       if (blockedData !== null) blockedTimesLoadedRef.current = true;
       const criticalFailure = salonData === null || servicesData === null;
       if (criticalFailure) {
+        setLoadFailed(true);
         devLog("Failed to load salon data:", { salon: salonData === null, services: servicesData === null });
         toast.error("خطا در بارگذاری اطلاعات", {
           description: "لطفاً صفحه را رفرش کنید",
@@ -670,6 +676,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       highlights,
       blockedTimes,
       loaded: true,
+      loadFailed,
       updateWorkingHours: handleUpdateWorkingHours,
       updateSpecificDaysOff: handleUpdateSpecificDaysOff,
       saveSchedule: handleSaveSchedule,
@@ -689,9 +696,8 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       uploadHighlightImage: handleUploadHighlightImage,
       toggleBookingPaid: handleToggleBookingPaid,
       updateBookingStatus: handleUpdateBookingStatus,
-    };
-  }, [
-    loaded, salon, workingHours, specificDaysOff, services, addons, bookings, highlights, blockedTimes,
+    };    }, [
+    loaded, loadFailed, salon, workingHours, specificDaysOff, services, addons, bookings, highlights, blockedTimes,
     handleUpdateWorkingHours,
     handleUpdateSpecificDaysOff,
     handleSaveSchedule,

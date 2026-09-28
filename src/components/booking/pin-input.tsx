@@ -134,7 +134,7 @@ export function PinInput({ length = 4, onComplete, disabled, className }: PinInp
             digit
               ? "border-primary text-foreground"
               : "border-input text-foreground",
-            disabled && "opacity-50 cursor-not-allowed"
+            disabled && "opacity-60 cursor-not-allowed"
           )}
         />
       ))}
