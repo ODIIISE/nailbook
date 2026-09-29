@@ -235,12 +235,12 @@ export function LuxHome() {
 
         {/* Header — inbox left, wordmark center, menu right */}
         <header className={`${styles.header} ${styles.rv}`} style={d(".1s")}>
-          <button className={styles.iconBtn} aria-label="Bag" onClick={() => toast("🤍 Your bag is empty")}>
+          <button className={styles.iconBtn} aria-label="سبد خرید" onClick={() => toast("🤍 Your bag is empty")}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="m9.2 12.5 2 2 3.8-3.8" /></svg>
           </button>
           <span className={styles.logo}>Forehand</span>
           <span className={styles.r}>
-            <button className={styles.iconBtn} aria-label="Menu" onClick={openDrawer}>
+            <button className={styles.iconBtn} aria-label="منو" onClick={openDrawer}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="4" y1="8" x2="20" y2="8" /><line x1="4" y1="13" x2="20" y2="13" /><line x1="4" y1="18" x2="12" y2="18" /></svg>
             </button>
           </span>
@@ -301,7 +301,7 @@ export function LuxHome() {
                         <path id="ringPath" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0" fill="none" />
                         <text><textPath href="#ringPath">EXPLORE NAIL DESIGNS • EXPLORE NAIL DESIGNS •</textPath></text>
                       </svg>
-                      <button className={styles.badgeCore} aria-label="Explore nail designs" onClick={() => setLookbookOpen(true)}>
+                      <button className={styles.badgeCore} aria-label="نمایش نمونه‌کارها" onClick={() => setLookbookOpen(true)}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 6 15 12 9 18" /></svg>
                       </button>
                     </div>
@@ -330,24 +330,24 @@ export function LuxHome() {
           </button>
           <div className={styles.contacts}>
             {salon?.phone?.trim() ? (
-              <a className={styles.iconBtn} href={`tel:${salon.phone.replace(/\s+/g, "")}`} aria-label="Call the salon">
+              <a className={styles.iconBtn} href={`tel:${salon.phone.replace(/\s+/g, "")}`} aria-label="تماس با سالن">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8.1 10a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.6 2z" /></svg>
               </a>
             ) : (
-              <button className={styles.iconBtn} aria-label="Call the salon" onClick={() => toast("شماره تماس ثبت نشده است")}>
+              <button className={styles.iconBtn} aria-label="تماس با سالن" onClick={() => toast("شماره تماس ثبت نشده است")}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8.1 10a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.6 2z" /></svg>
               </button>
             )}
             {instagramUrl ? (
-              <a className={styles.iconBtn} href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <a className={styles.iconBtn} href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="اینستاگرام">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
               </a>
             ) : (
-              <button className={styles.iconBtn} aria-label="Instagram" onClick={() => toast("اینستاگرام ثبت نشده است")}>
+              <button className={styles.iconBtn} aria-label="اینستاگرام" onClick={() => toast("اینستاگرام ثبت نشده است")}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
               </button>
             )}
-            <button className={styles.iconBtn} aria-label="Location" onClick={showAddress}>
+            <button className={styles.iconBtn} aria-label="آدرس سالن" onClick={showAddress}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
             </button>
           </div>

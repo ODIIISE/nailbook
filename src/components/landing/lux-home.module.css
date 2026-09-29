@@ -751,6 +751,9 @@
   align-items: center;
   gap: 0.625rem;
   opacity: 0;
+  /* Hidden from keyboard focus (not just visually) while dismissed —
+     an invisible focusable close button is a tab-order trap. */
+  visibility: hidden;
   pointer-events: none;
   text-align: start;
   white-space: normal;
@@ -806,6 +809,7 @@
 .toastShow {
   opacity: 1;
   transform: translateY(0);
+  visibility: visible;
   pointer-events: auto;
 }
 
