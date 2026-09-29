@@ -57,6 +57,27 @@
   overflow: hidden;
 }
 
+/* Wide screens: the 520px column is centered on a larger stage (the column
+   already centers via .viewport's justify-content). Give the stage its own
+   ambient depth — same gold family as .ambient — so the centered column
+   reads as composed, not as floating in flat black. Hidden on phones where
+   the opaque column covers the full viewport. */
+@media (min-width: 520px) {
+  .viewport {
+    background:
+      radial-gradient(60rem 40rem at 50% -10%, rgba(226, 189, 151, 0.08), transparent 70%),
+      radial-gradient(72rem 52rem at 50% 82%, rgba(242, 205, 173, 0.05), transparent 72%),
+      radial-gradient(44rem 62rem at 50% 50%, rgba(226, 189, 151, 0.04), transparent 70%),
+      var(--bg);
+  }
+
+  .app {
+    box-shadow:
+      0 0 0 1px var(--line),
+      0 3rem 9rem rgba(0, 0, 0, 0.5);
+  }
+}
+
 .viewport img {
   display: block;
   pointer-events: none;
