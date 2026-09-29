@@ -87,7 +87,19 @@ export default function SalonDetailPage({ params }: { params: Promise<{ id: stri
     );
   }
 
-  if (!salon) return null;
+  /* A failed fetch used to fall through to null — a permanent blank page
+     once the toast dismissed. Explain and offer the way back (P5/F5). */
+  if (!salon) {
+    return (
+      <div className="p-8 rounded-2xl border border-border text-center space-y-3">
+        <p className="text-body font-bold">سالن بارگذاری نشد</p>
+        <p className="text-small text-muted-foreground">دریافت اطلاعات سالن ناموفق بود.</p>
+        <Button variant="outline" size="sm" onClick={() => router.push("/admin/salons")}>
+          بازگشت به فهرست سالن‌ها
+        </Button>
+      </div>
+    );
+  }
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "overview", label: " نمای کلی" },

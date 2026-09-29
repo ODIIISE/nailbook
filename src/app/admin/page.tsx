@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2, ArrowUpRight, AlertTriangle, UserCheck, BarChart3, Calendar, type LucideIcon } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, CreditCard, Loader2, ArrowUpRight, AlertTriangle, UserCheck, BarChart3, Calendar, RefreshCw, ShieldAlert, type LucideIcon } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import Link from "next/link";
+import { toPersianDigits } from "@/lib/jalali";
 
 interface Salon {
   id: string;
@@ -138,7 +140,24 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!stats) return null;
+  /* Silent blank frame is a missing state: a failed stats fetch must explain
+     itself and offer a way forward (P5 / FR-005). */
+  if (!stats) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold">داشبورد</h2>
+        <div className="p-8 rounded-2xl border border-border flex flex-col items-center gap-3 text-center">
+          <ShieldAlert className="h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
+          <p className="text-body font-bold">آمار بارگذاری نشد</p>
+          <p className="text-small text-muted-foreground">دریافت داده‌ها از سرور ناموفق بود.</p>
+          <Button variant="outline" size="sm" className="mt-1 gap-2" onClick={() => location.reload()}>
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            تلاش مجدد
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const chartData: ChartPoint[] = stats.dailyBookings.map((d) => ({
     name: d.date ? new Date(d.date).toLocaleDateString("fa-IR", { month: "short", day: "numeric" }) : "",
@@ -195,7 +214,7 @@ export default function AdminDashboard() {
 
       {/* Tab Content */}
       {activeTab === "overview" && (
-        <OverviewTab stats={stats} chartData={chartData} statusData={statusData} router={router} />
+        <OverviewTab stats={stats} chartData={chartData} statusData={statusData} />
       )}
       {activeTab === "bookings" && (
         <BookingsTab analytics={analytics} />
@@ -214,7 +233,7 @@ export default function AdminDashboard() {
 }
 
 // Overview Tab
-function OverviewTab({ stats, chartData, statusData, router }: { stats: Stats; chartData: ChartPoint[]; statusData: StatusDatum[]; router: ReturnType<typeof useRouter> }) {
+function OverviewTab({ stats, chartData, statusData }: { stats: Stats; chartData: ChartPoint[]; statusData: StatusDatum[] }) {
   return (
     <div className="space-y-4">
       {/* Revenue Stats */}
@@ -222,14 +241,14 @@ function OverviewTab({ stats, chartData, statusData, router }: { stats: Stats; c
         <StatCard icon={DollarSign} label="درآمد کل" value={formatPrice(parseInt(stats.revenue.total_revenue) || 0)} sub="تومان" color="text-primary" />
         <StatCard icon={CreditCard} label="پرداخت شده" value={formatPrice(parseInt(stats.revenue.paid_revenue) || 0)} sub="تومان" color="text-success" />
         <StatCard icon={TrendingDown} label="پرداخت نشده" value={formatPrice(parseInt(stats.revenue.unpaid_revenue) || 0)} sub="تومان" color="text-destructive" />
-        <StatCard icon={Calendar} label="امروز" value={String(stats.todayBookings)} sub="رزرو" color="text-primary" />
+        <StatCard icon={Calendar} label="امروز" value={toPersianDigits(stats.todayBookings)} sub="رزرو" color="text-primary" />
       </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <QuickStat label="سالن" value={stats.salons.length} />
-        <QuickStat label="کاربر" value={stats.totalUsers} />
-        <QuickStat label="رزرو کل" value={parseInt(stats.bookingStats.total) || 0} />
+        <QuickStat label="سالن" value={toPersianDigits(stats.salons.length)} />
+        <QuickStat label="کاربر" value={toPersianDigits(stats.totalUsers)} />
+        <QuickStat label="رزرو کل" value={toPersianDigits(parseInt(stats.bookingStats.total) || 0)} />
       </div>
 
       {/* Charts */}
@@ -271,7 +290,7 @@ function OverviewTab({ stats, chartData, statusData, router }: { stats: Stats; c
       </div>
 
       {/* Salon Table */}
-      <SalonTable salons={stats.salons} salonRevenue={stats.salonRevenue} router={router} />
+      <SalonTable salons={stats.salons} salonRevenue={stats.salonRevenue} />
     </div>
   );
 }
@@ -281,10 +300,10 @@ function BookingsTab({ analytics }: { analytics: Analytics }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard icon={BarChart3} label="نرخ لغو" value={`${analytics.cancellation?.rate || 0}%`} color="text-destructive" />
-        <StatCard icon={AlertTriangle} label="نرخ عدم حضور" value={`${analytics.noShow?.rate || 0}%`} color="text-destructive" />
-        <StatCard icon={TrendingUp} label="نرخ تکرار" value={`${analytics.repeat?.rate || 0}%`} color="text-success" />
-        <StatCard icon={UserCheck} label="نرخ تکمیل" value={`${analytics.completion?.rate || 0}%`} color="text-primary" />
+        <StatCard icon={BarChart3} label="نرخ لغو" value={`${toPersianDigits(analytics.cancellation?.rate || 0)}٪`} color="text-destructive" />
+        <StatCard icon={AlertTriangle} label="نرخ عدم حضور" value={`${toPersianDigits(analytics.noShow?.rate || 0)}٪`} color="text-destructive" />
+        <StatCard icon={TrendingUp} label="نرخ تکرار" value={`${toPersianDigits(analytics.repeat?.rate || 0)}٪`} color="text-success" />
+        <StatCard icon={UserCheck} label="نرخ تکمیل" value={`${toPersianDigits(analytics.completion?.rate || 0)}٪`} color="text-primary" />
       </div>
 
       {/* Peak Hours */}
@@ -316,7 +335,7 @@ function BookingsTab({ analytics }: { analytics: Analytics }) {
           {analytics.servicePop?.slice(0, 5).map((s) => (
             <div key={s.name} className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">{s.name}</span>
-              <span className="text-sm font-bold">{s.booking_count} رزرو</span>
+              <span className="text-sm font-bold">{toPersianDigits(s.booking_count)} رزرو</span>
             </div>
           ))}
           {(!analytics.servicePop || analytics.servicePop.length === 0) && (
@@ -352,7 +371,7 @@ function CustomersTab({ analytics }: { analytics: Analytics }) {
                 <p className="text-sm font-medium">{c.customer_name || "مشتری"}</p>
                 <p className="text-xs text-muted-foreground" dir="ltr">{c.customer_phone}</p>
               </div>
-              <span className="text-sm font-bold">{c.booking_count} رزرو</span>
+              <span className="text-sm font-bold">{toPersianDigits(c.booking_count)} رزرو</span>
             </div>
           ))}
           {(!analytics.topCustomers || analytics.topCustomers.length === 0) && (
@@ -369,9 +388,9 @@ function OperationsTab({ analytics, stats }: { analytics: Analytics; stats: Stat
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <StatCard icon={CreditCard} label="پرداخت شده" value={`${analytics.payment?.paid_rate || 0}%`} color="text-success" />
-        <StatCard icon={TrendingDown} label="پرداخت نشده" value={String(analytics.payment?.unpaid || 0)} sub="رزرو" color="text-destructive" />
-        <StatCard icon={UserCheck} label="نرخ تکمیل" value={`${analytics.completion?.rate || 0}%`} color="text-primary" />
+        <StatCard icon={CreditCard} label="پرداخت شده" value={`${toPersianDigits(analytics.payment?.paid_rate || 0)}٪`} color="text-success" />
+        <StatCard icon={TrendingDown} label="پرداخت نشده" value={toPersianDigits(analytics.payment?.unpaid || 0)} sub="رزرو" color="text-destructive" />
+        <StatCard icon={UserCheck} label="نرخ تکمیل" value={`${toPersianDigits(analytics.completion?.rate || 0)}٪`} color="text-primary" />
       </div>
 
       <SalonTable salons={stats.salons} salonRevenue={stats.salonRevenue} />
@@ -419,7 +438,7 @@ function AlertsTab({ alerts }: { alerts: Alert[] }) {
                     </div>
                   )}
                 </div>
-                <span className="text-xs text-muted-foreground">{alert.count}</span>
+                <span className="text-xs text-muted-foreground">{alert.count !== undefined ? toPersianDigits(alert.count) : ""}</span>
               </div>
             </div>
           );
@@ -443,7 +462,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: { icon: LucideIcon; 
   );
 }
 
-function QuickStat({ label, value }: { label: string; value: number }) {
+function QuickStat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="p-3 rounded-2xl border border-border text-center">
       <p className="text-2xl font-bold">{value}</p>
@@ -452,7 +471,7 @@ function QuickStat({ label, value }: { label: string; value: number }) {
   );
 }
 
-function SalonTable({ salons, salonRevenue, router }: { salons: Salon[]; salonRevenue: SalonRevenue[]; router?: ReturnType<typeof useRouter> }) {
+function SalonTable({ salons, salonRevenue }: { salons: Salon[]; salonRevenue: SalonRevenue[] }) {
   return (
     <div className="rounded-2xl border border-border overflow-hidden">
       <div className="p-4 border-b border-border">
@@ -473,13 +492,19 @@ function SalonTable({ salons, salonRevenue, router }: { salons: Salon[]; salonRe
             {salonRevenue.map((s) => {
               const salon = salons.find((sal) => sal.name === s.salon_name);
               return (
-                <tr
-                  key={s.salon_name}
-                  className="border-b border-border last:border-0 hover:bg-muted/30 cursor-pointer"
-                  onClick={() => salon && router?.push(`/admin/salons/${salon.id}`)}
-                >
-                  <td className="p-3 font-medium">{s.salon_name}</td>
-                  <td className="p-3">{parseInt(s.bookings) || 0}</td>
+                /* Navigation lives on a real link in the name cell — a row-level
+                   onClick pseudo-button is unreachable by keyboard/SR. */
+                <tr key={s.salon_name} className="border-b border-border last:border-0 hover:bg-muted/30">
+                  <td className="p-3 font-medium">
+                    {salon ? (
+                      <Link href={`/admin/salons/${salon.id}`} className="hover:underline underline-offset-4">
+                        {s.salon_name}
+                      </Link>
+                    ) : (
+                      s.salon_name
+                    )}
+                  </td>
+                  <td className="p-3">{toPersianDigits(parseInt(s.bookings) || 0)}</td>
                   <td className="p-3">{formatPrice(parseInt(s.revenue) || 0)} تومان</td>
                   <td className="p-3">
                     <span className="px-2 py-0.5 rounded-full text-xs bg-success/10 text-success">فعال</span>

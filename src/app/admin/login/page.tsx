@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield, Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -21,7 +22,10 @@ export default function AdminLoginPage() {
   async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault();
     if (isLoading) return;
-    if (phone.length < 10) {
+    /* Enabled while idle so an invalid input explains itself on tap (the
+       customer login recipe, AUDIT-001) instead of a silently dead button. */
+    const normalized = normalizeDigits(phone);
+    if (!isValidIranianPhone(normalized)) {
       setError("شماره موبایل معتبر نیست");
       return;
     }
@@ -31,11 +35,12 @@ export default function AdminLoginPage() {
     }
     setIsLoading(true);
     setError("");
+    setPhone(normalized);
     try {
       const res = await fetch("/api/super-admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, pin: password }),
+        body: JSON.stringify({ phone: normalized, pin: password }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -103,14 +108,14 @@ export default function AdminLoginPage() {
             </div>
 
             {error && (
-              <p className="text-caption text-destructive text-center">{error}</p>
+              <p className="text-caption text-destructive text-center" role="alert">{error}</p>
             )}
 
             <Button
               type="submit"
               size="xl"
               className="w-full bg-foreground text-background hover:bg-foreground/90"
-              disabled={isLoading || phone.length < 10 || password.length < 4}
+              disabled={isLoading}
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
