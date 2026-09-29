@@ -4,6 +4,7 @@ import Link from "next/link";
 import { sql } from "@vercel/postgres";
 import { CalendarDays, Clock, MapPin, Phone, ArrowRight } from "lucide-react";
 import { compactToman } from "@/lib/pricing";
+import { StatusPill } from "@/components/ui/status-pill";
 import { gregorianToJalali, toPersianDigits, formatJalaliDate } from "@/lib/jalali";
 import { parseGregorianDateKey } from "@/lib/time";
 
@@ -11,14 +12,7 @@ export const metadata = {
   title: "تأیید نوبت",
 };
 
-const STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  reserved: { label: "ثبت شده", cls: "bg-primary/10 text-primary" },
-  confirmed: { label: "تأیید شده", cls: "bg-success/10 text-success" },
-  in_progress: { label: "در حال انجام", cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400" },
-  pending: { label: "در انتظار", cls: "bg-muted text-muted-foreground" },
-  completed: { label: "انجام شده", cls: "bg-success/10 text-success" },
-  cancelled: { label: "لغو شده", cls: "bg-destructive/10 text-destructive" },
-};
+// Status pill comes from the shared component — see src/components/ui/status-pill.tsx.
 
 interface BookingVerifyPageProps {
   params: Promise<{ id: string }>;
@@ -67,9 +61,6 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
   const jalali = gregorianToJalali(parsedDate);
   const displayId = String(booking.id).slice(-6).toUpperCase();
 
-  const statusKey = String(booking.status || "pending");
-  const status = STATUS_MAP[statusKey] || STATUS_MAP.pending;
-
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
       <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
@@ -108,10 +99,7 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
               </span>
             )}
             <span className="text-sm font-bold">{booking.salon_name}</span>
-            <span className={`ms-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-micro font-bold ${status.cls}`}>
-              <i className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
-              {status.label}
-            </span>
+            <StatusPill status={String(booking.status || "pending")} className="ms-auto shrink-0" />
           </div>
           {booking.salon_address && (
             <div className="mt-4 flex items-start justify-between gap-3 border-t border-border pt-3">

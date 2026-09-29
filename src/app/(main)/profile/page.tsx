@@ -10,6 +10,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { StatusPill } from "@/components/ui/status-pill";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
 import { displayDigits, normalizeDigits, isValidIranianPhone } from "@/lib/digits";
@@ -17,26 +18,7 @@ import { gregorianToJalali, toPersianDigits, formatJalaliTime } from "@/lib/jala
 import { parseGregorianDateKey } from "@/lib/time";
 import { compactToman } from "@/lib/pricing";
 
-const STATUS_PILL_BASE =
-  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-micro font-bold";
-
-const STATUS_MAP: Record<string, { label: string; cls: string; dot: string }> = {
-  reserved: { label: "ثبت شده", cls: "bg-primary/10 text-primary", dot: "bg-primary" },
-  confirmed: { label: "تأیید شده", cls: "bg-success/10 text-success", dot: "bg-success" },
-  in_progress: { label: "در حال انجام", cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400", dot: "bg-amber-500" },
-  pending: { label: "در انتظار", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
-  completed: { label: "انجام شده", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
-  cancelled: { label: "لغو شده", cls: "bg-destructive/10 text-destructive", dot: "bg-destructive" },
-};
-
-function StatusPill({ status }: { status: { cls: string; dot: string; label: string } }) {
-  return (
-    <span className={`${STATUS_PILL_BASE} ${status.cls}`}>
-      <i aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
-      {status.label}
-    </span>
-  );
-}
+// Shared status pill — see src/components/ui/status-pill.tsx.
 
 const JALALI_MONTHS = ["", "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
 
@@ -365,7 +347,6 @@ export default function ProfilePage() {
         ) : (
           <div className="flex flex-col gap-2.5">
             {recentBookings.map((booking) => {
-              const status = STATUS_MAP[booking.status] || STATUS_MAP.pending;
               const time = booking.start_time.slice(0, 5);
               const endTime = booking.end_time.slice(0, 5);
               const startM = parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
@@ -375,19 +356,12 @@ export default function ProfilePage() {
               const price = booking.price_total ?? getServicePrice(booking.service_id);
 
               return (
+                /* Plain container — no role="button" wrapper (a cancel button
+                   nested inside a pseudo-button breaks SR/keyboard order).
+                   Navigation lives on the real مشاهده button below. */
                 <div
                   key={booking.id}
                   className="w-full rounded-lg border border-border bg-card p-4 shadow-card"
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => router.push("/bookings")}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      router.push("/bookings");
-                    }
-                  }}
-                  aria-label={`مشاهده نوبت ${getServiceName(booking.service_id)}`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
@@ -395,7 +369,7 @@ export default function ProfilePage() {
                       <b className="block truncate text-sm font-bold">{getServiceName(booking.service_id)}</b>
                       <small className="mt-0.5 block text-micro text-muted-foreground">{jalaliShort(booking.date_gregorian)}</small>
                     </span>
-                    <StatusPill status={status} />
+                    <StatusPill status={booking.status} />
                   </div>
                   <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Clock className="h-3.5 w-3.5" aria-hidden="true" />
@@ -404,8 +378,16 @@ export default function ProfilePage() {
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
                     <b className="text-sm font-bold">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
-                    <span className="flex items-center gap-2.5">
+                    <span className="flex shrink-0 items-center gap-2">
                       <small dir="ltr" className="text-micro font-bold text-muted-foreground">#{booking.id.slice(-4).toUpperCase()}</small>
+                      <button
+                        type="button"
+                        className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-border bg-muted px-3.5 text-micro font-bold text-foreground"
+                        onClick={() => router.push("/bookings")}
+                        aria-label={`مشاهده جزئیات نوبت ${getServiceName(booking.service_id)}`}
+                      >
+                        مشاهده
+                      </button>
                       {CANCELABLE.has(booking.status) && (
                         <button
                           type="button"
@@ -414,7 +396,7 @@ export default function ProfilePage() {
                               ? "bg-destructive text-white"
                               : "border border-border bg-muted text-foreground"
                           }`}
-                          onClick={(e) => { e.stopPropagation(); handleCancelBooking(booking.id); }}
+                          onClick={() => handleCancelBooking(booking.id)}
                         >
                           {confirmingCancel === booking.id ? "تأیید لغو؟" : "لغو"}
                         </button>

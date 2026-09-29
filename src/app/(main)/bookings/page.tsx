@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { SalonGuard } from "@/components/ui/salon-guard";
+import { StatusPill } from "@/components/ui/status-pill";
 import { Clock, Calendar, User, ArrowRight, Sparkles, X } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 import { useAuth } from "@/lib/auth-context";
@@ -15,27 +16,7 @@ import { parseGregorianDateKey } from "@/lib/time";
 import { compactToman } from "@/lib/pricing";
 import type { Booking } from "@/lib/types";
 
-// Shared status pill: bg/text per state + leading dot color.
-const STATUS_PILL_BASE =
-  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-micro font-bold";
-
-const STATUS_MAP: Record<string, { label: string; cls: string; dot: string }> = {
-  reserved: { label: "ثبت شده", cls: "bg-primary/10 text-primary", dot: "bg-primary" },
-  confirmed: { label: "تأیید شده", cls: "bg-success/10 text-success", dot: "bg-success" },
-  in_progress: { label: "در حال انجام", cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400", dot: "bg-amber-500" },
-  pending: { label: "در انتظار", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
-  completed: { label: "انجام شده", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
-  cancelled: { label: "لغو شده", cls: "bg-destructive/10 text-destructive", dot: "bg-destructive" },
-};
-
-function StatusPill({ status }: { status: { cls: string; dot: string; label: string } }) {
-  return (
-    <span className={`${STATUS_PILL_BASE} ${status.cls}`}>
-      <i aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
-      {status.label}
-    </span>
-  );
-}
+// Shared status pill — see src/components/ui/status-pill.tsx.
 
 const JALALI_MONTHS = ["", "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
 
@@ -168,7 +149,7 @@ export default function BookingsPage() {
             <Calendar className="h-5 w-5" aria-hidden="true" />
           </span>
           <span className="min-w-0">
-            <span className="block text-kicker text-muted-foreground uppercase" dir="ltr">HISTORY</span>
+            <span className="block text-kicker text-muted-foreground">تاریخچه</span>
             <h3 id="booking-history-title" className="mt-0.5 text-base font-bold">تاریخچه نوبت‌ها</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">{toPersianDigits(myBookings.length)} نوبت ثبت‌شده</p>
           </span>
@@ -196,7 +177,6 @@ export default function BookingsPage() {
               <div key={group.date}>
                 <p className="pb-1 pt-4 text-xs font-bold text-muted-foreground">{group.jalaliStr}</p>
                 {group.bookings.map((booking) => {
-                  const status = STATUS_MAP[booking.status] || STATUS_MAP.pending;
                   const time = booking.start_time.slice(0, 5);
                   const endTime = booking.end_time.slice(0, 5);
                   const startM = parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
@@ -221,7 +201,7 @@ export default function BookingsPage() {
                           <b className="block truncate text-sm font-bold">{getServiceName(booking.service_id)}</b>
                           <small className="mt-0.5 block text-micro text-muted-foreground">{booking.customer_name || "مشتری"}</small>
                         </span>
-                        <StatusPill status={status} />
+                        <StatusPill status={booking.status} />
                       </div>
                       <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Clock className="h-3.5 w-3.5" aria-hidden="true" />
@@ -284,7 +264,6 @@ function BookingDetailSheet({
   useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
   const jalali = gregorianToJalali(parseGregorianDateKey(booking.date_gregorian));
-  const status = STATUS_MAP[booking.status] || STATUS_MAP.pending;
   const time = booking.start_time.slice(0, 5);
   const endTime = booking.end_time.slice(0, 5);
   const addonNames = getAddonNames(booking.selected_addons || []);
@@ -399,7 +378,7 @@ function BookingDetailSheet({
             </div>
             <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
               <span className="text-xs text-muted-foreground">وضعیت</span>
-              <StatusPill status={status} />
+              <StatusPill status={booking.status} />
             </div>
             <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
               <span className="text-xs text-muted-foreground">کد رهگیری</span>

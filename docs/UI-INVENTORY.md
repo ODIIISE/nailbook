@@ -19,9 +19,10 @@ Modes: Editorial (homepage) vs Atelier (everything else) per DESIGN-SYSTEM.md.
 |---|---|---|---|
 | Login | `/login` | phone entry, OTP verify, resend (cooldown), back | idle · sending · code sent · verified · wrong code · invalid phone · server error |
 | Bootstrap | `/bootstrap` | first-run salon setup | loading · error |
-| Profile | `(main)/profile` | edit name, view phone, logout, back | loaded · saving · saved · error |
+| Profile | `(main)/profile` | edit name, view/edit phone, open booking detail (مشاهده), cancel, logout, back | loaded · saving · saved · error |
 | Bookings list | `(main)/bookings` | open detail, cancel, back | logged-out CTA · empty · grouped-by-date list · polling refresh · detail sheet open · cancel confirm · cancel in-flight · cancel success/fail toast |
 | Booking detail | sheet on bookings | view full receipt fields, cancel (inline confirm), close | sheet · confirming · cancelling · cancelled elsewhere (status rollback) |
+| Booking receipt (shareable) | `(main)/bookings/[id]` | view receipt, back, new booking | server-rendered · not-found |
 
 ## Booking (the money path)
 
@@ -70,6 +71,6 @@ Modes: Editorial (homepage) vs Atelier (everything else) per DESIGN-SYSTEM.md.
 
 - Phone frame: `--frame-max-w` (min(100vw, 480px)); gutter `--page-gutter` 20px.
 - Header pattern: 44px icon slot / centered kicker+title / 44px slot.
-- Status pills: shared STATUS_MAP (bookings page) — colors per status, dot + label.
+- Status pills: single shared component `src/components/ui/status-pill.tsx` — labels, token colors, and dot per status; `completed` is intentionally neutral (green is reserved for "تأیید شده"). Never copy STATUS_MAP into a page.
 - Dates: Jalali + Persian digits; times/phones/tracking `dir="ltr"`.
 - Touch: 44px targets; icon-btn utility; pills for primary CTAs.
