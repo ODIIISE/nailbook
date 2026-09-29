@@ -159,10 +159,10 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
                       <p className="text-small text-foreground truncate leading-tight">{log.description}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-small text-muted-foreground/60 bg-muted px-1.5 py-0.5 rounded">
+                      <span className="text-small text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                         {config.label}
                       </span>
-                      <span className="text-small text-muted-foreground/50" dir="ltr">
+                      <span className="text-small text-muted-foreground" dir="ltr">
                         {formatTime(log.created_at)}
                       </span>
                     </div>
@@ -191,7 +191,7 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
                   {selectedLog.entity_type}
                 </span>
                 {selectedLog.entity_id && (
-                  <span className="text-small font-mono text-muted-foreground/60 bg-muted px-2 py-1 rounded-md">
+                  <span className="text-small font-mono text-muted-foreground bg-muted px-2 py-1 rounded-md">
                     {selectedLog.entity_id.slice(0, 8)}...
                   </span>
                 )}
@@ -219,10 +219,10 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
 
               {/* Raw ID */}
               <div className="flex items-center justify-between pt-2 border-t border-border/60">
-                <span className="text-small text-muted-foreground/40 font-mono">{selectedLog.id}</span>
+                <span className="text-small text-muted-foreground font-mono">{selectedLog.id}</span>
                 <button
                   onClick={() => navigator.clipboard?.writeText(selectedLog.id)}
-                  className="text-small text-muted-foreground/40 hover:text-muted-foreground flex items-center gap-1"
+                  className="text-small text-muted-foreground hover:text-foreground flex items-center gap-1"
                 >
                   <Copy className="h-3 w-3" />
                   کپی

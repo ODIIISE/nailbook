@@ -244,7 +244,7 @@ export default function OwnerHighlightsPage() {
                         <span className="text-primary/80"> · {linkedService.name}</span>
                       )}
                       {!linkedService && (
-                        <span className="text-muted-foreground/60"> · بدون خدمت</span>
+                        <span className="text-muted-foreground"> · بدون خدمت</span>
                       )}
                     </p>
                   </div>
@@ -371,7 +371,7 @@ export default function OwnerHighlightsPage() {
                                 >
                                   {on && <Check className="h-3 w-3" />}
                                   {addon.name}
-                                  <span className={on ? "opacity-80" : "text-muted-foreground/60"}>
+                                  <span className={on ? "opacity-80" : "text-muted-foreground"}>
                                     +{toPersianDigits(addon.duration_minutes)}د · +{formatPrice(Number(addon.price))}
                                   </span>
                                 </button>

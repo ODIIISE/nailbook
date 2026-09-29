@@ -74,7 +74,7 @@ const PERSIAN_WEEKDAYS_SHORT = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
 function Help({ text }: { text: string }) {
   return (
     <Tooltip>
-      <TooltipTrigger render={<HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help hover:text-muted-foreground" />} />
+      <TooltipTrigger render={<HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help hover:text-foreground" />} />
       <TooltipContent side="top" className="w-52 text-small leading-relaxed p-2.5 rounded-xl bg-card border border-border">
         {text}
       </TooltipContent>
@@ -103,7 +103,7 @@ function SettingRow({
       </div>
       {children}
       {description && (
-        <p className="text-small text-muted-foreground/70 leading-relaxed">{description}</p>
+        <p className="text-small text-muted-foreground leading-relaxed">{description}</p>
       )}
     </div>
   );

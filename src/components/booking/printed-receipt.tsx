@@ -118,7 +118,11 @@ export function PrintedReceipt({
   className = "",
 }: PrintedReceiptProps) {
   const isFinal = mode === "final";
-  const displayId = bookingId ? bookingId.slice(-8).toUpperCase() : null;
+  /* The passed bookingId is the display code "BK-XXXXXX" (9 chars) — slice(-6)
+     yields the XXXXXX part, matching #XXXXXX on the bookings list, profile,
+     and the shareable receipt page. slice(-8) here produced a garbled
+     "K-XXXXXX". */
+  const displayId = bookingId ? bookingId.slice(-6).toUpperCase() : null;
   const issueDate = useMemo(
     () =>
       new Intl.DateTimeFormat("fa-IR", {
@@ -189,16 +193,16 @@ export function PrintedReceipt({
                 <div className="text-small font-medium tabular-nums tracking-wide text-muted-foreground">
                   #{displayId}
                 </div>
-                <div className="mt-0.5 text-small tabular-nums text-muted-foreground/70">
+                <div className="mt-0.5 text-small tabular-nums text-muted-foreground">
                   {issueDate}
                 </div>
               </div>
             ) : (
               <div className="text-left">
-                <div className="text-small font-medium text-muted-foreground/70">
+                <div className="text-small font-medium text-muted-foreground">
                   پیش‌فاکتور
                 </div>
-                <div className="mt-0.5 text-small tabular-nums text-muted-foreground/70">
+                <div className="mt-0.5 text-small tabular-nums text-muted-foreground">
                   {issueDate}
                 </div>
               </div>
@@ -360,7 +364,7 @@ export function PrintedReceipt({
                 <span dir="ltr">{salonPhone}</span>
               </div>
             )}
-            <p className="pt-1 text-small text-muted-foreground/60">
+            <p className="pt-1 text-small text-muted-foreground">
               {salonName}
             </p>
           </div>

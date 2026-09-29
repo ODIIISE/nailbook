@@ -215,7 +215,7 @@ export default function BookingsPage() {
                       )}
                       <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
                         <b className="text-sm font-bold">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
-                        <small dir="ltr" className="text-micro font-bold text-muted-foreground">#{booking.id.slice(-4).toUpperCase()}</small>
+                        <small dir="ltr" className="text-micro font-bold text-muted-foreground">#{booking.id.slice(-6).toUpperCase()}</small>
                       </div>
                     </button>
                   );
@@ -382,7 +382,7 @@ function BookingDetailSheet({
             </div>
             <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
               <span className="text-xs text-muted-foreground">کد رهگیری</span>
-              <span className="text-xs font-bold" dir="ltr">#{booking.id.slice(-4).toUpperCase()}</span>
+              <span className="text-xs font-bold" dir="ltr">#{booking.id.slice(-6).toUpperCase()}</span>
             </div>
           </div>
 

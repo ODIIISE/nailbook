@@ -177,7 +177,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
               <span className="text-small text-muted-foreground mx-1">•</span>
               <Clock className="h-3 w-3 text-muted-foreground" />
               <span className="text-small text-muted-foreground">{toPersianDigits(booking.start_time.slice(0, 5))} – {toPersianDigits(booking.end_time.slice(0, 5))}</span>
-              <span className="text-small text-muted-foreground/60 ml-auto">{toPersianDigits(duration)} دقیقه</span>
+              <span className="text-small text-muted-foreground ml-auto">{toPersianDigits(duration)} دقیقه</span>
             </div>
           </div>
 
@@ -249,7 +249,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
 
         {/* Created at */}
         {createdAtTime && (
-          <p className="text-small text-muted-foreground/50 text-center mt-2">
+          <p className="text-small text-muted-foreground text-center mt-2">
             ثبت‌شده در ساعت {createdAtTime}
           </p>
         )}

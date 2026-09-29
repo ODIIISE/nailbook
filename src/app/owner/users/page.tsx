@@ -272,7 +272,7 @@ export default function OwnerUsersPage() {
                   </div>
                   <p className="text-caption text-muted-foreground" dir="ltr">{formatPhone(user.phone)}</p>
                   <div className="flex items-center gap-2">
-                    <p className="text-small text-muted-foreground/60">عضویت: {formatDate(user.created_at)}</p>
+                    <p className="text-small text-muted-foreground">عضویت: {formatDate(user.created_at)}</p>
                   </div>
                 </div>
                 {user.role !== "owner" && (

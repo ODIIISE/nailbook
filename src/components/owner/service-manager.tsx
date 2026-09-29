@@ -332,7 +332,7 @@ function ServicesTab({
                   })}
                 </div>
                 {addons.filter((a) => a.is_active).length === 0 && (
-                  <p className="text-xs text-muted-foreground/50">ابتدا آپشن اضافه کنید</p>
+                  <p className="text-xs text-muted-foreground">ابتدا آپشن اضافه کنید</p>
                 )}
               </div>
             </>
@@ -637,7 +637,7 @@ function ServiceForm({
         />
         <div className="flex-1">
           <p className="text-xs text-muted-foreground">تصویر خدمت</p>
-          <p className="text-small text-muted-foreground/60">اختیاری - حداکثر ۵ مگابایت</p>
+          <p className="text-small text-muted-foreground">اختیاری - حداکثر ۵ مگابایت</p>
           {form.image_url && (
             <button
               type="button"

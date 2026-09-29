@@ -383,7 +383,7 @@ export default function ProfilePage() {
                   <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
                     <b className="text-sm font-bold">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
                     <span className="flex shrink-0 items-center gap-2">
-                      <small dir="ltr" className="text-micro font-bold text-muted-foreground">#{booking.id.slice(-4).toUpperCase()}</small>
+                      <small dir="ltr" className="text-micro font-bold text-muted-foreground">#{booking.id.slice(-6).toUpperCase()}</small>
                       <button
                         type="button"
                         className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-border bg-muted px-3.5 text-micro font-bold text-foreground"
