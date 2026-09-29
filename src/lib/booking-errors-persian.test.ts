@@ -207,3 +207,37 @@ describe("session-expiry: friendly re-auth, no data loss (AUDIT-012)", () => {
     expect(customerLogin).toMatch(/returnToRef/);
   });
 });
+
+describe("owner day-of loop: timeline + shared calendar + touch (AUDIT-013)", () => {
+  const timeline = readSource("../components/owner/timeline.tsx");
+  const jalaliCalendar = readSource("../components/booking/jalali-calendar.tsx");
+  const globals = readFileSync(resolve(__dirname, "../app/globals.css"), "utf8");
+
+  it("overlapping timeline lanes keep a visible seam (no shared-edge fusion)", () => {
+    expect(timeline).toMatch(/LANE_SEAM_PX = 4/);
+    expect(timeline).toMatch(/2 \* LANE_SEAM_PX/);
+    // regression pin: the old shared-edge subtraction
+    expect(timeline).not.toMatch(/- \${laneCount > 1 \? 4 : 0}px/);
+  });
+
+  it("owner strip disables fully-booked days like every other calendar", () => {
+    expect(jalaliCalendar).toMatch(/disabled=\{d\.isFullyBooked && !d\.isSelected\}/);
+  });
+
+  it("owner month modal does not dismiss on backdrop tap", () => {
+    // Owner picking a date in the calendar modal must not lose the dialog to
+    // a stray outside tap (destructive-confirmation grammar).
+    const modal = jalaliCalendar.slice(jalaliCalendar.indexOf("CalendarModal"));
+    expect(modal).toMatch(/backdrop deliberately does NOT close/);
+  });
+
+  it("icon-size buttons meet the 44px touch minimum (P5)", () => {
+    expect(globals).toMatch(/--btn-sm: 44px;/);
+    expect(globals).not.toMatch(/--btn-sm: 32px;/);
+  });
+
+  it("timeline entries stay announced with payment state in the a11y label", () => {
+    expect(timeline).toMatch(/پرداخت نشده/);
+    expect(timeline).toMatch(/aria-label=\{`[^`]*customer_name/);
+  });
+});

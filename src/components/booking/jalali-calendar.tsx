@@ -179,6 +179,7 @@ export function JalaliCalendar({
             <button
               key={i}
               data-selected={d.isSelected}
+              disabled={d.isFullyBooked && !d.isSelected}
               onClick={() => {
                 if (!d.isSelected) haptic.tap();
                 onSelectDate(d.date);
@@ -336,7 +337,12 @@ function CalendarModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="انتخاب تاریخ">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      {/* AUDIT-013: the backdrop deliberately does NOT close the dialog. A
+          stray tap outside while browsing months used to discard the whole
+          selection and drop the owner on an off-month view; closing is a
+          decision (بستن button / Escape), same grammar as destructive
+          confirmations. */}
+      <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
       <div ref={panelRef} tabIndex={-1} className="relative w-full max-w-sm rounded-xl border border-border bg-card p-5 shadow-card">
         <div className="mb-3 flex items-center justify-between">
           <button
@@ -409,7 +415,7 @@ function CalendarModal({
                     : cell.isToday
                       ? "border border-ring bg-card text-foreground"
                       : cell.isPast
-                        ? "text-muted-foreground opacity-30 cursor-not-allowed"
+                        ? "text-muted-foreground cursor-not-allowed"
                         : "text-foreground"
                   }
                 `}

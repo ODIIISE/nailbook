@@ -33,6 +33,10 @@ const HOUR_HEIGHT = 96;
 const GUTTER = 48;
 // Fraction of the content width reserved per lane when bookings overlap.
 const LANE_MIN_WIDTH = 0.42;
+// px carved off each lane edge so overlapping cards keep a visible seam; a
+// shared-edge layout (laneCount - 1) leaves no gap at width and cards fuse
+// into one unreadable blob on the last pair (AUDIT-013).
+const LANE_SEAM_PX = 4;
 
 const STATUS_ICONS: Record<string, typeof CheckCircle2> = {
   reserved: Clock,
@@ -255,7 +259,7 @@ export function Timeline({
                     top: pos.top + 1,
                     height: pos.height - 2,
                     insetInlineStart: `calc(${GUTTER}px + ${laneStart} * (100% - ${GUTTER + 12}px))`,
-                    width: `calc(${span} * (100% - ${GUTTER + 12}px) - ${laneCount > 1 ? 4 : 0}px)`,
+                    width: `calc(${span} * (100% - ${GUTTER + 12}px) - ${laneCount > 1 ? 2 * LANE_SEAM_PX : 0}px)`,
                     insetInlineEnd: "auto",
                   }}
                   onClick={() => onSelectBooking(b)}

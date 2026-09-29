@@ -83,7 +83,11 @@
 
   /* ── Component Heights ── */
   --btn-xs: 28px;
-  --btn-sm: 32px;
+  /* AUDIT-013: 32px icon buttons (shared header toggle + menu, dialog/sheet
+     closes, owner row actions) failed the 44px touch minimum. 44px visual is
+     proportionate at header scale and keeps every icon-sm consumer compliant
+     without a class-by-class sweep. */
+  --btn-sm: 44px;
   --btn-md: 36px;
   --btn-lg: 40px;
   --btn-xl: 48px;
