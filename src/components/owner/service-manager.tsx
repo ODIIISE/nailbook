@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Plus, Edit2, Trash2, X, Check, ChevronUp, ChevronDown, Upload, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
+import { persianizeError } from "@/lib/error-sanitize";
 import type { Service, Addon } from "@/lib/types";
 
 interface ServiceManagerProps {
@@ -594,7 +595,9 @@ function ServiceForm({
       setForm({ ...form, image_url: data.url });
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error(error instanceof Error && error.message ? error.message : "خطا در آپلود تصویر");
+      // P4: server upload errors are Persian; network failures would leak
+      // raw English ("Failed to fetch") into the toast — sanitize.
+      toast.error(persianizeError(error, "خطا در آپلود تصویر"));
     } finally {
       setIsUploading(false);
     }

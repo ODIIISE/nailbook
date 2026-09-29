@@ -405,7 +405,7 @@ export async function insertOwnerBooking(booking: Booking): Promise<{ id: string
   if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
   const body = await res.json().catch(() => null);
   if (!res.ok) {
-    throw new Error(isRecord(body) && typeof body.error === "string" ? body.error : "Failed to save booking");
+    throw new Error(isRecord(body) && typeof body.error === "string" ? body.error : "ثبت رزرو دستی انجام نشد");
   }
   const responseTimePattern = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
   if (
@@ -427,7 +427,7 @@ export async function cancelBooking(bookingId: string) {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || "Failed to cancel booking");
+    throw new Error(body.error || "لغو نوبت انجام نشد");
   }
 }
 
@@ -439,7 +439,7 @@ export async function updateWorkingHours(workingHours: Record<string, unknown>, 
   });
   if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body.error || "Failed to update working hours");
+  if (!res.ok) throw new Error(body.error || "خطا در ذخیره ساعات کاری");
 }
 
 export async function upsertHighlight(highlight: Highlight) {
@@ -449,13 +449,13 @@ export async function upsertHighlight(highlight: Highlight) {
     body: JSON.stringify(highlight),
   });
   if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
-  if (!res.ok) throw new Error("Failed to save highlight");
+  if (!res.ok) throw new Error("ذخیره هایلایت انجام نشد");
 }
 
 export async function deleteHighlight(id: string) {
   const res = await fetch(`/api/read/highlights?id=${id}`, { method: "DELETE" });
   if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
-  if (!res.ok) throw new Error("Failed to delete highlight");
+  if (!res.ok) throw new Error("حذف هایلایت انجام نشد");
 }
 
 export async function upsertHighlightImage(image: HighlightImage) {
@@ -465,13 +465,13 @@ export async function upsertHighlightImage(image: HighlightImage) {
     body: JSON.stringify(image),
   });
   if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
-  if (!res.ok) throw new Error("Failed to save highlight image");
+  if (!res.ok) throw new Error("ذخیره تصویر هایلایت انجام نشد");
 }
 
 export async function deleteHighlightImage(id: string) {
   const res = await fetch(`/api/read/highlight-images?id=${id}`, { method: "DELETE" });
   if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
-  if (!res.ok) throw new Error("Failed to delete highlight image");
+  if (!res.ok) throw new Error("حذف تصویر هایلایت انجام نشد");
 }
 
 export async function uploadHighlightImage(file: File): Promise<string | null> {

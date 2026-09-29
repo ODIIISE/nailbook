@@ -7,6 +7,7 @@ import { SalonGuard } from "@/components/ui/salon-guard";
 import { StatusPill } from "@/components/ui/status-pill";
 import { Clock, Calendar, User, ArrowRight, Sparkles, X } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
+import { persianizeError } from "@/lib/error-sanitize";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
@@ -303,7 +304,7 @@ function BookingDetailSheet({
       const ok = await onCancel(booking.id);
       if (ok) requestClose();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "خطا در لغو نوبت");
+      toast.error(persianizeError(error, "خطا در لغو نوبت"));
     } finally {
       cancelingRef.current = false;
     }

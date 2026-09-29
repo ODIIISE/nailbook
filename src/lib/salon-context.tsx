@@ -8,6 +8,7 @@ import type { WorkingHours } from "@/lib/slots";
 // Dev-only logging — stripped in production builds
 const devLog = process.env.NODE_ENV === "development" ? console.error : () => {};
 import { toast } from "sonner";
+import { persianizeError } from "@/lib/error-sanitize";
 import {
   fetchBootstrap,
   type BootstrapPayload,
@@ -66,18 +67,8 @@ interface SalonContextType {
 
 const SalonContext = createContext<SalonContextType | null>(null);
 
-/**
- * Server errors are Persian by contract (booking/errors.ts). Anything else —
- * browser network failures ("Failed to fetch"), HTML error pages, English
- * exceptions — must never surface in the Persian UI (P4). Pass the message
- * through only when it contains Persian text; otherwise replace it with an
- * actionable retry message.
- */
-function persianizeError(e: unknown, fallback: string): string {
-  const message = e instanceof Error && e.message ? e.message : "";
-  return /[\u0600-\u06FF]/.test(message) ? message : fallback;
-}
-
+// P4 sanitizer: server errors are Persian by contract; network/foreign text
+// is replaced before it can reach any toast or inline error (AUDIT-010/011).
 const DEFAULT_WORKING_HOURS: WorkingHours = {
   sat: { open: "10:00", close: "16:00" },
   sun: { open: "10:00", close: "16:00" },
@@ -337,7 +328,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       devLog("Failed to save services:", e);
       setServices(prev);
-      return e instanceof Error ? e.message : "خطای ناشناخته";
+      return persianizeError(e, "ذخیره خدمات انجام نشد — لطفاً دوباره تلاش کنید");
     }
   }, []);
 
@@ -350,7 +341,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       devLog("Failed to save addons:", e);
       setAddons(prev);
-      return e instanceof Error ? e.message : "خطای ناشناخته";
+      return persianizeError(e, "ذخیره آپشن‌ها انجام نشد — لطفاً دوباره تلاش کنید");
     }
   }, []);
 
@@ -518,7 +509,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       setSalon((prev) => prev ? { ...prev, ...updates } : prev);
     } catch (e) {
       devLog("Failed to update salon:", e);
-      throw e instanceof Error ? e : new Error("Failed to update salon");
+      throw e instanceof Error ? e : new Error("خطا در ذخیره تنظیمات");
     }
   }, []);
 

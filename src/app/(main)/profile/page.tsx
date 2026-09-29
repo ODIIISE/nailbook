@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { persianizeError } from "@/lib/error-sanitize";
 import {
   ArrowLeft, ArrowRight, Calendar, Check, Clock, LogOut, Pencil, Phone, Sparkles, User, X,
 } from "lucide-react";
@@ -172,7 +173,7 @@ export default function ProfilePage() {
         toast.error(result.error || "خطا در لغو نوبت — لطفاً دوباره تلاش کنید");
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "خطا در لغو نوبت");
+      toast.error(persianizeError(error, "خطا در لغو نوبت"));
     }
   };
 

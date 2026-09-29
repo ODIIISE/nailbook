@@ -66,8 +66,8 @@ describe("booking flow: server conflict coverage (P2)", () => {
 });
 
 describe("booking flow: network failure sanitization (P4)", () => {
-  it("salon-context gates raw error text through the Persian sanitizer", () => {
-    expect(salonContext).toMatch(/function persianizeError/);
+  it("salon-context gates raw error text through the shared Persian sanitizer", () => {
+    expect(salonContext).toMatch(/import \{ persianizeError \} from "@\/lib\/error-sanitize"/);
     expect(salonContext).toMatch(/persianizeError\(e, "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید"\)/);
     // No raw e.message propagation may remain on either booking path.
     expect(salonContext).not.toMatch(/error: message\}/);
@@ -125,5 +125,48 @@ describe("salon-context bootstrap failure surface (P5)", () => {
   it("bootstrap path sets loadFailed when critical payloads are missing", () => {
     expect(salonContext).toMatch(/bootstrap\.salon === null \|\| bootstrap\.services === null/);
     expect(salonContext).toMatch(/setLoadFailed\(true\)/);
+  });
+});
+
+describe("owner/admin surfaces: no raw error text reaches UI (P4, AUDIT-011)", () => {
+  it("salon-context is the single sanitizer definition site (P2)", () => {
+    const sanitizeLib = readSource("./error-sanitize.ts");
+    expect(sanitizeLib).toMatch(/export function persianizeError/);
+    // salon-context imports the shared sanitizer instead of defining its own.
+    expect(salonContext).toMatch(/import \{ persianizeError \} from "@\/lib\/error-sanitize"/);
+    // No raw e.message may reach a returned error or toast from salon-context.
+    expect(salonContext).not.toMatch(/e instanceof Error \? e\.message/);
+    expect(salonContext).not.toMatch(/error instanceof Error \? error\.message/);
+  });
+
+  it("data.ts throws Persian fallbacks on every owner write path", () => {
+    const dataTs = readSource("./db/data.ts");
+    expect(dataTs).not.toMatch(/throw new Error\("Failed to/);
+    expect(dataTs).not.toMatch(/\|\| "Failed to/);
+    expect(dataTs).not.toMatch(/\? body\.error : "Failed to/);
+    for (const fallback of ["لغو نوبت انجام نشد", "خطا در ذخیره ساعات کاری", "ذخیره هایلایت انجام نشد", "حذف هایلایت انجام نشد", "ذخیره تصویر هایلایت انجام نشد", "حذف تصویر هایلایت انجام نشد", "ثبت رزرو دستی انجام نشد"]) {
+      expect(dataTs.includes(fallback), `data.ts must define Persian fallback: ${fallback}`).toBe(true);
+    }
+  });
+
+  it("owner schedule save sanitizes before toasting", () => {
+    const schedulePage = readSource("../app/owner/schedule/page.tsx");
+    expect(schedulePage).toMatch(/persianizeError\(error, "خطا در ذخیره ساعات کاری"\)/);
+    expect(schedulePage).not.toMatch(/error instanceof Error \? error\.message/);
+  });
+
+  it("service-manager upload toast sanitizes before toasting", () => {
+    const serviceManager = readSource("../components/owner/service-manager.tsx");
+    expect(serviceManager).toMatch(/persianizeError\(error, "خطا در آپلود تصویر"\)/);
+    expect(serviceManager).not.toMatch(/error instanceof Error && error\.message \? error\.message/);
+  });
+
+  it("customer cancel toasts never render raw error text", () => {
+    for (const page of ["../app/(main)/bookings/page.tsx", "../app/(main)/profile/page.tsx"]) {
+      const source = readSource(page);
+      expect(source, `${page} must not toast raw error.message`).not.toMatch(
+        /toast\.error\(error instanceof Error \? error\.message/,
+      );
+    }
   });
 });

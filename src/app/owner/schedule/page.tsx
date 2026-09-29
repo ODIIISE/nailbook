@@ -4,6 +4,7 @@ import { ScheduleManager } from "@/components/owner/schedule-manager";
 import { useSalon } from "@/lib/salon-context";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { toast } from "sonner";
+import { persianizeError } from "@/lib/error-sanitize";
 
 export default function OwnerSchedulePage() {
   const { salon, workingHours, specificDaysOff, updateSalon } = useSalon();
@@ -19,9 +20,10 @@ export default function OwnerSchedulePage() {
       });
       toast.success("ساعات کاری ذخیره شد");
     } catch (error) {
-      // updateSalon now surfaces the server's precise validation message
-      // (e.g. "ساعت پایان باید بعد از شروع باشد") instead of a generic text.
-      toast.error(error instanceof Error && error.message ? error.message : "خطا در ذخیره ساعات کاری");
+      // updateSalon surfaces the server's precise Persian validation message
+      // (e.g. "ساعت پایان باید بعد از شروع باشد"); persianizeError keeps that
+      // passthrough while replacing raw network/English text (P4).
+      toast.error(persianizeError(error, "خطا در ذخیره ساعات کاری"));
       throw error;
     }
   };
