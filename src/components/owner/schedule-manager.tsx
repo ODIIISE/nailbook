@@ -660,7 +660,7 @@ export function ScheduleManager({
                 onCheckedChange={(v) => { setAllowOverflow(v); markChanged(); }}
               />
             </div>
-            <p className="text-small text-muted-foreground/70 leading-relaxed">
+            <p className="text-small text-muted-foreground leading-relaxed">
               {allowOverflow
                 ? `رزروها می‌توانند تا ${toPersianDigits(overflowMinutes)} دقیقه بعد از پایان کار ادامه داشته باشند`
                 : "رزروها باید قبل از ساعت پایان کار تمام شوند"
