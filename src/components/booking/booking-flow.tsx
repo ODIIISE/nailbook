@@ -1098,7 +1098,7 @@ function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; o
           {cells.map((cell, i) =>
             cell.day === null ? <span key={`e-${i}`} /> : (
               <button key={cell.day} type="button" disabled={cell.isPast}
-                className={`flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold disabled:opacity-30 ${cell.isSelected ? "bg-primary text-primary-foreground" : cell.isToday ? "border border-ring text-foreground" : "text-foreground"}`}
+                className={`flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold disabled:text-muted-foreground/70 ${cell.isSelected ? "bg-primary text-primary-foreground" : cell.isToday ? "border border-ring text-foreground" : "text-foreground"}`}
                 onClick={() => cell.date && onSelect(cell.date)}>
                 {toPersianDigits(cell.day)}
               </button>

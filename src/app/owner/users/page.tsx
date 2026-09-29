@@ -278,7 +278,7 @@ export default function OwnerUsersPage() {
                 {user.role !== "owner" && (
                   <div className="flex items-center gap-0.5 flex-shrink-0">
                     <Button variant="ghost" size="icon-sm" onClick={() => handleToggleBlock(user)} title={user.locked_until ? "رفع قفل" : "قفل"}>
-                      {user.locked_until ? <Unlock className="h-4 w-4 text-amber-500" /> : <Lock className="h-4 w-4 text-muted-foreground" />}
+                      {user.locked_until ? <Unlock className="h-4 w-4 text-warning" /> : <Lock className="h-4 w-4 text-muted-foreground" />}
                     </Button>
                     <Button variant="ghost" size="icon-sm" onClick={() => openEdit(user)} title="ویرایش">
                       <Pencil className="h-4 w-4 text-muted-foreground" />

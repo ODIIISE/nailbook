@@ -327,7 +327,11 @@ export default function ProfilePage() {
               <span className="mb-0.5 block text-xs font-bold text-primary">رزروها</span>
               <h3 id="profile-history-title" className="text-base font-bold">نوبت‌های من</h3>
             </div>
-            <button type="button" className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-2 text-xs font-bold text-primary" onClick={() => router.push("/bookings")}>
+            <button
+              type="button"
+              className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full px-2 text-xs font-bold text-primary"
+              onClick={() => router.push("/bookings")}
+            >
               همه نوبت‌ها
               <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
             </button>

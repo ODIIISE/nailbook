@@ -87,10 +87,13 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
   const shortId = `BK-${booking.id.slice(-6).toUpperCase()}`;
   const createdAtTime = booking.created_at ? new Date(booking.created_at).toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit", hour12: false }) : "";
 
-  const addonColor = t("text-violet-700", "text-violet-400");
-  const phoneColor = t("text-blue-700", "text-blue-400");
-  const calendarColor = t("text-blue-700", "text-blue-400");
-  const priceColor = t("text-amber-700", "text-amber-500");
+  /* Category icon tints: neutral tokens (same recipe as customer list rows);
+     price keeps its semantic warning tint. Status colors stay categorical via
+     design-tokens (STATUS_CONFIG). */
+  const addonColor = t("text-muted-foreground", "text-muted-foreground");
+  const phoneColor = t("text-muted-foreground", "text-muted-foreground");
+  const calendarColor = t("text-muted-foreground", "text-muted-foreground");
+  const priceColor = t("text-warning", "text-warning");
   const paidColor = t("text-success", "text-success");
   const deleteColor = t("text-destructive", "text-destructive");
   const deleteHover = t("text-destructive", "text-destructive");
@@ -119,7 +122,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
         {/* Customer */}
         <div className={`flex items-center justify-between p-2.5 ${subtleBg} rounded-xl mb-3`}>
           <div className="flex items-center gap-2.5">
-            <div className={`w-9 h-9 rounded-[10px] ${subtleBg3} flex items-center justify-center`}>
+            <div className={`w-9 h-9 rounded-md ${subtleBg3} flex items-center justify-center`}>
               <User className={`h-4 w-4 ${textMuted}`} />
             </div>
             <div>
@@ -154,7 +157,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
               {selectedAddons.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {selectedAddons.map((addon) => (
-                    <span key={addon!.id} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[8px] text-small font-semibold`}
+                    <span key={addon!.id} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-small font-semibold`}
                       style={{ backgroundColor: `${addonColor}` + "10", color: addonColor as string }}>
                       {addon!.name}
                     </span>
@@ -223,7 +226,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
             disabled={isMutating}
             aria-busy={isMutating}
             aria-label={isPaid ? "علامت‌گذاری به عنوان پرداخت‌نشده" : "علامت‌گذاری به عنوان پرداخت‌شده"}
-            className="flex items-center gap-2 disabled:opacity-60"
+            className="flex items-center gap-2 disabled:text-foreground/60"
           >
             <span className={`text-small font-medium ${isPaid ? paidColor : "text-muted-foreground"}`}>{isPaid ? "پرداخت شده" : "پرداخت نشده"}</span>
             <div className={`w-9 h-5 rounded-full relative`} style={{ backgroundColor: isPaid ? paidColor as string : "var(--muted)" }}>
@@ -235,7 +238,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
         {/* Actions */}
         <div className="flex gap-2">
           <button onClick={() => setDeleteOpen(true)}
-            className={`flex-1 py-2.5 rounded-[10px] text-small font-semibold flex items-center justify-center gap-1.5`}
+            className={`flex-1 py-2.5 rounded-md text-small font-semibold flex items-center justify-center gap-1.5`}
             style={{ backgroundColor: `${deleteColor}14`, color: deleteColor as string }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = `${deleteColor}1F`)}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = `${deleteColor}14`)}>

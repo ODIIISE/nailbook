@@ -383,7 +383,7 @@ function OperationsTab({ analytics, stats }: { analytics: Analytics; stats: Stat
 function AlertsTab({ alerts }: { alerts: Alert[] }) {
   const severityColors: Record<string, string> = {
     error: "border-destructive bg-destructive/5",
-    warning: "border-yellow-500 bg-yellow-500/5",
+    warning: "border-warning bg-warning/5",
     info: "border-primary bg-primary/5",
   };
   const severityIcons: Record<string, LucideIcon> = {
