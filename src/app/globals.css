@@ -486,6 +486,16 @@
   .icon-btn:hover {
     background: var(--muted);
   }
+  /* Invisible 44px hit-area expansion for small (28–32px) corner buttons —
+     keeps the visual size, extends the touch target (P5). */
+  .tap-44 {
+    position: relative;
+  }
+  .tap-44::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+  }
   .text-small {
     font-size: 12px;
     line-height: 1.4;

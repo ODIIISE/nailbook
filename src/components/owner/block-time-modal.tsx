@@ -11,7 +11,10 @@ import type { WorkingHours } from "@/lib/slots";
 interface BlockTimeModalProps {
   date: Date;
   workingHours: WorkingHours;
-  onBlock: (startTime: string, endTime: string, reason: string) => void;
+  /* No reason param: the blocked-time store keeps only the interval, so a
+     reason field here would be collected and silently discarded (fake
+     feature). Reintroduce together with schema support. */
+  onBlock: (startTime: string, endTime: string) => void;
   onCancel: () => void;
 }
 
@@ -41,7 +44,6 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
 
   const [startTime, setStartTime] = useState(defaultTimes.start);
   const [endTime, setEndTime] = useState(defaultTimes.end);
-  const [reason, setReason] = useState("");
   const [timeError, setTimeError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -52,7 +54,7 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
       return;
     }
     setTimeError("");
-    onBlock(startTime, endTime, reason);
+    onBlock(startTime, endTime);
   };
 
   return (
@@ -87,16 +89,6 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
           </div>
         </div>
         {timeError && <p className="text-small text-destructive" role="alert">{timeError}</p>}
-        <div>
-          <Label htmlFor="block-reason" className="text-sm">دلیل (اختیاری)</Label>
-          <Input
-            id="block-reason"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="مثلاً: استراحت ناهار"
-            className="mt-1"
-          />
-        </div>
         <div className="flex gap-3">
           <Button type="submit" size="lg" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl">
             مسدود کن

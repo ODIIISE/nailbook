@@ -189,7 +189,7 @@ function JalaliMonthGrid({
               key={d}
               onClick={() => onToggleDayOff(dateStr)}
               className={`
-                h-8 rounded-lg text-xs font-medium
+                min-h-11 rounded-lg text-xs font-medium
                 ${isOff
                   ? "bg-destructive text-destructive-foreground"
                   : isToday
@@ -478,7 +478,7 @@ export function ScheduleManager({
                   key={v}
                   onClick={() => { setSlotInterval(v); markChanged(); }}
                   className={`
-                    h-9 min-w-[40px] px-2 rounded-lg text-caption font-medium
+                    min-h-11 min-w-[44px] px-2 rounded-lg text-caption font-medium
                     ${slotInterval === v
                       ? "bg-foreground text-background shadow-xs"
                       : "bg-secondary text-foreground hover:bg-secondary/80"

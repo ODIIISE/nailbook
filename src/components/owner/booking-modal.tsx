@@ -114,7 +114,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
             <DialogTitle className="text-body-lg font-bold">جزئیات نوبت</DialogTitle>
             <span className={`text-small font-semibold text-muted-foreground ${subtleBg2} px-2 py-0.5 rounded-md`} dir="ltr">{shortId}</span>
           </div>
-          <button onClick={onClose} aria-label="بستن" className={`w-7 h-7 rounded-lg ${subtleBg2} flex items-center justify-center`}>
+          <button onClick={onClose} aria-label="بستن" className={`tap-44 w-7 h-7 rounded-lg ${subtleBg2} flex items-center justify-center`}>
             <svg className="h-3.5 w-3.5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </button>
         </div>
@@ -133,12 +133,12 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
           <div className="flex gap-1">
             <button onClick={() => window.open(`sms:${booking.customer_phone}`, "_self")}
               aria-label={`ارسال پیامک به ${booking.customer_name || booking.customer_phone}`}
-              className={`w-8 h-8 rounded-lg border ${subtleBorder} bg-card flex items-center justify-center`}>
+              className={`tap-44 w-8 h-8 rounded-lg border ${subtleBorder} bg-card flex items-center justify-center`}>
               <MessageSquare className={`h-3.5 w-3.5 ${addonColor}`} />
             </button>
             <button onClick={() => window.open(`tel:${booking.customer_phone}`, "_self")}
               aria-label={`تماس با ${booking.customer_name || booking.customer_phone}`}
-              className={`w-8 h-8 rounded-lg border ${subtleBorder} bg-card flex items-center justify-center`}>
+              className={`tap-44 w-8 h-8 rounded-lg border ${subtleBorder} bg-card flex items-center justify-center`}>
               <Phone className={`h-3.5 w-3.5 ${phoneColor}`} />
             </button>
           </div>

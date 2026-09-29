@@ -245,7 +245,7 @@ export function Timeline({
               const laneStart = lane * span;
 
               const paidColor = t("text-success", "text-success");
-              const addonColor = t("text-violet-700", "text-violet-400");
+              const addonColor = t("text-muted-foreground", "text-muted-foreground");
 
               return (
                 <div
@@ -362,11 +362,11 @@ export function Timeline({
                       <p className={`text-small ${wt} font-semibold mb-1.5 text-center`}>حذف شود؟</p>
                       <div className="flex gap-1">
                         <button onClick={(e) => { e.stopPropagation(); onRemoveBlock?.(idx); setConfirmRemoveIndex(null); }}
-                          className="px-2.5 py-1 bg-[var(--destructive)] text-white text-small font-semibold rounded-lg">
+                          className="min-h-11 px-4 bg-[var(--destructive)] text-white text-small font-semibold rounded-lg">
                           بله
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); setConfirmRemoveIndex(null); }}
-                          className={`px-2.5 py-1 ${t("bg-black/10", "bg-white/10")} text-small font-semibold rounded-lg`}>
+                          className={`min-h-11 px-4 ${t("bg-black/10", "bg-white/10")} text-small font-semibold rounded-lg`}>
                           خیر
                         </button>
                       </div>

@@ -150,10 +150,7 @@ function OwnerDashboardContent() {
     return { count: todayBookings.length, revenue: totalRevenue, unpaidCount, nextBooking };
   }, [currentDate, bookings, services, addons]);
 
-  const handleBlockTime = async (startTime: string, endTime: string, reason: string) => {
-    // The blocked-time schema currently stores only the interval. Keep the
-    // existing reason field in the modal until the database supports it.
-    void reason;
+  const handleBlockTime = async (startTime: string, endTime: string) => {
     const dateStr = getTehranDateKey(currentDate);
     const saved = await updateBlockedTimes([
       ...blockedTimes,
@@ -300,7 +297,7 @@ function OwnerDashboardContent() {
               variant="ghost"
               size="sm"
               onClick={() => setShowEarnings(true)}
-              className="gap-1 px-2 h-7 text-muted-foreground hover:text-foreground"
+              className="gap-1 px-2 min-h-11 text-muted-foreground hover:text-foreground"
               aria-label="مشاهده جزئیات درآمد"
             >
               <span className="text-small">جزئیات درآمد</span>
