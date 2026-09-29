@@ -65,10 +65,25 @@
 @media (min-width: 520px) {
   .viewport {
     background:
-      radial-gradient(60rem 40rem at 50% -10%, rgba(226, 189, 151, 0.08), transparent 70%),
-      radial-gradient(72rem 52rem at 50% 82%, rgba(242, 205, 173, 0.05), transparent 72%),
-      radial-gradient(44rem 62rem at 50% 50%, rgba(226, 189, 151, 0.04), transparent 70%),
+      radial-gradient(110rem 46rem at 50% -8%, rgba(226, 189, 151, 0.1), transparent 72%),
+      radial-gradient(120% 85% at 50% 46%, rgba(242, 205, 173, 0.055), transparent 76%),
+      radial-gradient(90rem 50rem at 50% 108%, rgba(226, 189, 151, 0.06), transparent 72%),
+      radial-gradient(150% 110% at 50% 130%, rgba(0, 0, 0, 0.5), transparent 60%),
       var(--bg);
+  }
+
+  /* Film grain across the whole stage — large empty areas read as texture,
+     not void. Negative z-index keeps it under the column (the viewport is
+     its own stacking context, so this still paints above its background). */
+  .viewport::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.05;
+    background-size: 180px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
   .app {
