@@ -400,7 +400,7 @@ function BookingDetailSheet({
               <div className="flex gap-2.5">
                 <button
                   type="button"
-                  className="h-12 flex-1 rounded-lg bg-destructive text-sm font-bold text-white"
+                  className="h-12 flex-1 rounded-lg bg-destructive text-sm font-bold text-destructive-foreground"
                   onClick={handleCancelClick}
                 >
                   بله، لغو کن

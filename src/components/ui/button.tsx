@@ -7,7 +7,7 @@ const buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring active:not-aria-[haspopup]:translate-y-px aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 " +
     // Disabled: tinted, quiet, still legible (~7:1) — the old opacity-50
     // collapsed text to ~1.9:1. Hover never grows a shadow (touch-first).
-    "disabled:pointer-events-none disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/60 disabled:shadow-none",
+    "disabled:pointer-events-none disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/70 disabled:shadow-none",
   {
     variants: {
       variant: {

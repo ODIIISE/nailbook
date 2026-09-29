@@ -900,7 +900,7 @@ function DeleteConfirmDialog({ target, kind, onCancel, onConfirm }: {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>انصراف</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-white hover:bg-destructive/90">
+          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
             حذف
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -362,7 +362,7 @@ export function Timeline({
                       <p className={`text-small ${wt} font-semibold mb-1.5 text-center`}>حذف شود؟</p>
                       <div className="flex gap-1">
                         <button onClick={(e) => { e.stopPropagation(); onRemoveBlock?.(idx); setConfirmRemoveIndex(null); }}
-                          className="min-h-11 px-4 bg-[var(--destructive)] text-white text-small font-semibold rounded-lg">
+                          className="min-h-11 px-4 bg-[var(--destructive)] text-[var(--destructive-foreground)] text-small font-semibold rounded-lg">
                           بله
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); setConfirmRemoveIndex(null); }}

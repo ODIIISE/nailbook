@@ -226,7 +226,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
             disabled={isMutating}
             aria-busy={isMutating}
             aria-label={isPaid ? "علامت‌گذاری به عنوان پرداخت‌نشده" : "علامت‌گذاری به عنوان پرداخت‌شده"}
-            className="flex items-center gap-2 disabled:text-foreground/60"
+            className="flex items-center gap-2 disabled:text-foreground/70"
           >
             <span className={`text-small font-medium ${isPaid ? paidColor : "text-muted-foreground"}`}>{isPaid ? "پرداخت شده" : "پرداخت نشده"}</span>
             <div className={`w-9 h-5 rounded-full relative`} style={{ backgroundColor: isPaid ? paidColor as string : "var(--muted)" }}>

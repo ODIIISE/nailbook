@@ -1098,7 +1098,7 @@ function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; o
           {cells.map((cell, i) =>
             cell.day === null ? <span key={`e-${i}`} /> : (
               <button key={cell.day} type="button" disabled={cell.isPast}
-                className={`flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold disabled:text-muted-foreground/70 ${cell.isSelected ? "bg-primary text-primary-foreground" : cell.isToday ? "border border-ring text-foreground" : "text-foreground"}`}
+                className={`flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold disabled:text-muted-foreground ${cell.isSelected ? "bg-primary text-primary-foreground" : cell.isToday ? "border border-ring text-foreground" : "text-foreground"}`}
                 onClick={() => cell.date && onSelect(cell.date)}>
                 {toPersianDigits(cell.day)}
               </button>
@@ -1216,7 +1216,7 @@ function ReviewStep(props: ReviewStepProps) {
                 placeholder="۰۹۱۲۱۲۳۴۵۶۷" autoComplete="tel" />
             </div>
             {otpState === "idle" && (
-              <button type="button" className="flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/60" disabled={!phoneValid || isAuthLoading} onClick={onSendOtp}>
+              <button type="button" className="flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/70" disabled={!phoneValid || isAuthLoading} onClick={onSendOtp}>
                 {isAuthLoading ? "در حال ارسال…" : "دریافت کد تأیید"}
               </button>
             )}

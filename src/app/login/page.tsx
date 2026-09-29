@@ -153,7 +153,7 @@ export default function LoginPage() {
                 dead button — no visible reason = missing state (P5). */}
             <button
               type="button"
-              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/60"
+              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/70"
               onClick={handlePhoneSubmit}
               disabled={isLoading}
             >
@@ -213,7 +213,7 @@ export default function LoginPage() {
             {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
             <button
               type="button"
-              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/60"
+              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/70"
               onClick={handleNameSubmit}
               disabled={isLoading}
             >
