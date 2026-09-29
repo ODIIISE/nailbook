@@ -43,8 +43,16 @@ all cheap, all in `lux-home.tsx` / its CSS module.
    (lux-home.module.css ~line 858), and the global `[data-motion]` reset
    (globals.css lines 269–275) neutralizes it as well. The 18s rotation stays for
    users without a reduced-motion preference.
-4. **Desktop frame placement** — INFO, awaiting designer decision (centered frame
-   vs. ambient backdrop on wide screens). No code change.
+4. **Desktop frame placement** ✅ resolved (designer chose "center it", then
+   "composed stage"): DOM measurement showed the 520px column was already
+   perfectly centered via `.viewport`'s `justify-content: center` — the
+   lopsided read came from `.ambient`/`.grain` living inside the column, so
+   the surrounding stage was flat `#171310`. Fix: a `min-width: 520px` block
+   gives the stage proportional gold washes (top/bottom/center), a bottom
+   vignette, full-stage film grain via a negative-z-index `::before`, and a
+   hairline + deep shadow on the column edges. Verified live at 1440×900 and
+   1250×1125: stage reads as intentional editorial texture, no flat void.
+   Phones (<520px) untouched — the opaque column covers the stage.
 
 ## Recommended fixes (each one-line-ish)
 
