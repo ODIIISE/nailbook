@@ -311,6 +311,13 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
     setSelectedTime(null);
   }, [days, selectedDate, selectedService, validSelectedAddonIds]);
 
+  // After a server conflict (sold-out race, day turned off, past time) the flow
+  // bounces to the time step and refreshes slots — but spamError renders only
+  // inside ReviewStep, so the message was set on a hidden step: the bounce was
+  // silent. Mirror the message here with role=alert so screen readers announce
+  // the step change reason immediately.
+  const conflictMessage = step === "time" ? spamError : "";
+
   // ── Navigation ──
   const goTo = useCallback((next: Step) => {
     setStep(next);
@@ -788,6 +795,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
 
         <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "time" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
           <TimeStep
+            conflictMessage={conflictMessage}
             days={days}
             selectedDate={selectedDate}
             selectedTime={selectedTime}
@@ -894,6 +902,7 @@ interface DayChip {
 }
 
 interface TimeStepProps {
+  conflictMessage?: string;
   days: DayChip[];
   selectedDate: Date;
   selectedTime: string | null;
@@ -905,13 +914,34 @@ interface TimeStepProps {
   serviceName: string;
 }
 
-function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, onSelectDate, onSelectTime, onGoToNextDay, serviceName }: TimeStepProps) {
+function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, onSelectDate, onSelectTime, onGoToNextDay, serviceName, conflictMessage }: TimeStepProps) {
   const [showModal, setShowModal] = useState(false);
+  // The month modal must agree with the day strip: off days (تعطیل) and fully
+  // booked days (تکمیل) are disabled there, so offering them in the calendar
+  // let users select a day that dead-ends in the full-day empty state.
+  const edgeDateKeys = useMemo(
+    () => new Set(days.filter((d) => d.isOff || d.isFullyBooked).map((d) => getTehranDateKey(d.date))),
+    [days],
+  );
   const j = gregorianToJalali(selectedDate);
   const selectedDateText = formatJalaliDate(j.jy, j.jm, j.jd);
 
   return (
     <div>
+      {conflictMessage && (
+        <div
+          role="alert"
+          className="mb-3 flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3.5 py-3 text-xs leading-relaxed font-semibold text-destructive"
+        >
+          <span
+            aria-hidden="true"
+            className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-destructive/15 text-[10px] font-bold"
+          >
+            !
+          </span>
+          {conflictMessage}
+        </div>
+        )}
       <div className="mb-2.5 flex items-center justify-between">
         <span className="text-xs font-bold text-muted-foreground">انتخاب تاریخ</span>
         <button
@@ -942,7 +972,7 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
         })}
       </div>
 
-      {showModal && <MonthModal selectedDate={selectedDate} onSelect={(d) => { onSelectDate(d); setShowModal(false); }} onClose={() => setShowModal(false)} />}
+      {showModal && <MonthModal selectedDate={selectedDate} disabledDateKeys={edgeDateKeys} onSelect={(d) => { onSelectDate(d); setShowModal(false); }} onClose={() => setShowModal(false)} />}
 
       <div className="mb-3.5 flex items-center justify-center gap-2 rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm font-bold">
         <CalendarDays className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -1026,7 +1056,7 @@ function SlotChip({ slot, selected, onSelect, suggest = false }: { slot: TimeSlo
   );
 }
 
-function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; onSelect: (d: Date) => void; onClose: () => void }) {
+function MonthModal({ selectedDate, onSelect, onClose, disabledDateKeys }: { selectedDate: Date; onSelect: (d: Date) => void; onClose: () => void; disabledDateKeys?: Set<string> }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   // Match the app's other dialogs: Escape closes, background scroll locks,
   // and focus lands inside so keyboard/SR users are not stranded behind it.
@@ -1064,7 +1094,10 @@ function MonthModal({ selectedDate, onSelect, onClose }: { selectedDate: Date; o
   for (let d = 1; d <= daysInMonth; d++) {
     const gDate = jalaliToGregorian(viewYear, viewMonth, d);
     const gKey = getTehranDateKey(gDate);
-    cells.push({ day: d, date: gDate, isToday: gKey === todayKey, isSelected: gKey === selectedKey, isPast: gKey < todayKey });
+    // Off/fully-booked days stay visible but muted+disabled (same grammar as
+    // the day strip) — the month stays scannable without offering dead ends.
+    const isEdge = disabledDateKeys?.has(gKey) ?? false;
+    cells.push({ day: d, date: gDate, isToday: gKey === todayKey, isSelected: gKey === selectedKey, isPast: gKey < todayKey || isEdge });
   }
 
   const shiftMonth = (delta: number) => {

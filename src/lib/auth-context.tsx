@@ -99,7 +99,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (res.ok) return { success: true };
       return { success: false, error: data.error || "خطا در ارسال کد" };
     } catch {
-      return { success: false, error: "خطای سرور" };
+      // Network failure (offline / stalled connection) — "خطای سرور" blamed
+      // the salon's server for a dead phone connection; name the network so
+      // the customer can act (P5).
+      return { success: false, error: "ارسال کد انجام نشد — اتصال اینترنت را بررسی کنید" };
     }
   }, []);
 
@@ -119,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       return { success: false, error: data.error };
     } catch {
-      return { success: false, error: "خطای سرور" };
+      return { success: false, error: "خطا در بررسی کد — اتصال اینترنت را بررسی کنید" };
     }
   }, []);
 

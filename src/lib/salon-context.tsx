@@ -66,6 +66,18 @@ interface SalonContextType {
 
 const SalonContext = createContext<SalonContextType | null>(null);
 
+/**
+ * Server errors are Persian by contract (booking/errors.ts). Anything else —
+ * browser network failures ("Failed to fetch"), HTML error pages, English
+ * exceptions — must never surface in the Persian UI (P4). Pass the message
+ * through only when it contains Persian text; otherwise replace it with an
+ * actionable retry message.
+ */
+function persianizeError(e: unknown, fallback: string): string {
+  const message = e instanceof Error && e.message ? e.message : "";
+  return /[\u0600-\u06FF]/.test(message) ? message : fallback;
+}
+
 const DEFAULT_WORKING_HOURS: WorkingHours = {
   sat: { open: "10:00", close: "16:00" },
   sun: { open: "10:00", close: "16:00" },
@@ -173,6 +185,14 @@ export function SalonProvider({ children }: { children: ReactNode }) {
 
       if (bootstrap) {
         adoptBootstrap(bootstrap);
+        if (bootstrap.salon === null || bootstrap.services === null) {
+          // Bootstrap returned but without the critical payloads — same user
+          // outcome as a failed bootstrap: loadFailed unlocks the retry state
+          // on the booking flow's service step instead of a lying "no services"
+          // empty state (P5). Checked on the payload (not refs, which still
+          // hold pre-adopt values at this point).
+          setLoadFailed(true);
+        }
       } else {
         await loadViaIndividualEndpoints();
       }
@@ -382,8 +402,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       devLog("Failed to save owner booking:", e);
       setBookings((prev) => prev.filter((b) => b.id !== booking.id));
-      const message = e instanceof Error ? e.message : "خطای ناشناخته";
-      return { success: false, error: message };
+      return { success: false, error: persianizeError(e, "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید") };
     }
   }, []);
 
@@ -399,8 +418,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       devLog("Failed to save booking:", e);
       setBookings((prev) => prev.filter((b) => b.id !== booking.id));
-      const message = e instanceof Error ? e.message : "خطای ناشناخته";
-      return { success: false, error: message };
+      return { success: false, error: persianizeError(e, "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید") };
     }
   }, []);
 
@@ -420,7 +438,9 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       }
       // Surface the server's precise guard text ("نوبت‌های گذشته قابل لغو
       // نیستند" etc.) — a generic retry-inviting message caused endless taps.
-      return { success: false, error: e instanceof Error ? e.message : undefined };
+      // Persian passes through; foreign text (network failures) is replaced
+      // so the customer UI never leaks English (P4).
+      return { success: false, error: e instanceof Error ? persianizeError(e, "لغو نوبت انجام نشد — لطفاً دوباره تلاش کنید") : undefined };
     }
   }, []);
 
