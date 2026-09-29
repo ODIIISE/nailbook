@@ -6,6 +6,7 @@ import { ArrowRight, AlertCircle } from "lucide-react";
 import { PinInput } from "@/components/booking/pin-input";
 import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { useAuth } from "@/lib/auth-context";
+import { getReturnTo, clearReturnTo } from "@/lib/session-expiry";
 import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
 
 type Step = "phone" | "otp" | "name";
@@ -51,6 +52,7 @@ export default function LoginPage() {
   }, [phone, sendOtp]);
 
   const verifiedUserRef = useRef<{ id: string } | null>(null);
+  const returnToRef = useRef<string | null>(null);
 
   const [otpAttempt, setOtpAttempt] = useState(0);
 
@@ -61,11 +63,17 @@ export default function LoginPage() {
     setIsLoading(false);
 
     if (result.success && result.user) {
+      // AUDIT-012: an expired session sent the user here mid-task — return
+      // them to where they were (bookings list, …) after login completes.
+      // New users (no name yet) finish registration first; the destination
+      // survives in a ref for the registration-complete navigation.
+      returnToRef.current = getReturnTo();
+      clearReturnTo();
       verifiedUserRef.current = result.user;
       if (!result.user.name) {
         setStep("name");
       } else {
-        router.replace("/?welcome=1");
+        router.replace(returnToRef.current || "/?welcome=1");
       }
     } else {
       setError(result.error || "کد نادرست است");
@@ -94,7 +102,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        router.replace("/?welcome=1");
+        router.replace(returnToRef.current || "/?welcome=1");
       } else {
         setError(data.error || "خطا در تکمیل ثبت‌نام");
       }

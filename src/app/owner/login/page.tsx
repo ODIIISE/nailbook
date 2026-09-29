@@ -11,6 +11,8 @@ import { PinInput } from "@/components/booking/pin-input";
 import { AuthCard, AuthCardRoot, AuthError } from "@/components/auth/auth-card";
 import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
+import { getReturnTo, clearReturnTo, countOwnerDrafts } from "@/lib/session-expiry";
+import { toast } from "sonner";
 
 const SALON_NAME = "استدیو تخصصی ناخن فورهند";
 
@@ -77,7 +79,19 @@ export default function OwnerLoginPage() {
           localStorage.setItem("nailbook_user", JSON.stringify(data.user));
         } catch { /* quota exceeded or private mode — harmless */ }
       }
-      router.replace("/owner?welcome=1");
+      // AUDIT-012: expiry (or bookmark) sent the owner here — return them to
+      // the exact page they were working on. The Persian nudge only appears
+      // when drafts actually survived, so it never lies.
+      const returnTo = getReturnTo();
+      clearReturnTo();
+      const drafts = countOwnerDrafts();
+      router.replace(returnTo || "/owner?welcome=1");
+      if (drafts > 0) {
+        // The toast outlives the route change and greets the owner on return.
+        setTimeout(() => {
+          toast.success(drafts === 1 ? "تغییرات ذخیره‌نشده شما حفظ شد" : "تغییرات ذخیره‌نشده شما حفظ شد — از همان‌جا ادامه دهید", { duration: 6000 });
+        }, 400);
+      }
     } catch {
       setIsLoading(false);
       setError("خطای سرور");

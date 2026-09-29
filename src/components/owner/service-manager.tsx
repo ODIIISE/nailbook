@@ -92,6 +92,26 @@ function ServicesTab({
   });
 
   useEffect(() => {
+    // AUDIT-012: restore a session-stashed draft (expiry redirect or refresh
+    // mid-edit) exactly once, before the prop-sync branch can overwrite it.
+    // Deferred out of the effect body (react-hooks/set-state-in-effect),
+    // same pattern as the booking flow's look-preset effect.
+    let draft: Service[] | null = null;
+    try {
+      const raw = sessionStorage.getItem("nailbook_services_draft");
+      if (raw) {
+        const d = JSON.parse(raw) as { pending?: Service[] };
+        if (Array.isArray(d.pending)) draft = d.pending;
+      }
+    } catch { /* corrupt or unavailable — start clean */ }
+    if (draft) {
+      queueMicrotask(() => {
+        setPending(draft);
+        setHasChanges(true);
+      });
+      sessionStorage.removeItem("nailbook_services_draft");
+      return;
+    }
     // Sync local editing state with fresh prop data when the parent re-fetches
     // — but never while the owner has unsaved edits: a failed save rolls the
     // props back, and unconditional syncing here would silently erase every
@@ -103,7 +123,14 @@ function ServicesTab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [services]);
 
-  const markChanged = () => setHasChanges(true);
+  const markChanged = (next?: Service[]) => {
+    setPending((prev) => {
+      const snapshot = next ?? prev;
+      try { sessionStorage.setItem("nailbook_services_draft", JSON.stringify({ pending: snapshot })); } catch { /* private mode */ }
+      return next ?? prev;
+    });
+    setHasChanges(true);
+  };
 
   const resetForm = () =>
     setForm({ name: "", description: "", duration_minutes: 45, price: 0, priority_score: 5, image_url: "", best_for: [], icon_key: "", is_popular: false });
@@ -204,11 +231,13 @@ function ServicesTab({
     if (error) {
       setSaveError(error);
     } else {
+      try { sessionStorage.removeItem("nailbook_services_draft"); } catch { /* noop */ }
       setHasChanges(false);
     }
   };
 
   const handleDiscard = () => {
+    try { sessionStorage.removeItem("nailbook_services_draft"); } catch { /* noop */ }
     setPending(services);
     setHasChanges(false);
     setEditingId(null);
@@ -370,6 +399,23 @@ function AddonsTab({
   const [form, setForm] = useState({ name: "", price: 0, duration_minutes: 5 });
 
   useEffect(() => {
+    // AUDIT-012: same draft restore as the services tab.
+    let draft: Addon[] | null = null;
+    try {
+      const raw = sessionStorage.getItem("nailbook_addons_draft");
+      if (raw) {
+        const d = JSON.parse(raw) as { pending?: Addon[] };
+        if (Array.isArray(d.pending)) draft = d.pending;
+      }
+    } catch { /* corrupt or unavailable — start clean */ }
+    if (draft) {
+      queueMicrotask(() => {
+        setPending(draft);
+        setHasChanges(true);
+      });
+      sessionStorage.removeItem("nailbook_addons_draft");
+      return;
+    }
     // Same unsaved-edits guard as the services tab.
     if (hasChanges) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -378,7 +424,14 @@ function AddonsTab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addons]);
 
-  const markChanged = () => setHasChanges(true);
+  const markChanged = (next?: Addon[]) => {
+    setPending((prev) => {
+      const snapshot = next ?? prev;
+      try { sessionStorage.setItem("nailbook_addons_draft", JSON.stringify({ pending: snapshot })); } catch { /* private mode */ }
+      return next ?? prev;
+    });
+    setHasChanges(true);
+  };
 
   const resetForm = () => setForm({ name: "", price: 0, duration_minutes: 5 });
 
@@ -454,11 +507,13 @@ function AddonsTab({
     if (error) {
       setSaveError(error);
     } else {
+      try { sessionStorage.removeItem("nailbook_addons_draft"); } catch { /* noop */ }
       setHasChanges(false);
     }
   };
 
   const handleDiscard = () => {
+    try { sessionStorage.removeItem("nailbook_addons_draft"); } catch { /* noop */ }
     setPending(addons);
     setHasChanges(false);
     setEditingId(null);

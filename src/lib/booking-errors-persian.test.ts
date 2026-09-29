@@ -170,3 +170,40 @@ describe("owner/admin surfaces: no raw error text reaches UI (P4, AUDIT-011)", (
     }
   });
 });
+
+describe("session-expiry: friendly re-auth, no data loss (AUDIT-012)", () => {
+  const expiry = readSource("./session-expiry.ts");
+  const dataTs = readSource("./db/data.ts");
+  const schedule = readSource("../components/owner/schedule-manager.tsx");
+  const serviceManager = readSource("../components/owner/service-manager.tsx");
+  const ownerLogin = readSource("../app/owner/login/page.tsx");
+  const customerLogin = readSource("../app/login/page.tsx");
+
+  it("expiry redirect is surface-aware and stashes the return path", () => {
+    expect(expiry).toMatch(/export function expiryTargetFor/);
+    expect(expiry).toMatch(/\/owner\/login" | "\/login"/);
+    expect(expiry).toMatch(/sessionStorage\.setItem\(RETURN_URL_KEY, path\)/);
+    // The old hard-coded owner redirect is gone from the shared handler.
+    expect(dataTs).not.toMatch(/window\.location\.href = "\/owner\/login"/);
+    expect(dataTs).toMatch(/redirectAfterExpiry\(\)/);
+  });
+
+  it("schedule-manager stashes and restores its dirty draft", () => {
+    expect(schedule).toMatch(/nailbook_schedule_draft/);
+    expect(schedule.match(/nailbook_schedule_draft/g)?.length).toBeGreaterThanOrEqual(3); // stash + restore + clear
+    expect(schedule).toMatch(/setHasChanges\(true\)/);
+  });
+
+  it("service-manager stashes and restores both tab drafts", () => {
+    expect(serviceManager).toMatch(/nailbook_services_draft/);
+    expect(serviceManager).toMatch(/nailbook_addons_draft/);
+    expect(serviceManager).not.toMatch(/const markChanged = \(\) => setHasChanges\(true\);/);
+  });
+
+  it("both login pages honor return-to; owner login reports preserved drafts", () => {
+    expect(ownerLogin).toMatch(/getReturnTo\(\)|countOwnerDrafts\(\)/);
+    expect(ownerLogin).toMatch(/تغییرات ذخیره‌نشده شما حفظ شد/);
+    expect(customerLogin).toMatch(/getReturnTo\(\)/);
+    expect(customerLogin).toMatch(/returnToRef/);
+  });
+});

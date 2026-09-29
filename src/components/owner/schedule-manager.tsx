@@ -252,6 +252,51 @@ export function ScheduleManager({
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // AUDIT-012: an expiry redirect (or an accidental refresh) used to abandon
+  // the whole edit. Persist dirty state per-tab; restore it on the way back.
+  useEffect(() => {
+    if (!hasChanges) return;
+    try {
+      sessionStorage.setItem("nailbook_schedule_draft", JSON.stringify({
+        hours, daysOff, earlyExtraHours, lateExtraHours, expandThreshold,
+        proximityWindowHours, allowOverflow, overflowMinutes, slotInterval,
+        slotBuffer, optimizationMode, suggestionLimit, minUsefulGapMinutes,
+      }));
+    } catch { /* private mode — nothing to stash */ }
+  }, [hasChanges, hours, daysOff, earlyExtraHours, lateExtraHours, expandThreshold, proximityWindowHours, allowOverflow, overflowMinutes, slotInterval, slotBuffer, optimizationMode, suggestionLimit, minUsefulGapMinutes]);
+  useEffect(() => {
+    // AUDIT-012: restore a session-stashed draft (expiry redirect or refresh
+    // mid-edit). Deferred out of the effect body per house rule
+    // (react-hooks/set-state-in-effect), same as booking-flow's look preset.
+    let raw: string | null = null;
+    try { raw = sessionStorage.getItem("nailbook_schedule_draft"); } catch { /* unavailable */ }
+    if (!raw) return;
+    queueMicrotask(() => {
+      try {
+        const d = JSON.parse(raw as string) as Partial<{
+          hours: WorkingHours; daysOff: string[]; earlyExtraHours: number; lateExtraHours: number;
+          expandThreshold: number; proximityWindowHours: number; allowOverflow: boolean;
+          overflowMinutes: number; slotInterval: number; slotBuffer: number;
+          optimizationMode: "hybrid" | "legacy"; suggestionLimit: number; minUsefulGapMinutes: number;
+        }>;
+        if (d.hours) setHours(d.hours);
+        if (d.daysOff) setDaysOff(d.daysOff);
+        if (typeof d.earlyExtraHours === "number") setEarlyExtraHours(d.earlyExtraHours);
+        if (typeof d.lateExtraHours === "number") setLateExtraHours(d.lateExtraHours);
+        if (typeof d.expandThreshold === "number") setExpandThreshold(d.expandThreshold);
+        if (typeof d.proximityWindowHours === "number") setProximityWindowHours(d.proximityWindowHours);
+        if (typeof d.allowOverflow === "boolean") setAllowOverflow(d.allowOverflow);
+        if (typeof d.overflowMinutes === "number") setOverflowMinutes(d.overflowMinutes);
+        if (typeof d.slotInterval === "number") setSlotInterval(d.slotInterval);
+        if (typeof d.slotBuffer === "number") setSlotBuffer(d.slotBuffer);
+        if (d.optimizationMode === "hybrid" || d.optimizationMode === "legacy") setOptimizationMode(d.optimizationMode);
+        if (typeof d.suggestionLimit === "number") setSuggestionLimit(d.suggestionLimit);
+        if (typeof d.minUsefulGapMinutes === "number") setMinUsefulGapMinutes(d.minUsefulGapMinutes);
+        setHasChanges(true);
+      } catch { /* corrupt — start clean */ }
+    });
+  }, []);
+
   useEffect(() => {
     // Don't wipe local edits when the parent re-fetches props.
     // The user must explicitly Save (which round-trips new props) or Discard
@@ -279,6 +324,7 @@ export function ScheduleManager({
   // Reset the form from server props (resolves the long-standing TODO): the
   // effect above deliberately keeps dirty state, so discarding must be explicit.
   const discardChanges = () => {
+    try { sessionStorage.removeItem("nailbook_schedule_draft"); } catch { /* noop */ }
     setHasChanges(false);
     setHours({ ...workingHours });
     setDaysOff([...specificDaysOff]);
@@ -362,6 +408,7 @@ export function ScheduleManager({
         suggestion_limit: suggestionLimit,
         min_useful_gap_minutes: minUsefulGapMinutes,
       });
+      try { sessionStorage.removeItem("nailbook_schedule_draft"); } catch { /* noop */ }
       setHasChanges(false);
     } finally {
       setIsSaving(false);

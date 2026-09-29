@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "../types";
+import { redirectAfterExpiry } from "../session-expiry";
 
 // All reads go through API routes (Vercel Postgres is server-side only)
 
@@ -223,7 +224,10 @@ export function handleAuthExpiry(res: Response): boolean {
     description: "در حال انتقال به صفحه ورود…",
     duration: 2500,
   });
-  setTimeout(() => { window.location.href = "/owner/login"; }, 900);
+  // AUDIT-012: surface-aware re-auth (customers no longer land on the owner
+  // login) and owner drafts survive the redirect (stashed by the owner
+  // forms; sessionStorage survives a full navigation per-tab).
+  redirectAfterExpiry();
   return true;
 }
 
