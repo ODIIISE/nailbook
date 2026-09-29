@@ -72,5 +72,6 @@ Modes: Editorial (homepage) vs Atelier (everything else) per DESIGN-SYSTEM.md.
 - Phone frame: `--frame-max-w` (min(100vw, 480px)); gutter `--page-gutter` 20px.
 - Header pattern: 44px icon slot / centered kicker+title / 44px slot.
 - Status pills: single shared component `src/components/ui/status-pill.tsx` — labels, token colors, and dot per status; `completed` is intentionally neutral (green is reserved for "تأیید شده"). Never copy STATUS_MAP into a page.
+- Icons: lucide-react everywhere; two sanctioned exceptions — the owner navbar's heroicons outline/solid pairs (active/inactive tab states lucide can't express) and booking-flow's filled sparkle marker (same rationale). Motion: only via tokens/editorial/primitives (enforced by motion-governance.test.ts).
 - Dates: Jalali + Persian digits; times/phones/tracking `dir="ltr"`.
 - Touch: 44px targets; icon-btn utility; pills for primary CTAs.

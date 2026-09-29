@@ -250,7 +250,7 @@ export function Timeline({
               return (
                 <div
                   key={b.id}
-                  className="absolute z-10 cursor-pointer transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                  className="absolute z-10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card"
                   style={{
                     top: pos.top + 1,
                     height: pos.height - 2,

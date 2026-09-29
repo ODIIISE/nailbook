@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Trash2, AlertTriangle, CheckCircle2, XCircle, Loader } from "lucide-react";
+import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Trash2, AlertTriangle, CheckCircle2, XCircle, Loader, X } from "lucide-react";
 import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
 import { calculateBookingPrice } from "@/lib/pricing";
 import { STATUS_CONFIG, STATUS_CONFIG_DARK, themeColor } from "@/lib/design-tokens";
@@ -115,7 +115,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
             <span className={`text-small font-semibold text-muted-foreground ${subtleBg2} px-2 py-0.5 rounded-md`} dir="ltr">{shortId}</span>
           </div>
           <button onClick={onClose} aria-label="بستن" className={`tap-44 w-7 h-7 rounded-lg ${subtleBg2} flex items-center justify-center`}>
-            <svg className="h-3.5 w-3.5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <X className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
           </button>
         </div>
 
