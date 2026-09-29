@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>تصمیم پوسته — پوسته فعلی vs daisyUI (forehand)</title>
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5/daisyui.css" rel="stylesheet" type="text/css"/>
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css"/>
+<link href="https://cdn.jsdelivr.net/fontsource/css/estedad@latest/index.css" rel="stylesheet"/>
+<style>
+  :root{
+    /* ── The current custom skin, verbatim (globals.css semantic tokens) ── */
+    --background:#faf7f2; --foreground:#2a231e;
+    --card:#ffffff; --card-foreground:#2a231e;
+    --primary:#2a231e; --primary-foreground:#faf7f2;
+    --muted:#f1ece4; --muted-foreground:#6f6357;
+    --border:#e7e0d6; --input:#e7e0d6; --ring:#2a231e;
+    --success:#16a34a; --warning:#b45309; --destructive:#dc2626;
+    --radius:12px;
+  }
+  [data-mode="dark"]{
+    --background:#241d17; --foreground:#f5f0e9;
+    --card:#2b241d; --card-foreground:#f5f0e9;
+    --primary:#f5f0e9; --primary-foreground:#241d17;
+    --muted:#3a3128; --muted-foreground:#beb1a3;
+    --border:#3a3128; --input:#3a3128; --ring:#f5f0e9;
+    --success:#22c55e; --warning:#f59e0b; --destructive:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Estedad',sans-serif;background:#171310;color:#f3ece2;padding:24px}
+  h1{font-size:18px;margin:0 0 4px}
+  .sub{font-size:12px;color:#a89e92;margin:0 0 20px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:860px;margin-inline:auto}
+  @media (max-width:700px){.cols{grid-template-columns:1fr}}
+  .panel{border-radius:16px;padding:14px;border:1px solid rgba(243,236,226,.14)}
+  .panel h2{font-size:13px;margin:0 0 10px;font-weight:700;color:#e2bd97}
+  .demo{border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+  /* custom-skin demo pieces (mirror app recipes) */
+  .c-btn{height:44px;border-radius:9999px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:0;width:100%}
+  .c-btn.ghost{background:transparent;border:1px solid var(--border);color:var(--foreground)}
+  .c-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .c-field{height:44px;border:1px solid var(--input);border-radius:10px;background:var(--card);padding:0 12px;font-size:13px;color:var(--foreground);display:flex;align-items:center}
+  .c-field.ph{color:var(--muted-foreground)}
+  .c-pill{display:inline-flex;align-items:center;gap:6px;border-radius:9999px;padding:4px 10px;font-size:11px;font-weight:700}
+  .c-pill i{width:6px;height:6px;border-radius:9999px;display:block}
+  .c-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .lbl{font-size:11px;color:var(--muted-foreground)}
+  .val{font-size:13px;font-weight:700;color:var(--foreground)}
+  .switch{width:44px;height:28px;border-radius:9999px;background:var(--primary);position:relative}
+  .switch::after{content:"";position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:9999px;background:var(--background)}
+  .demo[data-mode="dark"]{background:var(--background);color:var(--foreground)}
+  .demo:not([data-mode="dark"]){background:var(--background);color:var(--foreground)}
+  .mutedrow{font-size:11px;color:var(--muted-foreground)}
+  /* daisy demo pieces (forehand theme components) */
+  .d-demo{background:var(--color-base-100);color:var(--color-base-content);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+  /* ── daisyUI custom themes: the current skin as theme config ── */
+  [data-theme="forehand"]{
+    color-scheme:light;
+    --color-base-100:#faf7f2; --color-base-200:#f1ece4; --color-base-300:#eae3d9;
+    --color-base-content:#2a231e;
+    --color-primary:#2a231e; --color-primary-content:#faf7f2;
+    --color-secondary:#f1ece4; --color-secondary-content:#4a3f36;
+    --color-accent:#f6ede4; --color-accent-content:#75513f;
+    --color-neutral:#2a231e; --color-neutral-content:#faf7f2;
+    --color-info:#2563eb; --color-info-content:#ffffff;
+    --color-success:#16a34a; --color-success-content:#ffffff;
+    --color-warning:#b45309; --color-warning-content:#ffffff;
+    --color-error:#dc2626; --color-error-content:#ffffff;
+    --radius-selector:8px; --radius-field:12px; --radius-box:16px;
+    --size-selector:.25rem; --size-field:.25rem; --border:1px;
+    --depth:0; --noise:0;
+  }
+  [data-theme="forehand-dark"]{
+    color-scheme:dark;
+    --color-base-100:#241d17; --color-base-200:#2b241d; --color-base-300:#3a3128;
+    --color-base-content:#f5f0e9;
+    --color-primary:#f5f0e9; --color-primary-content:#241d17;
+    --color-secondary:#2b241d; --color-secondary-content:#beb1a3;
+    --color-accent:#382a21; --color-accent-content:#dfa98b;
+    --color-neutral:#171310; --color-neutral-content:#f5f0e9;
+    --color-info:#3b82f6; --color-info-content:#ffffff;
+    --color-success:#22c55e; --color-success-content:#0a0a0a;
+    --color-warning:#f59e0b; --color-warning-content:#0a0a0a;
+    --color-error:#ef4444; --color-error-content:#ffffff;
+    --radius-selector:8px; --radius-field:12px; --radius-box:16px;
+    --size-selector:.25rem; --size-field:.25rem; --border:1px;
+    --depth:0; --noise:0;
+  }
+</style>
+</head>
+<body>
+<h1>تصمیم پوسته — مقایسه زنده</h1>
+<p class="sub">چپ: پوستهٔ فعلی (توکن‌های سفارشی globals.css) · راست: daisyUI 5 با تم «forehand» (همان مقادیر، به‌صورت پیکربندی تم) — روشن و تیره</p>
+
+<div class="cols">
+  <!-- ═══ LEFT: current custom skin ═══ -->
+  <section class="panel" style="background:#211c18">
+    <h2>پوستهٔ فعلی (سفارشی)</h2>
+
+    <div class="demo" id="c-light" data-mode="light">
+      <div class="c-row"><span class="lbl">دکمه اصلی</span><span class="lbl">توکن: --primary</span></div>
+      <button class="c-btn">رزرو نوبت</button>
+      <button class="c-btn ghost">نمونه کارها</button>
+      <div class="c-field ph">۰۹۱۲۱۲۳۴۵۶۷</div>
+      <div class="c-card">
+        <div class="c-row"><span class="val">مانیکور فرنچ</span><span class="c-pill" style="background:color-mix(in srgb,var(--success) 10%,transparent);color:var(--success)"><i style="background:var(--success)"></i>تأیید شده</span></div>
+        <div class="c-row" style="margin-top:8px"><span class="lbl">هزینه</span><span class="val">۴۵۰ هزار تومان</span></div>
+      </div>
+      <div class="c-row"><span class="mutedrow">حالت تیره</span><span class="switch" id="c-sw"></span></div>
+    </div>
+
+    <div class="demo" id="c-dark" data-mode="dark" style="margin-top:12px">
+      <div class="c-row"><span class="lbl">همان اجزا در تم تیره</span></div>
+      <button class="c-btn">رزرو نوبت</button>
+      <div class="c-card">
+        <div class="c-row"><span class="val">مانیکور فرنچ</span><span class="c-pill" style="background:color-mix(in srgb,var(--success) 10%,transparent);color:var(--success)"><i style="background:var(--success)"></i>تأیید شده</span></div>
+      </div>
+      <div class="c-field ph">۰۹۱۲۱۲۳۴۵۶۷</div>
+    </div>
+  </section>
+
+  <!-- ═══ RIGHT: daisyUI forehand ═══ -->
+  <section class="panel" style="background:#211c18">
+    <h2>daisyUI 5 — تم forehand</h2>
+
+    <div class="d-demo" data-theme="forehand">
+      <div class="c-row"><span class="lbl" style="color:var(--color-base-content);opacity:.6">همان اجزا با کلاس‌های daisy</span></div>
+      <button class="btn btn-primary rounded-full w-full">رزرو نوبت</button>
+      <button class="btn btn-outline rounded-full w-full">نمونه کارها</button>
+      <input class="input input-bordered w-full" placeholder="۰۹۱۲۱۲۳۴۵۶۷"/>
+      <div class="card bg-base-100 border border-base-300" style="padding:14px">
+        <div class="c-row"><span class="font-bold text-sm">مانیکور فرنچ</span><span class="badge badge-success badge-outline badge-sm">تأیید شده</span></div>
+        <div class="c-row" style="margin-top:8px"><span class="text-xs opacity-60">هزینه</span><span class="font-bold text-sm">۴۵۰ هزار تومان</span></div>
+      </div>
+      <div class="c-row"><span class="text-xs opacity-60">toggle daisy</span><input type="checkbox" class="toggle toggle-primary" checked/></div>
+    </div>
+
+    <div class="d-demo" data-theme="forehand-dark" style="margin-top:12px">
+      <div class="c-row"><span class="text-xs opacity-60">تم تیره forehand-dark</span></div>
+      <button class="btn btn-primary rounded-full w-full">رزرو نوبت</button>
+      <div class="card bg-base-100 border border-base-300" style="padding:14px">
+        <div class="c-row"><span class="font-bold text-sm">مانیکور فرنچ</span><span class="badge badge-success badge-outline badge-sm">تأیید شده</span></div>
+      </div>
+      <input class="input input-bordered w-full" placeholder="۰۹۱۲۱۲۳۴۵۶۷"/>
+    </div>
+  </section>
+</div>
+
+<div style="max-width:860px;margin:20px auto 0;font-size:12px;line-height:2;color:#a89e92">
+  <b style="color:#e2bd97">تفاوت‌های واقعی:</b>
+  ۱) هر دو پوسته تقریباً هم‌رنگ‌اند — تم forehand همان مقادیر پوسته فعلی است.
+  ۲) با daisyUI، اجزای مشترک (دکمه/فیلد/کارت/badge/toggle/modal) به کلاس‌های آماری می‌روند که خودشان حالت‌های disabled/focus/aria را رعایت می‌کنند؛ Base UI زیر آن‌ها می‌ماند.
+  ۳) هزینه: مهاجرت تدریجی اجزا + بازنویسی بخشی از CSS؛ نگه‌داری پوسته فعلی: صفر تغییر امروز، اما ادامه نگه‌داری دستی حالت‌ها.
+</div>
+
+<script>
+  const sw = document.getElementById('c-sw');
+  let dark = true;
+  sw.addEventListener('click', () => {
+    dark = !dark;
+    document.getElementById('c-light').dataset.mode = dark ? 'dark' : 'light';
+    document.getElementById('c-dark').style.display = dark ? '' : 'none';
+  });
+</script>
+</body>
+</html>
