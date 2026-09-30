@@ -41,6 +41,24 @@ Motion governance (repo's own enforcement test) confirmed clean; one dead transi
 ### Post-roadmap — Success screen & receipt (AUDIT-009, `6efb579`)
 HIGH: **two different tracking codes for one booking** (list/profile last-4 vs receipt `BK-`+last-6) → unified last-6. HIGH: receipt header sliced 8 off the 9-char code → garbled `#K-XXXXXX` disagreeing with the reference on the same receipt → fixed. Final AA sweep on informational alpha-text (2.5–3.1:1) in receipt + owner surfaces → full `muted-foreground`; decorative watermarks keep theirs.
 
+### Post-roadmap — Booking edge states (AUDIT-010)
+Sold-out race handled end-to-end: real 409 → red alert banner, bounce to the time step, slot grid refreshed (taken slots disabled + dimmed, fresh suggestions re-emerge). Deep-link/expired-booking edges covered.
+
+### Post-roadmap — Owner error leaks (AUDIT-011)
+Owner surfaces stopped leaking raw server/DB errors; every owner-facing failure now speaks one Persian sentence with a way forward.
+
+### Post-roadmap — Session expiry (AUDIT-012)
+Expiry lands owners on /owner/login with `returnTo` back to the exact page they worked on; a Persian nudge only appears when drafts actually survived, so it never lies.
+
+### Post-roadmap — Owner day loop (AUDIT-013)
+Dashboard/timeline/day-flow tightening: manual reserve, status + paid flips, rest blocks, and the earnings summary behave as one loop.
+
+### Post-roadmap — App that responds (AUDIT-014, `5dbc0df`)
+Atelier motion layer (stagger/slide/press tokens) + toast diet; live-verified on production; motion governance test extended.
+
+### Post-roadmap — Live verification walks (AUDIT-015, `7115a11`→`18c83ea`)
+Real authenticated walks on production with a temporary secret-gated test hook (fake users + fixed OTP code, **zero SMS**), deleted after the run. Found and fixed **two real production bugs**: customer cancel 401'd for every legitimate customer (missing `await` on the session verifier, `3db2c5f`) and the hamburger menu kept guest state after owner login (SPA auth-sync, `0adfd43`). Sold-out race, owner status/paid flips, schedule draft persistence, and return-to routing all verified live. Full residue report in `AUDIT-015-live-verification.md` — every test row deleted, hook removed from the repo.
+
 ---
 
 ## 2 · Before → after highlights
@@ -58,34 +76,24 @@ HIGH: **two different tracking codes for one booking** (list/profile last-4 vs r
 | Touch targets | 28–36px strata in dense areas | 44px floor everywhere (incl. invisible hit-expansion) |
 | Skin question | Open since Phase 0 | Resolved: custom skin, decision recorded |
 
-## 3 · The designer's phone-walk checklist (the one remaining acceptance step)
+## 3 · The designer's phone-walk checklist (acceptance closed by AUDIT-015; taste remains yours)
 
-Real-OTP sessions were out of reach from the audit machine (SMS goes to a real phone). ~10 minutes with your phone closes the loop:
+The mechanical acceptance walks below were executed for real in AUDIT-015 on production — booking, session, list, cancel, the sold-out race, owner status/paid flips, schedule persistence, return-to routing — with two bugs found and fixed along the way (`AUDIT-015-live-verification.md`). What remains open is deliberately **not mechanical**:
 
-**Customer session (≈6 min)**
-1. Book any service end-to-end → confirm the success receipt shows `BK-XXXXXX`, tap **دانلود تصویر** and **اشتراک‌گذاری** (share chain is the one behavior only a real device exercises).
+1. Book any service end-to-end on your own phone → the success receipt, **دانلود تصویر** and **اشتراک‌گذاری** share chain (the one behavior only a real device exercises).
 2. Open the receipt image → scan the QR → lands on `/bookings/<id>` with the same code.
-3. `/bookings`: the list chip shows the **same last-6 code**; open the detail sheet; cancel a throwaway booking → sheet stays open on failure, toast explains.
-4. `/profile`: edit name; edit phone (past bookings migrate); «مشاهده» navigates; logout confirm.
-
-**Owner session (≈4 min)**
-5. Dashboard: manual reserve → appears in timeline; status change; paid toggle.
-6. Block time: confirm the reason field is **gone** (intentional); add/remove a rest block.
-7. Schedule: day-off chips and interval chips feel tappable (now 44px); save persists.
-8. Services/settings: uploads still work (camera corner buttons now have 44px hit areas — visuals unchanged).
-
-**What to look for**: anything that *feels* wrong. The mechanical floors (contrast, targets, states) are now enforced; the remaining judgment is taste, and that's yours.
+3. Walk any surface and flag anything that *feels* wrong — hierarchy, rhythm, wording. The floors (contrast, targets, states, auth paths) are enforced; the remaining judgment is taste, and that's yours.
 
 ## 4 · Standing guardrails (what keeps this from regressing)
 
 - `motion-governance.test.ts` — motion only via tokens/editorial/primitives, no animation libraries (runs in `npm run check`).
-- `npm run check` before every push (169/169 tests, lint, tsc).
+- `npm run check` before every push (236/236 tests, lint, tsc).
 - Inventory + audit docs as the designed-state record; new screens diff against them.
 - Recommended: re-run the contrast matrix + mechanical sweeps quarterly or before any token change (a natural follow-up is promoting the matrix to a permanent test).
 
 ## 5 · Known open items (all recorded in audit docs)
 
-1. Authenticated phone walks above (designer-side acceptance).
+1. ~~Authenticated phone walks~~ — closed by AUDIT-015's live walks; only the device-only share chain + taste judgment remain (§3).
 2. Blocked-time `reason` field returns together with schema support (AUDIT-005).
 3. Stock-primitive disabled recipes are now `/70` (closed in Phase 11) — next natural touch: the contrast matrix as a permanent vitest test.
 4. The daisyUI door stays closed unless a future decision record reopens it (AUDIT-004).
