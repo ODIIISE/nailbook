@@ -47,11 +47,11 @@ spring`, reduced-motion handling) with **zero usages** in app code — the
 - **Press feel is subjective until your thumb says so** — the 0.98 dip is
   the industry-standard value, but the phone walk is the judge.
 - **Live production verification done** on the deployed build at 375×667:
-  staggered service cards fire  at 0/40/80/120ms, the time step
-  enters with  at 240ms on the governed  curve,
-  back navigation flips to , 20 press-twin elements are live,
-  and the header buttons hold their 44px minimum. Feel judgment (does 0.98
-  read right?) still belongs to the phone walk.
+  staggered service cards fire the revealIn animation at 0/40/80/120ms, the
+  time step enters with stepInFwd at 240ms on the governed ease-standard
+  curve, back navigation flips to stepInBack, 20 press-twin elements are
+  live, and the header buttons hold their 44px minimum. Feel judgment (does
+  the 0.98 dip read right?) still belongs to the phone walk.
 - Step transitions animate the entering layer only (the outgoing layer
   stays a cross-fade under it) — a matched exit pair would need the
   absolute layers to coordinate; noted as a future refinement, not a gap.
