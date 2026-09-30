@@ -3,6 +3,7 @@ import { sql } from "@vercel/postgres";
 import crypto from "crypto";
 import { resolveSalonId } from "@/lib/multi-tenant";
 import { verifyCustomerSession, verifyCustomerSessionWithVersion } from "@/lib/customer-auth";
+import { verifyOwner } from "@/lib/owner-auth";
 
 /**
  * TEMPORARY TEST HOOK (AUDIT-015) — DELETE AFTER THE LIVE WALK.
@@ -96,6 +97,27 @@ export async function POST(request: NextRequest) {
         salonId,
         bookingProbe,
         success: Boolean(userId),
+      });
+    }
+
+    if (body.action === "patch-replica") {
+      // Replicates src/app/api/bookings/[id]/route.ts PATCH auth sequence
+      // exactly, reporting which step diverges.
+      const owner = await verifyOwner(request);
+      const bookingId = String(body.bookingId || "");
+      const salonId = await resolveSalonId();
+      const bookingResult = salonId
+        ? await sql.query("SELECT id, user_id, customer_phone, status, date_gregorian::text, start_time::text FROM bookings WHERE id = $1 AND salon_id = $2", [bookingId, salonId])
+        : await sql.query("SELECT id, user_id, customer_phone, status, date_gregorian::text, start_time::text FROM bookings WHERE id = $1", [bookingId]);
+      const booking = bookingResult.rows[0] || null;
+      const customerUserId = verifyCustomerSessionWithVersion(request.cookies.get("session")?.value);
+      return NextResponse.json({
+        ownerFound: Boolean(owner),
+        bookingFound: Boolean(booking),
+        dbUserId: booking ? booking.user_id : null,
+        sessionUserId: customerUserId,
+        ownershipMatches: Boolean(booking && customerUserId && booking.user_id === customerUserId),
+        wouldReturn401: Boolean(!owner && (!customerUserId || !booking || booking.user_id !== customerUserId)),
       });
     }
 
