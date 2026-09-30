@@ -121,6 +121,29 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    if (body.action === "refresh-otp") {
+      // Re-arm the fixed-code OTP row (the 15-minute window expires mid-walk).
+      const phone = String(body.phone || "");
+      const salonId = await resolveSalonId();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      if (salonId) {
+        await sql`
+          INSERT INTO otps (salon_id, phone, code, expires_at, attempts)
+          VALUES (${salonId}, ${phone}, ${FIXED_CODE}, ${expiresAt}, 0)
+          ON CONFLICT (salon_id, phone) WHERE salon_id IS NOT NULL
+          DO UPDATE SET code = EXCLUDED.code, expires_at = EXCLUDED.expires_at, attempts = 0
+        `;
+      } else {
+        await sql`
+          INSERT INTO otps (phone, code, expires_at, attempts)
+          VALUES (${phone}, ${FIXED_CODE}, ${expiresAt}, 0)
+          ON CONFLICT (phone)
+          DO UPDATE SET code = EXCLUDED.code, expires_at = EXCLUDED.expires_at, attempts = 0
+        `;
+      }
+      return NextResponse.json({ success: true, code: FIXED_CODE });
+    }
+
     if (body.action === "cleanup") {
       const phones: string[] = Array.isArray(body.phones) ? body.phones : [];
       if (!phones.length) return NextResponse.json({ error: "phones required" }, { status: 400 });
