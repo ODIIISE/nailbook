@@ -84,8 +84,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
     };
+    // Same-tab flows that write the storage key directly (owner login primes
+    // the cache before the client-side redirect) announce themselves with
+    // this event — same-tab writes never fire a `storage` event.
+    const handleAuthSync = () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        setUser(raw ? JSON.parse(raw) : null);
+      } catch {
+        setUser(null);
+      }
+    };
     window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    window.addEventListener("nailbook:auth-sync", handleAuthSync);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("nailbook:auth-sync", handleAuthSync);
+    };
   }, []);
 
   const sendOtp = useCallback(async (phone: string) => {

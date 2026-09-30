@@ -77,6 +77,9 @@ export default function OwnerLoginPage() {
       if (data.user) {
         try {
           localStorage.setItem("nailbook_user", JSON.stringify(data.user));
+          // Same-tab announcement so the already-mounted AuthProvider (menu,
+          // navbar) switches to the owner role without a full reload.
+          window.dispatchEvent(new Event("nailbook:auth-sync"));
         } catch { /* quota exceeded or private mode — harmless */ }
       }
       // AUDIT-012: expiry (or bookmark) sent the owner here — return them to
