@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
       const log1 = await sql`
         DELETE FROM activity_logs
         WHERE metadata->>'phone' = ANY(${phonesArray}::TEXT[])
-           OR entity_id IN (SELECT id FROM users WHERE phone = ANY(${phonesArray}::TEXT[]))
+           OR entity_id IN (SELECT id::text FROM users WHERE phone = ANY(${phonesArray}::TEXT[]))
       `;
       const b = await sql`DELETE FROM bookings WHERE customer_phone = ANY(${phonesArray}::TEXT[])`;
       const o = await sql`DELETE FROM otps WHERE phone = ANY(${phonesArray}::TEXT[])`;
