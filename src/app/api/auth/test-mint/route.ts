@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import crypto from "crypto";
 import { resolveSalonId } from "@/lib/multi-tenant";
+import { verifyCustomerSession, verifyCustomerSessionWithVersion } from "@/lib/customer-auth";
 
 /**
  * TEMPORARY TEST HOOK (AUDIT-015) — DELETE AFTER THE LIVE WALK.
@@ -70,6 +71,21 @@ export async function POST(request: NextRequest) {
       }
 
       return NextResponse.json({ success: true, userId, salonId, code: FIXED_CODE });
+    }
+
+    if (body.action === "whoami") {
+      // Read-only diagnostic probe: run the REAL verifier against the REAL
+      // request cookie and report each intermediate result.
+      const cookie = request.cookies.get("session")?.value;
+      const userId = await verifyCustomerSessionWithVersion(cookie);
+      const verifyResult = verifyCustomerSession(cookie);
+      return NextResponse.json({
+        hasCookie: Boolean(cookie),
+        cookieParts: cookie ? cookie.split(":").length : 0,
+        legacyVerify: verifyResult,
+        versionedVerify: userId,
+        success: Boolean(userId),
+      });
     }
 
     if (body.action === "cleanup") {
