@@ -26,6 +26,8 @@ const SYSTEM = (f: string) =>
   f.endsWith("src/app/globals.css") || f.endsWith("motion-governance.test.ts");
 
 const HAPTICS = (f: string) => f.endsWith("src/lib/haptics.ts");
+// Contract-test files quote CSS snippets in assertions; they are not UI code.
+const TESTS = (f: string) => f.includes(".test.");
 
 const LIBS = ["framer-motion", "tw-animate-css"].map((s) => new RegExp(s));
 const CSS_MOTION = /\b(transition|animation|will-change)\s*:|@keyframes\s/;
@@ -57,7 +59,7 @@ describe("motion governance", () => {
     const offenders: string[] = [];
     for (const file of walk("src")) {
       const f = file.replaceAll("\\", "/");
-      if (EDITORIAL(f) || STOCK_PRIMITIVES(f) || SYSTEM(f) || HAPTICS(f)) continue;
+      if (EDITORIAL(f) || STOCK_PRIMITIVES(f) || SYSTEM(f) || HAPTICS(f) || TESTS(f)) continue;
       const text = readFileSync(file, "utf8");
       if (CSS_MOTION.test(text)) offenders.push(`${file}: ${CSS_MOTION.source}`);
     }

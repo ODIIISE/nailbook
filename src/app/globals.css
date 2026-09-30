@@ -517,6 +517,91 @@
     line-height: 1.4;
     font-weight: 400;
   }
+  /* ── Atelier motion (AUDIT-014) ──
+     Governed feedback layer for app routes (booking, owner, customer). All
+     durations/easings come from the design-system tokens; everything is
+     transform/opacity-only (compositor-friendly) and the entire layer is
+     disabled under prefers-reduced-motion below. Opt-in per element via
+     these classes; the motion-governance test whitelists this file. */
+
+  /* Press twin: instant acknowledgement while the finger is down (E.
+     Kowalski's press-ability). Pairs with haptic.tap() call sites. */
+  .pressable {
+    transition: transform var(--duration-micro) var(--ease-standard),
+      opacity var(--duration-micro) var(--ease-standard);
+  }
+  .pressable:active:not(:disabled) {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  /* Slightly softer for large surfaces (cards, sheets) so they don't dip. */
+  .pressable-soft:active:not(:disabled) {
+    transform: scale(0.995);
+  }
+
+  /* Directional step transitions: RTL-aware. Forward enters from the
+     inline-start edge, back from inline-end (reverse). Applied to the
+     booking flow's step sections alongside the existing opacity swap. */
+  .step-enter-fwd { animation: stepInFwd var(--duration-standard) var(--ease-standard) both; }
+  .step-enter-back { animation: stepInBack var(--duration-standard) var(--ease-standard) both; }
+  @keyframes stepInFwd {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes stepInBack {
+    from { opacity: 0; transform: translateX(-24px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Reveal: staggered entrance for lists that render as a set (service
+     cards, timeline cards). Index supplied via --stagger-i. */
+  .reveal-item {
+    animation: revealIn var(--duration-standard) var(--ease-standard) both;
+    animation-delay: calc(var(--stagger-i, 0) * 40ms);
+  }
+  @keyframes revealIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* State cross-fade: for elements whose color/border expresses a state
+     flip the user just caused (status pills, paid dots). */
+  .state-fade {
+    transition: background-color var(--duration-micro) var(--ease-standard),
+      color var(--duration-micro) var(--ease-standard),
+      border-color var(--duration-micro) var(--ease-standard);
+  }
+
+  /* Live cue for the timeline now-dot: quiet 2s pulse, pauses for
+     reduced-motion users via the global override. */
+  .now-pulse {
+    animation: nowPulse 2.4s var(--ease-standard) infinite;
+  }
+  @keyframes nowPulse {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+
+/* Reduced-motion overrides for the Atelier layer (P8: reduce movement,
+   keep feedback): transform/loop motion off, opacity feedback stays. */
+@media (prefers-reduced-motion: reduce) {
+  .pressable, .pressable-soft {
+    transition: opacity var(--duration-micro) var(--ease-standard);
+  }
+  .pressable:active:not(:disabled), .pressable-soft:active:not(:disabled) {
+    transform: none;
+  }
+  .step-enter-fwd, .step-enter-back, .reveal-item {
+    animation: fadeOnly var(--duration-standard) var(--ease-standard) both;
+  }
+  .reveal-item { animation-delay: 0ms; }
+  .now-pulse { animation: none; }
+}
+@keyframes fadeOnly {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 }
 
 /* ── Animations ── */

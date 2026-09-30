@@ -90,7 +90,6 @@ export default function ProfilePage() {
     setSaving(false);
     if (result.success) {
       setEditing(false);
-      toast.success("نام با موفقیت به‌روزرسانی شد");
     } else {
       toast.error(result.error || "خطا در به‌روزرسانی پروفایل");
     }
@@ -118,7 +117,6 @@ export default function ProfilePage() {
     setSavingPhone(false);
     if (result.success) {
       setEditingPhone(false);
-      toast.success("شماره موبایل با موفقیت به‌روزرسانی شد");
       // The server re-linked past bookings to the new number — pull fresh data.
       void refreshBookings();
     } else {
@@ -167,7 +165,6 @@ export default function ProfilePage() {
       // text on failure — show it instead of an endless-retry generic message.
       const result = await cancelBooking(id);
       if (result.success) {
-        toast.success("نوبت لغو شد");
         void refreshBookings();
       } else {
         toast.error(result.error || "خطا در لغو نوبت — لطفاً دوباره تلاش کنید");

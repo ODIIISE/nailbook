@@ -233,7 +233,6 @@ function UsersTab({ salonId }: { salonId: string }) {
         toast.error(data.error || "خطا در ایجاد مدیر");
         return;
       }
-      toast.success("مدیر با موفقیت ایجاد شد");
       setOwnerForm({ phone: "", name: "" });
       loadUsers();
     } catch {
@@ -457,7 +456,6 @@ function SettingsTab({ salon }: { salon: Salon }) {
         body: JSON.stringify(form),
       });
       if (res.ok) {
-        toast.success("ذخیره شد");
       } else {
         toast.error("خطا در ذخیره");
       }

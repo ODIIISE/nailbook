@@ -254,8 +254,9 @@ export function Timeline({
               return (
                 <div
                   key={b.id}
-                  className="absolute z-10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                  className="reveal-item pressable-soft absolute z-10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card"
                   style={{
+                    ...({ "--stagger-i": Math.min(laneAssignments.findIndex((l) => l.item.id === b.id), 5) } as React.CSSProperties),
                     top: pos.top + 1,
                     height: pos.height - 2,
                     insetInlineStart: `calc(${GUTTER}px + ${laneStart} * (100% - ${GUTTER + 12}px))`,
@@ -298,7 +299,7 @@ export function Timeline({
                             </div>
                             <CreditCard className={`h-2.5 w-2.5 ${b.paid ? paidColor : textGhost}`} />
                           </div>
-                          <div className="flex items-center gap-1 px-1.5 py-0.5 shrink-0" style={{ backgroundColor: sc.bg, borderRadius: 6 }}>
+                          <div className="state-fade flex items-center gap-1 px-1.5 py-0.5 shrink-0" style={{ backgroundColor: sc.bg, borderRadius: 6 }}>
                             <StatusIcon className="h-2.5 w-2.5" style={{ color: sc.color }} />
                             <span className="text-small font-semibold" style={{ color: sc.color }}>{sc.label}</span>
                           </div>
@@ -310,7 +311,7 @@ export function Timeline({
                               <User className={`h-3 w-3 shrink-0 ${textGhost}`} />
                               <span className={`text-small font-bold truncate leading-tight ${textPrimary}`}>{b.customer_name}</span>
                             </div>
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 shrink-0" style={{ backgroundColor: sc.bg, borderRadius: 6 }}>
+                            <div className="state-fade flex items-center gap-1 px-1.5 py-0.5 shrink-0" style={{ backgroundColor: sc.bg, borderRadius: 6 }}>
                               <StatusIcon className="h-2.5 w-2.5" style={{ color: sc.color }} />
                               <span className="text-small font-semibold" style={{ color: sc.color }}>{sc.label}</span>
                             </div>
@@ -412,7 +413,7 @@ export function Timeline({
                     style={{ backgroundColor: 'currentColor' }} />
                 </div>
                 <div className="h-[2px] rounded-full" style={{ backgroundColor: 'var(--accent-now)' }} />
-                <div className="absolute start-0 top-[3px] w-2.5 h-2.5 rounded-full -translate-x-1/2 rtl:translate-x-1/2 -translate-y-1/2 ring-2 ring-card"
+                <div className="now-pulse absolute start-0 top-[3px] w-2.5 h-2.5 rounded-full -translate-x-1/2 rtl:translate-x-1/2 -translate-y-1/2 ring-2 ring-card"
                   style={{ backgroundColor: 'var(--accent-now)' }} />
               </div>
             )}

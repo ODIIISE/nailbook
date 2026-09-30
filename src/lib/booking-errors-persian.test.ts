@@ -241,3 +241,53 @@ describe("owner day-of loop: timeline + shared calendar + touch (AUDIT-013)", ()
     expect(timeline).toMatch(/aria-label=\{`[^`]*customer_name/);
   });
 });
+
+describe("Atelier motion + toast diet (AUDIT-014)", () => {
+  const globals = readFileSync(resolve(__dirname, "../app/globals.css"), "utf8");
+  const bookingFlow = readSource("../components/booking/booking-flow.tsx");
+  const timeline = readSource("../components/owner/timeline.tsx");
+
+  it("system defines the governed feedback classes with tokens only", () => {
+    for (const cls of ["pressable", "pressable-soft", "step-enter-fwd", "step-enter-back", "reveal-item", "state-fade", "now-pulse"]) {
+      expect(globals.includes("." + cls), ).toBe(true);
+    }
+    // token-driven: the motion block references the design-system tokens
+    expect(globals).toMatch(/var\(--duration-micro\) var\(--ease-standard\)/);
+    // reduced-motion override: transforms dropped, feedback kept
+    expect(globals).toMatch(/\.now-pulse \{ animation: none; \}/);
+  });
+
+  it("booking flow: direction-aware steps + press feedback + stagger", () => {
+    expect(bookingFlow).toMatch(/stepDirection === "back" \? "step-enter-back" : "step-enter-fwd"/);
+    expect(bookingFlow).not.toMatch(/stepDirection\.current/); // refs are not read in render
+    expect(bookingFlow.match(/stepAnimClass/g)?.length).toBeGreaterThanOrEqual(5); // 4 sections + definition
+    for (const cls of ["pressable ", "pressable-soft ", "reveal-item "]) {
+      expect(bookingFlow.includes(cls), ).toBe(true);
+    }
+  });
+
+  it("timeline: state-fade pills, staggered cards, pulsing now-dot", () => {
+    expect(timeline).toMatch(/state-fade/);
+    expect(timeline).toMatch(/reveal-item pressable-soft/);
+    expect(timeline).toMatch(/now-pulse/);
+  });
+
+  it("toast diet: redundant success confirmations stay removed", () => {
+    // These outcomes are shown by the UI itself (row changes, screen
+    // transition, save-bar clearing) — the toast added no information.
+    const cut = [
+      ["../app/owner/page.tsx", "زمان استراحت اضافه شد"],
+      ["../app/owner/page.tsx", "نوبت با موفقیت ثبت شد"],
+      ["../app/owner/schedule/page.tsx", "ساعات کاری ذخیره شد"],
+      ["../app/admin/login/page.tsx", "ورود موفق"],
+      ["../app/(main)/profile/page.tsx", "نام با موفقیت"],
+    ] as const;
+    for (const [file, msg] of cut) {
+      expect(readSource(file).includes(msg), ).toBe(false);
+    }
+    // Kept: toasts that are the only messenger (download/share results,
+    // counts, preserved-drafts notice).
+    expect(readSource("../components/booking/booking-confirm.tsx")).toMatch(/toast\.success/);
+    expect(readSource("../app/owner/login/page.tsx")).toMatch(/toast\.success/);
+  });
+});

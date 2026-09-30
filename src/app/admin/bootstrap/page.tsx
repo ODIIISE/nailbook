@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PinInput } from "@/components/booking/pin-input";
 import { Shield } from "lucide-react";
-import { toast } from "sonner";
 
 export default function AdminBootstrapPage() {
   const router = useRouter();
@@ -66,7 +65,6 @@ export default function AdminBootstrapPage() {
         setIsLoading(false);
         return;
       }
-      toast.success("اکانت مدیر کل با موفقیت ایجاد شد");
       setStep("done");
       setTimeout(() => router.push("/admin"), 1500);
     } catch {

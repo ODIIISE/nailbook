@@ -18,7 +18,6 @@ export default function OwnerSchedulePage() {
         working_hours: hours,
         specific_days_off: daysOff,
       });
-      toast.success("ساعات کاری ذخیره شد");
     } catch (error) {
       // updateSalon surfaces the server's precise Persian validation message
       // (e.g. "ساعت پایان باید بعد از شروع باشد"); persianizeError keeps that

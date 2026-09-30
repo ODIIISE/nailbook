@@ -77,7 +77,6 @@ export default function BookingsPage() {
   const handleCancel = useCallback(async (id: string): Promise<boolean> => {
     const result = await cancelBooking(id);
     if (result.success) {
-      toast.success("نوبت لغو شد");
       return true;
     }
     toast.error(result.error || "خطا در لغو نوبت — لطفاً دوباره تلاش کنید");

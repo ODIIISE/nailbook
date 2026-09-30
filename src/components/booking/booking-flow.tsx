@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -319,10 +319,18 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
   const conflictMessage = step === "time" ? spamError : "";
 
   // ── Navigation ──
+  // Direction of the last step change: forward and back slide from
+  // opposite edges (AUDIT-014 Atelier motion; classes in globals.css).
+  // Held in state so render may read it (react-hooks/refs).
+  const [stepDirection, setStepDirection] = useState<"fwd" | "back">("fwd");
+  const prevStepRef = useRef<Step>("service");
   const goTo = useCallback((next: Step) => {
+    setStepDirection(STEP_ORDER.indexOf(next) >= STEP_ORDER.indexOf(prevStepRef.current) ? "fwd" : "back");
+    prevStepRef.current = next;
     setStep(next);
     setSpamError("");
   }, []);
+  const stepAnimClass = stepDirection === "back" ? "step-enter-back" : "step-enter-fwd";
 
   const handleBack = useCallback(() => {
     if (step === "service") {
@@ -573,7 +581,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
       if (isConflict) {
         await refreshBookings();
         setSelectedTime(null);
-        setStep("time");
+        goTo("time");
         setSpamError(isPast
           ? "این زمان گذشته است — لطفاً زمان دیگری انتخاب کنید"
           : "این زمان در لحظه قبل رزرو شد — لطفاً زمان دیگری انتخاب کنید");
@@ -581,7 +589,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
         setSpamError(result.error || "خطا در ذخیره رزرو — لطفاً دوباره تلاش کنید");
       }
     }
-  }, [selectedService, selectedDate, selectedTime, user, authPhone, authName, otpState, totalDuration, addBooking, validSelectedAddonIds, refreshBookings, updateProfile, isSavingProfile]);
+  }, [selectedService, selectedDate, selectedTime, user, authPhone, authName, otpState, totalDuration, addBooking, validSelectedAddonIds, refreshBookings, updateProfile, isSavingProfile, goTo]);
 
   // ── Sticky CTA state ──
   const ctaState = useMemo(() => {
@@ -655,7 +663,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
 
       {/* Steps */}
       <div className="relative min-h-0 flex-1 overflow-hidden">
-        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "service" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
+        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "service" ? `opacity-100 visible pointer-events-auto ${stepAnimClass}` : "opacity-0 invisible pointer-events-none"}`}>
           {look && (
             <div className="mb-3.5 flex items-center gap-3 rounded-lg bg-primary p-3 text-primary-foreground">
               {look.cover_url ? (
@@ -680,7 +688,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
 
           <p className="mb-2.5 mt-3 text-xs font-bold text-muted-foreground">انتخاب خدمت</p>
           <div className="flex flex-col gap-3">
-            {activeServices.map((s) => {
+            {activeServices.map((s, svcIdx) => {
               const isSelected = selectedService?.id === s.id;
               const isExpanded = expandedServiceId === s.id;
               const serviceAddons = addons.filter((a) => s.addon_ids.includes(a.id) && a.is_active);
@@ -691,14 +699,15 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
                 <div
                   key={s.id}
                   ref={(node) => { serviceCardRefs.current[s.id] = node; }}
-                  className={`overflow-hidden rounded-lg border bg-card shadow-card ${isSelected ? "border-primary" : "border-border"}`}
+                  style={{ "--stagger-i": Math.min(svcIdx, 5) } as CSSProperties}
+                  className={`reveal-item overflow-hidden rounded-lg border bg-card shadow-card ${isSelected ? "border-primary" : "border-border"}`}
                 >
                   <button
                     type="button"
                     onClick={() => handleSelectService(s.id)}
                     aria-pressed={isSelected}
                     aria-expanded={isExpanded}
-                    className="flex w-full items-center gap-3 p-3.5 text-start"
+                    className="pressable-soft flex w-full items-center gap-3 p-3.5 text-start"
                   >
                     <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted"><ServiceImage service={s} sizes="48px" className="object-cover" /></span>
                     <span className="min-w-0 flex-1">
@@ -742,7 +751,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
                                 type="button"
                                 onClick={() => handleToggleAddon(a.id)}
                                 aria-pressed={isOn}
-                                className={`mt-1.5 flex w-full items-center gap-3 rounded-lg border p-3 text-start ${isOn ? "border-primary bg-primary/5" : "border-border bg-card"}`}
+                                className={`pressable mt-1.5 flex w-full items-center gap-3 rounded-lg border p-3 text-start ${isOn ? "border-primary bg-primary/5" : "border-border bg-card"}`}
                               >
                                 <span
                                   className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 ${isOn ? "border-primary bg-primary text-primary-foreground" : "border-border text-transparent"}`}
@@ -793,7 +802,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
           </div>
         </section>
 
-        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "time" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
+        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "time" ? `opacity-100 visible pointer-events-auto ${stepAnimClass}` : "opacity-0 invisible pointer-events-none"}`}>
           <TimeStep
             conflictMessage={conflictMessage}
             days={days}
@@ -808,7 +817,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
           />
         </section>
 
-        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "review" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
+        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "review" ? `opacity-100 visible pointer-events-auto ${stepAnimClass}` : "opacity-0 invisible pointer-events-none"}`}>
           <ReviewStep
             service={selectedService}
             lookName={look && !lookCleared ? look.name : null}
@@ -836,7 +845,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
           />
         </section>
 
-        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "success" ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}>
+        <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "success" ? `opacity-100 visible pointer-events-auto ${stepAnimClass}` : "opacity-0 invisible pointer-events-none"}`}>
           <SuccessStep
             service={selectedService}
             lookName={look && !lookCleared ? look.name : null}
@@ -863,7 +872,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
         <footer className="border-t border-border bg-background/95 page-gutter pb-[calc(14px+env(safe-area-inset-bottom))] pt-2.5">
           <button
             type="button"
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-bold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
+            className="pressable flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-bold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
             disabled={!ctaState.ok || isBookingLoading}
             onClick={() => {
               if (isBookingLoading) return;
@@ -959,7 +968,7 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
             <button
               key={getTehranDateKey(d.date)}
               type="button"
-              className={`flex h-16 min-w-[58px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border px-3 text-sm font-bold ${d.isSelected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"} ${blocked && !d.isSelected ? "opacity-40" : ""}`}
+              className={`pressable flex h-16 min-w-[58px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border px-3 text-sm font-bold ${d.isSelected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"} ${blocked && !d.isSelected ? "opacity-40" : ""}`}
               onClick={() => { if (!blocked) onSelectDate(d.date); }}
               disabled={blocked}
               aria-pressed={d.isSelected}
@@ -1045,7 +1054,7 @@ function SlotChip({ slot, selected, onSelect, suggest = false }: { slot: TimeSlo
   const formatted = slot.time.split(":").map((p) => toPersianDigits(p)).join(":");
   return (
     <button type="button"
-      className={`relative flex h-11 min-w-16 flex-col items-center justify-center gap-0.5 rounded-lg border px-3 text-sm font-bold ${selected ? "border-primary bg-primary text-primary-foreground" : suggest ? "border-primary/50 bg-card text-foreground" : "border-border bg-card text-foreground"} ${!available ? "opacity-40 line-through" : ""}`}
+      className={`pressable relative flex h-11 min-w-16 flex-col items-center justify-center gap-0.5 rounded-lg border px-3 text-sm font-bold ${selected ? "border-primary bg-primary text-primary-foreground" : suggest ? "border-primary/50 bg-card text-foreground" : "border-border bg-card text-foreground"} ${!available ? "opacity-40 line-through" : ""}`}
       disabled={!available}
       aria-pressed={selected}
       onClick={() => { if (available) onSelect(slot.time); }}

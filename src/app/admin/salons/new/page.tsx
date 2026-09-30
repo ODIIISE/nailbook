@@ -79,7 +79,6 @@ export default function NewSalonPage() {
       setSalonId(result.salon.id);
       setSalonSlug(result.salon.slug);
       setStep(5);
-      toast.success("سالن با موفقیت ایجاد شد");
     } catch {
       toast.error("خطای سرور");
     }
@@ -107,7 +106,6 @@ export default function NewSalonPage() {
       }
       setDeployUrl(result.deployUrl);
       setDeployStatus("success");
-      toast.success("سالن با موفقیت مستقر شد");
       // Fire-and-forget seed call
       fetch(`/api/admin/salons/${salonId}/seed`, {
         method: "POST",

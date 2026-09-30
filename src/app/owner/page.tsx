@@ -158,7 +158,6 @@ function OwnerDashboardContent() {
     ]);
 
     if (saved.success) {
-      toast.success("زمان استراحت اضافه شد");
       setShowBlockTime(false);
     } else {
       toast.error(saved.error || "زمان استراحت ذخیره نشد");
@@ -175,7 +174,6 @@ function OwnerDashboardContent() {
     if (globalIndex < 0) return;
     const saved = await updateBlockedTimes(blockedTimes.filter((_, i) => i !== globalIndex));
     if (saved.success) {
-      toast.success("زمان استراحت حذف شد");
     } else {
       toast.error(saved.error || "حذف زمان استراحت انجام نشد");
     }
@@ -219,7 +217,6 @@ function OwnerDashboardContent() {
       // Reconcile the optimistic row with the server response immediately so
       // a polling request cannot leave a stale/nameless booking in the timeline.
       await refreshBookings("owner");
-      toast.success("نوبت با موفقیت ثبت شد");
       setShowManualReserve(false);
     } else {
       toast.error(result.error || "خطا در ثبت نوبت");
@@ -427,7 +424,6 @@ function OwnerDashboardContent() {
           onDelete={async (id) => {
             const result = await cancelBooking(id);
             if (result.success) {
-              toast.success("نوبت لغو شد");
             } else {
               toast.error(result.error || "خطا در لغو نوبت");
             }

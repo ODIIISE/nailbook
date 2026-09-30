@@ -85,7 +85,6 @@ export default function OwnerSettingsPage() {
       if (!data.url) throw new Error("upload");
       await updateSalon({ logo_url: data.url });
       setAvatarUrl(data.url);
-      toast.success("لوگو ذخیره شد");
     } catch {
       toast.error("خطا در آپلود تصویر");
     }
@@ -118,7 +117,6 @@ export default function OwnerSettingsPage() {
       if (!data.url) throw new Error("upload");
       await updateSalon({ portrait_image_url: data.url });
       setPortraitUrl(data.url);
-      toast.success("تصویر پروفایل ذخیره شد");
     } catch {
       toast.error("خطا در آپلود تصویر");
     } finally {
@@ -154,7 +152,6 @@ export default function OwnerSettingsPage() {
       // the local preview that the customer page cannot actually load later.
       await updateSalon({ splash_logo_url: data.url });
       setSplashLogoUrl(data.url);
-      toast.success("لوگوی اسپلش ذخیره شد");
     } catch {
       toast.error("خطا در آپلود تصویر");
     }
@@ -182,7 +179,6 @@ export default function OwnerSettingsPage() {
         lookbook_title: lookbookTitle.trim() || "نمونه‌کارها",
         booking_success_title: bookingSuccessTitle.trim() || "به‌زودی می‌بینیمت!",
       });
-      toast.success("تغییرات ذخیره شد");
     } catch {
       toast.error("خطا در ذخیره تغییرات");
     }
@@ -216,7 +212,6 @@ export default function OwnerSettingsPage() {
       if (!data.url) throw new Error("upload");
       await updateSalon({ hero_image_url: data.url });
       setHeroUrl(data.url);
-      toast.success("تصویر پس‌زمینه ذخیره شد");
     } catch {
       toast.error("خطا در آپلود تصویر");
     } finally {
@@ -314,7 +309,6 @@ export default function OwnerSettingsPage() {
                 onClick={async () => {
                   setAvatarUrl("");
                   await updateSalon({ logo_url: null });
-                  toast.success("لوگو حذف شد");
                 }}
                 className="text-xs text-destructive mt-1 hover:underline"
               >
@@ -562,7 +556,6 @@ export default function OwnerSettingsPage() {
                 onClick={async () => {
                   setSplashLogoUrl("");
                   await updateSalon({ splash_logo_url: null });
-                  toast.success("لوگوی اسپلش حذف شد");
                 }}
                 className="text-small text-destructive mt-1 hover:underline"
               >

@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PinInput } from "@/components/booking/pin-input";
 import { Database } from "lucide-react";
-import { toast } from "sonner";
 
 export default function AdminMigratePage() {
   const [step, setStep] = useState<"login" | "run" | "done">("login");
@@ -67,7 +66,6 @@ export default function AdminMigratePage() {
           `${r.name}: ${r.success ? "OK" : `ERROR - ${r.error}`}`
         ));
         setStep("done");
-        toast.success("مایگریشن فایل‌ها اجرا شد");
       } else {
         setError(data.error || "خطا در مایگریشن فایل‌ها");
       }
