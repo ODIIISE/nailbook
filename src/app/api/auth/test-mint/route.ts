@@ -79,11 +79,22 @@ export async function POST(request: NextRequest) {
       const cookie = request.cookies.get("session")?.value;
       const userId = await verifyCustomerSessionWithVersion(cookie);
       const verifyResult = verifyCustomerSession(cookie);
+      const salonId = await resolveSalonId();
+      let bookingProbe: Record<string, unknown> | null = null;
+      if (body.bookingId && userId) {
+        const rows = salonId
+          ? await sql.query("SELECT id, user_id, salon_id, status FROM bookings WHERE id = $1 AND salon_id = $2", [body.bookingId, salonId])
+          : await sql.query("SELECT id, user_id, salon_id, status FROM bookings WHERE id = $1", [body.bookingId]);
+        const b = rows.rows[0] || null;
+        if (b) bookingProbe = { ...b, ownershipMatches: b.user_id === userId };
+      }
       return NextResponse.json({
         hasCookie: Boolean(cookie),
         cookieParts: cookie ? cookie.split(":").length : 0,
         legacyVerify: verifyResult,
         versionedVerify: userId,
+        salonId,
+        bookingProbe,
         success: Boolean(userId),
       });
     }
