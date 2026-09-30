@@ -41,7 +41,7 @@ export async function PATCH(
     // If not owner, verify the customer owns this booking. The version-checked
     // verifier rejects cookies revoked via logout/session bump.
     if (!owner) {
-      const customerUserId = verifyCustomerSessionWithVersion(request.cookies.get("session")?.value);
+      const customerUserId = await verifyCustomerSessionWithVersion(request.cookies.get("session")?.value);
       if (!customerUserId || booking.user_id !== customerUserId) {
         return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
       }
