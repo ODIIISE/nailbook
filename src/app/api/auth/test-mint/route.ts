@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
 
       // Activity log rows referencing these phones (metadata phone or entityId of their users).
       const log1 = await sql`
-        DELETE FROM activity_log
+        DELETE FROM activity_logs
         WHERE metadata->>'phone' = ANY(${phonesArray}::TEXT[])
            OR entity_id IN (SELECT id FROM users WHERE phone = ANY(${phonesArray}::TEXT[]))
       `;
