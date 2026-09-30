@@ -878,7 +878,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
               if (isBookingLoading) return;
               if (step === "service" && ctaState.ok) goTo("time");
               else if (step === "time" && ctaState.ok) goTo("review");
-              else if (step === "review") handleConfirmBooking();
+              else if (step === "review") void handleConfirmBooking();
             }}
           >
             {isBookingLoading ? (

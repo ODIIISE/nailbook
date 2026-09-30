@@ -14,7 +14,7 @@ export default function AdminMigratePage() {
 
   // If already logged in as super admin, start on the migration screen
   useEffect(() => {
-    fetch("/api/super-admin/me")
+    void fetch("/api/super-admin/me")
       .then((res) => {
         if (res.ok) {
           setStep("run");

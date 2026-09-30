@@ -107,7 +107,7 @@ export default function NewSalonPage() {
       setDeployUrl(result.deployUrl);
       setDeployStatus("success");
       // Fire-and-forget seed call
-      fetch(`/api/admin/salons/${salonId}/seed`, {
+      void fetch(`/api/admin/salons/${salonId}/seed`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });

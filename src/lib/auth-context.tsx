@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     }
-    validateSession();
+    void validateSession();
   }, []);
 
   // Sync auth state across tabs via storage event

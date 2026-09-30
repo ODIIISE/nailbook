@@ -57,7 +57,7 @@ export default function OwnerUsersPage() {
   useEffect(() => {
     // Fetching the users list on mount is the standard data-loading pattern.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchUsers();
+    void fetchUsers();
   }, [fetchUsers]);
 
   // Normalize Persian/Arabic digits so searching "۰۹۱۲" matches stored "0912".
@@ -110,7 +110,7 @@ export default function OwnerUsersPage() {
       const data = await res.json();
       if (data.success) {
         setModal(null);
-        fetchUsers();
+        void fetchUsers();
       } else {
         setFormError(data.error || "خطا در ایجاد کاربر");
       }
@@ -144,7 +144,7 @@ export default function OwnerUsersPage() {
       const data = await res.json();
       if (data.success) {
         setModal(null);
-        fetchUsers();
+        void fetchUsers();
       } else {
         setFormError(data.error || "خطا در بروزرسانی");
       }
@@ -167,7 +167,7 @@ export default function OwnerUsersPage() {
       const data = await res.json();
       if (data.success) {
         setModal(null);
-        fetchUsers();
+        void fetchUsers();
       } else {
         setFormError(data.error || "خطا در حذف");
       }
@@ -190,7 +190,7 @@ export default function OwnerUsersPage() {
       if (handleAuthExpiry(res)) return;
       const data = await res.json();
       if (data.success) {
-        fetchUsers();
+        void fetchUsers();
       } else {
         // The block icon previously did nothing on failure — the owner kept
         // tapping a control that never worked (expired session, self-lock).

@@ -386,7 +386,7 @@ export async function createBooking(
 
     await client.query("COMMIT");
 
-    logActivity({
+    void logActivity({
       eventType: "booking_created",
       entityType: "booking",
       entityId: booking.id,

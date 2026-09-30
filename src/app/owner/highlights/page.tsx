@@ -253,7 +253,7 @@ export default function OwnerHighlightsPage() {
                     size="icon-sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDelete(highlight.id);
+                      void handleDelete(highlight.id);
                     }}
                     className="text-destructive hover:text-destructive shrink-0"
                   >

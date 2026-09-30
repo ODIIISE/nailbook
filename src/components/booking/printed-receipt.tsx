@@ -63,7 +63,7 @@ function BookingQrCode({
         }
       }
     };
-    generate();
+    void generate();
     return () => {
       cancelled = true;
     };

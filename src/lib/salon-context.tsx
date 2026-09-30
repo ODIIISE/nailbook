@@ -279,7 +279,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    load();
+    void load();
     return () => controller.abort();
   }, []);
 

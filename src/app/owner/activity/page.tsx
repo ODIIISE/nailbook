@@ -77,7 +77,7 @@ export default function ActivityPage() {
   useEffect(() => {
     // Fetching initial/filtered data is the standard data-loading pattern.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchLogs(activeFilter);
+    void fetchLogs(activeFilter);
   }, [activeFilter, fetchLogs]);
 
   const handleFilterChange = (type: string) => {

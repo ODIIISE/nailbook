@@ -16,7 +16,7 @@ export default function AdminBootstrapPage() {
 
   // If already logged in as super admin, redirect to /admin
   useEffect(() => {
-    fetch("/api/super-admin/me")
+    void fetch("/api/super-admin/me")
       .then((res) => {
         if (res.ok) {
           router.replace("/admin");
