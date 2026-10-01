@@ -4,6 +4,13 @@
 > Persian-first, RTL-native, motion-aware, token-driven.
 > **Source of truth:** `src/app/globals.css` (tokens), `src/lib/design-tokens.ts` (categorical), `src/components/ui/` (primitives), `src/lib/motion-governance.test.ts` (enforcement).
 
+> **⚠ Palette update:** the color palette is now the **stock Astryx neutral theme**
+> (`astryx.theme: @astryxdesign/theme-neutral` in `package.json`). The semantic
+> blocks in `src/app/globals.css` (`:root` light + `.dark`) mirror its compiled
+> defaults one-to-one — update them together with the theme. The espresso/gold
+> Editorial palette is retired. Everything else in this document (structure,
+> motion, RTL, governance) still applies.
+
 ---
 
 ## 1. Mental model

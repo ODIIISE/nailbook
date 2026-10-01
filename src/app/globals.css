@@ -98,86 +98,48 @@
   color-scheme: light;
 
   /* ══════════════════════════════════════════════════════════════
-     FOREHAND DESIGN SYSTEM — TOKEN ARCHITECTURE
-     LAYER 1 primitives (raw values) → LAYER 2 semantic (purpose)
-     → LAYER 3 component tokens. Experience modes (Atelier light/dark,
-     Editorial) remap LAYER 2 only. Never reference raw values from
-     components; never add a parallel token vocabulary.
+     TOKEN ARCHITECTURE — semantic tokens → component tokens.
+     PALETTE = STOCK ASTRYX NEUTRAL (registered via astryx.theme in
+     package.json): every value in the two blocks below mirrors
+     @astryxdesign/theme-neutral's compiled defaults — light here,
+     dark in .dark. Update both blocks together with the theme;
+     never reference raw hex from components; never add a parallel
+     token vocabulary.
      ══════════════════════════════════════════════════════════════ */
 
-  /* ── LAYER 1 · PRIMITIVES — raw values, never used directly by components ── */
-  --cream-0: #ffffff;
-  --cream-50: #faf7f2;   /* paper */
-  --cream-100: #f6ede4;  /* blush */
-  --cream-150: #f3e4da;  /* rose wash */
-  --cream-200: #f1ece4;  /* sand */
-  --cream-250: #eae3d9;  /* hairline */
-  --espresso-25: #b0a396; /* taupe */
-  --espresso-40: #7d7166; /* soft brown */
-  --espresso-60: #8a6552; /* clay */
-  --espresso-70: #4a3f36; /* bark */
-  --espresso-900: #2a231e; /* espresso ink */
-  --espresso-950: #261a0e; /* espresso black */
-  /* dark surfaces */
-  --night-900: #171310;
-  --night-850: #241d17;
-  --night-800: #2b241d;
-  --night-700: #33261e;
-  --night-650: #382a21;
-  --night-600: #3a3128;
-  --night-200: #beb1a3;
-  --night-100: #dfa98b;
-  --night-50: #f5f0e9;
-  /* semantic feedback (mode-stable hues, theme-adjusted in .dark).
-     Phase 11 AA pass: light success/destructive/warning stepped to the
-     700/800 weights — the 600s passed as plain text on card only partially
-     and failed inside their own /10 tinted pills (success hit 2.96:1). */
-  --red-700: #b91c1c;
-  --red-600: #dc2626;
-  --red-500: #ef4444;
-  --red-400: #f87171;
-  --green-800: #166534;
-  --green-600: #16a34a;
-  --green-500: #22c55e;
-  --amber-800: #92400e;
-  --amber-700: #b45309;
-  --amber-500: #f59e0b;
-  --blue-600: #2563eb;
-  --blue-500: #3b82f6;
-
-  /* ── LAYER 2 · SEMANTIC — purpose tokens; the ONLY layer components may use ── */
-  /* ATELIER · Light mode mapping */
-  --background: var(--cream-50);
-  --foreground: var(--espresso-900);
-  --card: var(--cream-0);
-  --card-foreground: var(--espresso-900);
-  --popover: var(--cream-0);
-  --popover-foreground: var(--espresso-900);
-  --primary: var(--espresso-900);
-  --primary-foreground: var(--cream-50);
-  --secondary: var(--cream-200);
-  --secondary-foreground: var(--espresso-900);
-  --muted: var(--cream-200);
-  /* WCAG AA on background (5.46), card (5.84) and muted (4.96) — the old
-     #7d7166 was 4.44/4.74/4.04. Dark mode keeps --night-200 (7.9:1 on card). */
-  --muted-foreground: #6f6357;
-  --accent: var(--cream-100);
-  --accent-foreground: var(--espresso-70);
-  --accent-soft: var(--cream-150);
-  /* WCAG AA on blush (6.04) and rose wash (5.63) — old #8a6552 hit 4.47/4.16. */
-  --accent-foreground-soft: #75513f;
-  --destructive: var(--red-700);
-  --success: var(--green-800);
-  --warning: var(--amber-800);
-  /* Solid destructive fills (cancel confirms): white in light. Dark mode
-     fills with red-400, which needs dark ink (white tops out at 2.9 there). */
-  --destructive-foreground: var(--cream-0);
-  --accent-now: var(--blue-600);
-  --border: var(--cream-250);
-  --input: var(--cream-250);
-  /* Focus/contrast ring: espresso-40 at 4.44:1 on background — the taupe
-     #b0a396 sat at 2.31:1, below the 3:1 non-text minimum. */
-  --ring: var(--espresso-40);
+  /* ── SEMANTIC — purpose tokens; the ONLY layer components may use ── */
+  /* Astryx neutral · light values */
+  --background: #f1f1f1;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --primary: #1b1b1b;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f1f1;
+  --secondary-foreground: #000000;
+  --muted: #f1f1f1;
+  /* Astryx --color-text-secondary (#474747): 8.2:1 on body/muted, 9.3:1 on card. */
+  --muted-foreground: #474747;
+  --accent: #ffffff;
+  --accent-foreground: #000000;
+  --accent-soft: #f1f1f1;
+  /* Pairs with accent-soft at 8.2:1. */
+  --accent-foreground-soft: #474747;
+  /* Astryx status colors (text-safe light weights): error/success/warning. */
+  --destructive: #76000c;
+  --success: #00490b;
+  --warning: #4b3900;
+  /* Solid destructive fills: Astryx --color-on-error (white on #76000c = 11.8:1). */
+  --destructive-foreground: #ffffff;
+  /* Astryx status accent blue (same hue as the focus ring). */
+  --accent-now: #0074e2;
+  /* Astryx --color-border: black @8%. */
+  --border: #00000014;
+  --input: #00000014;
+  /* Focus ring: Astryx status-fill-accent blue — 4.05:1 on background (≥3:1). */
+  --ring: #0074e2;
 
   /* ── LAYOUT ── */
   /* Phone-frame width: fill narrow phones fully, cap on wide phones/desktop. */
@@ -185,13 +147,11 @@
   /* The one page gutter (§28). Full-bleed sections opt out deliberately. */
   --page-gutter: 1.25rem;
 
-  /* ── LAYER 2 · ELEVATION — flat / raised / overlay / modal ──
-     Alphas tuned so the four steps are distinguishable on cream/white while
-     staying soft; old 0.04-alpha ladder rendered near-invisible. */
-  --shadow-xs: 0 1px 2px rgba(42, 35, 30, 0.06);
-  --shadow-card: 0 1px 2px rgba(42, 35, 30, 0.06), 0 3px 10px rgba(42, 35, 30, 0.07);
-  --shadow-elevated: 0 2px 6px rgba(42, 35, 30, 0.08), 0 12px 28px rgba(42, 35, 30, 0.12);
-  --shadow-floating: 0 4px 10px rgba(42, 35, 30, 0.1), 0 20px 44px rgba(42, 35, 30, 0.16);
+  /* ── ELEVATION — Astryx neutral shadow ladder (low/med/high), neutral black ── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.1);
+  --shadow-elevated: 0 2px 4px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-floating: 0 4px 6px rgba(0, 0, 0, 0.1), 0 12px 24px rgba(0, 0, 0, 0.15);
 
   /* ── LAYER 2 · MOTION — instant/micro/standard/expressive/editorial (§20) ── */
   /* Functional screens use instant/micro/standard only (§21). */
@@ -234,42 +194,44 @@
   --booking-cta-bg: var(--card);
   --booking-cta-border: var(--border);
   --booking-cta-fg: var(--foreground);
-  --booking-sheet-scrim: rgba(0, 0, 0, 0.42);
+  /* Astryx --color-overlay: light #00000080. */
+  --booking-sheet-scrim: rgba(0, 0, 0, 0.5);
 }
 
-/* ── ATELIER · Dark mode — remaps LAYER 2 semantic tokens only ── */
+/* ── Astryx neutral · dark values — remaps semantic tokens only ── */
 .dark {
   color-scheme: dark;
-  --background: var(--night-900);
-  --foreground: var(--night-50);
-  --card: var(--night-850);
-  --card-foreground: var(--night-50);
-  --popover: var(--night-850);
-  --popover-foreground: var(--night-50);
-  --primary: var(--night-50);
-  --primary-foreground: var(--night-850);
-  --secondary: var(--night-800);
-  --secondary-foreground: var(--night-50);
-  --muted: var(--night-800);
-  --muted-foreground: var(--night-200);
-  --accent: var(--night-800);
-  --accent-foreground: var(--night-50);
-  --accent-soft: var(--night-650);
-  --accent-foreground-soft: var(--night-100);
-  --destructive: var(--red-400);
-  --success: var(--green-500);
-  --warning: var(--amber-500);
-  --destructive-foreground: var(--espresso-950);
-  --accent-now: var(--blue-500);
-  --border: var(--night-600);
-  --input: var(--night-600);
-  --ring: var(--espresso-40);
+  --background: #1b1b1b;
+  --foreground: #ffffff;
+  --card: #1b1b1b;
+  --card-foreground: #ffffff;
+  --popover: #1b1b1b;
+  --popover-foreground: #ffffff;
+  --primary: #f1f1f1;
+  --primary-foreground: #111111;
+  --secondary: #262626;
+  --secondary-foreground: #ffffff;
+  --muted: #262626;
+  --muted-foreground: #9e9e9e;
+  --accent: #262626;
+  --accent-foreground: #ffffff;
+  --accent-soft: #262626;
+  --accent-foreground-soft: #9e9e9e;
+  --destructive: #ffc4be;
+  --success: #a4d6a3;
+  --warning: #f8d36a;
+  --destructive-foreground: #111111;
+  --accent-now: #6d9cfe;
+  --border: #ffffff14;
+  --input: #ffffff14;
+  --ring: #6d9cfe;
 
   /* Booking surface tokens (semantic aliases) */
   --booking-cta-bg: var(--card);
   --booking-cta-border: var(--border);
   --booking-cta-fg: var(--foreground);
-  --booking-sheet-scrim: rgba(0, 0, 0, 0.56);
+  /* Astryx --color-overlay: dark #000000CC. */
+  --booking-sheet-scrim: rgba(0, 0, 0, 0.8);
 
   /* Dark elevation: inner highlight + soft black halo (not colored shadows) */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);

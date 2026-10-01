@@ -44,10 +44,11 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   // <meta name="theme-color"> cannot read CSS variables — these hexes are the
-  // documented mirror of --night-900 (globals.css primitive). Update together.
+  // documented mirror of the Astryx neutral body (#f1f1f1 light / #1b1b1b
+  // dark). Update together with globals.css.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#171310" },
-    { media: "(prefers-color-scheme: dark)", color: "#171310" },
+    { media: "(prefers-color-scheme: light)", color: "#f1f1f1" },
+    { media: "(prefers-color-scheme: dark)", color: "#1b1b1b" },
   ],
   viewportFit: "cover",
 };
