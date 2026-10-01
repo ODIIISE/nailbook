@@ -3,6 +3,15 @@ import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Providers } from "./providers";
 import { DeviceThemeSync } from "@/components/layout/device-theme-sync";
+// Astryx CSS must load before globals.css: reset.css declares the canonical
+// @layer order (reset, astryx-base, astryx-theme), and astryx.css sets :root
+// custom properties (--color-accent, --color-success, …) that globals.css
+// re-declares unlayered — unlayered always wins, so the app theme keeps
+// precedence everywhere regardless of chunk load order. Used by the
+// /astryx-preview route; remove these imports if that route goes away.
+import "./astryx-layers.css";
+import "@astryxdesign/core/reset.css";
+import "@astryxdesign/core/astryx.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

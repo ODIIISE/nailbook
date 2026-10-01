@@ -2,6 +2,9 @@
   "name": "nailbook",
   "version": "0.1.0",
   "private": true,
+  "astryx": {
+    "theme": "@astryxdesign/theme-neutral"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -14,8 +17,12 @@
     "check:build": "npm run check && npm run build"
   },
   "dependencies": {
+    "@astryxdesign/cli": "^0.6.3",
+    "@astryxdesign/core": "^0.6.3",
+    "@astryxdesign/theme-neutral": "^0.6.3",
     "@base-ui/react": "^1.6.0",
     "@heroicons/react": "^2.2.0",
+    "@stylexjs/stylex": "^0.19.1",
     "@vercel/blob": "^2.6.1",
     "@vercel/functions": "^3.9.5",
     "@vercel/postgres": "^0.10.0",

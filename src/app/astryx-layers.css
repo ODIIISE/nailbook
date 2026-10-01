@@ -1,0 +1,11 @@
+/*
+ * Canonical CSS @layer order — must be imported before any Astryx or
+ * Tailwind CSS. Without this statement, layer priority is decided by first
+ * appearance in the bundle, and Tailwind preflight (layer `base`) would
+ * out-rank every Astryx component style (layer `astryx-base`).
+ */
+@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
+
+/* Official app-wide theme wiring: the neutral theme's compiled tokens, layered
+   as `astryx-theme` (above astryx-base, below the app's unlayered globals.css). */
+@import '@astryxdesign/theme-neutral/theme.css' layer(astryx-theme);
