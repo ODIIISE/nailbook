@@ -37,11 +37,8 @@ export function LuxHome() {
   const [lookbookOpen, setLookbookOpen] = useState(false);
   const [addrOpen, setAddrOpen] = useState(false);
   const [videoBlocked, setVideoBlocked] = useState(false);
-  const [videoPlaying, setVideoPlaying] = useState(false);
 
-  const scrollRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const badgeRef = useRef<HTMLDivElement | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const addrTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /* Poster first: the hero paints from the owner's own image (gallery slot →
@@ -72,7 +69,7 @@ export function LuxHome() {
 
     const play = () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      v.play().catch(() => setVideoPlaying(false));
+      v.play().catch(() => {});
     };
     const onVisibility = () => {
       if (document.hidden) v.pause();
@@ -91,17 +88,6 @@ export function LuxHome() {
     };
   }, [videoBlocked]);
 
-  const toggleVideo = useCallback(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (v.paused) {
-      v.play().then(() => setVideoPlaying(true)).catch(() => setVideoPlaying(false));
-    } else {
-      v.pause();
-      setVideoPlaying(false);
-    }
-  }, []);
-
   /* Splash → choreography (load + fallback), then settle to hand
    * transform control back to :active press feedback. */
   useEffect(() => {
@@ -118,19 +104,6 @@ export function LuxHome() {
       clearTimeout(fallback);
       clearTimeout(settle);
     };
-  }, []);
-
-  /* Scroll parallax — counter-drifts the floating badge against the fixed clip */
-  useEffect(() => {
-    const sc = scrollRef.current;
-    if (!sc) return;
-    const onScroll = () => {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      const y = sc.scrollTop;
-      if (badgeRef.current) badgeRef.current.style.transform = `translate3d(0,${(y * -0.05).toFixed(1)}px,0)`;
-    };
-    sc.addEventListener("scroll", onScroll, { passive: true });
-    return () => sc.removeEventListener("scroll", onScroll);
   }, []);
 
   /* Toast feedback — dismissible */
@@ -205,8 +178,6 @@ export function LuxHome() {
             preload="metadata"
             disablePictureInPicture
             tabIndex={-1}
-            onPlay={() => setVideoPlaying(true)}
-            onPause={() => setVideoPlaying(false)}
           />
         </div>
         <div className={styles.ambient} aria-hidden="true" />
@@ -228,7 +199,7 @@ export function LuxHome() {
           </span>
         </header>
 
-        <main className={styles.scroll} ref={scrollRef}>
+        <main className={styles.scroll}>
           {/* Hero */}
           <section className={styles.hero}>
             <p className={`${styles.script} ${styles.rvBlur}`} style={d(".2s")}>Welcome to</p>
@@ -237,38 +208,6 @@ export function LuxHome() {
               تجربه‌ای آرام و دقیق برای ناخن‌هایی که امضای تو هستند
             </p>
 
-            {/* Circular editorial label → nail-work gallery. It now floats over
-                the clip instead of sitting on a slide frame. */}
-            <div className={`${styles.badge} ${styles.rvBlur}`} ref={badgeRef} style={d(".6s")}>
-              <div className={styles.badgeFloat}>
-                <svg className={styles.ring} viewBox="0 0 100 100" aria-hidden="true">
-                  <circle cx="50" cy="50" r="49" fill="var(--cream)" />
-                  <path id="ringPath" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0" fill="none" />
-                  <text><textPath href="#ringPath">EXPLORE NAIL DESIGNS • EXPLORE NAIL DESIGNS •</textPath></text>
-                </svg>
-                <button className={styles.badgeCore} aria-label="نمایش نمونه‌کارها" onClick={() => setLookbookOpen(true)}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 6 15 12 9 18" /></svg>
-                </button>
-              </div>
-            </div>
-
-            {/* WCAG 2.2.2 — the loop is auto-updating content, so the visitor
-                gets a real pause. Hidden when motion is suppressed anyway. */}
-            {!videoBlocked && (
-              <button
-                className={`${styles.videoToggle} ${styles.rvBlur}`}
-                style={d(".7s")}
-                onClick={toggleVideo}
-                aria-pressed={!videoPlaying}
-                aria-label={videoPlaying ? "توقف ویدیو" : "پخش ویدیو"}
-              >
-                {videoPlaying ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" /></svg>
-                )}
-              </button>
-            )}
           </section>
         </main>
 
