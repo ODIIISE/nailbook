@@ -25,6 +25,7 @@ export type EventType =
   | "highlight_deleted"
   | "highlight_uploaded"
   | "logo_updated"
+  | "hero_video_updated"
   | "time_blocked"
   | "time_unblocked"
   | "hours_updated"

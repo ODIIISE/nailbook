@@ -97,17 +97,21 @@ export async function GET() {
     }
     if (!rows[0]) return NextResponse.json(null);
     const s = rows[0];
-    // Homepage gallery (migration 023) — fetched separately so deployments
-    // that have not run the migration yet still load the salon fine.
+    // Homepage gallery (migration 023) + hero video (migration 024) — fetched
+    // separately so deployments that have not run the migrations yet still load
+    // the salon fine.
     let homeGalleryUrls: Array<string | null> = [];
+    let heroVideoUrl: string | null = null;
     try {
       const g = salonId
-        ? await sql.query(`SELECT home_gallery_urls FROM salons ${whereClause}`, [salonId])
-        : await sql`SELECT home_gallery_urls FROM salon_info LIMIT 1`;
+        ? await sql.query(`SELECT home_gallery_urls, hero_video_url FROM salons ${whereClause}`, [salonId])
+        : await sql`SELECT home_gallery_urls, hero_video_url FROM salon_info LIMIT 1`;
       const raw = g.rows[0]?.home_gallery_urls;
       if (Array.isArray(raw)) {
         homeGalleryUrls = raw.slice(0, 3).map((u) => (typeof u === "string" && u ? u : null));
       }
+      const video = g.rows[0]?.hero_video_url;
+      if (typeof video === "string" && video) heroVideoUrl = video;
     } catch {
       /* column not migrated yet — keep empty */
     }
@@ -128,6 +132,7 @@ export async function GET() {
       portrait_image_url: s.portrait_image_url || null,
       hero_image_url: s.hero_image_url,
       home_gallery_urls: homeGalleryUrls,
+      hero_video_url: heroVideoUrl,
       logo_url: s.logo_url,
       splash_title: hasSplashFields ? (s.splash_title || "Forehand Nail") : "Forehand Nail",
       splash_slogan: hasSplashFields ? (s.splash_slogan || "Nail Art Studio") : "Nail Art Studio",

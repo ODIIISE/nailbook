@@ -23,6 +23,11 @@ export async function PATCH(
   try {
     const { id } = await params;
 
+    // Guard the UUID cast: garbage ids previously surfaced as a 22P02 500.
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+      return NextResponse.json({ error: "شناسه نوبت نامعتبر است" }, { status: 400 });
+    }
+
     // Check if owner
     const owner = await verifyOwner(request);
 
@@ -101,6 +106,11 @@ export async function DELETE(
     }
 
     const { id } = await params;
+
+    // Guard the UUID cast: garbage ids previously surfaced as a 22P02 500.
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+      return NextResponse.json({ error: "شناسه نوبت نامعتبر است" }, { status: 400 });
+    }
 
     const salonId = await resolveSalonId();
     const bookingResult = salonId

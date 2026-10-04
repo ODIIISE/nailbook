@@ -21,6 +21,11 @@ interface BookingVerifyPageProps {
 export default async function BookingVerifyPage({ params }: BookingVerifyPageProps) {
   const { id } = await params;
 
+  // Guard the UUID cast: a garbage id previously surfaced as a 22P02 500.
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    notFound();
+  }
+
   const { rows } = await sql`
     SELECT
       b.id,

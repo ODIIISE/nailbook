@@ -288,7 +288,9 @@
 }
 
 .lede {
-  color: var(--muted);
+  /* Stronger than --muted on purpose: this copy sits directly on the moving
+     clip, where the solid-surface token only reached ~2.5:1. */
+  color: light-dark(#3a3a3a, #cfcfcf);
   font-weight: 300;
   font-size: var(--fs-1);
   line-height: 1.9;
@@ -299,115 +301,78 @@
   font-family: 'Estedad', 'Vazirmatn', sans-serif;
 }
 
-/* ── Hero media: fixed frame, 3-slide crossfade ───────── */
-/* The dvh term caps the 5/6 frame's height on short viewports; on reference
-   devices 300px governs and nothing changes. */
-.media {
-  position: relative;
-  width: min(300px, 78%, 35.5dvh);
-  margin: clamp(0.5rem, 3.3dvh, 1.75rem) auto 0;
-  perspective: 900px;
-}
-
-.parallax {
-  will-change: transform;
-}
-
-.tilt {
-  transform-style: preserve-3d;
-  will-change: transform;
-}
-
-.frame {
-  position: relative;
-  /* FIXED frame: identical box for every slide — width, height, radius.
-     5/6 portrait ≈ 1.5× the height of the previous 4/3 frame. */
-  aspect-ratio: 5 / 6;
-  border-radius: 1.875rem;
+/* ── Background clip + legibility veil ─────────────────── */
+/* The video is the page backdrop, so it sits in the same z-0 sub-stack as the
+   vignette and is fully covered by .videoScrim, which is the only tint that
+   counts for text contrast. */
+.videoLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
-  background: var(--grad-frame);
-  box-shadow: 0 2.75rem 5.5rem -2rem rgba(0, 0, 0, 0.7), 0 1.125rem 2.25rem -1.125rem rgba(0, 0, 0, 0.5);
-}
-
-.frame::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
   pointer-events: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-  z-index: 2;
+  background: var(--grad-frame);
 }
 
-.slide {
-  position: absolute;
-  inset: 0;
+.heroVideo {
   width: 100%;
   height: 100%;
+  display: block;
   object-fit: cover;
+  /* The source is a 15:1 pan; centring keeps the busy middle (where the copy
+     and the badge sit) rather than either far edge. */
   object-position: center;
-  display: block;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.85s var(--ease);
 }
 
-.slideOn {
-  opacity: 1;
+/* Alphas come from sampling this clip: worst-case frame patches measure
+   mean luminance 38 (desktop crop) / 70 (mobile crop) with highlights to 247.
+   A 0.55 veil of the theme's own canvas colour lifts/dims those past 4.5:1
+   against --ink in both themes; the edge bands add margin where the header,
+   lede and CTA copy actually land. */
+.videoScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      light-dark(rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0.76)) 0%,
+      light-dark(rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0.74)) 26%,
+      /* The middle carries no copy — let the clip breathe there. */
+      light-dark(rgba(255, 255, 255, 0.48), rgba(0, 0, 0, 0.62)) 58%,
+      light-dark(rgba(255, 255, 255, 0.86), rgba(0, 0, 0, 0.82)) 100%
+    );
 }
 
-/* ── Slide dots ───────────────────────────────────────── */
-.dots {
-  display: flex;
+/* ── Video pause control ──────────────────────────────── */
+.videoToggle {
+  position: absolute;
+  inset-block-end: clamp(0.75rem, 2.6dvh, 1.5rem);
+  inset-inline-start: var(--page-padding);
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  gap: 0.125rem;
-  margin-top: clamp(0.375rem, 1.2dvh, 0.625rem);
-}
-
-.dotBtn {
-  position: relative;
-  padding: 6px;
-  background: transparent;
-  border: 0;
-  font: inherit;
-  color: inherit;
-  display: inline-flex;
-}
-
-/* Dots: 44px horizontal hit targets (adjacent-dot separability is the
-   critical axis); vertical stays compact to preserve the frozen one-viewport
-   hero — the frame itself carries the swipe gesture as the primary control.
-   Equal padding/negative margin keeps every visual position identical. */
-.dotBtn {
-  position: relative;
-  padding: 6px 13px;
-  margin: 0 -13px;
-  background: transparent;
-  border: 0;
-  font: inherit;
-  color: inherit;
-  display: inline-flex;
-}
-
-.dotBtn span {
-  display: block;
-  width: 6px;
-  height: 6px;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 999px;
-  background: var(--line);
-  transition: width 0.35s var(--ease), background 0.35s var(--ease);
+  border: 1px solid var(--line);
+  background: light-dark(rgba(255, 255, 255, 0.72), rgba(0, 0, 0, 0.55));
+  color: var(--ink);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
 }
 
-.dotBtnOn span {
-  width: 18px;
-  background: var(--gold);
+.videoToggle:hover {
+  background: light-dark(rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0.7));
 }
 
 /* ── Circular editorial label ─────────────────────────── */
 .badge {
   position: absolute;
-  left: -30px;
-  top: 12%;
+  inset-block-end: clamp(0.5rem, 2dvh, 1.25rem);
+  inset-inline-end: var(--page-padding);
   width: 56px;
   height: 56px;
   z-index: 3;
@@ -433,7 +398,9 @@
   font-size: 8.6px;
   letter-spacing: 0.4px;
   font-weight: 600;
-  fill: var(--accent-ink);
+  /* Always dark ink: the ring sits on the cream disc in BOTH themes, and
+     --accent-ink is #fff in light — white-on-white was invisible there. */
+  fill: light-dark(#1b1b1b, #111111);
 }
 
 .badgeCore {
@@ -488,10 +455,13 @@
   padding: clamp(0.875rem, 2.37dvh, 1.25rem) var(--page-padding)
     calc(clamp(0.875rem, 2.37dvh, 1.25rem) + var(--safe-b));
   flex-shrink: 0;
+  /* Transparent → veil (never the opaque canvas): the clip has to stay visible
+     under the CTAs, while the contact row and button labels still clear 4.5:1
+     against the moving footage. */
   background: linear-gradient(
     180deg,
-    light-dark(rgba(241, 241, 241, 0), rgba(27, 27, 27, 0)) 0%,
-    var(--bg) 38%
+    light-dark(rgba(255, 255, 255, 0), rgba(0, 0, 0, 0)) 0%,
+    light-dark(rgba(255, 255, 255, 0.88), rgba(0, 0, 0, 0.8)) 42%
   );
 }
 

@@ -3,12 +3,10 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
-  type TouchEvent as ReactTouchEvent,
 } from "react";
 import { useRouter } from "next/navigation";
 import { useSalon } from "@/lib/salon-context";
@@ -17,16 +15,11 @@ import styles from "./lux-home.module.css";
 
 const d = (v: string) => ({ "--d": v }) as CSSProperties;
 
-/* Demo slides shown until the owner uploads their own homepage gallery
- * (owner settings → «گالری صفحه اصلی»). Owner URLs always win. */
-const FALLBACK_SLIDES = [
-  "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=700&h=840&q=85",
-  "https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=700&h=840&q=85",
-  "https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=700&h=840&q=85",
-];
-
-const SLIDE_MS = 4500;
-const SWIPE_PX = 48;
+/* Bundled hero clip; an owner-uploaded video (settings → «ویدیوی پس‌زمینه»)
+ * replaces it through salon.hero_video_url. Always played muted — the file
+ * itself carries an audio track that must never reach the visitor. */
+const FALLBACK_HERO_VIDEO = "/media/forehand-hero.mp4";
+const FALLBACK_HERO_POSTER = "/hero-default.jpg";
 const X_ICON = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
 );
@@ -41,24 +34,73 @@ export function LuxHome() {
   const [splashGone, setSplashGone] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [toastShow, setToastShow] = useState(false);
-  const [slide, setSlide] = useState(0);
-  const [autoplayTick, setAutoplayTick] = useState(0);
   const [lookbookOpen, setLookbookOpen] = useState(false);
   const [addrOpen, setAddrOpen] = useState(false);
+  const [videoBlocked, setVideoBlocked] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
 
   const scrollRef = useRef<HTMLElement | null>(null);
-  const parRef = useRef<HTMLDivElement | null>(null);
-  const tiltRef = useRef<HTMLDivElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const badgeRef = useRef<HTMLDivElement | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const addrTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const touchRef = useRef<{ x: number; y: number } | null>(null);
+  /* Poster first: the hero paints from the owner's own image (gallery slot →
+     hero image → bundled default) while the ~7 MB clip streams in. */
+  const heroPoster =
+    salon?.home_gallery_urls?.find((u): u is string => Boolean(u?.trim())) ??
+    salon?.hero_image_url ??
+    FALLBACK_HERO_POSTER;
+  const heroVideoSrc = salon?.hero_video_url || FALLBACK_HERO_VIDEO;
 
-  /* Owner-managed slideshow images (fall back to demo set until configured) */
-  const slides = useMemo(() => {
-    const own = (salon?.home_gallery_urls ?? []).filter((u): u is string => Boolean(u));
-    return own.length ? own.slice(0, 3) : FALLBACK_SLIDES;
-  }, [salon?.home_gallery_urls]);
+  /* Background video lifecycle. Poster-only when the visitor asked for less
+   * motion or is on a metered connection — an autoplaying hero is exactly what
+   * those two settings exist to suppress. */
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    const blocked = () => {
+      setVideoBlocked(mq.matches || Boolean(conn?.saveData));
+    };
+    blocked();
+    mq.addEventListener("change", blocked);
+    return () => mq.removeEventListener("change", blocked);
+  }, []);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+
+    const play = () => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      v.play().catch(() => setVideoPlaying(false));
+    };
+    const onVisibility = () => {
+      if (document.hidden) v.pause();
+      else if (!videoBlocked) play();
+    };
+
+    // Start once the first paint has landed, so the clip never competes with
+    // the fonts/hero image the visitor is actually waiting for.
+    const kick = (window.requestIdleCallback ?? ((cb: IdleRequestCallback) => setTimeout(cb, 700)))(() => {
+      if (!videoBlocked) play();
+    });
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      if ("cancelIdleCallback" in window) window.cancelIdleCallback(kick);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [videoBlocked]);
+
+  const toggleVideo = useCallback(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) {
+      v.play().then(() => setVideoPlaying(true)).catch(() => setVideoPlaying(false));
+    } else {
+      v.pause();
+      setVideoPlaying(false);
+    }
+  }, []);
 
   /* Splash → choreography (load + fallback), then settle to hand
    * transform control back to :active press feedback. */
@@ -78,69 +120,17 @@ export function LuxHome() {
     };
   }, []);
 
-  /* Scroll parallax (media + counter-parallax badge) */
+  /* Scroll parallax — counter-drifts the floating badge against the fixed clip */
   useEffect(() => {
     const sc = scrollRef.current;
     if (!sc) return;
     const onScroll = () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       const y = sc.scrollTop;
-      if (parRef.current) parRef.current.style.transform = `translate3d(0,${(y * 0.08).toFixed(1)}px,0)`;
       if (badgeRef.current) badgeRef.current.style.transform = `translate3d(0,${(y * -0.05).toFixed(1)}px,0)`;
     };
     sc.addEventListener("scroll", onScroll, { passive: true });
     return () => sc.removeEventListener("scroll", onScroll);
-  }, []);
-
-  /* 3D tilt — mouse on desktop, gyroscope where permitted */
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const tilt = tiltRef.current;
-    if (!tilt) return;
-
-    let trx = 0, tryY = 0, crx = 0, cry = 0, raf: number | null = null;
-    const loop = () => {
-      crx += (trx - crx) * 0.08;
-      cry += (tryY - cry) * 0.08;
-      tilt.style.transform = `rotateX(${crx.toFixed(2)}deg) rotateY(${cry.toFixed(2)}deg)`;
-      raf =
-        Math.abs(trx - crx) > 0.02 || Math.abs(tryY - cry) > 0.02
-          ? requestAnimationFrame(loop)
-          : null;
-    };
-    const set = (rx: number, ry: number) => {
-      trx = rx;
-      tryY = ry;
-      if (raf === null) raf = requestAnimationFrame(loop);
-    };
-    const onMove = (e: PointerEvent) =>
-      set(-((e.clientY / innerHeight) - 0.5) * 6, ((e.clientX / innerWidth) - 0.5) * 6);
-    const onOrient = (e: DeviceOrientationEvent) => {
-      if (e.gamma == null) return;
-      set(
-        Math.max(-10, Math.min(10, (e.beta ?? 42) - 42)) * 0.4,
-        Math.max(-12, Math.min(12, e.gamma)) * 0.4,
-      );
-    };
-    /* iOS 13+ gates motion sensors behind a user-gesture permission prompt. */
-    const askGyro = () => {
-      const DOE = DeviceOrientationEvent as unknown as {
-        requestPermission?: () => Promise<unknown>;
-      };
-      DOE.requestPermission?.().catch(() => {});
-    };
-
-    if (window.matchMedia("(pointer:fine)").matches)
-      addEventListener("pointermove", onMove, { passive: true });
-    addEventListener("deviceorientation", onOrient, { passive: true });
-    addEventListener("pointerdown", askGyro, { once: true });
-    return () => {
-      if (window.matchMedia("(pointer:fine)").matches)
-        removeEventListener("pointermove", onMove);
-      removeEventListener("deviceorientation", onOrient);
-      removeEventListener("pointerdown", askGyro);
-      if (raf !== null) cancelAnimationFrame(raf);
-    };
   }, []);
 
   /* Toast feedback — dismissible */
@@ -164,37 +154,6 @@ export function LuxHome() {
   const closeAddress = () => {
     if (addrTimer.current) clearTimeout(addrTimer.current);
     setAddrOpen(false);
-  };
-
-  /* Slideshow: autoplay every 4.5s; manual swipe/dot resets the timer */
-  useEffect(() => {
-    if (slides.length < 2) return;
-    const id = setInterval(
-      () => setSlide((s) => (s + 1) % slides.length),
-      SLIDE_MS,
-    );
-    return () => clearInterval(id);
-  }, [slides.length, autoplayTick]);
-
-  const goToSlide = (i: number) => {
-    setSlide(((i % slides.length) + slides.length) % slides.length);
-    setAutoplayTick((t) => t + 1);
-  };
-
-  const onTouchStart = (e: ReactTouchEvent) => {
-    const t = e.touches[0];
-    touchRef.current = { x: t.clientX, y: t.clientY };
-  };
-  const onTouchEnd = (e: ReactTouchEvent) => {
-    const start = touchRef.current;
-    touchRef.current = null;
-    if (!start || slides.length < 2) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - start.x;
-    const dy = t.clientY - start.y;
-    /* Horizontal intent only — never hijack vertical page scrolling. */
-    if (Math.abs(dx) < SWIPE_PX || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-    goToSlide(dx < 0 ? slide + 1 : slide - 1);
   };
 
   /* Escape closes the lookbook sheet (the app menu handles its own Escape) */
@@ -231,7 +190,30 @@ export function LuxHome() {
       onPointerDown={buzz}
     >
       <div className={styles.app}>
+        {/* Background clip — owner video (settings → «ویدیوی پس‌زمینه») with the
+            bundled clip as fallback. Muted, no controls: it is decoration, and the
+            file's own audio track must never reach the visitor. */}
+        <div className={styles.videoLayer} aria-hidden="true">
+          <video
+            ref={videoRef}
+            className={styles.heroVideo}
+            src={heroVideoSrc}
+            poster={heroPoster}
+            muted
+            playsInline
+            loop
+            preload="metadata"
+            disablePictureInPicture
+            tabIndex={-1}
+            onPlay={() => setVideoPlaying(true)}
+            onPause={() => setVideoPlaying(false)}
+          />
+        </div>
         <div className={styles.ambient} aria-hidden="true" />
+        {/* Legibility veil — alphas are derived from the clip's own sampled
+            frames so the brightest/darkest patch still clears 4.5:1 against the
+            ink in both themes. Sits above the vignette, below all content. */}
+        <div className={styles.videoScrim} aria-hidden="true" />
 
         {/* Header — inbox left, wordmark center, menu right */}
         <header className={`${styles.header} ${styles.rv}`} style={d(".1s")}>
@@ -255,60 +237,38 @@ export function LuxHome() {
               تجربه‌ای آرام و دقیق برای ناخن‌هایی که امضای تو هستند
             </p>
 
-            <figure className={`${styles.media} ${styles.rvBlur}`} style={d(".6s")}>
-              <div className={styles.parallax} ref={parRef}>
-                <div className={styles.tilt} ref={tiltRef}>
-                  <div
-                    className={styles.frame}
-                    onTouchStart={onTouchStart}
-                    onTouchEnd={onTouchEnd}
-                  >
-                    {slides.map((src, i) => (
-                      // eslint-disable-next-line @next/next/no-img-element -- fixed-frame crossfade slides (see lux-home.module.css)
-                      <img
-                        key={src}
-                        src={src}
-                        alt={`نمونه کار ناخن ${i + 1}`}
-                        width={800}
-                        height={600}
-                        fetchPriority={i === 0 ? "high" : undefined}
-                        decoding="async"
-                        draggable={false}
-                        className={`${styles.slide} ${i === slide ? styles.slideOn : ""}`}
-                      />
-                    ))}
-                  </div>
-                  {/* Slide dots */}
-                  <div className={styles.dots} role="tablist" aria-label="تصاویر صفحه اصلی">
-                    {slides.map((_, i) => (
-                      <button
-                        key={i}
-                        role="tab"
-                        aria-selected={i === slide}
-                        aria-label={`تصویر ${i + 1}`}
-                        className={`${styles.dotBtn} ${i === slide ? styles.dotBtnOn : ""}`}
-                        onClick={() => goToSlide(i)}
-                      >
-                        <span />
-                      </button>
-                    ))}
-                  </div>
-                  {/* Circular editorial label → nail-work gallery */}
-                  <div className={styles.badge} ref={badgeRef}>
-                    <div className={styles.badgeFloat}>
-                      <svg className={styles.ring} viewBox="0 0 100 100" aria-hidden="true">
-                        <circle cx="50" cy="50" r="49" fill="var(--cream)" />
-                        <path id="ringPath" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0" fill="none" />
-                        <text><textPath href="#ringPath">EXPLORE NAIL DESIGNS • EXPLORE NAIL DESIGNS •</textPath></text>
-                      </svg>
-                      <button className={styles.badgeCore} aria-label="نمایش نمونه‌کارها" onClick={() => setLookbookOpen(true)}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 6 15 12 9 18" /></svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+            {/* Circular editorial label → nail-work gallery. It now floats over
+                the clip instead of sitting on a slide frame. */}
+            <div className={`${styles.badge} ${styles.rvBlur}`} ref={badgeRef} style={d(".6s")}>
+              <div className={styles.badgeFloat}>
+                <svg className={styles.ring} viewBox="0 0 100 100" aria-hidden="true">
+                  <circle cx="50" cy="50" r="49" fill="var(--cream)" />
+                  <path id="ringPath" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0" fill="none" />
+                  <text><textPath href="#ringPath">EXPLORE NAIL DESIGNS • EXPLORE NAIL DESIGNS •</textPath></text>
+                </svg>
+                <button className={styles.badgeCore} aria-label="نمایش نمونه‌کارها" onClick={() => setLookbookOpen(true)}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 6 15 12 9 18" /></svg>
+                </button>
               </div>
-            </figure>
+            </div>
+
+            {/* WCAG 2.2.2 — the loop is auto-updating content, so the visitor
+                gets a real pause. Hidden when motion is suppressed anyway. */}
+            {!videoBlocked && (
+              <button
+                className={`${styles.videoToggle} ${styles.rvBlur}`}
+                style={d(".7s")}
+                onClick={toggleVideo}
+                aria-pressed={!videoPlaying}
+                aria-label={videoPlaying ? "توقف ویدیو" : "پخش ویدیو"}
+              >
+                {videoPlaying ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" /></svg>
+                )}
+              </button>
+            )}
           </section>
         </main>
 

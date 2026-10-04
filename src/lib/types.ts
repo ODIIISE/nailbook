@@ -17,8 +17,12 @@ export interface SalonInfo {
   instagram_handle: string;
   portrait_image_url: string | null;
   hero_image_url: string | null;
-  /** Up to 3 customer-homepage slideshow slots; null keeps the position. */
+  /** Up to 3 owner-managed homepage images; slot 1 is the hero video poster.
+   *  null keeps the position. */
   home_gallery_urls: Array<string | null>;
+  /** Owner-configured homepage background video (Vercel Blob). Null → the
+   *  bundled /media/forehand-hero.mp4 fallback. */
+  hero_video_url: string | null;
   logo_url: string | null;
   splash_title: string;
   splash_slogan: string;

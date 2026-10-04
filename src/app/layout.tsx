@@ -43,13 +43,14 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  // <meta name="theme-color"> cannot read CSS variables — these hexes are the
-  // documented mirror of the Astryx neutral body (#f1f1f1 light / #1b1b1b
-  // dark). Update together with globals.css.
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f1f1f1" },
-    { media: "(prefers-color-scheme: dark)", color: "#1b1b1b" },
-  ],
+  // <meta name="theme-color"> cannot read CSS variables — #f1f1f1 is the
+  // documented mirror of the Astryx neutral body. A single (media-less) tag:
+  // the theme flips via the `dark` class, not the OS scheme, so the
+  // pre-hydration script below and applyTheme() (use-theme.ts) rewrite the
+  // content to #1b1b1b/#f1f1f1 on every applied change — otherwise browser
+  // chrome would follow prefers-color-scheme while the page follows a manual
+  // toggle. Update together with globals.css.
+  themeColor: "#f1f1f1",
   viewportFit: "cover",
 };
 
@@ -88,7 +89,7 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=null;try{t=localStorage.getItem("nailbook-theme");}catch(e){}var dark;if(t==="dark"){dark=true}else if(t==="light"){dark=false}else{dark=window.matchMedia("(prefers-color-scheme: dark)").matches}document.documentElement.classList.toggle("dark",dark);}catch(e){}})();`,
+            __html: `(function(){try{var t=null;try{t=localStorage.getItem("nailbook-theme");}catch(e){}var dark;if(t==="dark"){dark=true}else if(t==="light"){dark=false}else{dark=window.matchMedia("(prefers-color-scheme: dark)").matches}document.documentElement.classList.toggle("dark",dark);var m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement("meta");m.name="theme-color";document.head.appendChild(m);}m.content=dark?"#1b1b1b":"#f1f1f1";}catch(e){}})();`,
           }}
         />
       </head>

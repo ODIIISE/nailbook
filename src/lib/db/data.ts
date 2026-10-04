@@ -176,6 +176,7 @@ function normalizeSalon(value: unknown): SalonInfo | null {
     home_gallery_urls: Array.isArray(value.home_gallery_urls)
       ? value.home_gallery_urls.slice(0, 3).map((u) => (typeof u === "string" && u ? u : null))
       : [],
+    hero_video_url: typeof value.hero_video_url === "string" && value.hero_video_url ? value.hero_video_url : null,
     logo_url: typeof value.logo_url === "string" ? value.logo_url : null,
     splash_title: typeof value.splash_title === "string" ? value.splash_title : "Forehand Nail",
     splash_slogan: typeof value.splash_slogan === "string" ? value.splash_slogan : "Nail Art Studio",

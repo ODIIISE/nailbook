@@ -141,6 +141,22 @@
   /* Focus ring: Astryx status-fill-accent blue — 4.05:1 on background (≥3:1). */
   --ring: #0074e2;
 
+  /* ── ASTRYX TOKEN BRIDGE ── */
+  /* Stock Astryx components resolve their palette from --color-* variables that
+     @astryxdesign/core/astryx.css declares inside @layer theme. This unlayered
+     block wins over that layer and re-points the accent family at the app's own
+     semantic tokens, so a migrated component sits beside the legacy UI with the
+     same colors in both modes: one palette, no per-component overrides, no copy
+     of the values (var(--primary) and var(--primary-foreground) flip under
+     .dark on their own). Without it Astryx falls back to its stock accent blue
+     and its dark accent (#2694FE) is only 3.1:1 against white label text.
+     The list grows as more components are migrated. */
+  --color-accent: var(--primary);
+  --color-on-accent: var(--primary-foreground);
+  --color-accent-muted: var(--accent-soft);
+  --color-text-accent: var(--primary);
+  --color-icon-accent: var(--primary);
+
   /* ── LAYOUT ── */
   /* Phone-frame width: fill narrow phones fully, cap on wide phones/desktop. */
   --frame-max-w: min(100vw, 480px);

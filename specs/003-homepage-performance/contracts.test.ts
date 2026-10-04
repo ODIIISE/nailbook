@@ -16,10 +16,15 @@ import { resolve } from "node:path";
 const root = process.cwd();
 const src = (p: string) => readFileSync(resolve(root, p), "utf8");
 
-describe("specs/003 mascot contracts (reverted to slideshow)", () => {
-  it("homepage hero is the original slideshow again — no mascot references", () => {
+describe("specs/003 mascot contracts (hero is a background clip)", () => {
+  it("homepage hero is the background video, not a slideshow — no mascot references", () => {
     const luxHome = src("src/components/landing/lux-home.tsx");
-    expect(luxHome).toContain("goToSlide");
+    // 2026-10-03 owner decision: the 3-slide crossfade slideshow (and its dots,
+    // swipe and autoplay) was replaced by a muted, looping background clip, so
+    // the old "reverted to slideshow" contract no longer describes this page.
+    // The mascot guarantees below are unchanged by that decision.
+    expect(luxHome).toContain("heroVideoSrc");
+    expect(luxHome).not.toContain("goToSlide");
     expect(luxHome).not.toMatch(/TouchMascot|touch-mascot|mascots\//i);
   });
 

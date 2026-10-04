@@ -2,7 +2,14 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { ArrowRightIcon } from "@heroicons/react/24/outline";
+import { Button } from "@astryxdesign/core/Button";
+import { Card } from "@astryxdesign/core/Card";
+import { Field } from "@astryxdesign/core/Field";
+import { Icon } from "@astryxdesign/core/Icon";
+import { IconButton } from "@astryxdesign/core/IconButton";
+import { TextInput } from "@astryxdesign/core/TextInput";
 import { PinInput } from "@/components/booking/pin-input";
 import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { useAuth } from "@/lib/auth-context";
@@ -10,6 +17,19 @@ import { getReturnTo, clearReturnTo } from "@/lib/session-expiry";
 import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
 
 type Step = "phone" | "otp" | "name";
+
+/**
+ * Validation message for the active step. Stays a live region (`role="alert"`)
+ * so an error is announced the moment it appears, not only on next focus.
+ */
+function FormError({ message }: { message: string }) {
+  return (
+    <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert">
+      <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+      {message}
+    </p>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -120,14 +140,12 @@ export default function LoginPage() {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
       <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
-        <button
-          type="button"
-          className="icon-btn text-foreground"
+        <IconButton
+          label="بازگشت"
+          icon={<Icon icon={ArrowRightIcon} color="inherit" />}
+          variant="ghost"
           onClick={goBack}
-          aria-label="بازگشت"
-        >
-          <ArrowRight className="h-5 w-5" aria-hidden="true" />
-        </button>
+        />
         <div className="min-w-0 overflow-hidden text-center">
           <span className="block text-xs font-bold text-primary">{kicker}</span>
           <h2 className="truncate text-lg font-bold">{title}</h2>
@@ -137,10 +155,12 @@ export default function LoginPage() {
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-[max(34px,calc(34px+env(safe-area-inset-bottom)))] pt-[clamp(18px,7dvh,64px)]">
         {step === "phone" && (
-          <div className="w-full rounded-xl border border-border bg-card p-5 shadow-card">
+          <Card padding={5} width="100%">
             <p className="mb-3.5 text-sm font-bold">شماره موبایل خود را وارد کنید</p>
-            <div className="mb-3">
-              <label htmlFor="login-phone" className="mb-1.5 block text-xs font-bold text-muted-foreground">شماره موبایل</label>
+            {/* Stock Field shell + a native control: the phone field needs
+                type="tel", inputMode="numeric" and dir="ltr" for Persian number
+                entry (TextInput intentionally omits inputMode). */}
+            <Field label="شماره موبایل" inputID="login-phone">
               <input
                 id="login-phone"
                 type="tel"
@@ -154,24 +174,23 @@ export default function LoginPage() {
                 autoComplete="tel"
                 autoFocus
               />
-            </div>
-            {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
+            </Field>
+            {error && <FormError message={error} />}
             {/* Enabled while idle so an invalid number explains itself on tap
                 (the handler already shows the error) instead of a silently
                 dead button — no visible reason = missing state (P5). */}
-            <button
-              type="button"
-              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/70"
+            <Button
+              label="دریافت کد"
+              variant="primary"
+              isLoading={isLoading}
               onClick={handlePhoneSubmit}
-              disabled={isLoading}
-            >
-              {isLoading ? "در حال ارسال…" : "دریافت کد"}
-            </button>
-          </div>
+              className="mt-3.5 w-full"
+            />
+          </Card>
         )}
 
         {step === "otp" && (
-          <div className="w-full rounded-xl border border-border bg-card p-5 shadow-card">
+          <Card padding={5} width="100%">
             <p className="mb-3.5 text-sm font-bold">کد ۶ رقمی پیامک‌شده را وارد کنید</p>
             <div className="mb-4 flex items-center gap-3 rounded-lg border border-success/25 bg-muted p-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">✓</span>
@@ -181,7 +200,7 @@ export default function LoginPage() {
               </span>
             </div>
             <PinInput key={otpAttempt} length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
-            {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
+            {error && <FormError message={error} />}
             <div className="mt-4 flex flex-col items-stretch gap-1.5 border-t border-border pt-3" aria-label="گزینه‌های کد ورود">
               <ResendOtpButton
                 onResend={async () => {
@@ -190,44 +209,39 @@ export default function LoginPage() {
                 }}
                 disabled={isLoading}
               />
-              <button
-                type="button"
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-lg text-xs font-bold text-primary"
+              <Button
+                label="تغییر شماره"
+                variant="ghost"
+                size="sm"
                 onClick={() => { setStep("phone"); setError(""); }}
-              >
-                تغییر شماره
-              </button>
+                className="w-full"
+              />
             </div>
-          </div>
+          </Card>
         )}
 
         {step === "name" && (
-          <div className="w-full rounded-xl border border-border bg-card p-5 shadow-card">
+          <Card padding={5} width="100%">
             <p className="mb-3.5 text-sm font-bold">نام و نام خانوادگی خود را وارد کنید</p>
-            <div className="mb-3">
-              <label htmlFor="login-name" className="mb-1.5 block text-xs font-bold text-muted-foreground">نام و نام خانوادگی</label>
-              <input
-                id="login-name"
-                type="text"
-                className="h-12 w-full rounded-lg border border-input bg-card px-3.5 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !isLoading && handleNameSubmit()}
-                placeholder="مثال: سارا احمدی"
-                autoComplete="name"
-                autoFocus
-              />
-            </div>
-            {error && <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert"><AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />{error}</p>}
-            <button
-              type="button"
-              className="mt-3.5 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/70"
+            <TextInput
+              label="نام و نام خانوادگی"
+              value={name}
+              onChange={(value) => setName(value)}
+              onEnter={handleNameSubmit}
+              hasAutoFocus
+              autoComplete="name"
+              placeholder="مثال: سارا احمدی"
+              width="100%"
+            />
+            {error && <FormError message={error} />}
+            <Button
+              label="تکمیل ثبت‌نام"
+              variant="primary"
+              isLoading={isLoading}
               onClick={handleNameSubmit}
-              disabled={isLoading}
-            >
-              {isLoading ? "در حال ثبت…" : "تکمیل ثبت‌نام"}
-            </button>
-          </div>
+              className="mt-3.5 w-full"
+            />
+          </Card>
         )}
       </div>
     </div>

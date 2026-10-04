@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
       "name", "description", "slogan", "phone", "address", "city", "instagram_handle", "portrait_image_url",
       "hero_image_url", "logo_url", "splash_title", "splash_slogan", "splash_logo_url",
       "home_gallery_urls",
+      "hero_video_url",
       "homepage_kicker", "homepage_cta_label", "homepage_micro", "lookbook_title", "booking_success_title",
       "working_hours_text",
       "working_hours", "specific_days_off",
@@ -76,6 +77,24 @@ export async function POST(request: NextRequest) {
         safeUpdates.home_gallery_urls.some((u) => u !== null && typeof u !== "string"))
     ) {
       return NextResponse.json({ error: "فرمت گالری صفحه اصلی نامعتبر است" }, { status: 400 });
+    }
+    // The value lands in a <video src>, so only http(s) URLs (or null to clear)
+    // are accepted — a "javascript:" string must never reach the DOM.
+    if (safeUpdates.hero_video_url !== undefined) {
+      const raw = safeUpdates.hero_video_url;
+      if (raw === null || raw === "") {
+        safeUpdates.hero_video_url = null;
+      } else if (typeof raw === "string") {
+        try {
+          const parsed = new URL(raw);
+          if (parsed.protocol !== "https:" && parsed.protocol !== "http:") throw new Error("bad protocol");
+          safeUpdates.hero_video_url = parsed.toString();
+        } catch {
+          return NextResponse.json({ error: "آدرس ویدیو معتبر نیست" }, { status: 400 });
+        }
+      } else {
+        return NextResponse.json({ error: "آدرس ویدیو معتبر نیست" }, { status: 400 });
+      }
     }
     if (safeUpdates.working_hours !== undefined && !isValidWorkingHours(safeUpdates.working_hours)) {
       return NextResponse.json({ error: "ساعات کاری نامعتبر است" }, { status: 400 });

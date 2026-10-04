@@ -10,7 +10,7 @@ import { SalonGuard } from "@/components/ui/salon-guard";
 import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
 import Image from "next/image";
-import { Save, Camera, Phone, FileText, Sparkles } from "lucide-react";
+import { Save, Camera, Phone, FileText, Sparkles, Video } from "lucide-react";
 
 export default function OwnerSettingsPage() {
   const { salon, updateSalon } = useSalon();
@@ -28,7 +28,7 @@ export default function OwnerSettingsPage() {
       const [splashLogoUrl, setSplashLogoUrl] = useState(salon.splash_logo_url || "");
   const [portraitUrl, setPortraitUrl] = useState(salon.portrait_image_url || "");
   const [heroUrl, setHeroUrl] = useState(salon.hero_image_url || "");
-  // Homepage gallery (3 customer-facing slideshow slots; null keeps the slot)
+  // Homepage gallery (3 owner slots; slot 1 is the hero poster, null keeps position)
   const [galleryUrls, setGalleryUrls] = useState<Array<string | null>>(
     salon.home_gallery_urls ?? [null, null, null],
   );
@@ -37,6 +37,10 @@ export default function OwnerSettingsPage() {
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const [portraitUploading, setPortraitUploading] = useState(false);
   const [heroUploading, setHeroUploading] = useState(false);
+  // Homepage background video (null → the bundled /media/forehand-hero.mp4)
+  const [heroVideoUrl, setHeroVideoUrl] = useState(salon.hero_video_url || "");
+  const [heroVideoUploading, setHeroVideoUploading] = useState(false);
+  const heroVideoInputRef = useRef<HTMLInputElement>(null);
   const [splashUploading, setSplashUploading] = useState(false);
   const [splashCropImage, setSplashCropImage] = useState<string | null>(null);
   const splashFileInputRef = useRef<HTMLInputElement>(null);
@@ -219,7 +223,30 @@ export default function OwnerSettingsPage() {
     }
   };
 
-  // ─── Homepage gallery (3 slideshow slots) ───
+  // ─── Homepage background video ───
+  const handleHeroVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setHeroVideoUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file, file.name);
+      const res = await fetch("/api/upload-hero-video", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("upload");
+      const data = await res.json();
+      if (!data.url) throw new Error("upload");
+      await updateSalon({ hero_video_url: data.url });
+      setHeroVideoUrl(data.url);
+      toast.success("ویدیوی پس‌زمینه ذخیره شد");
+    } catch {
+      toast.error("خطا در آپلود ویدیو");
+    } finally {
+      setHeroVideoUploading(false);
+    }
+  };
+
+  // ─── Homepage gallery (3 customer-facing slots) ───
   const handleGalleryFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const index = Number(galleryInputRef.current?.dataset.index ?? "-1");
     const file = e.target.files?.[0];
@@ -409,14 +436,67 @@ export default function OwnerSettingsPage() {
         {heroUrl && <button type="button" onClick={async () => { setHeroUrl(""); await updateSalon({ hero_image_url: null }); toast.success("تصویر حذف شد"); }} className="text-small text-destructive hover:underline">حذف تصویر</button>}
       </Card>
 
-      {/* Homepage gallery — 3 customer-facing slideshow slots */}
+      {/* Homepage background video — silent, looping clip behind the hero */}
+      <Card className="p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Video className="h-4 w-4 text-primary" />
+          <h3 className="font-semibold text-foreground">ویدیوی پس‌زمینه صفحه اصلی</h3>
+        </div>
+        <p className="text-small text-muted-foreground -mt-2">
+          یک کلیپ کوتاه و بی‌صدا پشت عنوان صفحه اصلی پخش می‌شود. افقی یا عمودی، حداکثر ۲۵ مگابایت.
+          بدون ویدیو، کلیپ پیش‌فرض سایت نمایش داده می‌شود.
+        </p>
+        <input
+          ref={heroVideoInputRef}
+          type="file"
+          accept="video/mp4,video/webm"
+          onChange={handleHeroVideoSelect}
+          className="hidden"
+        />
+        <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-muted">
+          {heroVideoUrl ? (
+            <video src={heroVideoUrl} muted playsInline loop preload="metadata" className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <Video className="h-5 w-5 text-muted-foreground" />
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => heroVideoInputRef.current?.click()}
+            disabled={heroVideoUploading}
+            aria-label="تغییر ویدیوی پس‌زمینه"
+            className="absolute bottom-1 left-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"
+          >
+            <Video className="h-3.5 w-3.5" />
+          </button>
+          {heroVideoUploading && (
+            <div className="absolute inset-0 grid place-items-center bg-background/60 text-caption">در حال آپلود…</div>
+          )}
+        </div>
+        {heroVideoUrl && (
+          <button
+            type="button"
+            onClick={async () => {
+              setHeroVideoUrl("");
+              await updateSalon({ hero_video_url: null });
+              toast.success("ویدیو حذف شد");
+            }}
+            className="text-small text-destructive hover:underline"
+          >
+            حذف ویدیو
+          </button>
+        )}
+      </Card>
+
+      {/* Homepage gallery — 3 customer-facing slots */}
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Camera className="h-4 w-4 text-primary" />
           <h3 className="font-semibold text-foreground">گالری صفحه اصلی</h3>
         </div>
         <p className="text-small text-muted-foreground -mt-2">
-          سه تصویر اسلایدشو صفحه اصلی مشتریان. جای خالی خودکار با تصویر نمونه پر می‌شود. مربع یا افقی، حداکثر ۵ مگابایت.
+          تصویر اول نقش «پوستر» ویدیوی پس‌زمینه صفحه اصلی را دارد و پیش از پخش ویدیو نشان داده می‌شود؛ تصاویر دوم و سوم فعلاً استفاده نمی‌شوند. مربع یا افقی، حداکثر ۵ مگابایت.
         </p>
         <input
           ref={galleryInputRef}

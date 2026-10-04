@@ -127,24 +127,27 @@ async function loadSalon(): Promise<SalonLoad> {
   }
 }
 
-async function loadHomeGallery(salonId: string | null): Promise<Array<string | null>> {
-  // Homepage gallery (migration 023) — fetched separately so deployments
-  // that have not run the migration yet still load the salon fine.
+async function loadHomeMedia(salonId: string | null): Promise<{ urls: Array<string | null>; heroVideoUrl: string | null }> {
+  // Homepage gallery (migration 023) + hero video (migration 024) — fetched
+  // separately so deployments that have not run the migrations yet still load
+  // the salon fine.
   try {
     const g = salonId
-      ? await sql.query("SELECT home_gallery_urls FROM salons WHERE id::text = $1 OR slug = $1 LIMIT 1", [salonId])
-      : await sql`SELECT home_gallery_urls FROM salon_info LIMIT 1`;
+      ? await sql.query("SELECT home_gallery_urls, hero_video_url FROM salons WHERE id::text = $1 OR slug = $1 LIMIT 1", [salonId])
+      : await sql`SELECT home_gallery_urls, hero_video_url FROM salon_info LIMIT 1`;
     const raw = g.rows[0]?.home_gallery_urls;
-    if (Array.isArray(raw)) {
-      return raw.slice(0, 3).map((u) => (typeof u === "string" && u ? u : null));
-    }
+    const urls = Array.isArray(raw)
+      ? raw.slice(0, 3).map((u) => (typeof u === "string" && u ? u : null))
+      : [];
+    const video = g.rows[0]?.hero_video_url;
+    return { urls, heroVideoUrl: typeof video === "string" && video ? video : null };
   } catch {
     /* column not migrated yet — keep empty */
   }
-  return [];
+  return { urls: [], heroVideoUrl: null };
 }
 
-function composeSalon(load: SalonLoad, homeGalleryUrls: Array<string | null>): Record<string, unknown> | null {
+function composeSalon(load: SalonLoad, homeGalleryUrls: Array<string | null>, heroVideoUrl: string | null): Record<string, unknown> | null {
   const s = load.row;
   if (!s) return null;
   const optimizerSettings = load.hasHybridFields
@@ -166,6 +169,7 @@ function composeSalon(load: SalonLoad, homeGalleryUrls: Array<string | null>): R
     portrait_image_url: s.portrait_image_url || null,
     hero_image_url: s.hero_image_url,
     home_gallery_urls: homeGalleryUrls,
+    hero_video_url: heroVideoUrl,
     logo_url: s.logo_url,
     splash_title: load.hasSplashFields ? (s.splash_title || "Forehand Nail") : "Forehand Nail",
     splash_slogan: load.hasSplashFields ? (s.splash_slogan || "Nail Art Studio") : "Nail Art Studio",
@@ -352,7 +356,8 @@ export async function GET(request: NextRequest) {
     loadHighlights(),
   ]);
 
-  const salon = composeSalon(salonLoad, salonLoad.row ? await loadHomeGallery(getSalonId()) : []);
+  const homeMedia = salonLoad.row ? await loadHomeMedia(getSalonId()) : { urls: [], heroVideoUrl: null };
+  const salon = composeSalon(salonLoad, homeMedia.urls, homeMedia.heroVideoUrl);
 
   const payload: Record<string, unknown> = { salon, services, addons, highlights };
 

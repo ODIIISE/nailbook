@@ -49,6 +49,10 @@ function writeStoredMode(mode: ThemeMode) {
 
 function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle("dark", theme === "dark");
+  // Keep browser chrome (theme-color) on the applied theme, not the OS
+  // scheme — manual toggles must recolor status bar / browser UI too.
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", theme === "dark" ? "#1b1b1b" : "#f1f1f1");
 }
 
 function apply(theme: Theme, mode: ThemeMode) {
