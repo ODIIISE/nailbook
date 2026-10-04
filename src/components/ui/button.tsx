@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring active:not-aria-[haspopup]:translate-y-px aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 " +
+  "group/button inline-flex shrink-0 items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap outline-none select-none transition-transform duration-[var(--duration-micro)] ease-[var(--ease-standard)] focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring active:not-aria-[haspopup]:scale-[0.97] aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 " +
     // Disabled: tinted, quiet, still legible (~7:1) — the old opacity-50
     // collapsed text to ~1.9:1. Hover never grows a shadow (touch-first).
     "disabled:pointer-events-none disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/70 disabled:shadow-none",
@@ -25,12 +25,12 @@ const buttonVariants = cva(
           "bg-foreground text-background hover:bg-foreground/85 shadow-xs",
       },
       size: {
-        xs: "h-[var(--btn-xs)] gap-1 px-2 text-caption has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-[var(--btn-sm)] gap-1 px-2.5 text-caption has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        md: "h-[var(--btn-md)] gap-1.5 px-3 text-sm has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        lg: "h-[var(--btn-lg)] gap-1.5 px-4 text-sm has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5",
-        xl: "h-[var(--btn-xl)] gap-2 px-5 text-sm has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
-        "2xl": "h-[var(--btn-2xl)] gap-2 px-6 text-base has-data-[icon=inline-end]:pr-4 has-data-[icon=inline-start]:pl-4",
+        xs: "h-[var(--btn-xs)] gap-1 px-2 text-caption has-data-[icon=inline-end]:pe-1.5 has-data-[icon=inline-start]:ps-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-[var(--btn-sm)] gap-1 px-2.5 text-caption has-data-[icon=inline-end]:pe-1.5 has-data-[icon=inline-start]:ps-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        md: "h-[var(--btn-md)] gap-1.5 px-3 text-sm has-data-[icon=inline-end]:pe-2 has-data-[icon=inline-start]:ps-2",
+        lg: "h-[var(--btn-lg)] gap-1.5 px-4 text-sm has-data-[icon=inline-end]:pe-2.5 has-data-[icon=inline-start]:ps-2.5",
+        xl: "h-[var(--btn-xl)] gap-2 px-5 text-sm has-data-[icon=inline-end]:pe-3 has-data-[icon=inline-start]:ps-3",
+        "2xl": "h-[var(--btn-2xl)] gap-2 px-6 text-base has-data-[icon=inline-end]:pe-4 has-data-[icon=inline-start]:ps-4",
         icon: "size-[var(--btn-md)]",
         "icon-sm": "size-[var(--btn-sm)]",
         "icon-lg": "size-[var(--btn-lg)]",

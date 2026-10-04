@@ -311,7 +311,7 @@ export default function NewSalonPage() {
                 <Rocket className="h-4 w-4" />
                 <span className="font-medium">عملیات استقرار:</span>
               </div>
-              <ul className="text-sm text-muted-foreground space-y-1.5 mr-6">
+              <ul className="text-sm text-muted-foreground space-y-1.5 ms-6">
                 <li className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
                   ایجاد سایت اختصاصی سالن

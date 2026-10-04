@@ -199,7 +199,7 @@ export default function OwnerHighlightsPage() {
           </p>
         </div>
         <Button size="sm" onClick={() => setShowCreateModal(true)}>
-          <Plus className="h-4 w-4 ml-1" />
+          <Plus className="h-4 w-4 ms-1" />
           جدید
         </Button>
       </div>
@@ -208,7 +208,7 @@ export default function OwnerHighlightsPage() {
         <Card className="p-8 text-center">
           <p className="text-muted-foreground">هنوز هایلایتی اضافه نشده</p>
           <Button size="sm" className="mt-3" onClick={() => setShowCreateModal(true)}>
-            <Plus className="h-4 w-4 ml-1" />
+            <Plus className="h-4 w-4 ms-1" />
             ایجاد هایلایت
           </Button>
         </Card>
@@ -222,7 +222,7 @@ export default function OwnerHighlightsPage() {
                 {/* Collapsed header — always visible */}
                 <button
                   onClick={() => toggleExpand(highlight)}
-                  className="w-full p-4 flex items-center gap-3 text-left hover:bg-muted"
+                  className="w-full p-4 flex items-center gap-3 text-start hover:bg-muted"
                 >
                   <div className="relative w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0">
                     {highlight.cover_url ? (
@@ -452,7 +452,7 @@ export default function OwnerHighlightsPage() {
                           }}
                           disabled={isUploading}
                         >
-                          <ImagePlus className="h-4 w-4 ml-1" />
+                          <ImagePlus className="h-4 w-4 ms-1" />
                           {isUploading && uploadingHighlightId === expandedHighlight.id ? "آپلود..." : "افزودن"}
                         </Button>
                         <input

@@ -242,7 +242,7 @@ export function PrintedReceipt({
             <div className="relative z-10 mt-4 text-center">
               <span className="text-xs text-muted-foreground">شماره رزرو:</span>
               <span
-                className="mr-1 inline-block select-all text-sm font-bold tabular-nums tracking-widest text-primary"
+                className="me-1 inline-block select-all text-sm font-bold tabular-nums tracking-widest text-primary"
                 dir="ltr"
               >
                 {bookingId}

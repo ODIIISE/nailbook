@@ -268,7 +268,7 @@ function ServicesTab({
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
           onClick={() => setIsAdding(true)}
         >
-          <Plus className="h-4 w-4 ml-1" />
+          <Plus className="h-4 w-4 ms-1" />
           افزودن خدمت
         </Button>
       )}
@@ -538,7 +538,7 @@ function AddonsTab({
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
           onClick={() => setIsAdding(true)}
         >
-          <Plus className="h-4 w-4 ml-1" />
+          <Plus className="h-4 w-4 ms-1" />
           افزودن آپشن
         </Button>
       )}

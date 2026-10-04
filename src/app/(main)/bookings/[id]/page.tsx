@@ -112,7 +112,7 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
                 <MapPin className="h-4 w-4" aria-hidden="true" />
                 آدرس
               </span>
-              <span className="text-left text-xs">{booking.salon_address}</span>
+              <span className="text-start text-xs">{booking.salon_address}</span>
             </div>
           )}
 

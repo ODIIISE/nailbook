@@ -76,7 +76,7 @@ export default function AdminBootstrapPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-background">
       <div className="w-full max-w-sm">
-        <Card className="glass p-6">
+        <Card className="surface p-6">
           <div className="text-center mb-6">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               <Shield className="h-6 w-6 text-primary" />

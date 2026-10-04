@@ -441,12 +441,12 @@ export function ScheduleManager({
               disabled={isSaving}
               className="text-muted-foreground"
             >
-              <Undo2 className="h-4 w-4 ml-1" />
+              <Undo2 className="h-4 w-4 ms-1" />
               انصراف
             </Button>
           )}
           <Button size="sm" onClick={handleSave} disabled={!hasChanges || isSaving} className="bg-foreground text-background hover:bg-foreground/90">
-            <Save className={`h-4 w-4 ml-1 ${isSaving ? "" : ""}`} />
+            <Save className={`h-4 w-4 ms-1 ${isSaving ? "" : ""}`} />
             {isSaving ? "در حال ذخیره..." : "ذخیره"}
           </Button>
         </div>
@@ -472,7 +472,7 @@ export function ScheduleManager({
                     onClick={() => applyToAll(day.key)}
                     className="text-xs text-muted-foreground"
                   >
-                    <Copy className="h-3 w-3 ml-1" />
+                    <Copy className="h-3 w-3 ms-1" />
                     اعمال به همه
                   </Button>
                 )}

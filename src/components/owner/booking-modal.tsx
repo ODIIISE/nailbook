@@ -177,7 +177,7 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
               <span className="text-small text-muted-foreground mx-1">•</span>
               <Clock className="h-3 w-3 text-muted-foreground" />
               <span className="text-small text-muted-foreground">{toPersianDigits(booking.start_time.slice(0, 5))} – {toPersianDigits(booking.end_time.slice(0, 5))}</span>
-              <span className="text-small text-muted-foreground ml-auto">{toPersianDigits(duration)} دقیقه</span>
+              <span className="text-small text-muted-foreground ms-auto">{toPersianDigits(duration)} دقیقه</span>
             </div>
           </div>
 

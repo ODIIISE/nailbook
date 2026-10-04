@@ -126,7 +126,7 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
             >
               {tab.label}
               {count > 0 && (
-                <span className="text-small opacity-60 mr-1">({toPersianDigits(count)})</span>
+                <span className="text-small opacity-60 me-1">({toPersianDigits(count)})</span>
               )}
             </button>
           );
@@ -152,7 +152,7 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
                   <button
                     key={log.id}
                     onClick={() => setSelectedLog(log)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-muted/50 text-right transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-muted/50 text-start transition-colors"
                   >
                     <span className={`w-2 h-2 rounded-full shrink-0 ${config.dot}`} aria-hidden="true" />
                     <div className="flex-1 min-w-0">

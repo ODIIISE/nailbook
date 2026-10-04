@@ -44,7 +44,7 @@ interface AuthCardRootProps {
 
 export function AuthCardRoot({ children, className }: AuthCardRootProps) {
   return (
-    <Card className={cn("glass p-6 sm:p-8 rounded-3xl", className)}>
+    <Card className={cn("surface p-6 sm:p-8 rounded-3xl", className)}>
       {children}
     </Card>
   );
@@ -57,7 +57,7 @@ interface AuthErrorProps {
 export function AuthError({ error }: AuthErrorProps) {
   if (!error) return null;
   return (
-    <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-slideUp">
+    <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
       <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
       <p className="text-caption text-destructive leading-relaxed">{error}</p>
     </div>

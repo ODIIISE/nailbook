@@ -78,7 +78,8 @@ The Editorial surface (homepage) carries its own scoped composition tokens insid
 | Body L | `.text-body-lg` | 16px · 400 · 1.6 | Important reading text |
 | Body | `.text-body` | 14px · 400 · 1.55 | Default |
 | Caption | `.text-caption` | 12px · 500 · 1.45 | Labels, metadata |
-| Small | `.text-small` | 12px · 400 · 1.4 | Floor — never smaller |
+| Small | `.text-small` | 12px · 400 · 1.4 | Content floor — never smaller for readable text |
+| Micro | `.text-micro` | 11px · 500 · 1.4 | Non-interactive metadata only (badges, kickers, weekday initials, tracking codes) — never body, buttons, or inputs |
 
 ### Editorial typography
 

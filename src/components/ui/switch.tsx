@@ -21,7 +21,7 @@ function Switch({ checked, onCheckedChange, disabled, className }: SwitchProps) 
       className={cn(
         // 52×32 — the 50×30 shell sat below the system's own 44px touch
         // mandate (§12); knob travel animates on the standard motion token.
-        "relative inline-flex h-[32px] w-[52px] shrink-0 cursor-pointer items-center rounded-full p-[3px] outline-none border transition-colors duration-[var(--duration-micro)] ease-[var(--ease-standard)]",
+        "relative inline-flex h-[32px] w-[52px] shrink-0 cursor-pointer items-center rounded-full p-[3px] outline-none border transition-colors duration-[var(--duration-micro)] ease-[var(--ease-standard)] focus-visible:ring-1 focus-visible:ring-ring",
         checked
           ? "bg-foreground border-foreground/20"
           : "bg-secondary border-border",

@@ -177,7 +177,7 @@ export default function OwnerLoginPage() {
                 className="w-full"
                 onClick={() => { setStep("phone"); setError(""); }}
               >
-                <ArrowRight className="h-4 w-4 ml-2" />
+                <ArrowRight className="h-4 w-4 ms-2" />
                 تغییر شماره
               </Button>
             </div>
