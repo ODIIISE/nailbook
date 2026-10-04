@@ -2,7 +2,6 @@
 
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "./menu-context";
 import { haptic } from "@/lib/haptics";
@@ -29,7 +28,6 @@ export function AppHeader() {
       <div className="mx-auto flex h-[52px] max-w-lg items-center justify-between px-4">
         <span className="text-body font-bold text-foreground">{salon.name}</span>
         <div className="flex items-center gap-1">
-          <ThemeToggle />
           <Button
             variant="ghost"
             size="icon-sm"

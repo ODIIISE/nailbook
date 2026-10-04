@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Providers } from "./providers";
-import { DeviceThemeSync } from "@/components/layout/device-theme-sync";
 // Astryx CSS must load before globals.css: reset.css declares the canonical
 // @layer order (reset, astryx-base, astryx-theme), and astryx.css sets :root
 // custom properties (--color-accent, --color-success, …) that globals.css
@@ -43,14 +42,10 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  // <meta name="theme-color"> cannot read CSS variables — #f1f1f1 is the
-  // documented mirror of the Astryx neutral body. A single (media-less) tag:
-  // the theme flips via the `dark` class, not the OS scheme, so the
-  // pre-hydration script below and applyTheme() (use-theme.ts) rewrite the
-  // content to #1b1b1b/#f1f1f1 on every applied change — otherwise browser
-  // chrome would follow prefers-color-scheme while the page follows a manual
-  // toggle. Update together with globals.css.
-  themeColor: "#f1f1f1",
+  // <meta name="theme-color"> cannot read CSS variables — #1b1b1b is the
+  // documented mirror of the Astryx neutral body, the app's single (dark-only)
+  // palette. Update together with globals.css and public/manifest.json.
+  themeColor: "#1b1b1b",
   viewportFit: "cover",
 };
 
@@ -59,13 +54,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // suppressHydrationWarning: the inline theme script below toggles the
-  // `dark` class on <html> before React hydrates (it must, to avoid a theme
-  // flash). That intentional pre-hydration mutation makes React's
-  // class-attribute diff a false positive, so it is suppressed here — the
-  // official Next.js pattern for theme scripts.
+  // `dark` is static on <html>: the app ships a single dark palette, so there
+  // is no runtime theme resolution to flash — globals.css `.dark` block and
+  // `color-scheme: dark` apply from the first byte of CSS.
   return (
-    <html lang="fa" dir="rtl" className="h-full antialiased" suppressHydrationWarning>
+    <html lang="fa" dir="rtl" className="h-full antialiased dark">
       <head>
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
@@ -87,14 +80,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Forehand Nail" />
         <meta name="application-name" content="Forehand Nail" />
         <meta name="format-detection" content="telephone=no" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=null;try{t=localStorage.getItem("nailbook-theme");}catch(e){}var dark;if(t==="dark"){dark=true}else if(t==="light"){dark=false}else{dark=window.matchMedia("(prefers-color-scheme: dark)").matches}document.documentElement.classList.toggle("dark",dark);var m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement("meta");m.name="theme-color";document.head.appendChild(m);}m.content=dark?"#1b1b1b":"#f1f1f1";}catch(e){}})();`,
-          }}
-        />
       </head>
       <body className="min-h-full flex flex-col">
-        <DeviceThemeSync />
         <Providers>
           <ErrorBoundary>{children}</ErrorBoundary>
           <Toaster />

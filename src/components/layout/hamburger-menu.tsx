@@ -29,7 +29,6 @@ import { toPersianDigits } from "@/lib/jalali";
 import { getTehranDateKey } from "@/lib/time";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { ThemeModeMenu } from "@/components/ui/theme-toggle";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -399,10 +398,6 @@ export function HamburgerMenu() {
             {role === "customer" && <CustomerContent onRequestLogout={() => setConfirmLogout(true)} />}
             {role === "owner" && <OwnerContent onRequestLogout={() => setConfirmLogout(true)} />}
           </nav>
-
-          <div className="border-t border-border px-5 py-3">
-            <ThemeModeMenu onSelect={closeMenu} />
-          </div>
 
           {role !== "owner" && (
             <div className="border-t border-border px-5 py-2 text-center">
