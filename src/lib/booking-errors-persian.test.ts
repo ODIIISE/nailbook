@@ -245,6 +245,10 @@ describe("owner day-of loop: timeline + shared calendar + touch (AUDIT-013)", ()
 describe("Atelier motion + toast diet (AUDIT-014)", () => {
   const globals = readFileSync(resolve(__dirname, "../app/globals.css"), "utf8");
   const bookingFlow = readSource("../components/booking/booking-flow.tsx");
+  // ServiceCard was extracted from booking-flow but renders inside it — the
+  // governed motion classes live there now, so both files count.
+  const serviceCard = readSource("../components/booking/service-card.tsx");
+  const bookingUi = bookingFlow + "\n" + serviceCard;
   const timeline = readSource("../components/owner/timeline.tsx");
 
   it("system defines the governed feedback classes with tokens only", () => {
@@ -261,8 +265,21 @@ describe("Atelier motion + toast diet (AUDIT-014)", () => {
     expect(bookingFlow).toMatch(/stepDirection === "back" \? "step-enter-back" : "step-enter-fwd"/);
     expect(bookingFlow).not.toMatch(/stepDirection\.current/); // refs are not read in render
     expect(bookingFlow.match(/stepAnimClass/g)?.length).toBeGreaterThanOrEqual(5); // 4 sections + definition
-    for (const cls of ["pressable ", "pressable-soft ", "reveal-item "]) {
-      expect(bookingFlow.includes(cls), ).toBe(true);
+    // Class-token match: the governed classes must appear as whole class
+    // tokens in the booking UI (booking-flow + extracted ServiceCard).
+    // A trailing-space substring check misses `className="reveal-item"`,
+    // so split class attributes into tokens instead.
+    const classTokens = bookingUi
+      .match(/className=(?:"([^"]*)"|`([^`]*)`|\{`([^`]*)`})/g)
+      ?.flatMap((attr) =>
+        attr
+          .replace(/^className=(?:"|`|\{`)/, "")
+          .replace(/(?:"|`|`})$/, "")
+          .split(/[\s$`{}]+/),
+      )
+      .filter(Boolean) ?? [];
+    for (const cls of ["pressable", "pressable-soft", "reveal-item"]) {
+      expect(classTokens.includes(cls), ).toBe(true);
     }
   });
 

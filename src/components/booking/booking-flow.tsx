@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, Clock, Images, Loader2,
+  ArrowLeft, ArrowRight, CalendarDays, Check, Clock, Images, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
@@ -19,6 +19,7 @@ import { useBookingsPolling } from "@/lib/hooks/use-bookings-polling";
 import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
 import { compactToman } from "@/lib/pricing";
 import { haptic } from "@/lib/haptics";
+import { ServiceCard } from "@/components/booking/service-card";
 import { ServiceImage } from "@/components/ui/service-image";
 import { PinInput } from "@/components/booking/pin-input";
 import { ResendOtpButton } from "@/components/auth/resend-otp-button";
@@ -704,37 +705,21 @@ export function BookingFlow({ initialServiceId = null, lookId = null, inSheet = 
                   key={s.id}
                   ref={(node) => { serviceCardRefs.current[s.id] = node; }}
                   style={{ "--stagger-i": Math.min(svcIdx, 5) } as CSSProperties}
-                  className={`reveal-item overflow-hidden rounded-none border bg-card text-card-foreground ${isSelected ? "border-card-foreground" : "border-border"}`}
+                  className="reveal-item"
                 >
-                  <button
-                    type="button"
-                    onClick={() => handleSelectService(s.id)}
-                    aria-pressed={isSelected}
-                    aria-expanded={isExpanded}
-                    className="pressable-soft flex w-full items-center gap-2 p-3 text-start"
+                  <ServiceCard
+                    title={s.name}
+                    badges={[
+                      `${toPersianDigits(serviceAddons.length)} آپشن`,
+                      `از ${compactToman(Number(s.price))}`,
+                      `از ${toPersianDigits(s.duration_minutes)} دقیقه`,
+                    ]}
+                    action={{ label: "انتخاب", expanded: isExpanded }}
+                    image={<ServiceImage service={s} sizes="128px" className="object-cover" />}
+                    selected={isSelected}
+                    onToggle={() => handleSelectService(s.id)}
                   >
-                    <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-none bg-muted"><ServiceImage service={s} sizes="48px" className="object-cover" /></span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-2">
-                        <b className="text-sm font-normal">{s.name}</b>
-                        {s.is_popular && <span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-micro font-normal text-primary">پرطرفدار</span>}
-                      </span>
-                      <span className="my-0.5 block text-xs text-card-foreground/60">{s.description || "رزرو آنلاین"} · {toPersianDigits(s.duration_minutes)} دقیقه</span>
-                      <span className="flex items-center">
-                        <span className="text-sm font-normal">از {compactToman(Number(s.price))}</span>
-                      </span>
-                    </span>
-                    <span
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-none border-2 ${isSelected ? "border-card-foreground bg-card-foreground text-card" : "border-card-foreground/30 text-transparent"}`}
-                      aria-hidden="true"
-                    >
-                      {isSelected && <Check className="h-3 w-3" strokeWidth={3} />}
-                    </span>
-                    <ChevronDown className={`h-5 w-5 shrink-0 text-card-foreground/60 ${isExpanded ? "rotate-180" : ""}`} aria-hidden="true" />
-                  </button>
-
-                  {!isExpanded ? null : (
-                    <div className="px-3 pb-3.5">
+                    <div>
                       {serviceAddons.length > 0 ? (
                         <>
                           <div className="flex items-center justify-between border-t border-dashed border-border px-0.5 pb-1 pt-3">
@@ -780,7 +765,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null, inSheet = 
                         <b className="text-sm font-normal text-foreground">{compactToman(subtotal)} · {toPersianDigits(subDur)} دقیقه</b>
                       </div>
                     </div>
-                  )}
+                  </ServiceCard>
                 </div>
               );
             })}
