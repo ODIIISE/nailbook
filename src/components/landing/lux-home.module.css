@@ -312,6 +312,11 @@
 }
 
 .heroVideo {
+  /* Absolute like the poster beneath it, later in DOM = paints above.
+     (A static video loses the paint-order fight to a positioned poster and
+     plays invisibly underneath — the "stuck background" bug.) */
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: block;
