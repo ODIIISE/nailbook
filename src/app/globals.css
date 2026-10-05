@@ -51,6 +51,7 @@
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-destructive: var(--destructive);
+  --color-destructive-on-dark: var(--destructive-on-dark);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
   --color-warning: var(--warning);
@@ -139,6 +140,8 @@
   --destructive-foreground: #ffffff;
   /* Astryx status accent blue (same hue as the focus ring). */
   --accent-now: #0074e2;
+  /* Danger text on near-black cards (menu logout). Only valid on dark. */
+  --destructive-on-dark: #ff8a80;
   /* Borders: natural hairlines — visible on every surface, never bold.
      Deliberately above Astryx stock (black @8%): 8% renders near-invisible
      on warm paper and on small controls. 12% light / 14% dark is the
@@ -371,20 +374,49 @@
 .sheet-panel[data-closing="true"] {
   transition-duration: var(--duration-micro);
 }
-/* ── Glass surface: translucent + blurred, content readable over any backdrop.
-     Falls back to solid under prefers-reduced-transparency. */
-.glass-panel {
-  background: color-mix(in srgb, var(--popover) 82%, transparent);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--border);
+/* ── Sheet light island: every bottom sheet is a white surface with black
+     elements, floating over the dark app. Scoped tokens (not overrides) so
+     token-driven components — cards, buttons, inputs, pills — resolve
+     correctly inside sheets with zero per-component exceptions. Text that
+     sits on black cards uses text-card-foreground (white in every theme). */
+.sheet-light {
+  --background: #ffffff;
+  --foreground: #161616;
+  --card: #161616;
+  --card-foreground: #ffffff;
+  --popover: #ffffff;
+  --popover-foreground: #161616;
+  --primary: #161616;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f0f0;
+  --secondary-foreground: #161616;
+  --muted: #f0f0f0;
+  --muted-foreground: #5c5c5c;
+  --accent: #f0f0f0;
+  --accent-foreground: #161616;
+  --accent-soft: #e8e8e8;
+  --accent-foreground-soft: #4a4a4a;
+  --border: #0000001f;
+  --input: #0000001f;
+  --border-strong: #00000030;
+  --destructive: #c81e1e;
+  --destructive-foreground: #ffffff;
+  --destructive-on-dark: #ff8a80;
+  --success: #00490b;
+  --warning: #4b3900;
+  --ring: #0074e2;
+  background: #ffffff;
+  color: #161616;
+  border: 1px solid #161616;
 }
-@media (prefers-reduced-transparency: reduce) {
-  .glass-panel {
-    background: var(--popover);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
+/* Round icon controls become black discs with white glyphs on sheets. */
+.sheet-light .icon-btn {
+  background: #161616;
+  border-color: #161616;
+  color: #ffffff;
+}
+.sheet-light .icon-btn:hover {
+  background: #2e2e2e;
 }
 @media (prefers-reduced-motion: reduce) {
   .sheet-overlay,
@@ -437,28 +469,30 @@
   .page-gutter {
     padding-inline: var(--page-gutter);
   }
+  /* Thin scale: every role one step lighter than a standard grotesk scale.
+     Hierarchy survives through size + spacing, not weight. */
   .text-display {
     font-size: 28px;
     line-height: 1.15;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.02em;
   }
   .text-h1 {
     font-size: 24px;
     line-height: 1.2;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.015em;
   }
   .text-h2 {
     font-size: 20px;
     line-height: 1.25;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: -0.01em;
   }
   .text-h3 {
     font-size: 16px;
     line-height: 1.35;
-    font-weight: 600;
+    font-weight: 500;
   }
   .text-body-lg {
     font-size: 16px;
@@ -468,12 +502,12 @@
   .text-body {
     font-size: 14px;
     line-height: 1.55;
-    font-weight: 400;
+    font-weight: 350;
   }
   .text-caption {
     font-size: 12px;
     line-height: 1.45;
-    font-weight: 500;
+    font-weight: 400;
   }
   /* Micro: the absolute minimum — non-interactive metadata only
      (badges, kickers, weekday initials). Content text stays ≥ 12px.
@@ -488,7 +522,7 @@
   .text-kicker {
     font-size: 11px;
     line-height: 1.4;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.24em;
   }
   /* 44px square header control (back / edit / cancel). Replaces the
@@ -522,7 +556,7 @@
   .text-small {
     font-size: 12px;
     line-height: 1.4;
-    font-weight: 400;
+    font-weight: 350;
   }
   /* ── Atelier motion (AUDIT-014) ──
      Governed feedback layer for app routes (booking, owner, customer). All

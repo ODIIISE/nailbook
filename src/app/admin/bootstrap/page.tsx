@@ -148,7 +148,7 @@ export default function AdminBootstrapPage() {
 
           {step === "done" && (
             <div className="text-center py-4">
-              <p className="text-body font-bold text-success">اکانت با موفقیت ایجاد شد</p>
+              <p className="text-body font-normal text-success">اکانت با موفقیت ایجاد شد</p>
               <p className="text-caption text-muted-foreground mt-2">در حال انتقال...</p>
             </div>
           )}

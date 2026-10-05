@@ -22,7 +22,7 @@ const d = (v: string) => ({ "--d": v }) as CSSProperties;
 function BookingSheetHost({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <BottomSheet open={open} onClose={onClose} title="رزرو نوبت">
-      {open ? <BookingFlow /> : null}
+      {open ? <BookingFlow inSheet /> : null}
     </BottomSheet>
   );
 }

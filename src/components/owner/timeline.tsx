@@ -214,7 +214,7 @@ export function Timeline({
         {hourMarks.map((hour, i) => (
           <span
             key={`h-${hour}`}
-            className={`absolute start-0 text-end text-small font-bold tabular-nums ${hourColor} z-5`}
+            className={`absolute start-0 text-end text-small font-normal tabular-nums ${hourColor} z-5`}
             style={{ top: i * HOUR_HEIGHT, width: GUTTER - 8, transform: "translateY(-50%)" }}
           >
             {formatHourPersian(hour)}
@@ -280,9 +280,9 @@ export function Timeline({
                         <div className="flex-1 min-w-0 flex items-center gap-2 pe-2 py-1.5">
                           <div className="flex items-center gap-1 min-w-0 shrink">
                             <User className={`h-[11px] w-[11px] shrink-0 ${textGhost}`} />
-                            <span className={`text-small font-bold truncate ${textPrimary}`}>{b.customer_name}</span>
+                            <span className={`text-small font-normal truncate ${textPrimary}`}>{b.customer_name}</span>
                           </div>
-                          <span className={`text-small font-medium truncate min-w-0 shrink ${textSecondary}`}>
+                          <span className={`text-small font-normal truncate min-w-0 shrink ${textSecondary}`}>
                             {b.service?.name}
                             {hasAddons && <Layers className={`inline h-[9px] w-[9px] mx-0.5 ${addonColor}`} />}
                             {' · '}
@@ -291,17 +291,17 @@ export function Timeline({
                           <div className="flex items-center gap-1.5 shrink ms-auto">
                             <div className="flex items-center gap-0.5">
                               <Clock className={`h-2.5 w-2.5 ${textGhost}`} />
-                              <span className={`text-small font-medium whitespace-nowrap ${textTertiary}`}>{toPersianDigits(totalDuration)}</span>
+                              <span className={`text-small font-normal whitespace-nowrap ${textTertiary}`}>{toPersianDigits(totalDuration)}</span>
                             </div>
                             <div className="flex items-center gap-0.5">
                               <DollarSign className={`h-2.5 w-2.5 ${textGhost}`} />
-                              <span className={`text-small font-bold whitespace-nowrap ${textSecondary}`}>{formatPrice(totalPrice)}</span>
+                              <span className={`text-small font-normal whitespace-nowrap ${textSecondary}`}>{formatPrice(totalPrice)}</span>
                             </div>
                             <CreditCard className={`h-2.5 w-2.5 ${b.paid ? paidColor : textGhost}`} />
                           </div>
                           <div className="state-fade flex items-center gap-1 px-1.5 py-0.5 shrink-0" style={{ backgroundColor: sc.bg, borderRadius: 6 }}>
                             <StatusIcon className="h-2.5 w-2.5" style={{ color: sc.color }} />
-                            <span className="text-small font-semibold" style={{ color: sc.color }}>{sc.label}</span>
+                            <span className="text-small font-normal" style={{ color: sc.color }}>{sc.label}</span>
                           </div>
                         </div>
                       ) : (
@@ -309,14 +309,14 @@ export function Timeline({
                           <div className="flex items-center justify-between gap-1">
                             <div className="flex items-center gap-1.5 min-w-0">
                               <User className={`h-3 w-3 shrink-0 ${textGhost}`} />
-                              <span className={`text-small font-bold truncate leading-tight ${textPrimary}`}>{b.customer_name}</span>
+                              <span className={`text-small font-normal truncate leading-tight ${textPrimary}`}>{b.customer_name}</span>
                             </div>
                             <div className="state-fade flex items-center gap-1 px-1.5 py-0.5 shrink-0" style={{ backgroundColor: sc.bg, borderRadius: 6 }}>
                               <StatusIcon className="h-2.5 w-2.5" style={{ color: sc.color }} />
-                              <span className="text-small font-semibold" style={{ color: sc.color }}>{sc.label}</span>
+                              <span className="text-small font-normal" style={{ color: sc.color }}>{sc.label}</span>
                             </div>
                           </div>
-                          <p className={`text-small font-medium mt-0.5 truncate ${textSecondary}`}>
+                          <p className={`text-small font-normal mt-0.5 truncate ${textSecondary}`}>
                             {b.service?.name}
                             {hasAddons && <Layers className={`inline h-[9px] w-[9px] mx-0.5 ${addonColor}`} />}
                             {' · '}
@@ -326,15 +326,15 @@ export function Timeline({
                             <div className="flex items-center gap-2 mt-1">
                               <div className="flex items-center gap-1">
                                 <Clock className={`h-2.5 w-2.5 ${textGhost}`} />
-                                <span className={`text-small font-medium ${textTertiary}`}>{toPersianDigits(totalDuration)} دقیقه</span>
+                                <span className={`text-small font-normal ${textTertiary}`}>{toPersianDigits(totalDuration)} دقیقه</span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <DollarSign className={`h-2.5 w-2.5 ${textGhost}`} />
-                                <span className={`text-small font-bold ${textSecondary}`}>{formatPrice(totalPrice)}</span>
+                                <span className={`text-small font-normal ${textSecondary}`}>{formatPrice(totalPrice)}</span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <CreditCard className={`h-2.5 w-2.5 ${b.paid ? paidColor : textGhost}`} />
-                                <span className={`text-small font-medium ${b.paid ? paidColor : textTertiary}`}>
+                                <span className={`text-small font-normal ${b.paid ? paidColor : textTertiary}`}>
                                   {b.paid ? "پرداخت شده" : "پرداخت نشده"}
                                 </span>
                               </div>
@@ -364,14 +364,14 @@ export function Timeline({
                   {isConfirming ? (
                     <div className={`h-full ${wb} border ${wbBorder} overflow-hidden flex flex-col justify-center items-center p-2 rounded-none`}>
                       <AlertTriangle className={`h-4 w-4 ${wa} mb-1`} />
-                      <p className={`text-small ${wt} font-semibold mb-1.5 text-center`}>حذف شود؟</p>
+                      <p className={`text-small ${wt} font-normal mb-1.5 text-center`}>حذف شود؟</p>
                       <div className="flex gap-1">
                         <button onClick={(e) => { e.stopPropagation(); onRemoveBlock?.(idx); setConfirmRemoveIndex(null); }}
-                          className="min-h-11 px-4 bg-[var(--destructive)] text-[var(--destructive-foreground)] text-small font-semibold rounded-none">
+                          className="min-h-11 px-4 bg-[var(--destructive)] text-[var(--destructive-foreground)] text-small font-normal rounded-none">
                           بله
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); setConfirmRemoveIndex(null); }}
-                          className={`min-h-11 px-4 ${t("bg-black/10", "bg-white/10")} text-small font-semibold rounded-none`}>
+                          className={`min-h-11 px-4 ${t("bg-black/10", "bg-white/10")} text-small font-normal rounded-none`}>
                           خیر
                         </button>
                       </div>
@@ -392,7 +392,7 @@ export function Timeline({
                       <div className="flex-1 min-w-0 p-2 ps-0.5">
                         <div className="flex items-center gap-1">
                           <Ban className={`h-3 w-3 shrink-0 ${wt}`} />
-                          <span className={`text-small font-bold truncate ${wt}`}>استراحت</span>
+                          <span className={`text-small font-normal truncate ${wt}`}>استراحت</span>
                         </div>
                         {pos.height > 30 && <p className={`text-small ${wst} mt-0.5`}>{toPersianDigits(block.start_time.slice(0, 5))} – {toPersianDigits(block.end_time.slice(0, 5))}</p>}
                         {pos.height > 50 && <p className={`text-small ${wst} mt-0.5`}>برای حذف کلیک کنید</p>}
@@ -424,7 +424,7 @@ export function Timeline({
               <div className={`w-[52px] h-[52px] rounded-none ${dotBg} flex items-center justify-center`}>
                 <Calendar className={`h-[22px] w-[22px] ${dotIcon}`} />
               </div>
-              <p className={`text-body font-medium ${dotText}`}>برنامه‌ای برای این روز نیست</p>
+              <p className={`text-body font-normal ${dotText}`}>برنامه‌ای برای این روز نیست</p>
               <p className={`text-small ${dotSub}`}>رزرو جدید یا زمان مسدود اضافه کنید</p>
             </div>
           </div>

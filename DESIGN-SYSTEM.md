@@ -49,13 +49,17 @@ Rules:
 - Never add a parallel token system (`--lux-*`, `--page-*`, `--fh-*` are all banned patterns going forward).
 - Primitive scales: `--cream-*` (light surfaces), `--espresso-*` (ink), `--night-*` (dark surfaces), `--red/green/amber/blue-*` (feedback).
 
-### Semantic tokens — Atelier Light (default)
+### Semantic tokens — Astryx neutral Light (`:root`, kept in sync, unreachable in-app)
 
-`--background: #faf7f2` · `--foreground: #2a231e` · `--card/popover: #fff` · `--primary: #2a231e` · `--secondary/muted: #f1ece4` · `--muted-foreground: #7d7166` · `--accent: #f6ede4` · `--accent-soft: #f3e4da` · `--accent-foreground-soft: #8a6552` · `--destructive: #dc2626` · `--success: #16a34a` · `--warning: #b45309` · `--border/input: #eae3d9` · `--ring: #b0a396`
+`--background: #f1f1f1` · `--foreground: #000000` · `--card/popover: #fff` · `--primary: #000000` · `--secondary/muted: #f1f1f1` · `--muted-foreground: #474747` · `--accent: #fff` · `--accent-soft: #f1f1f1` · `--accent-foreground-soft: #474747` · `--destructive: #76000c` · `--success: #00490b` · `--warning: #4b3900` · `--border/input: #0000001f` · `--border-strong: #00000030` · `--ring: #0074e2`
 
-### Semantic tokens — Atelier Dark (`.dark`)
+### Semantic tokens — Astryx neutral Dark (`.dark`, the shipped theme)
 
-`--background: #171310` · `--foreground: #f5f0e9` · `--card/popover: #241d17` · `--primary: #f5f0e9` · `--secondary/muted: #2b241d` · `--muted-foreground: #beb1a3` · `--accent-soft: #382a21` · `--accent-foreground-soft: #dfa98b` · `--destructive: #ef4444` · `--success: #22c55e` · `--warning: #f59e0b` · `--border/input: #3a3128` · `--ring: #7d7166`
+`--background: #1b1b1b` · `--foreground: #ffffff` · `--card/popover: #1b1b1b` · `--primary: #f1f1f1` · `--secondary/muted: #262626` · `--muted-foreground: #9e9e9e` · `--accent: #262626` · `--accent-soft: #262626` · `--accent-foreground-soft: #9e9e9e` · `--destructive: #ffc4be` · `--success: #a4d6a3` · `--warning: #f8d36a` · `--border/input: #ffffff24` · `--border-strong: #ffffff3d` · `--ring: #6d9cfe`
+
+### Sheet island (`.sheet-light` — white surface, black elements)
+
+Every bottom sheet re-maps the layer: `--background/popover: #ffffff` · `--foreground: #161616` · `--card: #161616` · `--card-foreground: #ffffff` · `--primary: #161616` · `--primary-foreground: #ffffff` · `--muted: #f0f0f0` · `--muted-foreground: #5c5c5c` · `--border/input: #0000001f` · `--destructive: #c81e1e` · `--destructive-on-dark: #ff8a80` (danger text on black cards) · `--success: #00490b` · `--warning: #4b3900` · `--ring: #0074e2`. Text on black cards uses `text-card-foreground` (+ `/60` dims); selected-on-black uses card-foreground fills — never scoped `--primary`, which reads as the sheet's black CTA fill.
 
 ### Editorial mode
 
@@ -71,14 +75,14 @@ The Editorial surface (homepage) carries its own scoped composition tokens insid
 
 | Role | Class | Size/Weight/LH | Use |
 |---|---|---|---|
-| Display | `.text-display` | 28px · 700 · 1.15 | Hero-less page headlines |
-| H1 | `.text-h1` | 24px · 700 · 1.2 | Page titles |
-| H2 | `.text-h2` | 20px · 600 · 1.25 | Section/card titles |
-| H3 | `.text-h3` | 16px · 600 · 1.35 | Item titles |
+| Display | `.text-display` | 28px · 600 · 1.15 | Hero-less page headlines |
+| H1 | `.text-h1` | 24px · 600 · 1.2 | Page titles |
+| H2 | `.text-h2` | 20px · 500 · 1.25 | Section/card titles |
+| H3 | `.text-h3` | 16px · 500 · 1.35 | Item titles |
 | Body L | `.text-body-lg` | 16px · 400 · 1.6 | Important reading text |
-| Body | `.text-body` | 14px · 400 · 1.55 | Default |
-| Caption | `.text-caption` | 12px · 500 · 1.45 | Labels, metadata |
-| Small | `.text-small` | 12px · 400 · 1.4 | Content floor — never smaller for readable text |
+| Body | `.text-body` | 14px · 350 · 1.55 | Default |
+| Caption | `.text-caption` | 12px · 400 · 1.45 | Labels, metadata |
+| Small | `.text-small` | 12px · 350 · 1.4 | Content floor — never smaller for readable text |
 | Micro | `.text-micro` | 11px · 500 · 1.4 | Non-interactive metadata only (badges, kickers, weekday initials, tracking codes) — never body, buttons, or inputs |
 
 ### Editorial typography
@@ -111,7 +115,9 @@ Sharp rectangles + pills. No shadows anywhere, no arbitrary radii:
 - **Pill** (`rounded-full`): primary CTAs (`button default/paper`), chips, tags, badges/status pills, icon buttons, avatars, dots, switch, spinners. Everything else is sharp.
 - **Rectangle** (`--radius: 0`, whole ladder 0): cards, inputs, sheets, dialogs, dropdowns, tooltips, tab segments, selection boxes — in **every state** (hover/active/disabled/invalid inherit the variant shape; focus ring `--focus-radius: 0`).
 - **Borders:** 1px hairlines everywhere — never 2px+ except functional rings (spinners, selected checkboxes, dashed dropzones). `--border` is the natural default: black @12% light (`#0000001f`), white @14% dark (`#ffffff24`). `--border-strong` (black @19% / white @24%) is reserved for selected/emphasis edges. No decorative border stacking.
-- **Flat:** `--shadow-*` tokens are `none`; `shadow-*` classes are banned. Separation comes from borders + surface contrast only. Glass (translucent + `blur(20px) saturate(180%)`) is allowed for overlay sheets with a solid fallback under `prefers-reduced-transparency`.
+- **Flat:** `--shadow-*` tokens are `none`; `shadow-*` classes are banned. Separation comes from borders + surface contrast only. Sheets are solid white (`.sheet-light` island), not glass.
+- **Type voice:** thin — every role one step lighter than a standard scale (display/h1 600, h2/h3 500, body 350, caption 400, micro 500 floor). Inline `font-*` follows the same shift (extrabold→bold→semibold→medium→normal).
+- **Accessibility:** `contrast-governance.test.ts` enforces AA on all three surfaces (light/dark/sheet) **plus every interactive state** — icon glyphs on card and hover fill, primary/destructive hover and disabled, CTA chips, sheet dim text. A new variant or state without a matrix row fails review.
 
 ---
 
@@ -152,7 +158,7 @@ shadcn structure on `@base-ui/react`: Button, Card, Input, Label, Select, Switch
 Conventions:
 - **Button:** variants primary/outline/secondary/ghost/destructive/link · sizes xs–2xl from `--btn-*` ladder · full-width CTA `h-12`/`h-14` · loading = spinner + text label, never spinner alone.
 - **Input:** sizes from `--field-*` ladder (default xl) · focus ring `--input-focus-ring` · invalid state via `aria-invalid`.
-- **Card:** flat/outlined (`--border`)/raised (`--shadow-card`); use for grouping, selection, preview — not decoration. Avoid nesting.
+- **Card:** flat 1px `--border` (or `--border-strong` for emphasis); use for grouping, selection, preview — not decoration. Avoid nesting.
 - **Overlays:** focus trap, Escape, backdrop dismissal, scroll lock, focus restore. `BottomSheet` for focused mobile tasks; `Dialog` for confirmation.
 - **Round icon button:** 44px minimum touch target.
 - Do **not** create mode-duplicated components (`LuxButton`). One Button; the mode changes tokens/treatment. Conversely, do not force the homepage's editorial composition into generic component APIs — composition wrappers over shared primitives are fine (§49–50).

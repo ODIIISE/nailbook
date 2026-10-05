@@ -145,10 +145,10 @@ export default function AdminDashboard() {
   if (!stats) {
     return (
       <div className="space-y-6">
-        <h2 className="text-xl font-bold">داشبورد</h2>
+        <h2 className="text-xl font-normal">داشبورد</h2>
         <div className="p-8 rounded-none border border-border flex flex-col items-center gap-3 text-center">
           <ShieldAlert className="h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
-          <p className="text-body font-bold">آمار بارگذاری نشد</p>
+          <p className="text-body font-normal">آمار بارگذاری نشد</p>
           <p className="text-small text-muted-foreground">دریافت داده‌ها از سرور ناموفق بود.</p>
           <Button variant="outline" size="sm" className="mt-1 gap-2" onClick={() => location.reload()}>
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">داشبورد</h2>
+        <h2 className="text-xl font-normal">داشبورد</h2>
         <Button onClick={() => router.push("/admin/salons")} className="gap-2 rounded-full" size="sm">
           <Plus className="h-4 w-4" />
           سالن جدید
@@ -196,7 +196,7 @@ export default function AdminDashboard() {
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
-            className={`px-4 py-3 text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
+            className={`px-4 py-3 text-sm font-normal whitespace-nowrap flex items-center gap-2 ${
               activeTab === t.id
                 ? "text-foreground border-b-2 border-primary"
                 : "text-muted-foreground hover:text-foreground"
@@ -254,7 +254,7 @@ function OverviewTab({ stats, chartData, statusData }: { stats: Stats; chartData
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="p-4 rounded-none border border-border">
-          <h3 className="text-sm font-bold mb-4">رزروهای ۷ روز اخیر</h3>
+          <h3 className="text-sm font-normal mb-4">رزروهای ۷ روز اخیر</h3>
           {chartData.length > 0 ? (
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
@@ -274,7 +274,7 @@ function OverviewTab({ stats, chartData, statusData }: { stats: Stats; chartData
           )}
         </div>
         <div className="p-4 rounded-none border border-border">
-          <h3 className="text-sm font-bold mb-4">وضعیت رزروها</h3>
+          <h3 className="text-sm font-normal mb-4">وضعیت رزروها</h3>
           <div className="space-y-2">
             {statusData.map((d) => (
               <div key={d.name} className="flex items-center justify-between">
@@ -282,7 +282,7 @@ function OverviewTab({ stats, chartData, statusData }: { stats: Stats; chartData
                   <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: d.color }} />
                   <span className="text-sm text-muted-foreground">{d.name}</span>
                 </div>
-                <span className="text-sm font-bold">{d.value}</span>
+                <span className="text-sm font-normal">{d.value}</span>
               </div>
             ))}
           </div>
@@ -308,7 +308,7 @@ function BookingsTab({ analytics }: { analytics: Analytics }) {
 
       {/* Peak Hours */}
       <div className="p-4 rounded-none border border-border">
-        <h3 className="text-sm font-bold mb-4">ساعات شلوغ</h3>
+        <h3 className="text-sm font-normal mb-4">ساعات شلوغ</h3>
         {analytics.peakHours && analytics.peakHours.length > 0 ? (
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
@@ -330,12 +330,12 @@ function BookingsTab({ analytics }: { analytics: Analytics }) {
 
       {/* Service Popularity */}
       <div className="p-4 rounded-none border border-border">
-        <h3 className="text-sm font-bold mb-4">محبوبیت خدمات</h3>
+        <h3 className="text-sm font-normal mb-4">محبوبیت خدمات</h3>
         <div className="space-y-2">
           {analytics.servicePop?.slice(0, 5).map((s) => (
             <div key={s.name} className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">{s.name}</span>
-              <span className="text-sm font-bold">{toPersianDigits(s.booking_count)} رزرو</span>
+              <span className="text-sm font-normal">{toPersianDigits(s.booking_count)} رزرو</span>
             </div>
           ))}
           {(!analytics.servicePop || analytics.servicePop.length === 0) && (
@@ -354,24 +354,24 @@ function CustomersTab({ analytics }: { analytics: Analytics }) {
       <div className="grid grid-cols-2 gap-3">
         <div className="p-4 rounded-none border border-border">
           <p className="text-xs text-muted-foreground mb-1">مشتریان جدید</p>
-          <p className="text-2xl font-bold">{analytics.customerSplit?.new_customers || 0}</p>
+          <p className="text-2xl font-normal">{analytics.customerSplit?.new_customers || 0}</p>
         </div>
         <div className="p-4 rounded-none border border-border">
           <p className="text-xs text-muted-foreground mb-1">مشتریان بازگشتی</p>
-          <p className="text-2xl font-bold">{analytics.customerSplit?.returning_customers || 0}</p>
+          <p className="text-2xl font-normal">{analytics.customerSplit?.returning_customers || 0}</p>
         </div>
       </div>
 
       <div className="p-4 rounded-none border border-border">
-        <h3 className="text-sm font-bold mb-4">برترین مشتریان</h3>
+        <h3 className="text-sm font-normal mb-4">برترین مشتریان</h3>
         <div className="space-y-2">
           {analytics.topCustomers?.slice(0, 8).map((c) => (
             <div key={c.customer_phone} className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">{c.customer_name || "مشتری"}</p>
+                <p className="text-sm font-normal">{c.customer_name || "مشتری"}</p>
                 <p className="text-xs text-muted-foreground" dir="ltr">{c.customer_phone}</p>
               </div>
-              <span className="text-sm font-bold">{toPersianDigits(c.booking_count)} رزرو</span>
+              <span className="text-sm font-normal">{toPersianDigits(c.booking_count)} رزرو</span>
             </div>
           ))}
           {(!analytics.topCustomers || analytics.topCustomers.length === 0) && (
@@ -426,7 +426,7 @@ function AlertsTab({ alerts }: { alerts: Alert[] }) {
               <div className="flex items-start gap-3">
                 <Icon className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div className="flex-1">
-                  <p className="font-bold text-sm">{alert.title}</p>
+                  <p className="font-normal text-sm">{alert.title}</p>
                   <p className="text-sm text-muted-foreground mt-1">{alert.message}</p>
                   {alert.items && alert.items.length > 0 && (
                     <div className="mt-2 space-y-1">
@@ -456,7 +456,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: { icon: LucideIcon; 
         <span className="text-xs text-muted-foreground">{label}</span>
         <Icon className={`h-4 w-4 ${color}`} />
       </div>
-      <p className="text-lg font-bold">{value}</p>
+      <p className="text-lg font-normal">{value}</p>
       {sub && <p className="text-small text-muted-foreground mt-1">{sub}</p>}
     </div>
   );
@@ -465,7 +465,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: { icon: LucideIcon; 
 function QuickStat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="p-3 rounded-none border border-border text-center">
-      <p className="text-2xl font-bold">{value}</p>
+      <p className="text-2xl font-normal">{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );
@@ -475,16 +475,16 @@ function SalonTable({ salons, salonRevenue }: { salons: Salon[]; salonRevenue: S
   return (
     <div className="rounded-none border border-border overflow-hidden">
       <div className="p-4 border-b border-border">
-        <h3 className="text-sm font-bold">مقایسه سالن‌ها</h3>
+        <h3 className="text-sm font-normal">مقایسه سالن‌ها</h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-right p-3 text-muted-foreground font-medium">سالن</th>
-              <th className="text-right p-3 text-muted-foreground font-medium">رزرو</th>
-              <th className="text-right p-3 text-muted-foreground font-medium">درآمد</th>
-              <th className="text-right p-3 text-muted-foreground font-medium">وضعیت</th>
+              <th className="text-right p-3 text-muted-foreground font-normal">سالن</th>
+              <th className="text-right p-3 text-muted-foreground font-normal">رزرو</th>
+              <th className="text-right p-3 text-muted-foreground font-normal">درآمد</th>
+              <th className="text-right p-3 text-muted-foreground font-normal">وضعیت</th>
               <th className="p-3"></th>
             </tr>
           </thead>
@@ -495,7 +495,7 @@ function SalonTable({ salons, salonRevenue }: { salons: Salon[]; salonRevenue: S
                 /* Navigation lives on a real link in the name cell — a row-level
                    onClick pseudo-button is unreachable by keyboard/SR. */
                 <tr key={s.salon_name} className="border-b border-border last:border-0 hover:bg-muted/30">
-                  <td className="p-3 font-medium">
+                  <td className="p-3 font-normal">
                     {salon ? (
                       <Link href={`/admin/salons/${salon.id}`} className="hover:underline underline-offset-4">
                         {s.salon_name}

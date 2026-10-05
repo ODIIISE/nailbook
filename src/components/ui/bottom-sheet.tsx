@@ -17,7 +17,8 @@ interface BottomSheetProps {
   dir?: "rtl" | "ltr";
 }
 
-/* Glass bottom sheet — mounted through both phases so open AND close animate.
+/* White bottom sheet (sheet-light island: white surface, black elements) —
+ * mounted through both phases so open AND close animate.
  * Enter: overlay fades 150ms, panel rises 240ms ease-out. Exit: both snap shut
  * in 150ms along the same path (spatial consistency). Interruptible: toggling
  * mid-flight re-targets the live transition, never restarts a keyframe.
@@ -75,7 +76,7 @@ export function BottomSheet({ open, onClose, onClosed, title, children, dir = "r
       />
       <div
         ref={sheetRef}
-        className="sheet-panel glass-panel relative z-10 flex max-h-[88dvh] w-full max-w-[var(--frame-max-w)] flex-col border-t pb-[env(safe-area-inset-bottom)] text-popover-foreground"
+        className="sheet-panel sheet-light relative z-10 flex max-h-[88dvh] w-full flex-col border-t pb-[env(safe-area-inset-bottom)] text-popover-foreground"
         data-open={open}
         data-closing={leaving}
         onTransitionEnd={endLeave}
@@ -92,7 +93,7 @@ export function BottomSheet({ open, onClose, onClosed, title, children, dir = "r
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="native-scroll min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
+        <div className="native-scroll min-h-0 flex-1 overflow-y-auto p-3">{children}</div>
       </div>
     </div>
   );

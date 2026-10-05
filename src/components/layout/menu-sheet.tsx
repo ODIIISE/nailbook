@@ -39,7 +39,7 @@ const ACTIVE_BOOKING_STATUSES = new Set(["reserved", "confirmed", "in_progress"]
 type MenuTone = "default" | "danger";
 
 const ITEM_BASE =
-  "flex min-h-11 items-center gap-3 rounded-none px-3 text-body text-start hover:bg-muted";
+  "flex min-h-11 items-center gap-2 rounded-none px-3 text-body text-start hover:bg-muted";
 const ICON_MUTED = "flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground";
 const ICON_DANGER = "flex h-4 w-4 shrink-0 items-center justify-center text-destructive";
 
@@ -67,7 +67,7 @@ function MenuLink({
         haptic.tap();
         closeMenu();
       }}
-      className={`${ITEM_BASE} font-semibold ${
+      className={`${ITEM_BASE} font-normal ${
         danger
           ? "text-destructive hover:bg-destructive/10"
           : active
@@ -129,19 +129,19 @@ function InfoRow({
     <>
       <span className="mt-0.5 text-muted-foreground" aria-hidden="true">{icon}</span>
       <span className="min-w-0">
-        <span className="block text-small font-semibold text-foreground">{label}</span>
+        <span className="block text-small font-normal text-foreground">{label}</span>
         <span className="block text-small leading-relaxed text-muted-foreground" dir={dir}>{value}</span>
       </span>
     </>
   );
   if (href) {
     return (
-      <a href={href} className="flex min-h-11 items-center gap-3 rounded-none p-1 hover:bg-muted">
+      <a href={href} className="flex min-h-11 items-center gap-2 rounded-none p-1 hover:bg-muted">
         {body}
       </a>
     );
   }
-  return <div className="flex items-start gap-3 p-1">{body}</div>;
+  return <div className="flex items-start gap-2 p-1">{body}</div>;
 }
 
 function SalonInfoSection() {
@@ -152,7 +152,7 @@ function SalonInfoSection() {
 
   return (
     <section aria-label="اطلاعات سالن" className="space-y-2 px-1">
-      <p className="text-micro font-bold text-muted-foreground">اطلاعات سالن</p>
+      <p className="text-micro font-normal text-muted-foreground">اطلاعات سالن</p>
       <InfoRow icon={<Clock className="h-4 w-4" />} label="ساعات کاری" value={hours || "ثبت نشده است"} />
       <InfoRow icon={<MapPin className="h-4 w-4" />} label="آدرس" value={address || "ثبت نشده است"} />
       {phone ? (
@@ -194,29 +194,29 @@ function AccountCard({ onRequestLogout }: { onRequestLogout?: () => void }) {
           haptic.tap();
           closeMenu();
         }}
-        className="flex min-h-14 items-center gap-3 rounded-none border border-border bg-card px-4 py-3 hover:bg-muted/60"
+        className="flex min-h-14 items-center gap-2 rounded-none border border-border bg-card px-4 py-3 text-card-foreground hover:bg-muted/60"
       >
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <LogIn className="h-4 w-4" aria-hidden="true" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-h3 font-bold text-foreground">حساب کاربری</span>
-          <span className="block text-small text-muted-foreground">ورود / ثبت‌نام</span>
+          <span className="block text-h3 font-normal">حساب کاربری</span>
+          <span className="block text-small text-card-foreground/60">ورود / ثبت‌نام</span>
         </span>
-        <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <ArrowLeft className="h-4 w-4 shrink-0 text-card-foreground/60" aria-hidden="true" />
       </Link>
     );
   }
 
   return (
-    <section aria-label="حساب کاربری" className="rounded-none border border-border bg-card p-4">
-      <div className="flex items-center gap-3">
+    <section aria-label="حساب کاربری" className="rounded-none border border-border bg-card p-3 text-card-foreground">
+      <div className="flex items-center gap-2">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <User className="h-4 w-4" aria-hidden="true" />
         </span>
         <div className="min-w-0">
-          <p className="truncate text-h3 font-bold text-foreground">{user.name?.trim() || "کاربر"}</p>
-          <p className="text-small text-muted-foreground" dir="ltr">{displayDigits(user.phone)}</p>
+          <p className="truncate text-h3 font-normal">{user.name?.trim() || "کاربر"}</p>
+          <p className="text-small text-card-foreground/60" dir="ltr">{displayDigits(user.phone)}</p>
         </div>
       </div>
 
@@ -224,11 +224,11 @@ function AccountCard({ onRequestLogout }: { onRequestLogout?: () => void }) {
         {/* Navbar-covered destinations (نوبت‌ها/پروفایل) intentionally live
         only in the bottom navbar — see specs/001-two-tier-navigation. */}
         {activeCount > 0 ? (
-          <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-micro font-bold text-primary">
+          <span className="inline-flex items-center rounded-full bg-card-foreground/10 px-2.5 py-1 text-micro font-normal text-card-foreground">
             {toPersianDigits(activeCount)} رزرو فعال
           </span>
         ) : (
-          <span className="text-small text-muted-foreground">رزرو فعالی ندارید</span>
+          <span className="text-small text-card-foreground/60">رزرو فعالی ندارید</span>
         )}
       </div>
 
@@ -239,7 +239,7 @@ function AccountCard({ onRequestLogout }: { onRequestLogout?: () => void }) {
             haptic.tap();
             onRequestLogout?.();
           }}
-          className="flex min-h-11 w-full items-center rounded-none px-2 text-small font-semibold text-destructive hover:bg-destructive/10"
+          className="flex min-h-11 w-full items-center rounded-none px-2 text-small font-normal text-destructive-on-dark hover:bg-white/5"
         >
           خروج از حساب
         </button>
@@ -253,14 +253,14 @@ function OwnerAccountCard() {
   const { salon } = useSalon();
 
   return (
-    <section aria-label="حساب مدیریت" className="rounded-none border border-border bg-card p-4">
-      <div className="flex items-center gap-3">
+    <section aria-label="حساب مدیریت" className="rounded-none border border-border bg-card p-3 text-card-foreground">
+      <div className="flex items-center gap-2">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <ShieldCheck className="h-4 w-4" aria-hidden="true" />
         </span>
         <div className="min-w-0">
-          <p className="truncate text-h3 font-bold text-foreground">{user?.name?.trim() || "مدیر"}</p>
-          <p className="truncate text-small text-muted-foreground">{salon.name?.trim() || "پنل مدیریت"}</p>
+          <p className="truncate text-h3 font-normal">{user?.name?.trim() || "مدیر"}</p>
+          <p className="truncate text-small text-card-foreground/60">{salon.name?.trim() || "پنل مدیریت"}</p>
         </div>
       </div>
     </section>
@@ -300,7 +300,7 @@ function OwnerContent({ onRequestLogout }: { onRequestLogout: () => void }) {
       {/* Primary owner destinations (داشبورد، ساعات، تاریخچه) live in the
       bottom navbar — the menu carries only secondary management surfaces
       (specs/001-two-tier-navigation). */}
-      <p className="mt-3 mb-1 px-3 text-micro font-bold text-muted-foreground">مدیریت</p>
+      <p className="mt-3 mb-1 px-3 text-micro font-normal text-muted-foreground">مدیریت</p>
       <div className="space-y-1">
         <MenuLink href="/owner/services" icon={<Scissors className="h-4 w-4" />} label="خدمات" />
         <MenuLink href="/owner/users" icon={<Users className="h-4 w-4" />} label="مشتری‌ها" />

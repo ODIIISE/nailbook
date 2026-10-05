@@ -79,7 +79,7 @@ export function EarningsModal({
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              className={`flex-1 h-9 rounded-full text-caption font-bold ${
+              className={`flex-1 h-9 rounded-full text-caption font-normal ${
                 period === p
                   ? "bg-foreground text-background"
                   : "border border-border text-foreground hover:bg-muted"
@@ -97,7 +97,7 @@ export function EarningsModal({
               <span className="text-caption text-foreground">پرداخت شده</span>
             </div>
             <div className="text-start">
-              <p className="text-body font-bold text-success">
+              <p className="text-body font-normal text-success">
                 {formatPrice(earnings.paid)} تومان
               </p>
               <p className="text-small text-muted-foreground">
@@ -112,7 +112,7 @@ export function EarningsModal({
               <span className="text-caption text-foreground">پرداخت نشده</span>
             </div>
             <div className="text-start">
-              <p className="text-body font-bold text-destructive">
+              <p className="text-body font-normal text-destructive">
                 {formatPrice(earnings.unpaid)} تومان
               </p>
               <p className="text-small text-muted-foreground">
@@ -126,10 +126,10 @@ export function EarningsModal({
           <div className="flex items-center justify-between p-3 rounded-none bg-foreground/5">
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-foreground" />
-              <span className="text-caption font-bold text-foreground">کل درآمد</span>
+              <span className="text-caption font-normal text-foreground">کل درآمد</span>
             </div>
             <div className="text-start">
-              <p className="text-body-lg font-bold text-foreground">
+              <p className="text-body-lg font-normal text-foreground">
                 {formatPrice(earnings.total)} تومان
               </p>
               <p className="text-small text-muted-foreground">

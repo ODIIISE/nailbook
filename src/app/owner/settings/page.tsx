@@ -329,7 +329,7 @@ export default function OwnerSettingsPage() {
             </button>
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-foreground">{salon.name}</p>
+            <p className="font-normal text-foreground">{salon.name}</p>
             <p className="text-sm text-muted-foreground">لوگوی سالن</p>
             {avatarUrl && (
               <button
@@ -349,7 +349,7 @@ export default function OwnerSettingsPage() {
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <FileText className="h-4 w-4 text-primary" />
-          <h3 className="font-semibold text-foreground">اطلاعات پایه</h3>
+          <h3 className="font-normal text-foreground">اطلاعات پایه</h3>
         </div>
 
         <div>
@@ -371,7 +371,7 @@ export default function OwnerSettingsPage() {
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Phone className="h-4 w-4 text-primary" />
-          <h3 className="font-semibold text-foreground">اطلاعات تماس</h3>
+          <h3 className="font-normal text-foreground">اطلاعات تماس</h3>
         </div>
 
         <div>
@@ -403,7 +403,7 @@ export default function OwnerSettingsPage() {
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Camera className="h-4 w-4 text-primary" />
-          <h3 className="font-semibold text-foreground">تصویر صفحه اصلی</h3>
+          <h3 className="font-normal text-foreground">تصویر صفحه اصلی</h3>
         </div>
         <p className="text-small text-muted-foreground">این تصویر جدا از لوگو است و داخل دایره پروفایل صفحه اصلی نمایش داده می‌شود؛ مثلاً عکس دست یا نمونه کار ناخن.</p>
         <div className="flex items-center gap-4">
@@ -422,7 +422,7 @@ export default function OwnerSettingsPage() {
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Camera className="h-4 w-4 text-primary" />
-          <h3 className="font-semibold text-foreground">تصویر پس‌زمینه صفحه اصلی</h3>
+          <h3 className="font-normal text-foreground">تصویر پس‌زمینه صفحه اصلی</h3>
         </div>
         <p className="text-small text-muted-foreground">تصویر پس‌زمینه بالای صفحه اصلی (پشت عکس پروفایل). افقی و با کیفیت بالا.</p>
         <div className="flex items-center gap-4">
@@ -440,7 +440,7 @@ export default function OwnerSettingsPage() {
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Video className="h-4 w-4 text-primary" />
-          <h3 className="font-semibold text-foreground">ویدیوی پس‌زمینه صفحه اصلی</h3>
+          <h3 className="font-normal text-foreground">ویدیوی پس‌زمینه صفحه اصلی</h3>
         </div>
         <p className="text-small text-muted-foreground -mt-2">
           یک کلیپ کوتاه و بی‌صدا پشت عنوان صفحه اصلی پخش می‌شود. افقی یا عمودی، حداکثر ۲۵ مگابایت.
@@ -493,7 +493,7 @@ export default function OwnerSettingsPage() {
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Camera className="h-4 w-4 text-primary" />
-          <h3 className="font-semibold text-foreground">گالری صفحه اصلی</h3>
+          <h3 className="font-normal text-foreground">گالری صفحه اصلی</h3>
         </div>
         <p className="text-small text-muted-foreground -mt-2">
           تصویر اول نقش «پوستر» ویدیوی پس‌زمینه صفحه اصلی را دارد و پیش از پخش ویدیو نشان داده می‌شود؛ تصاویر دوم و سوم فعلاً استفاده نمی‌شوند. مربع یا افقی، حداکثر ۵ مگابایت.
@@ -550,7 +550,7 @@ export default function OwnerSettingsPage() {
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <FileText className="h-4 w-4 text-primary" />
-          <h3 className="font-semibold text-foreground">متن‌های نمایشی مشتریان</h3>
+          <h3 className="font-normal text-foreground">متن‌های نمایشی مشتریان</h3>
         </div>
         <p className="text-small text-muted-foreground -mt-2">
           این متن‌ها همان‌هایی هستند که مشتری در صفحه اصلی و روند رزرو می‌بیند.
@@ -590,7 +590,7 @@ export default function OwnerSettingsPage() {
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Sparkles className="h-4 w-4 text-primary" />
-          <h3 className="font-semibold text-foreground">اسپلش (صفحه ورود)</h3>
+          <h3 className="font-normal text-foreground">اسپلش (صفحه ورود)</h3>
         </div>
         <p className="text-small text-muted-foreground -mt-2">
           متن و لوگوی صفحه ورود مشتریان. برای دیدن تغییرات، صفحه را رفرش کنید.
@@ -629,7 +629,7 @@ export default function OwnerSettingsPage() {
             </button>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-caption font-medium text-foreground">لوگوی اسپلش</p>
+            <p className="text-caption font-normal text-foreground">لوگوی اسپلش</p>
             <p className="text-small text-muted-foreground mt-0.5">PNG، JPG تا ۵ مگابایت. اختیاری.</p>
             {splashLogoUrl && (
               <button
@@ -655,7 +655,7 @@ export default function OwnerSettingsPage() {
       <Card className="p-5 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-body">💾</span>
-          <h3 className="font-semibold text-foreground">پشتیبان‌گیری</h3>
+          <h3 className="font-normal text-foreground">پشتیبان‌گیری</h3>
         </div>
         <p className="text-small text-muted-foreground">
           از تمام اطلاعات سالن (خدمات، قیمت‌ها، رزروها، تنظیمات) خروجی بگیرید

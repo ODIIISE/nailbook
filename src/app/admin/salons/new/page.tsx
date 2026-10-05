@@ -133,14 +133,14 @@ export default function NewSalonPage() {
         <Button variant="ghost" size="icon" onClick={() => router.push("/admin/salons")} className="rounded-full">
           <ArrowRight className="h-4 w-4" />
         </Button>
-        <h2 className="text-xl font-bold">سالن جدید</h2>
+        <h2 className="text-xl font-normal">سالن جدید</h2>
       </div>
 
       {/* Progress Steps */}
       <div className="flex items-center gap-2">
         {steps.map((s, i) => (
           <div key={s.num} className="flex items-center gap-2 flex-1">
-            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-normal shrink-0 ${
               step >= s.num ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
             }`}>
               {step > s.num ? <Check className="h-4 w-4" /> : s.num}
@@ -156,7 +156,7 @@ export default function NewSalonPage() {
       {/* Step 1: Basic Info */}
       {step === 1 && (
         <div className="p-5 rounded-none border border-border space-y-4">
-          <h3 className="font-bold">اطلاعات پایه سالن</h3>
+          <h3 className="font-normal">اطلاعات پایه سالن</h3>
           <div>
             <Label>نام سالن *</Label>
             <Input
@@ -205,7 +205,7 @@ export default function NewSalonPage() {
       {/* Step 2: Contact Info */}
       {step === 2 && (
         <div className="p-5 rounded-none border border-border space-y-4">
-          <h3 className="font-bold">اطلاعات تماس</h3>
+          <h3 className="font-normal">اطلاعات تماس</h3>
           <div>
             <Label>تلفن سالن</Label>
             <Input
@@ -241,12 +241,12 @@ export default function NewSalonPage() {
       {/* Step 3: Working Hours */}
       {step === 3 && (
         <div className="p-5 rounded-none border border-border space-y-4">
-          <h3 className="font-bold">ساعات کاری</h3>
+          <h3 className="font-normal">ساعات کاری</h3>
           <p className="text-sm text-muted-foreground">ساعات کاری پیش‌فرض تنظیم شده. می‌توانید بعداً تغییر دهید.</p>
           <div className="space-y-2">
             {Object.entries(DAY_NAMES).map(([key, label]) => (
               <div key={key} className="flex items-center justify-between p-3 rounded-none bg-muted/30">
-                <span className="text-sm font-medium">{label}</span>
+                <span className="text-sm font-normal">{label}</span>
                 {data.working_hours[key] ? (
                   <span className="text-sm text-muted-foreground">
                     {data.working_hours[key]!.open} - {data.working_hours[key]!.close}
@@ -273,7 +273,7 @@ export default function NewSalonPage() {
       {/* Step 4: Review & Create */}
       {step === 4 && (
         <div className="p-5 rounded-none border border-border space-y-4">
-          <h3 className="font-bold">بررسی و ایجاد</h3>
+          <h3 className="font-normal">بررسی و ایجاد</h3>
           <div className="space-y-3">
             <InfoRow label="نام" value={data.name} />
             <InfoRow label="Slug" value={data.slug || "خودکار"} />
@@ -297,7 +297,7 @@ export default function NewSalonPage() {
       {/* Step 5: Deploy */}
       {step === 5 && (
         <div className="p-5 rounded-none border border-border space-y-4">
-          <h3 className="font-bold">استقرار سالن</h3>
+          <h3 className="font-normal">استقرار سالن</h3>
           <div className="space-y-3">
             <InfoRow label="شناسه" value={salonId} mono />
             <InfoRow label="Slug" value={salonSlug} />
@@ -309,7 +309,7 @@ export default function NewSalonPage() {
             <div className="p-4 rounded-none bg-muted/30 space-y-3">
               <div className="flex items-center gap-2 text-sm">
                 <Rocket className="h-4 w-4" />
-                <span className="font-medium">عملیات استقرار:</span>
+                <span className="font-normal">عملیات استقرار:</span>
               </div>
               <ul className="text-sm text-muted-foreground space-y-1.5 ms-6">
                 <li className="flex items-center gap-2">
@@ -336,7 +336,7 @@ export default function NewSalonPage() {
           {deployStatus === "deploying" && (
             <div className="p-4 rounded-none bg-primary/10 flex items-center gap-3">
               <Loader2 className="h-5 w-5 text-primary" />
-              <span className="text-sm font-medium">در حال استقرار...</span>
+              <span className="text-sm font-normal">در حال استقرار...</span>
             </div>
           )}
 
@@ -374,7 +374,7 @@ export default function NewSalonPage() {
               <Check className="h-5 w-5 text-success" />
             </div>
             <div>
-              <h3 className="font-bold">سالن مستقر شد</h3>
+              <h3 className="font-normal">سالن مستقر شد</h3>
               <p className="text-sm text-muted-foreground">{data.name}</p>
             </div>
           </div>
@@ -387,7 +387,7 @@ export default function NewSalonPage() {
 
           {/* Owner bootstrap */}
           <div className="p-3 rounded-none bg-primary/10 space-y-2">
-            <div className="flex items-center gap-2 text-sm font-bold">
+            <div className="flex items-center gap-2 text-sm font-normal">
               <Shield className="h-4 w-4" />
               لینک راه‌اندازی مالک
             </div>
@@ -408,7 +408,7 @@ export default function NewSalonPage() {
 
           {/* Seeded services */}
           <div className="p-3 rounded-none bg-muted/30 space-y-2">
-            <div className="flex items-center gap-2 text-sm font-bold">
+            <div className="flex items-center gap-2 text-sm font-normal">
               <Package className="h-4 w-4" />
               خدمات کاش‌شده
             </div>

@@ -87,7 +87,7 @@ export function AppNavbar({ items }: AppNavbarProps) {
                 strokeWidth={active ? 0 : 1.5}
               />
               <span
-                className={`relative text-small leading-none ${active ? "font-bold" : "font-medium"}`}
+                className={`relative text-small leading-none ${active ? "font-normal" : "font-normal"}`}
               >
                 {label}
               </span>
@@ -104,7 +104,7 @@ export function AppNavbar({ items }: AppNavbarProps) {
           className="relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] text-muted-foreground hover:text-foreground rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <Bars3Icon className="h-[22px] w-[22px]" strokeWidth={1.5} />
-          <span className="text-small leading-none font-medium">منو</span>
+          <span className="text-small leading-none font-normal">منو</span>
         </button>
       </div>
     </nav>

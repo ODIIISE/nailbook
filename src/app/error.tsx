@@ -20,7 +20,7 @@ export default function Error({
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
           <span className="text-2xl">!</span>
         </div>
-        <h2 className="text-lg font-bold text-foreground mb-2">خطایی رخ داد</h2>
+        <h2 className="text-lg font-normal text-foreground mb-2">خطایی رخ داد</h2>
         <p className="text-sm text-muted-foreground mb-6">
           متأسفانه مشکلی پیش آمده است. لطفاً دوباره تلاش کنید.
         </p>

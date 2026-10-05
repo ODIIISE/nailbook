@@ -165,7 +165,7 @@ export function ManualReserveModal({
 
   return (
     <BottomSheet open={true} onClose={onClose} title="رزرو دستی">
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div>
           <Label className="text-caption" htmlFor="mr-name">نام مشتری</Label>
           <Input id="mr-name"
@@ -194,7 +194,7 @@ export function ManualReserveModal({
           <Label className="text-caption" htmlFor="mr-service">خدمت</Label>
           {activeServices.length > 0 ? (
             <Select value={resolvedServiceId} id="mr-service" onValueChange={(val) => handleServiceChange(val as string)}>
-              <SelectTrigger className="mt-1 w-full h-12 rounded-none border border-border bg-card px-3 text-body" dir="rtl">
+              <SelectTrigger className="mt-1 w-full h-12 rounded-none border border-border bg-card px-3 text-body text-card-foreground" dir="rtl">
                 {/* Base UI renders the raw value when SelectValue has no child.
                     Provide the selected label explicitly so UUIDs never leak into the form. */}
                 <SelectValue placeholder="خدمت را انتخاب کنید">
@@ -219,7 +219,7 @@ export function ManualReserveModal({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           <div>
             <Label className="text-caption" htmlFor="mr-start">از ساعت</Label>
             <Input
@@ -250,7 +250,7 @@ export function ManualReserveModal({
             <button
               type="button"
               onClick={() => setEndTime(expectedEndTime)}
-              className="text-caption font-bold text-primary shrink-0"
+              className="text-caption font-normal text-primary shrink-0"
             >
               اصلاح
             </button>
@@ -263,7 +263,7 @@ export function ManualReserveModal({
         {submitError && <p role="alert" className="text-caption text-destructive text-center">{submitError}</p>}
       </div>
 
-      <div className="flex gap-3 mt-5">
+      <div className="flex gap-2 mt-5">
         <Button onClick={handleSubmit} className="flex-1" disabled={!isValid || isSubmitting} aria-busy={isSubmitting}>
           {isSubmitting ? "در حال ثبت..." : "ثبت رزرو"}
         </Button>

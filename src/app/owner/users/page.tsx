@@ -215,7 +215,7 @@ export default function OwnerUsersPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-bold text-foreground">کاربران</h2>
+          <h2 className="text-lg font-normal text-foreground">کاربران</h2>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline" onClick={() => openAdd("owner")}>
@@ -260,7 +260,7 @@ export default function OwnerUsersPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-body font-bold text-foreground truncate">{user.name || "بدون نام"}</p>
+                    <p className="text-body font-normal text-foreground truncate">{user.name || "بدون نام"}</p>
                     {user.role === "owner" && (
                       <Badge variant="default" className="text-small px-1.5 py-0 h-5">
                         مدیر

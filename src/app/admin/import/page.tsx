@@ -61,7 +61,7 @@ export default function AdminImportPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h2 className="text-xl font-bold">ایمپورت سالن موجود</h2>
+      <h2 className="text-xl font-normal">ایمپورت سالن موجود</h2>
 
       <div className="p-5 rounded-none border border-border space-y-4">
         <p className="text-sm text-muted-foreground">
@@ -122,10 +122,10 @@ export default function AdminImportPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-success">
               <CheckCircle className="h-5 w-5" />
-              <span className="font-bold">ایمپورت با موفقیت انجام شد</span>
+              <span className="font-normal">ایمپورت با موفقیت انجام شد</span>
             </div>
             <div className="p-3 rounded-none bg-muted/50">
-              <p className="text-sm font-bold mb-2">Salon ID:</p>
+              <p className="text-sm font-normal mb-2">Salon ID:</p>
               <code className="text-sm bg-background px-2 py-1 rounded-none" dir="ltr">{salonId}</code>
             </div>
             <div className="text-sm space-y-1">
@@ -136,7 +136,7 @@ export default function AdminImportPage() {
               ))}
             </div>
             <div className="p-3 rounded-none bg-primary/10 text-sm">
-              <p className="font-bold mb-1">مرحله بعدی:</p>
+              <p className="font-normal mb-1">مرحله بعدی:</p>
               <p className="text-muted-foreground">
                 این Salon ID را در پروژه Vercel مربوط به {slug}.vercel.app تنظیم کنید:
               </p>

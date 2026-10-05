@@ -128,7 +128,7 @@ export default function AdminMigratePage() {
 
           {step === "done" && (
             <div className="space-y-3">
-              <p className="text-caption text-success text-center font-bold">
+              <p className="text-caption text-success text-center font-normal">
                 مایگریشن با موفقیت اجرا شد
               </p>
               <div className="text-small text-muted-foreground space-y-1 max-h-60 overflow-y-auto">

@@ -103,7 +103,7 @@ export function PinInput({ length = 4, onComplete, disabled, className }: PinInp
 
   return (
     <div
-      className={cn("grid w-full max-w-full gap-1 sm:gap-3", className)}
+      className={cn("grid w-full max-w-full gap-1 sm:gap-2", className)}
       style={{ gridTemplateColumns: `repeat(${inputLength}, minmax(0, 1fr))`, direction: "ltr" }}
       dir="ltr"
       role="group"
@@ -129,11 +129,11 @@ export function PinInput({ length = 4, onComplete, disabled, className }: PinInp
           onPaste={handlePaste}
           disabled={disabled}
           className={cn(
-            "box-border block h-14 w-full min-w-0 rounded-none border px-0 text-center text-xl font-bold outline-none",
-            "bg-card focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
+            "box-border block h-14 w-full min-w-0 rounded-none border px-0 text-center text-xl font-normal outline-none",
+            "bg-card text-card-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
             digit
-              ? "border-primary text-foreground"
-              : "border-input text-foreground",
+              ? "border-card-foreground"
+              : "border-card-foreground/30",
             disabled && "opacity-60 cursor-not-allowed"
           )}
         />

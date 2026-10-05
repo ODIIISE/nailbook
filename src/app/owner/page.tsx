@@ -241,7 +241,7 @@ function OwnerDashboardContent() {
       <div className="px-4 py-4">
         <Card className="flex flex-col items-center gap-3 p-8 text-center">
           <ShieldAlert className="h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
-          <p className="text-body font-bold text-foreground">دسترسی مدیریت بررسی نشد</p>
+          <p className="text-body font-normal text-foreground">دسترسی مدیریت بررسی نشد</p>
           <p className="text-small text-muted-foreground">احراز هویت کامل نشد یا نشست منقضی شده است.</p>
           <Button
             variant="outline"
@@ -270,7 +270,7 @@ function OwnerDashboardContent() {
         <div className="px-4 py-2">
           <div className="flex items-center justify-center gap-2">
             <span className="text-caption text-muted-foreground">تاریخ:</span>
-            <span className="text-body-lg font-bold text-foreground">
+            <span className="text-body-lg font-normal text-foreground">
               {(() => {
                 const j = gregorianToJalali(currentDate);
                 return formatJalaliDate(j.jy, j.jm, j.jd);
@@ -282,7 +282,7 @@ function OwnerDashboardContent() {
         {/* Today overview: revenue + count + next appointment, all in one compact strip. */}
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-caption font-bold text-foreground">
+            <h2 className="text-caption font-normal text-foreground">
               {(() => {
                 const selectedKey = getTehranDateKey(currentDate);
                 if (selectedKey === getTehranDateKey(new Date())) return "نمای کلی امروز";
@@ -305,12 +305,12 @@ function OwnerDashboardContent() {
           <div className="grid grid-cols-3 gap-3">
             {/* Revenue (lead KPI) */}
             <div className="space-y-0.5 text-start">
-              <p className="text-small text-muted-foreground font-medium">درآمد</p>
-              <p dir="ltr" className="text-h2 font-bold text-foreground tabular-nums tracking-tight leading-none">
+              <p className="text-small text-muted-foreground font-normal">درآمد</p>
+              <p dir="ltr" className="text-h2 font-normal text-foreground tabular-nums tracking-tight leading-none">
                 {formatPrice(accounting.paid)}
   </p>
               {accounting.unpaid > 0 ? (
-                <p className="text-small text-destructive font-semibold mt-0.5">
+                <p className="text-small text-destructive font-normal mt-0.5">
                   {toPersianDigits(formatPrice(accounting.unpaid))} طلب
                 </p>
               ) : (
@@ -320,12 +320,12 @@ function OwnerDashboardContent() {
 
             {/* Bookings count */}
             <div className="space-y-0.5 text-start border-x border-border px-3">
-              <p className="text-small text-muted-foreground font-medium">نوبت</p>
-              <p dir="ltr" className="text-h2 font-bold text-foreground tabular-nums tracking-tight leading-none">
+              <p className="text-small text-muted-foreground font-normal">نوبت</p>
+              <p dir="ltr" className="text-h2 font-normal text-foreground tabular-nums tracking-tight leading-none">
                 {toPersianDigits(todayStats.count)}
   </p>
               {todayStats.unpaidCount > 0 ? (
-                <p className="text-small text-destructive font-semibold mt-0.5">
+                <p className="text-small text-destructive font-normal mt-0.5">
                   {toPersianDigits(todayStats.unpaidCount)} پرداخت نشده
                 </p>
               ) : (
@@ -335,8 +335,8 @@ function OwnerDashboardContent() {
 
             {/* Next appointment */}
             <div className="space-y-0.5 text-start">
-              <p className="text-small text-muted-foreground font-medium">نوبت بعدی</p>
-              <p dir="ltr" className="text-h2 font-bold text-foreground tabular-nums tracking-tight leading-none">
+              <p className="text-small text-muted-foreground font-normal">نوبت بعدی</p>
+              <p dir="ltr" className="text-h2 font-normal text-foreground tabular-nums tracking-tight leading-none">
                 {todayStats.nextBooking
                   ? toPersianDigits(todayStats.nextBooking.start_time.slice(0, 5))
                   : "—"}

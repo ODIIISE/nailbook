@@ -90,7 +90,7 @@ function BookingQrCode({
         )}
       </div>
       {label && (
-        <span className="text-small font-medium text-muted-foreground tracking-wide">
+        <span className="text-small font-normal text-muted-foreground tracking-wide">
           {label}
         </span>
       )}
@@ -150,7 +150,7 @@ export function PrintedReceipt({
       className={`relative mx-auto max-w-md ${className}`}
       aria-label={isFinal ? "رسید نهایی رزرو" : "پیش‌فاکتور رزرو"}
     >
-      <div className="rounded-none border bg-card">
+      <div className="rounded-none border bg-card text-card-foreground">
         <div
           className="relative overflow-hidden rounded-none bg-transparent px-5 py-5"
         >
@@ -178,31 +178,31 @@ export function PrintedReceipt({
                 />
               ) : (
                 <div className="flex h-10 w-10 items-center justify-center rounded-none bg-muted">
-                  <span className="text-xs font-bold text-foreground">FN</span>
+                  <span className="text-xs font-normal text-foreground">FN</span>
                 </div>
               )}
               <div>
-                <div className="text-sm font-bold text-foreground">{salonName}</div>
-                <div className="text-small font-medium text-muted-foreground">
+                <div className="text-sm font-normal text-card-foreground">{salonName}</div>
+                <div className="text-small font-normal text-card-foreground/60">
                   رسید رزرو
                 </div>
               </div>
             </div>
             {displayId ? (
               <div className="text-left" dir="ltr">
-                <div className="text-small font-medium tabular-nums tracking-wide text-muted-foreground">
+                <div className="text-small font-normal tabular-nums tracking-wide text-card-foreground/60">
                   #{displayId}
                 </div>
-                <div className="mt-0.5 text-small tabular-nums text-muted-foreground">
+                <div className="mt-0.5 text-small tabular-nums text-card-foreground/60">
                   {issueDate}
                 </div>
               </div>
             ) : (
               <div className="text-left">
-                <div className="text-small font-medium text-muted-foreground">
+                <div className="text-small font-normal text-card-foreground/60">
                   پیش‌فاکتور
                 </div>
-                <div className="mt-0.5 text-small tabular-nums text-muted-foreground">
+                <div className="mt-0.5 text-small tabular-nums text-card-foreground/60">
                   {issueDate}
                 </div>
               </div>
@@ -212,11 +212,7 @@ export function PrintedReceipt({
           {/* Status badge */}
           <div className="relative z-10 mt-4 text-center">
             <div
-              className={`relative inline-flex items-center gap-1.5 isolate rounded-full px-3 py-1 text-xs font-semibold ${
-                isFinal
-                  ? "bg-success/10 text-success"
-                  : "bg-primary/10 text-primary"
-              }`}
+              className={`relative inline-flex items-center gap-1.5 isolate rounded-full px-3 py-1 text-xs font-normal bg-white/10 text-white`}
             >
               {isFinal ? (
                 <>
@@ -227,10 +223,10 @@ export function PrintedReceipt({
                 <>پیش‌فاکتور</>
               )}
             </div>
-            <h2 className="mt-2 text-2xl font-bold text-foreground">
+            <h2 className="mt-2 text-2xl font-normal text-card-foreground">
               {isFinal ? "ممنون از اعتماد شما!" : "آماده رزرو"}
             </h2>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-card-foreground/60">
               {isFinal
                 ? "رزرو شما با موفقیت ثبت گردید."
                 : "لطفاً جزئیات زیر را بررسی و تأیید کنید."}
@@ -240,9 +236,9 @@ export function PrintedReceipt({
           {/* Reference */}
           {isFinal && bookingId && (
             <div className="relative z-10 mt-4 text-center">
-              <span className="text-xs text-muted-foreground">شماره رزرو:</span>
+              <span className="text-xs text-card-foreground/60">شماره رزرو:</span>
               <span
-                className="me-1 inline-block select-all text-sm font-bold tabular-nums tracking-widest text-primary"
+                className="me-1 inline-block select-all text-sm font-normal tabular-nums tracking-widest text-card-foreground"
                 dir="ltr"
               >
                 {bookingId}
@@ -255,7 +251,7 @@ export function PrintedReceipt({
 
           {/* Itemized list */}
           <div className="relative z-10">
-            <div className="mb-2 flex items-center justify-between text-small font-bold tracking-wide text-muted-foreground">
+            <div className="mb-2 flex items-center justify-between text-small font-normal tracking-wide text-card-foreground/60">
               <span className="w-8">#</span>
               <span className="flex-1 px-2">شرح خدمات</span>
               <span className="text-left">مبلغ</span>
@@ -265,13 +261,13 @@ export function PrintedReceipt({
                 key={idx}
                 className="flex items-center justify-between border-b border-dashed border-border/60 py-2.5 last:border-b-0"
               >
-                <span className="w-8 text-xs font-semibold text-muted-foreground">
+                <span className="w-8 text-xs font-normal text-card-foreground/60">
                   {toPersianDigits(idx + 1)}
                 </span>
-                <span className="flex-1 px-2 text-caption font-semibold text-foreground">
+                <span className="flex-1 px-2 text-caption font-normal text-card-foreground">
                   {item.name}
                 </span>
-                <span className="text-left text-xs font-bold tabular-nums text-foreground">
+                <span className="text-left text-xs font-normal tabular-nums text-card-foreground">
                   {formatPrice(item.price)} تومان
                 </span>
               </div>
@@ -279,26 +275,26 @@ export function PrintedReceipt({
           </div>
 
           {/* Total block */}
-          <div className="relative z-10 mt-4 rounded-none bg-muted/40 p-3">
+          <div className="relative z-10 mt-4 rounded-none bg-card-foreground/5 p-3">
             <div className="mb-3 flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
+              <span className="text-xs font-normal text-card-foreground/60">
                 مدت کل
               </span>
-              <span className="text-xs font-bold text-foreground">
+              <span className="text-xs font-normal text-card-foreground">
                 {toPersianDigits(totalDuration)} دقیقه
               </span>
             </div>
             <div className="mb-3 flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
+              <span className="text-xs font-normal text-card-foreground/60">
                 نحوه پرداخت
               </span>
-              <span className="text-xs font-bold text-foreground">
+              <span className="text-xs font-normal text-card-foreground">
                 پرداخت در سالن
               </span>
             </div>
             <div className="flex items-center justify-between border-t border-dashed border-border pt-3">
-              <span className="text-sm font-bold text-foreground">جمع کل</span>
-              <span className="text-xl font-bold tabular-nums text-foreground">
+              <span className="text-sm font-normal text-card-foreground">جمع کل</span>
+              <span className="text-xl font-normal tabular-nums text-card-foreground">
                 {formatPrice(totalPrice)} تومان
               </span>
             </div>
@@ -306,10 +302,10 @@ export function PrintedReceipt({
 
           {/* Date / time row */}
           <div className="relative z-10 mt-4 flex items-center justify-between rounded-none border border-border/60 bg-card px-3 py-2.5">
-            <span className="text-xs font-medium text-muted-foreground">تاریخ و ساعت</span>
+            <span className="text-xs font-normal text-card-foreground/60">تاریخ و ساعت</span>
             <span className="sr-only">{accessibleDateTime}</span>
             <span
-              className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-x-1 gap-y-0.5 text-xs font-bold tabular-nums text-foreground"
+              className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-x-1 gap-y-0.5 text-xs font-normal tabular-nums text-foreground"
               dir="rtl"
               aria-hidden="true"
             >
@@ -335,10 +331,10 @@ export function PrintedReceipt({
                 <BookingQrCode key={bookingIdRaw} bookingId={bookingIdRaw} label="رسید رزرو" />
               </div>
               <div className="flex-1">
-                <p className="text-xs font-bold text-foreground">
+                <p className="text-xs font-normal text-card-foreground">
                   رسید خود را ذخیره کنید
                 </p>
-                <p className="mt-0.5 text-small leading-5 text-muted-foreground">
+                <p className="mt-0.5 text-small leading-5 text-card-foreground/60">
                   با اسکرین‌شات یا اشتراک تصویری این رسید را نزد خود داشته باشید.
                 </p>
               </div>
@@ -348,23 +344,23 @@ export function PrintedReceipt({
           {/* Footer */}
           <div className="relative z-10 mt-5 space-y-1 border-t border-dashed border-border pt-4 text-center">
             {customerName && (
-              <p className="text-xs text-muted-foreground">
-                رزرو برای: <span className="font-semibold text-foreground">{customerName}</span>
+              <p className="text-xs text-card-foreground/60">
+                رزرو برای: <span className="font-normal text-card-foreground">{customerName}</span>
               </p>
             )}
             {salonAddress && (
-              <div className="flex items-start justify-center gap-1.5 text-small text-muted-foreground">
+              <div className="flex items-start justify-center gap-1.5 text-small text-card-foreground/60">
                 <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
                 <span className="leading-4">{salonAddress}</span>
               </div>
             )}
             {salonPhone && (
-              <div className="flex items-center justify-center gap-1.5 text-small text-muted-foreground">
+              <div className="flex items-center justify-center gap-1.5 text-small text-card-foreground/60">
                 <Phone className="h-3 w-3 shrink-0" />
                 <span dir="ltr">{salonPhone}</span>
               </div>
             )}
-            <p className="pt-1 text-small text-muted-foreground">
+            <p className="pt-1 text-small text-card-foreground/60">
               {salonName}
             </p>
           </div>

@@ -6,7 +6,7 @@
    globals.css — no raw Tailwind palette colors. */
 
 const STATUS_PILL_BASE =
-  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-micro font-bold";
+  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-micro font-normal";
 
 const STATUS_MAP: Record<string, { label: string; cls: string; dot: string }> = {
   reserved: { label: "ثبت شده", cls: "bg-primary/10 text-primary", dot: "bg-primary" },
@@ -24,10 +24,10 @@ export function bookingStatus(status: string) {
   return STATUS_MAP[status] || STATUS_MAP.pending;
 }
 
-export function StatusPill({ status, className = "" }: { status: string; className?: string }) {
+export function StatusPill({ status, className = "", onDark = false }: { status: string; className?: string; onDark?: boolean }) {
   const s = bookingStatus(status);
   return (
-    <span className={`${STATUS_PILL_BASE} ${s.cls} ${className}`}>
+    <span className={`${STATUS_PILL_BASE} ${onDark ? "bg-white/10 text-white" : s.cls} ${className}`}>
       <i aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
       {s.label}
     </span>

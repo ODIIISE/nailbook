@@ -98,7 +98,7 @@ function SettingRow({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <Label className="text-caption font-medium">{label}</Label>
+        <Label className="text-caption font-normal">{label}</Label>
         <Help text={help} />
       </div>
       {children}
@@ -163,12 +163,12 @@ function JalaliMonthGrid({
 
   return (
     <Card className="p-4">
-      <p className="text-sm font-medium text-foreground mb-2">
+      <p className="text-sm font-normal text-foreground mb-2">
         {getJalaliMonthName(month)} {toPersianDigits(year)}
       </p>
       <div className="grid grid-cols-7 gap-1 mb-1">
         {PERSIAN_WEEKDAYS_SHORT.map((day) => (
-          <div key={day} className="text-center text-small font-medium text-muted-foreground py-1">
+          <div key={day} className="text-center text-small font-normal text-muted-foreground py-1">
             {day}
           </div>
         ))}
@@ -189,7 +189,7 @@ function JalaliMonthGrid({
               key={d}
               onClick={() => onToggleDayOff(dateStr)}
               className={`
-                min-h-11 rounded-none text-xs font-medium
+                min-h-11 rounded-none text-xs font-normal
                 ${isOff
                   ? "bg-destructive text-destructive-foreground"
                   : isToday
@@ -427,7 +427,7 @@ export function ScheduleManager({
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
         <div>
-          <h3 className="font-semibold text-foreground">ساعات کاری</h3>
+          <h3 className="font-normal text-foreground">ساعات کاری</h3>
           <p className="text-xs text-muted-foreground mt-1">
             روزهای فعال و ساعت‌ها را تنظیم کنید
           </p>
@@ -463,7 +463,7 @@ export function ScheduleManager({
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <Switch checked={isActive} onCheckedChange={() => toggleDay(day.key)} />
-                  <span className="font-medium text-foreground">{day.label}</span>
+                  <span className="font-normal text-foreground">{day.label}</span>
                 </div>
                 {isActive && (
                   <Button
@@ -509,7 +509,7 @@ export function ScheduleManager({
 
       {/* ─── Section 2: Slot Engine ─── */}
       <Card className="p-4">
-        <h3 className="font-semibold text-foreground mb-1">تنظیمات نوبت‌دهی</h3>
+        <h3 className="font-normal text-foreground mb-1">تنظیمات نوبت‌دهی</h3>
         <p className="text-xs text-muted-foreground mb-4">
           فاصله ساعت‌ها و زمان بین رزروها
         </p>
@@ -525,7 +525,7 @@ export function ScheduleManager({
                   key={v}
                   onClick={() => { setSlotInterval(v); markChanged(); }}
                   className={`
-                    min-h-11 min-w-[44px] px-2 rounded-none text-caption font-medium
+                    min-h-11 min-w-[44px] px-2 rounded-none text-caption font-normal
                     ${slotInterval === v
                       ? "bg-foreground text-background"
                       : "bg-secondary text-foreground hover:bg-secondary/80"
@@ -562,7 +562,7 @@ export function ScheduleManager({
 
       {/* ─── Section 3: Expansion ─── */}
       <Card className="p-4">
-        <h3 className="font-semibold text-foreground mb-1">ساعت اضافی</h3>
+        <h3 className="font-normal text-foreground mb-1">ساعت اضافی</h3>
         <p className="text-xs text-muted-foreground mb-4">
           باز شدن خودکار ساعت‌های بیشتر وقتی رزروها پر شود
         </p>
@@ -572,7 +572,7 @@ export function ScheduleManager({
             help="وقتی درصد رزروهای یک روز از این عدد بیشتر شود، ساعت‌های اضافی باز می‌شوند."
             description={
               <>
-                وقتی <span className="font-medium text-foreground/70">{toPersianDigits(expandThreshold)}٪</span> روز پر شود، ساعت‌های اضافی قبل و بعد فعال می‌شوند
+                وقتی <span className="font-normal text-foreground/70">{toPersianDigits(expandThreshold)}٪</span> روز پر شود، ساعت‌های اضافی قبل و بعد فعال می‌شوند
               </>
             }
           >
@@ -618,7 +618,7 @@ export function ScheduleManager({
 
       {/* ─── Section 4: Smart Scheduling ─── */}
       <Card className="p-4">
-        <h3 className="font-semibold text-foreground mb-1">تنظیمات هوشمند</h3>
+        <h3 className="font-normal text-foreground mb-1">تنظیمات هوشمند</h3>
         <p className="text-xs text-muted-foreground mb-4">
           هوشمندسازی نمایش ساعت‌ها برای مشتریان
         </p>
@@ -634,7 +634,7 @@ export function ScheduleManager({
                   key={mode}
                   type="button"
                   onClick={() => { setOptimizationMode(mode); markChanged(); }}
-                  className={`h-10 rounded-none text-small font-medium ${optimizationMode === mode ? "bg-foreground text-background" : "bg-secondary text-foreground hover:bg-secondary/80"}`}
+                  className={`h-10 rounded-none text-small font-normal ${optimizationMode === mode ? "bg-foreground text-background" : "bg-secondary text-foreground hover:bg-secondary/80"}`}
                 >
                   {mode === "hybrid" ? "هوشمند (پیشنهادی)" : "قدیمی"}
                 </button>
@@ -681,7 +681,7 @@ export function ScheduleManager({
             help="وقتی مشتری ساعت ۱۰ را رزرو می‌کند، ساعت‌های بعدی فقط در بازه ±۲ ساعت از ۱۰ نمایش داده می‌شوند."
             description={
               <>
-                ساعت‌های پیشنهادی در فاصله <span className="font-medium text-foreground/70">±{toPersianDigits(proximityWindowHours)} ساعت</span> از رزرو قبلی نمایش داده می‌شوند
+                ساعت‌های پیشنهادی در فاصله <span className="font-normal text-foreground/70">±{toPersianDigits(proximityWindowHours)} ساعت</span> از رزرو قبلی نمایش داده می‌شوند
               </>
             }
           >
@@ -699,7 +699,7 @@ export function ScheduleManager({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Label className="text-caption font-medium">تمدید ساعت کاری</Label>
+                <Label className="text-caption font-normal">تمدید ساعت کاری</Label>
                 <Help text="اگر فعال شود، رزروها می‌توانند از ساعت پایان کاری فراتر بروند." />
               </div>
               <Switch
@@ -737,7 +737,7 @@ export function ScheduleManager({
 
       {/* ─── Section 5: Days Off ─── */}
       <div>
-        <h3 className="font-semibold text-foreground mb-1">روزهای تعطیل</h3>
+        <h3 className="font-normal text-foreground mb-1">روزهای تعطیل</h3>
         <p className="text-xs text-muted-foreground mb-3">
           روی روزها کلیک کنید تا تعطیل شوند
         </p>

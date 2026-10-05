@@ -14,11 +14,11 @@ export function AdminLanding() {
               <div className="h-10 w-10 rounded-none bg-foreground text-background flex items-center justify-center">
                 <Sparkles className="h-5 w-5" />
               </div>
-              <span className="text-body font-bold text-foreground">پنل مدیریت سالن</span>
+              <span className="text-body font-normal text-foreground">پنل مدیریت سالن</span>
             </div>
             <Button
               size="sm"
-              className="rounded-none bg-foreground text-background hover:bg-foreground/90 font-semibold"
+              className="rounded-none bg-foreground text-background hover:bg-foreground/90 font-normal"
               onClick={() => window.location.href = "/admin/login"}
             >
               ورود
@@ -28,11 +28,11 @@ export function AdminLanding() {
 
         <section className="max-w-6xl mx-auto px-6 pt-20 pb-16">
           <div className="max-w-2xl mx-auto text-center md:text-right">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-caption font-medium text-primary mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-caption font-normal text-primary mb-6">
               <Sparkles className="h-3.5 w-3.5" />
               نوبت‌دهی آنلاین سالن‌های زیبایی
             </div>
-            <h1 className="text-h1 font-extrabold leading-snug mb-4">
+            <h1 className="text-h1 font-normal leading-snug mb-4">
               مدیریت سالن‌ها
             </h1>
             <p className="text-body text-muted-foreground max-w-lg mx-auto md:mx-0 mb-10 leading-relaxed">
@@ -40,7 +40,7 @@ export function AdminLanding() {
             </p>
             <Button
               size="lg"
-              className="rounded-none px-8 py-4 bg-foreground text-background hover:bg-foreground/90 font-bold h-14"
+              className="rounded-none px-8 py-4 bg-foreground text-background hover:bg-foreground/90 font-normal h-14"
               onClick={() => window.location.href = "/admin/login"}
             >
               ورود به پنل
@@ -60,7 +60,7 @@ export function AdminLanding() {
                   <div className="h-10 w-10 rounded-none bg-primary/10 flex items-center justify-center mb-4">
                     <f.icon className="h-5 w-5 text-primary" />
                   </div>
-                  <p className="text-h3 font-bold mb-1">{f.label}</p>
+                  <p className="text-h3 font-normal mb-1">{f.label}</p>
                   <p className="text-caption text-muted-foreground">{f.desc}</p>
                 </div>
               ))}

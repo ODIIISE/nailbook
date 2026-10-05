@@ -80,7 +80,7 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
           <span className="block text-kicker text-muted-foreground" dir="ltr">
             NAILBOOK
           </span>
-          <h2 className="text-lg font-bold">تأیید نوبت</h2>
+          <h2 className="text-lg font-normal">تأیید نوبت</h2>
         </div>
         <span />
       </header>
@@ -99,11 +99,11 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
                 className="h-11 w-11 rounded-none object-cover"
               />
             ) : (
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-muted text-xs font-bold text-foreground">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-muted text-xs font-normal text-foreground">
                 {String(booking.salon_name || "FN").slice(0, 2)}
               </span>
             )}
-            <span className="text-sm font-bold">{booking.salon_name}</span>
+            <span className="text-sm font-normal">{booking.salon_name}</span>
             <StatusPill status={String(booking.status || "pending")} className="ms-auto shrink-0" />
           </div>
           {booking.salon_address && (
@@ -118,12 +118,12 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
 
           <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-3">
             <span className="text-xs text-muted-foreground">خدمت</span>
-            <span className="text-sm font-bold">{booking.service_name}</span>
+            <span className="text-sm font-normal">{booking.service_name}</span>
           </div>
           {booking.service_price != null && (
             <div className="mt-3 flex items-center justify-between gap-3">
               <span className="text-xs text-muted-foreground">هزینه</span>
-              <span className="text-sm font-bold">{compactToman(Number(booking.service_price))}</span>
+              <span className="text-sm font-normal">{compactToman(Number(booking.service_price))}</span>
             </div>
           )}
           <div className="mt-3 flex items-center justify-between gap-3">
@@ -131,14 +131,14 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
               <CalendarDays className="h-4 w-4" aria-hidden="true" />
               تاریخ
             </span>
-            <span className="text-sm font-bold">{formatJalaliDate(jalali.jy, jalali.jm, jalali.jd)}</span>
+            <span className="text-sm font-normal">{formatJalaliDate(jalali.jy, jalali.jm, jalali.jd)}</span>
           </div>
           <div className="mt-3 flex items-center justify-between gap-3">
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-4 w-4" aria-hidden="true" />
               ساعت
             </span>
-            <span className="text-sm font-bold" dir="ltr">
+            <span className="text-sm font-normal" dir="ltr">
               {toPersianDigits(booking.start_time.slice(0, 5))} - {toPersianDigits(booking.end_time.slice(0, 5))}
             </span>
           </div>
@@ -159,7 +159,7 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
         <div className="mt-4">
           <Link
             href="/"
-            className="flex h-12 w-full items-center justify-center rounded-none bg-primary text-sm font-bold text-primary-foreground"
+            className="flex h-12 w-full items-center justify-center rounded-none bg-primary text-sm font-normal text-primary-foreground"
           >
             رزرو نوبت جدید
           </Link>

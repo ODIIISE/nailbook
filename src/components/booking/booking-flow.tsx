@@ -62,9 +62,13 @@ interface BookingFlowProps {
   /** Standalone /book route page. */
   initialServiceId?: string | null;
   lookId?: string | null;
+  /** Inside a bottom sheet: fill the sheet height (sticky footer included)
+     instead of the page frame, and skip the title block (the sheet header
+     already carries it) — back button and progress stay. */
+  inSheet?: boolean;
 }
 
-export function BookingFlow({ initialServiceId = null, lookId = null }: BookingFlowProps) {
+export function BookingFlow({ initialServiceId = null, lookId = null, inSheet = false }: BookingFlowProps) {
   const router = useRouter();
   const { salon, workingHours, services, addons, highlights, bookings, blockedTimes, addBooking, refreshBookings, specificDaysOff, loaded, loadFailed } = useSalon();
   const { user, sendOtp, verifyOtp, updateProfile } = useAuth();
@@ -628,7 +632,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
   const content = (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Header */}
-      <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
+      <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3 pb-2 pt-3">
         <button
           type="button"
           className="icon-btn text-foreground"
@@ -640,8 +644,8 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </button>
         <div className="min-w-0 overflow-hidden text-center">
-          <span className="block text-xs font-bold text-primary">{STEP_KICKER[step]}</span>
-          <h2 key={step} className="truncate text-lg font-bold">{(step === "success" ? (salon.booking_success_title || SUCCESS_TITLE_DEFAULT) : STEP_TITLES[step])}</h2>
+          {!inSheet && <span className="block text-xs font-normal text-primary">{STEP_KICKER[step]}</span>}
+          {!inSheet && <h2 key={step} className="truncate text-lg font-normal">{(step === "success" ? (salon.booking_success_title || SUCCESS_TITLE_DEFAULT) : STEP_TITLES[step])}</h2>}
         </div>
         <span className="h-11 w-11" />
       </header>
@@ -665,14 +669,14 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
       <div className="relative min-h-0 flex-1 overflow-hidden">
         <section className={`absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain page-gutter pb-8 ${step === "service" ? `opacity-100 visible pointer-events-auto ${stepAnimClass}` : "opacity-0 invisible pointer-events-none"}`}>
           {look && (
-            <div className="mb-3.5 flex items-center gap-3 rounded-none bg-primary p-3 text-primary-foreground">
+            <div className="mb-3 flex items-center gap-2 rounded-none bg-primary p-3 text-primary-foreground">
               {look.cover_url ? (
                 <Image src={look.cover_url} alt="" width={50} height={50} unoptimized className="h-12 w-12 shrink-0 rounded-none object-cover" />
               ) : (
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-none bg-primary-foreground/10"><Images className="h-5 w-5" aria-hidden="true" /></span>
               )}
               <div className="min-w-0 flex-1">
-                <b className="block text-xs font-bold">رزرو این مدل: {look.name}</b>
+                <b className="block text-xs font-normal">رزرو این مدل: {look.name}</b>
                 <span className="mt-0.5 block text-micro text-primary-foreground/70">خدمت مرتبط انتخاب شده؛ افزودنی‌ها را هرطور خواستی تغییر بده</span>
               </div>
               <button
@@ -686,8 +690,8 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
             </div>
           )}
 
-          <p className="mb-2.5 mt-3 text-xs font-bold text-muted-foreground">انتخاب خدمت</p>
-          <div className="flex flex-col gap-3">
+          <p className="mb-2.5 mt-3 text-xs font-normal text-muted-foreground">انتخاب خدمت</p>
+          <div className="flex flex-col gap-2">
             {activeServices.map((s, svcIdx) => {
               const isSelected = selectedService?.id === s.id;
               const isExpanded = expandedServiceId === s.id;
@@ -700,45 +704,45 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
                   key={s.id}
                   ref={(node) => { serviceCardRefs.current[s.id] = node; }}
                   style={{ "--stagger-i": Math.min(svcIdx, 5) } as CSSProperties}
-                  className={`reveal-item overflow-hidden rounded-none border bg-card ${isSelected ? "border-primary" : "border-border"}`}
+                  className={`reveal-item overflow-hidden rounded-none border bg-card text-card-foreground ${isSelected ? "border-card-foreground" : "border-border"}`}
                 >
                   <button
                     type="button"
                     onClick={() => handleSelectService(s.id)}
                     aria-pressed={isSelected}
                     aria-expanded={isExpanded}
-                    className="pressable-soft flex w-full items-center gap-3 p-3.5 text-start"
+                    className="pressable-soft flex w-full items-center gap-2 p-3 text-start"
                   >
                     <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-none bg-muted"><ServiceImage service={s} sizes="48px" className="object-cover" /></span>
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2">
-                        <b className="text-sm font-bold">{s.name}</b>
-                        {s.is_popular && <span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-micro font-bold text-primary">پرطرفدار</span>}
+                        <b className="text-sm font-normal">{s.name}</b>
+                        {s.is_popular && <span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-micro font-normal text-primary">پرطرفدار</span>}
                       </span>
-                      <span className="my-0.5 block text-xs text-muted-foreground">{s.description || "رزرو آنلاین"} · {toPersianDigits(s.duration_minutes)} دقیقه</span>
+                      <span className="my-0.5 block text-xs text-card-foreground/60">{s.description || "رزرو آنلاین"} · {toPersianDigits(s.duration_minutes)} دقیقه</span>
                       <span className="flex items-center">
-                        <span className="text-sm font-bold">از {compactToman(Number(s.price))}</span>
+                        <span className="text-sm font-normal">از {compactToman(Number(s.price))}</span>
                       </span>
                     </span>
                     <span
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-none border-2 ${isSelected ? "border-primary bg-primary text-primary-foreground" : "border-border text-transparent"}`}
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-none border-2 ${isSelected ? "border-card-foreground bg-card-foreground text-card" : "border-card-foreground/30 text-transparent"}`}
                       aria-hidden="true"
                     >
                       {isSelected && <Check className="h-3 w-3" strokeWidth={3} />}
                     </span>
-                    <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground ${isExpanded ? "rotate-180" : ""}`} aria-hidden="true" />
+                    <ChevronDown className={`h-5 w-5 shrink-0 text-card-foreground/60 ${isExpanded ? "rotate-180" : ""}`} aria-hidden="true" />
                   </button>
 
                   {!isExpanded ? null : (
-                    <div className="px-3.5 pb-3.5">
+                    <div className="px-3 pb-3.5">
                       {serviceAddons.length > 0 ? (
                         <>
                           <div className="flex items-center justify-between border-t border-dashed border-border px-0.5 pb-1 pt-3">
-                            <span className="text-micro font-bold text-primary">افزودنی‌ها · اختیاری</span>
+                            <span className="text-micro font-normal text-card-foreground">افزودنی‌ها · اختیاری</span>
                             <button
                               type="button"
                               onClick={() => setSelectedAddons([])}
-                              className="rounded-none px-2 py-1 text-xs font-bold text-muted-foreground"
+                              className="rounded-none px-2 py-1 text-xs font-normal text-card-foreground/60"
                             >
                               پاک کردن
                             </button>
@@ -751,29 +755,29 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
                                 type="button"
                                 onClick={() => handleToggleAddon(a.id)}
                                 aria-pressed={isOn}
-                                className={`pressable mt-1.5 flex w-full items-center gap-3 rounded-none border p-3 text-start ${isOn ? "border-primary bg-primary/5" : "border-border bg-card"}`}
+                                className={`pressable mt-1.5 flex w-full items-center gap-2 rounded-none border p-3 text-start text-card-foreground ${isOn ? "border-card-foreground bg-card-foreground/5" : "border-card-foreground/15 bg-card"}`}
                               >
                                 <span
-                                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-none border-2 ${isOn ? "border-primary bg-primary text-primary-foreground" : "border-border text-transparent"}`}
+                                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-none border-2 ${isOn ? "border-card-foreground bg-card-foreground text-card" : "border-card-foreground/30 text-transparent"}`}
                                   aria-hidden="true"
                                 >
                                   {isOn && <Check className="h-3 w-3" strokeWidth={3} />}
                                 </span>
                                 <span className="min-w-0 flex-1">
-                                  <b className="block text-sm font-bold">{a.name}</b>
-                                  <small className="mt-0.5 block text-xs text-muted-foreground">+{toPersianDigits(a.duration_minutes)} دقیقه</small>
+                                  <b className="block text-sm font-normal">{a.name}</b>
+                                  <small className="mt-0.5 block text-xs text-card-foreground/60">+{toPersianDigits(a.duration_minutes)} دقیقه</small>
                                 </span>
-                                <span className="shrink-0 text-xs font-bold text-primary">+{compactToman(Number(a.price))}</span>
+                                <span className="shrink-0 text-xs font-normal text-card-foreground">+{compactToman(Number(a.price))}</span>
                               </button>
                             );
                           })}
                         </>
                       ) : (
-                        <div className="pb-1.5 pt-3.5 text-center text-xs text-muted-foreground">آپشن اضافی برای این خدمت وجود ندارد</div>
+                        <div className="pb-1.5 pt-3.5 text-center text-xs text-card-foreground/60">آپشن اضافی برای این خدمت وجود ندارد</div>
                       )}
-                      <div className="mt-3.5 flex items-center justify-between rounded-none bg-muted px-3.5 py-3 text-xs text-muted-foreground">
+                      <div className="mt-3 flex items-center justify-between rounded-none bg-muted px-3 py-3 text-xs text-muted-foreground">
                         <span>انتخاب شما</span>
-                        <b className="text-sm font-bold text-foreground">{compactToman(subtotal)} · {toPersianDigits(subDur)} دقیقه</b>
+                        <b className="text-sm font-normal text-foreground">{compactToman(subtotal)} · {toPersianDigits(subDur)} دقیقه</b>
                       </div>
                     </div>
                   )}
@@ -782,19 +786,19 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
             })}
             {activeServices.length === 0 && (
               loadFailed ? (
-                <div className="rounded-none border border-dashed border-border bg-card p-7 text-center">
-                  <p className="text-sm font-bold text-foreground">خطا در بارگذاری خدمات</p>
-                  <p className="mt-1 text-xs text-muted-foreground">اتصال برقرار نشد — لطفاً صفحه را رفرش کنید.</p>
+                <div className="rounded-none border border-border bg-card p-7 text-center text-card-foreground">
+                  <p className="text-sm font-semibold">خطا در بارگذاری خدمات</p>
+                  <p className="mt-1 text-xs text-card-foreground/60">اتصال برقرار نشد — لطفاً صفحه را رفرش کنید.</p>
                   <button
                     type="button"
-                    className="mt-3 inline-flex h-11 items-center justify-center rounded-none border border-border bg-card px-5 text-sm font-bold text-foreground"
+                    className="mt-3 inline-flex h-11 items-center justify-center rounded-none border border-card-foreground/30 bg-card px-5 text-sm font-semibold text-card-foreground"
                     onClick={() => window.location.reload()}
                   >
                     تلاش مجدد
                   </button>
                 </div>
               ) : (
-                <div className="rounded-none border border-dashed border-border bg-card p-7 text-center text-sm text-muted-foreground">
+                <div className="rounded-none border border-dashed border-border bg-card p-7 text-center text-sm text-card-foreground/60">
                   هنوز خدمتی برای رزرو فعال نیست
                 </div>
               )
@@ -872,7 +876,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
         <footer className="border-t border-border bg-background/95 page-gutter pb-[calc(14px+env(safe-area-inset-bottom))] pt-2.5">
           <button
             type="button"
-            className="pressable flex h-12 w-full items-center justify-center gap-2 rounded-none bg-primary px-4 text-base font-bold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
+            className="pressable flex h-12 w-full items-center justify-center gap-2 rounded-none bg-primary px-4 text-base font-normal text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
             disabled={!ctaState.ok || isBookingLoading}
             onClick={() => {
               if (isBookingLoading) return;
@@ -887,7 +891,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
               <span>{ctaState.label}</span>
             )}
             {ctaState.chips && !isBookingLoading && (
-              <span className="rounded-full bg-primary-foreground/15 px-3 py-0.5 text-xs font-bold">{ctaState.chips}</span>
+              <span className="rounded-full bg-primary-foreground/15 px-3 py-0.5 text-xs font-normal">{ctaState.chips}</span>
             )}
             {!isBookingLoading && <ArrowLeft className="h-5 w-5 opacity-70" aria-hidden="true" />}
           </button>
@@ -897,8 +901,11 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
   );
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
-      {!loaded && !selectedService ? <div className="p-10 text-center text-sm font-semibold text-muted-foreground">در حال آماده‌سازی…</div> : content}
+    <div className={inSheet
+      ? "flex h-full min-h-0 flex-col bg-background text-foreground"
+      : "mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground"
+    }>
+      {!loaded && !selectedService ? <div className="p-10 text-center text-sm font-normal text-muted-foreground">در حال آماده‌سازی…</div> : content}
     </div>
   );
 }
@@ -940,11 +947,11 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
       {conflictMessage && (
         <div
           role="alert"
-          className="mb-3 flex items-start gap-2.5 rounded-none border border-destructive/30 bg-destructive/10 px-3.5 py-3 text-xs leading-relaxed font-semibold text-destructive"
+          className="mb-3 flex items-start gap-2.5 rounded-none border border-destructive/30 bg-destructive/10 px-3 py-3 text-xs leading-relaxed font-normal text-destructive"
         >
           <span
             aria-hidden="true"
-            className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-destructive/15 text-[10px] font-bold"
+            className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-destructive/15 text-[10px] font-normal"
           >
             !
           </span>
@@ -952,11 +959,11 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
         </div>
         )}
       <div className="mb-2.5 flex items-center justify-between">
-        <span className="text-xs font-bold text-muted-foreground">انتخاب تاریخ</span>
+        <span className="text-xs font-normal text-muted-foreground">انتخاب تاریخ</span>
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="flex h-11 items-center gap-1.5 rounded-none px-2 text-xs font-bold text-primary"
+          className="flex h-11 items-center gap-1.5 rounded-none px-2 text-xs font-normal text-primary"
         >
           <CalendarDays className="h-4 w-4" aria-hidden="true" /> تقویم
         </button>
@@ -968,14 +975,14 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
             <button
               key={getTehranDateKey(d.date)}
               type="button"
-              className={`pressable flex h-16 min-w-[58px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-none border px-3 text-sm font-bold ${d.isSelected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"} ${blocked && !d.isSelected ? "opacity-40" : ""}`}
+              className={`pressable flex h-16 min-w-[58px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-none border px-3 text-sm font-normal ${d.isSelected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-card-foreground"} ${blocked && !d.isSelected ? "opacity-40" : ""}`}
               onClick={() => { if (!blocked) onSelectDate(d.date); }}
               disabled={blocked}
               aria-pressed={d.isSelected}
               aria-label={`${d.isToday ? "امروز" : d.isTomorrow ? "فردا" : d.weekday} ${toPersianDigits(d.jalaliDay)} ${d.jalaliMonth}`}>
-              <span className={`text-micro font-bold ${d.isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{d.isToday ? "امروز" : d.isTomorrow ? "فردا" : d.weekday}</span>
-              <span className="text-lg font-bold">{toPersianDigits(d.jalaliDay)}</span>
-              <span className={`text-micro font-medium ${d.isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{d.isOff ? "تعطیل" : d.isFullyBooked ? "تکمیل" : d.jalaliMonth.slice(0, 5)}</span>
+              <span className={`text-micro font-normal ${d.isSelected ? "text-primary-foreground/70" : "text-card-foreground/60"}`}>{d.isToday ? "امروز" : d.isTomorrow ? "فردا" : d.weekday}</span>
+              <span className="text-lg font-normal">{toPersianDigits(d.jalaliDay)}</span>
+              <span className={`text-micro font-normal ${d.isSelected ? "text-primary-foreground/70" : "text-card-foreground/60"}`}>{d.isOff ? "تعطیل" : d.isFullyBooked ? "تکمیل" : d.jalaliMonth.slice(0, 5)}</span>
             </button>
           );
         })}
@@ -983,24 +990,24 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
 
       {showModal && <MonthModal selectedDate={selectedDate} disabledDateKeys={edgeDateKeys} onSelect={(d) => { onSelectDate(d); setShowModal(false); }} onClose={() => setShowModal(false)} />}
 
-      <div className="mb-3.5 flex items-center justify-center gap-2 rounded-none border border-border bg-muted px-3.5 py-2.5 text-sm font-bold">
+      <div className="mb-3 flex items-center justify-center gap-2 rounded-none border border-border bg-muted px-3 py-2.5 text-sm font-normal">
         <CalendarDays className="h-4 w-4 text-primary" aria-hidden="true" />
         <span>{selectedDateText}</span>
       </div>
 
       {emptyReason ? (
-        <div className="rounded-none border border-border bg-card p-8 text-center">
+        <div className="rounded-none border border-border bg-card p-8 text-center text-card-foreground">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-none bg-muted text-muted-foreground">
             <Clock className="h-7 w-7" strokeWidth={1.7} aria-hidden="true" />
           </div>
-          <h3 className="text-base font-bold">{emptyReason === "full" ? "این روز کاملاً پر شده" : "برای این روز ساعت کاری نداریم"}</h3>
-          <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-sm leading-relaxed text-muted-foreground">{emptyReason === "full"
+          <h3 className="text-base font-normal">{emptyReason === "full" ? "این روز کاملاً پر شده" : "برای این روز ساعت کاری نداریم"}</h3>
+          <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-sm leading-relaxed text-card-foreground/60">{emptyReason === "full"
             ? `همه زمان‌های مناسب برای ${serviceName} گرفته شده‌اند.`
             : "برای این روز زمان قابل رزرو نداریم؛ روز دیگری را انتخاب کنید."}</p>
           <button
             type="button"
             onClick={onGoToNextDay}
-            className="inline-flex h-12 items-center gap-2 rounded-none bg-primary px-5 text-sm font-bold text-primary-foreground"
+            className="inline-flex h-12 items-center gap-2 rounded-none bg-card-foreground px-5 text-sm font-normal text-card"
           >
             {emptyReason === "full" ? "برنامه فردا را ببینید" : "روز بعد را بررسی کنید"}
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -1012,11 +1019,11 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
             const suggested = slotGroups.flatMap((g) => g.slots).filter((s) => s.available && s.suggested);
             if (!suggested.length) return null;
             return (
-              <section className="mb-4 rounded-none border border-primary/25 bg-primary/5 p-3.5" aria-label="پیشنهاد نوبت">
+              <section className="mb-4 rounded-none border border-primary/25 bg-primary/5 p-3" aria-label="پیشنهاد نوبت">
                 <div className="mb-3 flex items-baseline gap-2">
                   <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 shrink-0 self-center fill-primary"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z" /></svg>
-                  <span className="text-sm font-bold text-primary">پیشنهاد نوبت</span>
-                  <span className="text-xs font-semibold text-muted-foreground">بهترین زمان‌ها برای {serviceName}</span>
+                  <span className="text-sm font-normal text-primary">پیشنهاد نوبت</span>
+                  <span className="text-xs font-normal text-muted-foreground">بهترین زمان‌ها برای {serviceName}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   {suggested.map((s) => <SlotChip key={s.time} slot={s} selected={selectedTime === s.time} onSelect={onSelectTime} suggest />)}
@@ -1032,8 +1039,8 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
             const slots = g.slots.filter((s) => !(s.available && s.suggested));
             if (!slots.length) return null;
             return (
-              <div key={g.key} className="mb-3.5">
-                <div className="mb-2 mt-3 flex items-center gap-1.5 text-xs font-bold text-foreground">
+              <div key={g.key} className="mb-3">
+                <div className="mb-2 mt-3 flex items-center gap-1.5 text-xs font-normal text-foreground">
                   <svg viewBox="0 0 24 24" aria-hidden="true" strokeWidth={2} className="h-3.5 w-3.5 fill-none stroke-current">{meta.icon}</svg>
                   {meta.label}
                 </div>
@@ -1054,13 +1061,13 @@ function SlotChip({ slot, selected, onSelect, suggest = false }: { slot: TimeSlo
   const formatted = slot.time.split(":").map((p) => toPersianDigits(p)).join(":");
   return (
     <button type="button"
-      className={`pressable relative flex h-11 min-w-16 flex-col items-center justify-center gap-0.5 rounded-none border px-3 text-sm font-bold ${selected ? "border-primary bg-primary text-primary-foreground" : suggest ? "border-primary/50 bg-card text-foreground" : "border-border bg-card text-foreground"} ${!available ? "opacity-40 line-through" : ""}`}
+      className={`pressable relative flex h-11 min-w-16 flex-col items-center justify-center gap-0.5 rounded-none border px-3 text-sm font-normal ${selected ? "border-primary bg-primary text-primary-foreground" : suggest ? "border-primary/50 bg-card text-card-foreground" : "border-border bg-card text-card-foreground"} ${!available ? "opacity-40 line-through" : ""}`}
       disabled={!available}
       aria-pressed={selected}
       onClick={() => { if (available) onSelect(slot.time); }}
       aria-label={`${formatted} ${available ? "موجود" : slot.booked || slot.locked ? "رزرو شده" : "غیرقابل رزرو"}`}>
       <span dir="ltr" className="leading-tight">{formatted}</span>
-      {suggest && <i className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2 py-px text-micro font-bold not-italic text-primary-foreground" aria-hidden="true">پیشنهادی</i>}
+      {suggest && <i className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2 py-px text-micro font-normal not-italic text-primary-foreground" aria-hidden="true">پیشنهادی</i>}
     </button>
   );
 }
@@ -1120,27 +1127,33 @@ function MonthModal({ selectedDate, onSelect, onClose, disabledDateKeys }: { sel
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div ref={dialogRef} tabIndex={-1} className="relative w-full max-w-sm rounded-none border border-border bg-card p-4" role="dialog" aria-modal="true" aria-label="تقویم">
+      <div ref={dialogRef} tabIndex={-1} className="relative w-full max-w-sm rounded-none border border-border bg-card p-3 text-card-foreground" role="dialog" aria-modal="true" aria-label="تقویم">
         <div className="mb-3 flex items-center justify-between">
-          <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground" onClick={() => shiftMonth(-1)} aria-label="ماه قبل">
+          <button type="button"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-card-foreground" onClick={() =>
+            shiftMonth(-1)}
+            aria-label="ماه قبل">
             <ArrowLeft className="h-4 w-4 rotate-180" aria-hidden="true" />
           </button>
           <div className="min-w-0 text-center">
-            <b className="block text-xl font-bold">{PERSIAN_MONTHS[viewMonth - 1]}</b>
-            <span className="text-xs font-semibold text-muted-foreground">{toPersianDigits(viewYear)}</span>
+            <b className="block text-xl font-normal">{PERSIAN_MONTHS[viewMonth - 1]}</b>
+            <span className="text-xs font-normal text-card-foreground/60">{toPersianDigits(viewYear)}</span>
           </div>
-          <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground" onClick={() => shiftMonth(1)} aria-label="ماه بعد">
+          <button type="button"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-card-foreground" onClick={() =>
+            shiftMonth(1)}
+            aria-label="ماه بعد">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
         <div className="mb-1.5 grid grid-cols-7 gap-1">
-          {PERSIAN_WEEKDAYS.map((w) => <span key={w} className="py-1 text-center text-micro font-bold text-muted-foreground">{w}</span>)}
+          {PERSIAN_WEEKDAYS.map((w) => <span key={w} className="py-1 text-center text-micro font-normal text-card-foreground/60">{w}</span>)}
         </div>
         <div className="grid grid-cols-7 gap-1">
           {cells.map((cell, i) =>
             cell.day === null ? <span key={`e-${i}`} /> : (
               <button key={cell.day} type="button" disabled={cell.isPast}
-                className={`flex h-11 w-full items-center justify-center rounded-none text-sm font-bold disabled:text-muted-foreground ${cell.isSelected ? "bg-primary text-primary-foreground" : cell.isToday ? "border border-ring text-foreground" : "text-foreground"}`}
+                className={`flex h-11 w-full items-center justify-center rounded-none text-sm font-normal disabled:text-card-foreground/40 ${cell.isSelected ? "bg-primary text-primary-foreground" : cell.isToday ? "border border-ring text-card-foreground" : "text-card-foreground"}`}
                 onClick={() => cell.date && onSelect(cell.date)}>
                 {toPersianDigits(cell.day)}
               </button>
@@ -1192,12 +1205,12 @@ function ReviewStep(props: ReviewStepProps) {
 
   return (
     <div>
-      <div className="mb-3.5 overflow-hidden rounded-none border border-border bg-card">
-        <div className="flex items-center gap-3.5 p-4">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-none bg-primary/10 text-primary"><Clock className="h-4 w-4" aria-hidden="true" /></span>
+      <div className="mb-3 overflow-hidden rounded-none border border-border bg-card text-card-foreground">
+        <div className="flex items-center gap-2 p-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-none bg-card-foreground/10 text-card-foreground"><Clock className="h-4 w-4" aria-hidden="true" /></span>
           <span className="min-w-0 flex-1">
-            <b className="block text-sm font-bold">{service?.name ?? "—"}{lookName ? ` · مدل ${lookName}` : ""}</b>
-            <small className="mt-0.5 block text-xs text-muted-foreground">{toPersianDigits(totalDuration)} دقیقه · {compactToman(totalPrice)}</small>
+            <b className="block text-sm font-normal">{service?.name ?? "—"}{lookName ? ` · مدل ${lookName}` : ""}</b>
+            <small className="mt-0.5 block text-xs text-card-foreground/60">{toPersianDigits(totalDuration)} دقیقه · {compactToman(totalPrice)}</small>
           </span>
         </div>
         {addons.length > 0 && (
@@ -1205,70 +1218,70 @@ function ReviewStep(props: ReviewStepProps) {
             {addons.map((a) => (
               <div key={a.id} className="flex items-center justify-between py-1 text-xs text-muted-foreground">
                 <span>+ {a.name} (+{toPersianDigits(a.duration_minutes)} د)</span>
-                <b className="font-bold text-primary">+{compactToman(Number(a.price))}</b>
+                <b className="font-normal text-primary">+{compactToman(Number(a.price))}</b>
               </div>
             ))}
           </div>
         )}
-        <div className="flex items-center gap-3 border-t border-dashed border-border px-4 py-3">
-          <CalendarDays className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-          <span className="flex-1 text-xs text-muted-foreground">تاریخ</span>
-          <span className="text-sm font-bold">{toPersianDigits(dateParts.day)} {dateParts.month}</span>
-          <button type="button" onClick={onEditTime} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-primary/10 px-3 text-xs font-bold text-primary">ویرایش</button>
+        <div className="flex items-center gap-2 border-t border-dashed border-border px-4 py-3">
+          <CalendarDays className="h-4 w-4 shrink-0 text-card-foreground" aria-hidden="true" />
+          <span className="flex-1 text-xs text-card-foreground/60">تاریخ</span>
+          <span className="text-sm font-normal">{toPersianDigits(dateParts.day)} {dateParts.month}</span>
+          <button type="button" onClick={onEditTime} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-card-foreground/10 px-3 text-xs font-normal text-card-foreground">ویرایش</button>
         </div>
-        <div className="flex items-center gap-3 border-t border-dashed border-border px-4 py-3">
-          <Clock className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-          <span className="flex-1 text-xs text-muted-foreground">ساعت</span>
-          <span className="text-sm font-bold">{time ? <span dir="ltr">{toPersianDigits(time)} تا {toPersianDigits(endTime)}</span> : "—"}</span>
-          <button type="button" onClick={onEditTime} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-primary/10 px-3 text-xs font-bold text-primary">ویرایش</button>
+        <div className="flex items-center gap-2 border-t border-dashed border-border px-4 py-3">
+          <Clock className="h-4 w-4 shrink-0 text-card-foreground" aria-hidden="true" />
+          <span className="flex-1 text-xs text-card-foreground/60">ساعت</span>
+          <span className="text-sm font-normal">{time ? <span dir="ltr">{toPersianDigits(time)} تا {toPersianDigits(endTime)}</span> : "—"}</span>
+          <button type="button" onClick={onEditTime} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-card-foreground/10 px-3 text-xs font-normal text-card-foreground">ویرایش</button>
         </div>
-        <div className="flex items-center justify-between bg-muted px-4 py-3.5 text-sm font-semibold text-foreground">
+        <div className="flex items-center justify-between bg-muted px-4 py-3 text-sm font-normal text-foreground">
           <span>مجموع · پرداخت در سالن</span>
-          <b className="text-base font-bold">{compactToman(totalPrice)}</b>
+          <b className="text-base font-normal">{compactToman(totalPrice)}</b>
         </div>
       </div>
 
-      <div className="mb-3.5 rounded-none border border-border bg-card p-4">
-        <p className="mb-3.5 text-sm font-bold">مشخصات شما</p>
+      <div className="mb-3 rounded-none border border-border bg-card p-3 text-card-foreground">
+        <p className="mb-3 text-sm font-normal">مشخصات شما</p>
 
         <div className="mb-3">
-          <label htmlFor="booking-name" className="mb-1.5 block text-xs font-bold text-muted-foreground">نام {nameRequired ? "(الزامی)" : "(قابل ویرایش)"}</label>
-          <input id="booking-name" type="text" className="h-12 w-full rounded-none border border-input bg-card px-3.5 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50" value={authName}
+          <label htmlFor="booking-name" className="mb-1.5 block text-xs font-normal text-card-foreground/60">نام {nameRequired ? "(الزامی)" : "(قابل ویرایش)"}</label>
+          <input id="booking-name" type="text" className="h-12 w-full rounded-none border border-card-foreground/30 bg-card px-3 text-base outline-none placeholder:text-card-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50" value={authName}
             onChange={(e) => onAuthName(e.target.value)} placeholder="مثال: سارا احمدی" autoComplete="name" required={nameRequired} aria-required={nameRequired} />
         </div>
 
         {user ? (
-          <div className="flex items-center gap-3 rounded-none border border-success/25 bg-muted p-3">
+          <div className="flex items-center gap-2 rounded-none border border-success/25 bg-muted p-3">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success"><Check className="h-4 w-4" strokeWidth={3} /></span>
-            <span className="min-w-0 flex-1"><b className="block text-sm font-bold">شماره تأیید شده</b><small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(user.phone)}</small></span>
+            <span className="min-w-0 flex-1"><b className="block text-sm font-normal">شماره تأیید شده</b><small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(user.phone)}</small></span>
           </div>
         ) : otpState === "verified" ? (
-          <div className="flex items-center gap-3 rounded-none border border-success/25 bg-muted p-3">
+          <div className="flex items-center gap-2 rounded-none border border-success/25 bg-muted p-3">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success"><Check className="h-4 w-4" strokeWidth={3} /></span>
-            <span className="min-w-0 flex-1"><b className="block text-sm font-bold">شماره تأیید شد</b><small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(authPhone)}</small></span>
-            <button type="button" onClick={onChangePhone} className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">تغییر شماره</button>
+            <span className="min-w-0 flex-1"><b className="block text-sm font-normal">شماره تأیید شد</b><small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(authPhone)}</small></span>
+            <button type="button" onClick={onChangePhone} className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-normal text-primary">تغییر شماره</button>
           </div>
         ) : (
           <>
             <div className="mb-3">
-              <label htmlFor="booking-phone" className="mb-1.5 block text-xs font-bold text-muted-foreground">شماره موبایل</label>
-              <input id="booking-phone" type="tel" inputMode="numeric" dir="ltr" className="h-12 w-full rounded-none border border-input bg-card px-3.5 text-left text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50" value={authPhone}
+              <label htmlFor="booking-phone" className="mb-1.5 block text-xs font-normal text-card-foreground/60">شماره موبایل</label>
+              <input id="booking-phone" type="tel" inputMode="numeric" dir="ltr" className="h-12 w-full rounded-none border border-card-foreground/30 bg-card px-3 text-left text-base outline-none placeholder:text-card-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50" value={authPhone}
                 onChange={(e) => onAuthPhone(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && phoneValid && !isAuthLoading && otpState === "idle" && onSendOtp()}
                 placeholder="۰۹۱۲۱۲۳۴۵۶۷" autoComplete="tel" />
             </div>
             {otpState === "idle" && (
-              <button type="button" className="flex h-12 w-full items-center justify-center rounded-none bg-primary text-sm font-bold text-primary-foreground disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/70" disabled={!phoneValid || isAuthLoading} onClick={onSendOtp}>
+              <button type="button" className="flex h-12 w-full items-center justify-center rounded-none bg-primary text-sm font-normal text-primary-foreground disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/70" disabled={!phoneValid || isAuthLoading} onClick={onSendOtp}>
                 {isAuthLoading ? "در حال ارسال…" : "دریافت کد تأیید"}
               </button>
             )}
             {otpState === "sent" && (
               <div>
-                <p className="mb-3 text-center text-xs font-semibold text-muted-foreground">کد ۶ رقمی پیامک‌شده را وارد کن</p>
+                <p className="mb-3 text-center text-xs font-normal text-muted-foreground">کد ۶ رقمی پیامک‌شده را وارد کن</p>
                 <PinInput key={otpAttempt} length={6} onComplete={onVerifyCode} disabled={isAuthLoading} />
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <ResendOtpButton onResend={onSendOtp} disabled={isAuthLoading} />
-                  <button type="button" onClick={onChangePhone} className="rounded-none px-2 py-1.5 text-xs font-bold text-primary">تغییر شماره</button>
+                  <button type="button" onClick={onChangePhone} className="rounded-none px-2 py-1.5 text-xs font-normal text-primary">تغییر شماره</button>
                 </div>
               </div>
             )}
@@ -1276,15 +1289,15 @@ function ReviewStep(props: ReviewStepProps) {
         )}
 
         {nameRequired && !customerName && <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">برای ثبت رزرو، وارد کردن نام الزامی است.</p>}
-        {!canContinue && <p className="mt-2.5 text-xs font-semibold text-destructive">لطفاً نام خود را وارد کنید</p>}
-        {authError && <p className="mt-2.5 text-xs font-semibold text-destructive" role="alert">{authError}</p>}
+        {!canContinue && <p className="mt-2.5 text-xs font-normal text-destructive">لطفاً نام خود را وارد کنید</p>}
+        {authError && <p className="mt-2.5 text-xs font-normal text-destructive" role="alert">{authError}</p>}
       </div>
 
-      <div className="mb-3.5 flex items-start gap-2.5 rounded-none border border-dashed border-border bg-muted p-3.5 text-xs leading-relaxed text-muted-foreground">
+      <div className="mb-3 flex items-start gap-2.5 rounded-none border border-dashed border-border bg-muted p-3 text-xs leading-relaxed text-muted-foreground">
         کنسلی رایگان تا ۲۴ ساعت قبل از نوبت؛ هزینهٔ افزودنی‌ها همراه خدمت در سالن پرداخت می‌شود.
       </div>
 
-      {showSpam && spamError && <p className="mt-2.5 text-xs font-semibold text-destructive" role="alert">{spamError}</p>}
+      {showSpam && spamError && <p className="mt-2.5 text-xs font-normal text-destructive" role="alert">{spamError}</p>}
     </div>
   );
 }
@@ -1328,18 +1341,18 @@ function SuccessStep(props: SuccessStepProps) {
 
   return (
     <div className="pt-2 text-center">
-      <div className="mx-auto mb-3.5 flex h-16 w-16 items-center justify-center rounded-full bg-success/10 text-success" aria-hidden="true">
+      <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-success/10 text-success" aria-hidden="true">
         <Check className="h-8 w-8" strokeWidth={2.5} />
       </div>
-      <h3 className="text-2xl font-bold">رزرو تأیید شد!</h3>
+      <h3 className="text-2xl font-normal">رزرو تأیید شد!</h3>
       <p className="mb-4 mt-1 text-sm text-muted-foreground">پیامک تأیید برایت در راه است</p>
 
       <div className="mb-4 flex gap-2.5">
-        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-none bg-primary text-sm font-bold text-primary-foreground" onClick={() => { downloadIcs({ title: eventTitle, start, end, location: eventLocation, description: eventDescription }); setIcsAdded(true); haptic.tap(); }}>
+        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-none bg-primary text-sm font-normal text-primary-foreground" onClick={() => { downloadIcs({ title: eventTitle, start, end, location: eventLocation, description: eventDescription }); setIcsAdded(true); haptic.tap(); }}>
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           {icsAdded ? "به تقویم اضافه شد" : "افزودن به تقویم"}
         </button>
-        <a className="flex h-12 flex-1 items-center justify-center gap-2 rounded-none border border-border bg-card text-sm font-bold text-foreground" href={googleCalendarUrl({ title: eventTitle, start, end, location: eventLocation, description: eventDescription })} target="_blank" rel="noopener noreferrer">
+        <a className="flex h-12 flex-1 items-center justify-center gap-2 rounded-none border border-border bg-card text-sm font-normal text-card-foreground" href={googleCalendarUrl({ title: eventTitle, start, end, location: eventLocation, description: eventDescription })} target="_blank" rel="noopener noreferrer">
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           تقویم گوگل
         </a>
@@ -1363,11 +1376,11 @@ function SuccessStep(props: SuccessStepProps) {
       />
 
       <div className="mt-4 flex gap-2.5">
-        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-none bg-primary text-sm font-bold text-primary-foreground" onClick={() => { haptic.tap(); router.push("/bookings"); }}>
+        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-none bg-primary text-sm font-normal text-primary-foreground" onClick={() => { haptic.tap(); router.push("/bookings"); }}>
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           مشاهده نوبت‌های من
         </button>
-        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-none border border-border bg-card text-sm font-bold text-foreground" onClick={() => { haptic.tap(); router.push("/"); }}>
+        <button type="button" className="flex h-12 flex-1 items-center justify-center gap-2 rounded-none border border-border bg-card text-sm font-normal text-card-foreground" onClick={() => { haptic.tap(); router.push("/"); }}>
           بازگشت به خانه
         </button>
       </div>

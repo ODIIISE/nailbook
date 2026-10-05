@@ -24,7 +24,7 @@ type Step = "phone" | "otp" | "name";
  */
 function FormError({ message }: { message: string }) {
   return (
-    <p className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-destructive" role="alert">
+    <p className="mt-2.5 flex items-center gap-1.5 text-xs font-normal text-destructive" role="alert">
       <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
       {message}
     </p>
@@ -147,8 +147,8 @@ export default function LoginPage() {
           onClick={goBack}
         />
         <div className="min-w-0 overflow-hidden text-center">
-          <span className="block text-xs font-bold text-primary">{kicker}</span>
-          <h2 className="truncate text-lg font-bold">{title}</h2>
+          <span className="block text-xs font-normal text-primary">{kicker}</span>
+          <h2 className="truncate text-lg font-normal">{title}</h2>
         </div>
         <span className="h-11 w-11" />
       </header>
@@ -156,7 +156,7 @@ export default function LoginPage() {
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-[max(34px,calc(34px+env(safe-area-inset-bottom)))] pt-[clamp(18px,7dvh,64px)]">
         {step === "phone" && (
           <Card padding={5} width="100%">
-            <p className="mb-3.5 text-sm font-bold">شماره موبایل خود را وارد کنید</p>
+            <p className="mb-3.5 text-sm font-normal">شماره موبایل خود را وارد کنید</p>
             {/* Stock Field shell + a native control: the phone field needs
                 type="tel", inputMode="numeric" and dir="ltr" for Persian number
                 entry (TextInput intentionally omits inputMode). */}
@@ -191,11 +191,11 @@ export default function LoginPage() {
 
         {step === "otp" && (
           <Card padding={5} width="100%">
-            <p className="mb-3.5 text-sm font-bold">کد ۶ رقمی پیامک‌شده را وارد کنید</p>
+            <p className="mb-3.5 text-sm font-normal">کد ۶ رقمی پیامک‌شده را وارد کنید</p>
             <div className="mb-4 flex items-center gap-3 rounded-none border border-success/25 bg-muted p-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">✓</span>
               <span className="min-w-0 flex-1">
-                <b className="block text-sm font-bold">شماره</b>
+                <b className="block text-sm font-normal">شماره</b>
                 <small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(phone)}</small>
               </span>
             </div>
@@ -222,7 +222,7 @@ export default function LoginPage() {
 
         {step === "name" && (
           <Card padding={5} width="100%">
-            <p className="mb-3.5 text-sm font-bold">نام و نام خانوادگی خود را وارد کنید</p>
+            <p className="mb-3.5 text-sm font-normal">نام و نام خانوادگی خود را وارد کنید</p>
             <TextInput
               label="نام و نام خانوادگی"
               value={name}

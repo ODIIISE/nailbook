@@ -59,8 +59,8 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
 
   return (
     <BottomSheet open={true} onClose={onCancel} title="مسدود کردن زمان">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="grid grid-cols-2 gap-2">
           <div>
             <Label htmlFor="block-start" className="text-sm">از ساعت</Label>
             <Input
@@ -89,7 +89,7 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
           </div>
         </div>
         {timeError && <p className="text-small text-destructive" role="alert">{timeError}</p>}
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <Button type="submit" size="lg" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-none">
             مسدود کن
           </Button>

@@ -24,7 +24,7 @@ export default function PortfolioPage() {
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
           <div className="min-w-0 overflow-hidden text-center">
-            <h2 className="truncate text-lg font-bold">{title}</h2>
+            <h2 className="truncate text-lg font-normal">{title}</h2>
           </div>
           <span className="h-11 w-11" />
         </header>
@@ -32,7 +32,7 @@ export default function PortfolioPage() {
         <div className="page-gutter min-h-0 flex-1 overflow-y-auto overscroll-contain pb-8 pt-2">
           {items.length === 0 ? (
             <div className="rounded-none border border-border bg-card p-6 text-center">
-              <h3 className="text-sm font-bold">هنوز نمونه‌کاری ثبت نشده است</h3>
+              <h3 className="text-sm font-normal">هنوز نمونه‌کاری ثبت نشده است</h3>
               <p className="mx-auto mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">
                 به‌زودی مدل‌های جدید اضافه می‌شوند.
               </p>
@@ -58,7 +58,7 @@ export default function PortfolioPage() {
                       />
                     )}
                   </span>
-                  <span className="mt-1.5 block truncate text-small font-semibold">{h.name}</span>
+                  <span className="mt-1.5 block truncate text-small font-normal">{h.name}</span>
                 </button>
               ))}
             </div>

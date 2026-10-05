@@ -63,7 +63,7 @@ export function ImageCrop({ image, onCropComplete: onComplete, onCancel, aspect 
         <Button variant="ghost" size="sm" onClick={onCancel}>
           انصراف
         </Button>
-        <span className="text-sm font-bold">برش تصویر</span>
+        <span className="text-sm font-normal">برش تصویر</span>
         <Button size="sm" onClick={handleConfirm}>
           تأیید
         </Button>

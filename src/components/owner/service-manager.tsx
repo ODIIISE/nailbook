@@ -311,7 +311,7 @@ function ServicesTab({
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{service.name}</span>
+                    <span className="font-normal">{service.name}</span>
                     {!service.is_active && (
                       <Badge variant="secondary" className="text-xs">غیرفعال</Badge>
                     )}
@@ -349,7 +349,7 @@ function ServicesTab({
                       <button
                         key={addon.id}
                         onClick={() => handleToggleAddon(service.id, addon.id)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-normal ${
                           assigned
                             ? "bg-primary text-primary-foreground"
                             : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
@@ -566,7 +566,7 @@ function AddonsTab({
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{addon.name}</span>
+                  <span className="font-normal">{addon.name}</span>
                   {!addon.is_active && (
                     <Badge variant="secondary" className="text-xs">غیرفعال</Badge>
                   )}
@@ -662,7 +662,7 @@ function ServiceForm({
     <Card className="p-4 space-y-3">
       {title && (
         <div className="flex items-center justify-between mb-2">
-          <p className="font-medium text-sm">{title}</p>
+          <p className="font-normal text-sm">{title}</p>
           <Button size="sm" variant="ghost" onClick={onCancel}>
             <X className="h-4 w-4" />
           </Button>
@@ -851,7 +851,7 @@ function AddonForm({
     <Card className="p-4 space-y-3">
       {title && (
         <div className="flex items-center justify-between mb-2">
-          <p className="font-medium text-sm">{title}</p>
+          <p className="font-normal text-sm">{title}</p>
           <Button size="sm" variant="ghost" onClick={onCancel}>
             <X className="h-4 w-4" />
           </Button>

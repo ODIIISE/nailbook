@@ -193,7 +193,7 @@ export default function OwnerHighlightsPage() {
     <div className="px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-foreground">هایلایت‌ها</h2>
+          <h2 className="text-lg font-normal text-foreground">هایلایت‌ها</h2>
           <p className="text-caption text-muted-foreground mt-0.5">
             {highlights.length} هایلایت · لینک خدمت و آپشن برای هر مدل
           </p>
@@ -230,14 +230,14 @@ export default function OwnerHighlightsPage() {
                         onError={(event) => { event.currentTarget.style.display = "none"; }} />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-lg font-bold text-muted-foreground">
+                        <span className="text-lg font-normal text-muted-foreground">
                           {highlight.name.charAt(0)}
                         </span>
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-foreground truncate">{highlight.name}</p>
+                    <p className="font-normal text-foreground truncate">{highlight.name}</p>
                     <p className="text-caption text-muted-foreground truncate">
                       {highlight.images.length} تصویر
                       {linkedService && (
@@ -362,7 +362,7 @@ export default function OwnerHighlightsPage() {
                                   key={addon.id}
                                   type="button"
                                   onClick={() => handleToggleLookAddon(expandedHighlight, addon.id)}
-                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-normal ${
                                     on
                                       ? "bg-primary text-primary-foreground"
                                       : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
@@ -386,7 +386,7 @@ export default function OwnerHighlightsPage() {
                     {preview && (preview.service || preview.addons.length > 0) && (
                       <div className="rounded-none bg-muted/60 border border-border/40 px-4 py-3 space-y-1">
                         <p className="text-small text-muted-foreground">نمایش به مشتری هنگام رزرو این مدل</p>
-                        <p className="text-sm font-semibold text-foreground">
+                        <p className="text-sm font-normal text-foreground">
                           {preview.service?.name ?? "بدون خدمت"}
                           {preview.addons.length > 0 && (
                             <span className="font-normal text-muted-foreground">
@@ -396,7 +396,7 @@ export default function OwnerHighlightsPage() {
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {toPersianDigits(preview.duration)} دقیقه ·{" "}
-                          <span className="font-bold text-foreground">{formatPrice(preview.price)} تومان</span>
+                          <span className="font-normal text-foreground">{formatPrice(preview.price)} تومان</span>
                         </p>
                       </div>
                     )}

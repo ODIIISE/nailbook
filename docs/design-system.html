@@ -567,20 +567,20 @@
 
   /* ── type scale (globals.css utilities) ── */
   const typeRows = [
-    ['.text-display', '28px', '700', 'نمایش/قهرمان', 'برای تیترهای بزرگ صفحات'],
-    ['.text-h1', '24px', '700', 'تیتر صفحه', 'عنوان اصلی هر صفحه'],
-    ['.text-h2', '20px', '600', 'عنوان بخش', 'هدر کارت‌ها'],
-    ['.text-h3', '16px', '600', 'زیرعنوان', 'عنوان آیتم'],
+    ['.text-display', '28px', '600', 'نمایش/قهرمان', 'برای تیترهای بزرگ صفحات'],
+    ['.text-h1', '24px', '600', 'تیتر صفحه', 'عنوان اصلی هر صفحه'],
+    ['.text-h2', '20px', '500', 'عنوان بخش', 'هدر کارت‌ها'],
+    ['.text-h3', '16px', '500', 'زیرعنوان', 'عنوان آیتم'],
     ['.text-body-lg', '16px', '400', 'متن بزرگ', 'متن خواندنی مهم'],
-    ['.text-body', '14px', '400', 'متن بدنه', 'پیش‌فرض'],
-    ['.text-caption', '12px', '500', 'کپشن', 'برچسب و متادیتا'],
-    ['.text-small', '12px', '400', 'کوچک', 'کف نردبان — کوچک‌تر ممنوع'],
+    ['.text-body', '14px', '350', 'متن بدنه', 'پیش‌فرض'],
+    ['.text-caption', '12px', '400', 'کپشن', 'برچسب و متادیتا'],
+    ['.text-small', '12px', '350', 'کوچک', 'کف نردبان — کوچک‌تر ممنوع'],
   ];
   const tr = document.getElementById('typerows');
   typeRows.forEach(([cls, size, weight, fa, use]) => {
     const d = document.createElement('div');
     d.className = 't-row';
-    d.innerHTML = `<div style="${cls === '.text-display' ? 'font-size:28px;line-height:1.15;font-weight:700;letter-spacing:-.02em' : cls === '.text-h1' ? 'font-size:24px;line-height:1.2;font-weight:700;letter-spacing:-.015em' : cls === '.text-h2' ? 'font-size:20px;line-height:1.25;font-weight:600;letter-spacing:-.01em' : cls === '.text-h3' ? 'font-size:16px;line-height:1.35;font-weight:600' : cls === '.text-body-lg' ? 'font-size:16px;line-height:1.6;font-weight:400' : cls === '.text-body' ? 'font-size:14px;line-height:1.55;font-weight:400' : cls === '.text-caption' ? 'font-size:12px;line-height:1.45;font-weight:500' : 'font-size:12px;line-height:1.4;font-weight:400'}">خدمتت را انتخاب کن</div><div class="t-meta"><b>${cls}</b> · ${size} · ${weight} — ${use}</div>`;
+    d.innerHTML = `<div style="${cls === '.text-display' ? 'font-size:28px;line-height:1.15;font-weight:600;letter-spacing:-.02em' : cls === '.text-h1' ? 'font-size:24px;line-height:1.2;font-weight:600;letter-spacing:-.015em' : cls === '.text-h2' ? 'font-size:20px;line-height:1.25;font-weight:500;letter-spacing:-.01em' : cls === '.text-h3' ? 'font-size:16px;line-height:1.35;font-weight:500' : cls === '.text-body-lg' ? 'font-size:16px;line-height:1.6;font-weight:400' : cls === '.text-body' ? 'font-size:14px;line-height:1.55;font-weight:350' : cls === '.text-caption' ? 'font-size:12px;line-height:1.45;font-weight:400' : 'font-size:12px;line-height:1.4;font-weight:350'}">خدمتت را انتخاب کن</div><div class="t-meta"><b>${cls}</b> · ${size} · ${weight} — ${use}</div>`;
     tr.appendChild(d);
   });
 

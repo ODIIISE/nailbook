@@ -1,16 +1,15 @@
 "use client";
 
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
-import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { StatusPill } from "@/components/ui/status-pill";
-import { Clock, Calendar, User, ArrowRight, Sparkles, X } from "lucide-react";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Clock, Calendar, User, ArrowRight, Sparkles } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
 import { persianizeError } from "@/lib/error-sanitize";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
 import { useBookingsPolling } from "@/lib/hooks/use-bookings-polling";
 import { gregorianToJalali, toPersianDigits, formatJalaliTime } from "@/lib/jalali";
 import { parseGregorianDateKey } from "@/lib/time";
@@ -86,7 +85,7 @@ export default function BookingsPage() {
   if (!user) {
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
-        <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
+        <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3 pb-2 pt-3">
           <button
             type="button"
             className="icon-btn text-foreground"
@@ -96,8 +95,8 @@ export default function BookingsPage() {
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
           <div className="min-w-0 overflow-hidden text-center">
-            <span className="block text-xs font-bold text-primary">نوبت‌های من</span>
-            <h2 className="truncate text-lg font-bold">نوبت‌ها</h2>
+            <span className="block text-xs font-normal text-primary">نوبت‌های من</span>
+            <h2 className="truncate text-lg font-normal">نوبت‌ها</h2>
           </div>
           <span className="h-11 w-11" />
         </header>
@@ -106,11 +105,11 @@ export default function BookingsPage() {
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-none bg-muted text-muted-foreground">
               <User className="h-7 w-7" aria-hidden="true" />
             </div>
-            <h3 className="text-sm font-bold">وارد شوید</h3>
+            <h3 className="text-sm font-normal">وارد شوید</h3>
             <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">برای دیدن نوبت‌های خود، با شماره موبایلی که رزرو کرده‌اید وارد شوید.</p>
             <button
               type="button"
-              className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-normal text-primary-foreground"
               onClick={() => router.push("/login")}
             >
               ورود
@@ -124,7 +123,7 @@ export default function BookingsPage() {
   return (
     <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
     <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
-      <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
+      <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3 pb-2 pt-3">
         <button
           type="button"
           className="icon-btn text-foreground"
@@ -134,15 +133,15 @@ export default function BookingsPage() {
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </button>
         <div className="min-w-0 overflow-hidden text-center">
-          <span className="block text-xs font-bold text-primary">نوبت‌های من</span>
-          <h2 className="truncate text-lg font-bold">نوبت‌ها</h2>
+          <span className="block text-xs font-normal text-primary">نوبت‌های من</span>
+          <h2 className="truncate text-lg font-normal">نوبت‌ها</h2>
         </div>
         <span className="h-11 w-11" />
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
         <section
-          className="relative mb-3 flex items-center gap-3 overflow-hidden rounded-none border border-border bg-card p-4"
+          className="relative mb-3 flex items-center gap-2 overflow-hidden rounded-none border border-border bg-card p-3"
           aria-labelledby="booking-history-title"
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none bg-muted text-foreground">
@@ -150,10 +149,10 @@ export default function BookingsPage() {
           </span>
           <span className="min-w-0">
             <span className="block text-kicker text-muted-foreground">تاریخچه</span>
-            <h3 id="booking-history-title" className="mt-0.5 text-base font-bold">تاریخچه نوبت‌ها</h3>
+            <h3 id="booking-history-title" className="mt-0.5 text-base font-normal">تاریخچه نوبت‌ها</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">{toPersianDigits(myBookings.length)} نوبت ثبت‌شده</p>
           </span>
-          <span aria-hidden="true" className="pointer-events-none absolute -bottom-6 -end-2 select-none text-[96px] font-bold leading-none text-muted-foreground/10">
+          <span aria-hidden="true" className="pointer-events-none absolute -bottom-6 -end-2 select-none text-[96px] font-normal leading-none text-muted-foreground/10">
             {toPersianDigits(myBookings.length)}
           </span>
         </section>
@@ -162,11 +161,11 @@ export default function BookingsPage() {
               <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-none bg-muted text-muted-foreground">
                 <Calendar className="h-6 w-6" aria-hidden="true" />
               </div>
-              <h3 className="text-sm font-bold">نوبتی ندارید</h3>
+              <h3 className="text-sm font-normal">نوبتی ندارید</h3>
               <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">هنوز نوبتی رزرو نکرده‌اید. همین حالا اولین نوبت خود را بگیرید.</p>
               <button
                 type="button"
-                className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground"
+                className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-normal text-primary-foreground"
                 onClick={() => router.push("/")}
               >
                 رزرو نوبت
@@ -175,7 +174,7 @@ export default function BookingsPage() {
           ) : (
             groupedByDate.map((group) => (
               <div key={group.date}>
-                <p className="pb-1 pt-4 text-xs font-bold text-muted-foreground">{group.jalaliStr}</p>
+                <p className="pb-1 pt-4 text-xs font-normal text-muted-foreground">{group.jalaliStr}</p>
                 {group.bookings.map((booking) => {
                   const time = booking.start_time.slice(0, 5);
                   const endTime = booking.end_time.slice(0, 5);
@@ -191,14 +190,14 @@ export default function BookingsPage() {
                     <button
                       key={booking.id}
                       type="button"
-                      className="mb-2.5 w-full rounded-none border border-border bg-card p-4 text-start"
+                      className="mb-2.5 w-full rounded-none border border-border bg-card p-3 text-start"
                       onClick={() => setSelectedBooking(booking)}
                       aria-label={`مشاهده نوبت ${getServiceName(booking.service_id)}`}
                     >
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center justify-between gap-2">
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-muted text-foreground"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
                         <span className="min-w-0 flex-1">
-                          <b className="block truncate text-sm font-bold">{getServiceName(booking.service_id)}</b>
+                          <b className="block truncate text-sm font-normal">{getServiceName(booking.service_id)}</b>
                           <small className="mt-0.5 block text-micro text-muted-foreground">{booking.customer_name || "مشتری"}</small>
                         </span>
                         <StatusPill status={booking.status} />
@@ -210,12 +209,12 @@ export default function BookingsPage() {
                       </div>
                       {addonNames.length > 0 && (
                         <div className="mt-2.5 flex flex-wrap gap-1.5">
-                          {addonNames.map((name) => <span key={name} className="rounded-full bg-muted px-2.5 py-1 text-micro font-bold text-secondary-foreground">{name}</span>)}
+                          {addonNames.map((name) => <span key={name} className="rounded-full bg-muted px-2.5 py-1 text-micro font-normal text-secondary-foreground">{name}</span>)}
                         </div>
                       )}
                       <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-                        <b className="text-sm font-bold">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
-                        <small dir="ltr" className="text-micro font-bold text-muted-foreground">#{booking.id.slice(-6).toUpperCase()}</small>
+                        <b className="text-sm font-normal">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
+                        <small dir="ltr" className="text-micro font-normal text-muted-foreground">#{booking.id.slice(-6).toUpperCase()}</small>
                       </div>
                     </button>
                   );
@@ -256,12 +255,7 @@ function BookingDetailSheet({
   getServicePrice: (id: string) => number | null;
 }) {
   const [confirming, setConfirming] = useState(false);
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const sheetRef = useRef<HTMLDivElement>(null);
-  useFocusTrap(sheetRef, true);
   const cancelingRef = useRef(false);
-  const onCloseRef = useRef(onClose);
-  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
   const jalali = gregorianToJalali(parseGregorianDateKey(booking.date_gregorian));
   const time = booking.start_time.slice(0, 5);
@@ -270,28 +264,13 @@ function BookingDetailSheet({
   const price = booking.price_total ?? getServicePrice(booking.service_id);
   const canCancel = booking.status === "reserved" || booking.status === "confirmed";
 
-  // Rebuild: sheets render instantly — close just unmounts, no exit phase.
+  // Close only when the server actually cancelled — a failed attempt must
+  // keep the sheet open (with the rolled-back status) so the user can retry.
+  // Escape / scrim / X are owned by BottomSheet; confirming resets on close.
   const requestClose = useCallback(() => {
     setConfirming(false);
-    onCloseRef.current();
-  }, []);
-
-  useEffect(() => {
-    const focusTimer = window.setTimeout(() => closeRef.current?.focus({ preventScroll: true }), 80);
-    const prevOverflow = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") requestClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      window.clearTimeout(focusTimer);
-      document.removeEventListener("keydown", onKey);
-      document.documentElement.style.overflow = prevOverflow;
-      document.body.style.overflow = "";
-    };
-  }, [requestClose]);
+    onClose();
+  }, [onClose]);
 
   const handleCancelClick = async () => {
     if (cancelingRef.current) return;
@@ -309,122 +288,91 @@ function BookingDetailSheet({
     }
   };
 
-  // Portal to <body> so a transformed ancestor (page wrapper) can
-  // never re-anchor the fixed sheet away from the viewport — same hardening as
-  // the homepage sheets.
-  if (typeof document === "undefined") return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label="جزئیات نوبت">
-      <div
-        className="absolute inset-0 bg-black/40"
-        onClick={() => { if (!cancelingRef.current) requestClose(); }}
-        aria-hidden="true"
-      />
-      <div
-        ref={sheetRef}
-        className="relative z-10 flex max-h-[88dvh] w-full max-w-[var(--frame-max-w)] flex-col border-t bg-popover p-4 pb-[calc(16px+env(safe-area-inset-bottom))] text-popover-foreground"
-      >
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <h3 className="text-lg font-bold">جزئیات نوبت</h3>
-          <button
-            ref={closeRef}
-            type="button"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
-            onClick={requestClose}
-            aria-label="بستن"
-          >
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
+  return (
+    <BottomSheet open={true} onClose={requestClose} title="جزئیات نوبت">
+      <div className="mb-3 overflow-hidden rounded-none border border-border bg-card text-card-foreground">
+        <div className="flex items-center justify-between gap-2 px-4 py-3">
+          <span className="text-xs text-card-foreground/60">خدمت</span>
+          <span className="text-sm font-normal">{getServiceName(booking.service_id)}</span>
         </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <div className="mb-3.5 overflow-hidden rounded-none border border-border bg-card">
-            <div className="flex items-center justify-between gap-3 px-4 py-3">
-              <span className="text-xs text-muted-foreground">خدمت</span>
-              <span className="text-sm font-bold">{getServiceName(booking.service_id)}</span>
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
-              <span className="text-xs text-muted-foreground">مشتری</span>
-              <span className="text-sm font-bold">{booking.customer_name || "—"}</span>
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
-              <span className="text-xs text-muted-foreground">تاریخ</span>
-              <span className="text-sm font-bold">
-                {toPersianDigits(jalali.jd)} {JALALI_MONTHS[jalali.jm]} {toPersianDigits(jalali.jy)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
-              <span className="text-xs text-muted-foreground">ساعت</span>
-              <span className="text-sm font-bold">{formatJalaliTime(time)} تا {formatJalaliTime(endTime)}</span>
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
-              <span className="text-xs text-muted-foreground">مدت</span>
-              <span className="text-sm font-bold">{toPersianDigits(Math.max(0, (() => {
-                const s = parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
-                const e = parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
-                return e >= s ? e - s : e + 24 * 60 - s;
-              })()))} دقیقه</span>
-            </div>
-            {addonNames.length > 0 && (
-              <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
-                <span className="shrink-0 text-xs text-muted-foreground">افزودنی‌ها</span>
-                <span className="text-start text-xs font-bold">{addonNames.join("، ")}</span>
-              </div>
-            )}
-            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
-              <span className="text-xs text-muted-foreground">هزینه</span>
-              <span className="text-sm font-bold">{price !== null ? compactToman(Number(price)) : "در سالن"}</span>
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
-              <span className="text-xs text-muted-foreground">وضعیت</span>
-              <StatusPill status={booking.status} />
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
-              <span className="text-xs text-muted-foreground">کد رهگیری</span>
-              <span className="text-xs font-bold" dir="ltr">#{booking.id.slice(-6).toUpperCase()}</span>
-            </div>
+        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
+          <span className="text-xs text-card-foreground/60">مشتری</span>
+          <span className="text-sm font-normal">{booking.customer_name || "—"}</span>
+        </div>
+        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
+          <span className="text-xs text-card-foreground/60">تاریخ</span>
+          <span className="text-sm font-normal">
+            {toPersianDigits(jalali.jd)} {JALALI_MONTHS[jalali.jm]} {toPersianDigits(jalali.jy)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
+          <span className="text-xs text-card-foreground/60">ساعت</span>
+          <span className="text-sm font-normal">{formatJalaliTime(time)} تا {formatJalaliTime(endTime)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
+          <span className="text-xs text-card-foreground/60">مدت</span>
+          <span className="text-sm font-normal">{toPersianDigits(Math.max(0, (() => {
+            const s = parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
+            const e = parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
+            return e >= s ? e - s : e + 24 * 60 - s;
+          })()))} دقیقه</span>
+        </div>
+        {addonNames.length > 0 && (
+          <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
+            <span className="shrink-0 text-xs text-card-foreground/60">افزودنی‌ها</span>
+            <span className="text-start text-xs font-normal">{addonNames.join("، ")}</span>
           </div>
-
-          <div className="mt-1 flex flex-col gap-2.5">
-            {canCancel && !confirming && (
-              <button
-                type="button"
-                className="flex h-12 w-full items-center justify-center rounded-none border border-destructive/30 bg-destructive/10 text-sm font-bold text-destructive"
-                onClick={() => setConfirming(true)}
-              >
-                لغو نوبت
-              </button>
-            )}
-            {canCancel && confirming && (
-              <div className="flex gap-2.5">
-                <button
-                  type="button"
-                  className="h-12 flex-1 rounded-none bg-destructive text-sm font-bold text-destructive-foreground"
-                  onClick={handleCancelClick}
-                >
-                  بله، لغو کن
-                </button>
-                <button
-                  type="button"
-                  className="h-12 flex-1 rounded-none border border-destructive/30 bg-destructive/10 text-sm font-bold text-destructive"
-                  onClick={() => setConfirming(false)}
-                >
-                  انصراف
-                </button>
-              </div>
-            )}
-            <button
-              type="button"
-              className="flex h-12 w-full items-center justify-center rounded-none bg-primary text-sm font-bold text-primary-foreground"
-              onClick={requestClose}
-            >
-              بستن
-            </button>
-          </div>
+        )}
+        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
+          <span className="text-xs text-card-foreground/60">هزینه</span>
+          <span className="text-sm font-normal">{price !== null ? compactToman(Number(price)) : "در سالن"}</span>
+        </div>
+        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
+          <span className="text-xs text-card-foreground/60">وضعیت</span>
+          <StatusPill status={booking.status} onDark />
+        </div>
+        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
+          <span className="text-xs text-card-foreground/60">کد رهگیری</span>
+          <span className="text-xs font-normal" dir="ltr">#{booking.id.slice(-6).toUpperCase()}</span>
         </div>
       </div>
-    </div>,
-    document.body,
+
+      <div className="mt-1 flex flex-col gap-2.5">
+        {canCancel && !confirming && (
+          <button
+            type="button"
+            className="flex h-12 w-full items-center justify-center rounded-none border border-destructive/30 bg-destructive/10 text-sm font-normal text-destructive"
+            onClick={() => setConfirming(true)}
+          >
+            لغو نوبت
+          </button>
+        )}
+        {canCancel && confirming && (
+          <div className="flex gap-2.5">
+            <button
+              type="button"
+              className="h-12 flex-1 rounded-none bg-destructive text-sm font-normal text-destructive-foreground"
+              onClick={handleCancelClick}
+            >
+              بله، لغو کن
+            </button>
+            <button
+              type="button"
+              className="h-12 flex-1 rounded-none border border-destructive/30 bg-destructive/10 text-sm font-normal text-destructive"
+              onClick={() => setConfirming(false)}
+            >
+              انصراف
+            </button>
+          </div>
+        )}
+        <button
+          type="button"
+          className="flex h-12 w-full items-center justify-center rounded-none bg-primary text-sm font-normal text-primary-foreground"
+          onClick={requestClose}
+        >
+          بستن
+        </button>
+      </div>
+    </BottomSheet>
   );
 }

@@ -187,8 +187,8 @@ export default function ProfilePage() {
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
           <div className="min-w-0 overflow-hidden text-center">
-            <span className="block text-xs font-bold text-primary">حساب کاربری</span>
-            <h2 className="truncate text-lg font-bold">پروفایل</h2>
+            <span className="block text-xs font-normal text-primary">حساب کاربری</span>
+            <h2 className="truncate text-lg font-normal">پروفایل</h2>
           </div>
           <span className="h-11 w-11" />
         </header>
@@ -197,11 +197,11 @@ export default function ProfilePage() {
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-none bg-muted text-muted-foreground">
               <User className="h-7 w-7" aria-hidden="true" />
             </div>
-            <h3 className="text-sm font-bold">وارد شوید</h3>
+            <h3 className="text-sm font-normal">وارد شوید</h3>
             <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">برای مشاهده پروفایل و نوبت‌های خود، با شماره موبایل وارد شوید.</p>
             <button
               type="button"
-              className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-normal text-primary-foreground"
               onClick={() => router.push("/login")}
             >
               ورود
@@ -226,20 +226,20 @@ export default function ProfilePage() {
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </button>
         <div className="min-w-0 overflow-hidden text-center">
-          <span className="block text-xs font-bold text-primary">حساب کاربری</span>
-          <h2 className="truncate text-lg font-bold">پروفایل</h2>
+          <span className="block text-xs font-normal text-primary">حساب کاربری</span>
+          <h2 className="truncate text-lg font-normal">پروفایل</h2>
         </div>
         <span className="h-11 w-11" />
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
-        <div className="mx-auto my-2.5 flex h-20 w-20 items-center justify-center rounded-full border border-border bg-muted text-2xl font-bold text-foreground" aria-hidden="true">{initial}</div>
+        <div className="mx-auto my-2.5 flex h-20 w-20 items-center justify-center rounded-full border border-border bg-muted text-2xl font-normal text-foreground" aria-hidden="true">{initial}</div>
 
         <section className="overflow-hidden rounded-none border border-border bg-card" aria-labelledby="profile-details-title">
           <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/50 px-4 pb-3 pt-4">
             <div className="min-w-0">
-              <span className="mb-0.5 block text-xs font-bold text-primary">حساب کاربری</span>
-              <h3 id="profile-details-title" className="text-base font-bold">مشخصات شما</h3>
+              <span className="mb-0.5 block text-xs font-normal text-primary">حساب کاربری</span>
+              <h3 id="profile-details-title" className="text-base font-normal">مشخصات شما</h3>
             </div>
             <User className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
           </div>
@@ -260,7 +260,7 @@ export default function ProfilePage() {
                   aria-label="نام"
                 />
               ) : (
-                <b className="block break-words text-sm font-bold">{user.name || "بدون نام"}</b>
+                <b className="block break-words text-sm font-normal">{user.name || "بدون نام"}</b>
               )}
             </div>
             {editing ? (
@@ -296,7 +296,7 @@ export default function ProfilePage() {
                   aria-label="شماره موبایل"
                 />
               ) : (
-                <b className="block text-sm font-bold tracking-wide" dir="ltr">{displayDigits(user.phone)}</b>
+                <b className="block text-sm font-normal tracking-wide" dir="ltr">{displayDigits(user.phone)}</b>
               )}
               {!editingPhone && (
                 <span className="mt-1 block text-micro leading-relaxed text-muted-foreground">این شماره هویت ورود شماست؛ نوبت‌های قبلی با تغییر شماره به‌صورت خودکار منتقل می‌شوند.</span>
@@ -322,12 +322,12 @@ export default function ProfilePage() {
         <section className="mt-6" aria-labelledby="profile-history-title">
           <div className="mb-3 flex items-end justify-between gap-2.5">
             <div className="min-w-0">
-              <span className="mb-0.5 block text-xs font-bold text-primary">رزروها</span>
-              <h3 id="profile-history-title" className="text-base font-bold">نوبت‌های من</h3>
+              <span className="mb-0.5 block text-xs font-normal text-primary">رزروها</span>
+              <h3 id="profile-history-title" className="text-base font-normal">نوبت‌های من</h3>
             </div>
             <button
               type="button"
-              className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full px-2 text-xs font-bold text-primary"
+              className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full px-2 text-xs font-normal text-primary"
               onClick={() => router.push("/bookings")}
             >
               همه نوبت‌ها
@@ -340,9 +340,9 @@ export default function ProfilePage() {
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-none bg-muted text-muted-foreground">
               <Calendar className="h-6 w-6" aria-hidden="true" />
             </div>
-            <h3 className="text-sm font-bold">نوبتی ندارید</h3>
+            <h3 className="text-sm font-normal">نوبتی ندارید</h3>
             <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">هنوز نوبتی رزرو نکرده‌اید. همین حالا اولین نوبت خود را بگیرید.</p>
-            <button type="button" className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground" onClick={() => router.push("/")}>
+            <button type="button" className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-normal text-primary-foreground" onClick={() => router.push("/")}>
               رزرو نوبت
             </button>
           </div>
@@ -368,7 +368,7 @@ export default function ProfilePage() {
                   <div className="flex items-center justify-between gap-3">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-muted text-foreground"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
                     <span className="min-w-0 flex-1">
-                      <b className="block truncate text-sm font-bold">{getServiceName(booking.service_id)}</b>
+                      <b className="block truncate text-sm font-normal">{getServiceName(booking.service_id)}</b>
                       <small className="mt-0.5 block text-micro text-muted-foreground">{jalaliShort(booking.date_gregorian)}</small>
                     </span>
                     <StatusPill status={booking.status} />
@@ -379,12 +379,12 @@ export default function ProfilePage() {
                     <span>· {toPersianDigits(duration)} دقیقه</span>
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
-                    <b className="text-sm font-bold">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
+                    <b className="text-sm font-normal">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
                     <span className="flex shrink-0 items-center gap-2">
-                      <small dir="ltr" className="text-micro font-bold text-muted-foreground">#{booking.id.slice(-6).toUpperCase()}</small>
+                      <small dir="ltr" className="text-micro font-normal text-muted-foreground">#{booking.id.slice(-6).toUpperCase()}</small>
                       <button
                         type="button"
-                        className="inline-flex min-h-11 shrink-0 items-center rounded-none border border-border bg-muted px-3.5 text-micro font-bold text-foreground"
+                        className="inline-flex min-h-11 shrink-0 items-center rounded-none border border-border bg-muted px-3.5 text-micro font-normal text-foreground"
                         onClick={() => router.push("/bookings")}
                         aria-label={`مشاهده جزئیات نوبت ${getServiceName(booking.service_id)}`}
                       >
@@ -393,7 +393,7 @@ export default function ProfilePage() {
                       {CANCELABLE.has(booking.status) && (
                         <button
                           type="button"
-                          className={`inline-flex min-h-11 shrink-0 items-center rounded-none px-3.5 text-micro font-bold ${
+                          className={`inline-flex min-h-11 shrink-0 items-center rounded-none px-3.5 text-micro font-normal ${
                             confirmingCancel === booking.id
                               ? "bg-destructive text-destructive-foreground"
                               : "border border-border bg-muted text-foreground"
@@ -414,7 +414,7 @@ export default function ProfilePage() {
 
         <button
           type="button"
-          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-none border border-destructive/30 bg-destructive/10 text-sm font-bold text-destructive"
+          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-none border border-destructive/30 bg-destructive/10 text-sm font-normal text-destructive"
           onClick={() => setConfirmLogout(true)}
         >
           <LogOut className="h-4 w-4" aria-hidden="true" />

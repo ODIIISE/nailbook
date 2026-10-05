@@ -92,7 +92,7 @@ export default function SalonDetailPage({ params }: { params: Promise<{ id: stri
   if (!salon) {
     return (
       <div className="p-8 rounded-none border border-border text-center space-y-3">
-        <p className="text-body font-bold">سالن بارگذاری نشد</p>
+        <p className="text-body font-normal">سالن بارگذاری نشد</p>
         <p className="text-small text-muted-foreground">دریافت اطلاعات سالن ناموفق بود.</p>
         <Button variant="outline" size="sm" onClick={() => router.push("/admin/salons")}>
           بازگشت به فهرست سالن‌ها
@@ -117,7 +117,7 @@ export default function SalonDetailPage({ params }: { params: Promise<{ id: stri
           <ArrowRight className="h-4 w-4" />
         </Button>
         <div className="flex-1">
-          <h2 className="text-xl font-bold">{salon.name}</h2>
+          <h2 className="text-xl font-normal">{salon.name}</h2>
           <p className="text-sm text-muted-foreground">{salon.address || salon.slug}</p>
         </div>
         <Button
@@ -137,7 +137,7 @@ export default function SalonDetailPage({ params }: { params: Promise<{ id: stri
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-4 py-3 text-sm font-medium whitespace-nowrap ${
+            className={`px-4 py-3 text-sm font-normal whitespace-nowrap ${
               tab === t.id
                 ? "text-foreground border-b-2 border-primary"
                 : "text-muted-foreground hover:text-foreground"
@@ -164,15 +164,15 @@ function OverviewTab({ salon }: { salon: Salon }) {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       <div className="p-4 rounded-none border border-border">
         <p className="text-xs text-muted-foreground mb-1">کاربران</p>
-        <p className="text-2xl font-bold">{parseInt(String(salon.user_count)) || 0}</p>
+        <p className="text-2xl font-normal">{parseInt(String(salon.user_count)) || 0}</p>
       </div>
       <div className="p-4 rounded-none border border-border">
         <p className="text-xs text-muted-foreground mb-1">رزروها</p>
-        <p className="text-2xl font-bold">{parseInt(String(salon.booking_count)) || 0}</p>
+        <p className="text-2xl font-normal">{parseInt(String(salon.booking_count)) || 0}</p>
       </div>
       <div className="p-4 rounded-none border border-border">
         <p className="text-xs text-muted-foreground mb-1">خدمات</p>
-        <p className="text-2xl font-bold">{parseInt(String(salon.service_count)) || 0}</p>
+        <p className="text-2xl font-normal">{parseInt(String(salon.service_count)) || 0}</p>
       </div>
     </div>
   );
@@ -248,7 +248,7 @@ function UsersTab({ salonId }: { salonId: string }) {
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-primary" />
           <div>
-            <h3 className="font-bold text-sm">ایجاد مدیر سالن</h3>
+            <h3 className="font-normal text-sm">ایجاد مدیر سالن</h3>
             <p className="text-xs text-muted-foreground">این شماره مدیر همان لحظه ساخته یا ارتقا پیدا می‌کند و بعداً با کد پیامکی وارد پنل مدیر می‌شود.</p>
           </div>
         </div>
@@ -295,7 +295,7 @@ function UsersTab({ salonId }: { salonId: string }) {
               }`}
             >
               <div className="min-w-0">
-                <p className="font-medium text-sm truncate">{user.name || "بدون نام"}</p>
+                <p className="font-normal text-sm truncate">{user.name || "بدون نام"}</p>
                 <p className="text-xs text-muted-foreground" dir="ltr">{user.phone}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -372,7 +372,7 @@ function BookingsTab({ salonId }: { salonId: string }) {
               }`}
             >
               <div>
-                <p className="font-medium text-sm">{b.customer_name || "مشتری"}</p>
+                <p className="font-normal text-sm">{b.customer_name || "مشتری"}</p>
                 <p className="text-xs text-muted-foreground">{b.date_gregorian} • {b.start_time}-{b.end_time}</p>
               </div>
               <div className="flex items-center gap-2">
@@ -420,11 +420,11 @@ function ServicesTab({ salonId }: { salonId: string }) {
               }`}
             >
               <div>
-                <p className="font-medium text-sm">{s.name}</p>
+                <p className="font-normal text-sm">{s.name}</p>
                 <p className="text-xs text-muted-foreground">{s.duration_minutes} دقیقه</p>
               </div>
               <div className="text-left">
-                <p className="font-medium text-sm">{s.price.toLocaleString("fa-IR")} تومان</p>
+                <p className="font-normal text-sm">{s.price.toLocaleString("fa-IR")} تومان</p>
                 <p className={`text-xs ${s.is_active ? "text-success" : "text-muted-foreground"}`}>
                   {s.is_active ? "فعال" : "غیرفعال"}
                 </p>

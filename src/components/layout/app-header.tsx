@@ -26,7 +26,7 @@ export function AppHeader() {
       }}
     >
       <div className="mx-auto flex h-[52px] max-w-lg items-center justify-between px-4">
-        <span className="text-body font-bold text-foreground">{salon.name}</span>
+        <span className="text-body font-normal text-foreground">{salon.name}</span>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"

@@ -97,7 +97,7 @@ function MetadataDisplay({ metadata }: { metadata: Record<string, unknown> }) {
       {entries.map(([key, value]) => (
         <div key={key} className="flex items-center justify-between py-1 border-b border-border/60 last:border-0">
           <span className="text-small text-muted-foreground">{key}</span>
-          <span className="text-small font-medium text-foreground" dir="ltr">{String(value)}</span>
+          <span className="text-small font-normal text-foreground" dir="ltr">{String(value)}</span>
         </div>
       ))}
     </div>
@@ -118,7 +118,7 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
             <button
               key={tab.key}
               onClick={() => onFilterChange(tab.key)}
-              className={`px-3 py-1.5 rounded-full text-small font-medium whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-full text-small font-normal whitespace-nowrap ${
                 activeFilter === tab.key
                   ? "bg-primary text-primary-foreground"
                   : "bg-card text-muted-foreground border border-border"
@@ -142,7 +142,7 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
       ) : (
         Array.from(groupedLogs.entries()).map(([dateKey, dateLogs]) => (
           <div key={dateKey}>
-            <p className="text-small font-semibold text-muted-foreground mb-1 px-0.5">
+            <p className="text-small font-normal text-muted-foreground mb-1 px-0.5">
               {formatDate(dateLogs[0].created_at)}
             </p>
             <div className="divide-y divide-border/60 bg-card border border-border overflow-hidden">
@@ -184,10 +184,10 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
             <div className="space-y-4">
               {/* Event + Entity badges */}
               <div className="flex gap-2 flex-wrap">
-                <span className="text-small font-medium bg-primary/10 text-primary px-2 py-1 rounded-none">
+                <span className="text-small font-normal bg-primary/10 text-primary px-2 py-1 rounded-none">
                   {getEventConfig(selectedLog.event_type).label}
                 </span>
-                <span className="text-small font-medium bg-muted text-muted-foreground px-2 py-1 rounded-none">
+                <span className="text-small font-normal bg-muted text-muted-foreground px-2 py-1 rounded-none">
                   {selectedLog.entity_type}
                 </span>
                 {selectedLog.entity_id && (

@@ -159,11 +159,11 @@ export function JalaliCalendar({
     <>
       <div className="mx-auto max-w-lg relative">
         <div className="flex items-center justify-between px-4 mb-2">
-          <span className="text-xs font-bold text-muted-foreground">انتخاب تاریخ</span>
+          <span className="text-xs font-normal text-muted-foreground">انتخاب تاریخ</span>
           <button
             type="button"
             onClick={() => setShowModal(true)}
-            className="flex h-11 items-center gap-1.5 rounded-none px-2 text-xs font-bold text-primary"
+            className="flex h-11 items-center gap-1.5 rounded-none px-2 text-xs font-normal text-primary"
           >
             <CalendarDays className="h-4 w-4" aria-hidden="true" />
             تقویم
@@ -184,20 +184,20 @@ export function JalaliCalendar({
                 if (!d.isSelected) haptic.tap();
                 onSelectDate(d.date);
               }}
-              className={`flex h-20 min-w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-none border px-3 text-sm font-bold ${
+              className={`flex h-20 min-w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-none border px-3 text-sm font-normal ${
                 d.isSelected
                   ? "border-primary bg-primary text-primary-foreground"
                   : d.isFullyBooked
                     ? "border-border bg-muted opacity-40"
                     : d.isToday
-                      ? "border-ring bg-card text-foreground"
-                      : "border-border bg-card text-foreground"
+                      ? "border-ring bg-card text-card-foreground"
+                      : "border-border bg-card text-card-foreground"
               }`}
             >
               {/* Weekday label */}
               <span
-                className={`text-xs font-medium leading-none ${
-                  d.isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                className={`text-xs font-normal leading-none ${
+                  d.isSelected ? "text-primary-foreground/80" : "text-card-foreground/60"
                 }`}
               >
                 {d.weekday}
@@ -205,8 +205,8 @@ export function JalaliCalendar({
 
               {/* Day number */}
               <span
-                className={`text-xl font-bold leading-tight mt-1 ${
-                  d.isSelected ? "text-primary-foreground" : "text-foreground"
+                className={`text-xl font-normal leading-tight mt-1 ${
+                  d.isSelected ? "text-primary-foreground" : "text-card-foreground"
                 }`}
               >
                 {toPersianDigits(d.jalaliDay)}
@@ -215,8 +215,8 @@ export function JalaliCalendar({
               {/* Today label */}
               {d.isToday && (
                 <span
-                  className={`text-xs font-semibold mt-0.5 leading-none ${
-                    d.isSelected ? "text-primary-foreground/80" : "text-foreground"
+                  className={`text-xs font-normal mt-0.5 leading-none ${
+                    d.isSelected ? "text-primary-foreground/80" : "text-card-foreground"
                   }`}
                 >
                   امروز
@@ -226,8 +226,8 @@ export function JalaliCalendar({
               {/* Tomorrow label */}
               {d.isTomorrow && (
                 <span
-                  className={`text-xs font-semibold mt-0.5 leading-none ${
-                    d.isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                  className={`text-xs font-normal mt-0.5 leading-none ${
+                    d.isSelected ? "text-primary-foreground/80" : "text-card-foreground/60"
                   }`}
                 >
                   فردا
@@ -236,7 +236,7 @@ export function JalaliCalendar({
 
               {/* Fully booked label */}
               {d.isFullyBooked && !d.isSelected && (
-                <span className="text-xs font-medium mt-0.5 leading-none text-destructive">
+                <span className="text-xs font-normal mt-0.5 leading-none text-destructive">
                   تکمیل
                 </span>
               )}
@@ -336,14 +336,14 @@ function CalendarModal({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="انتخاب تاریخ">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3" role="dialog" aria-modal="true" aria-label="انتخاب تاریخ">
       {/* AUDIT-013: the backdrop deliberately does NOT close the dialog. A
           stray tap outside while browsing months used to discard the whole
           selection and drop the owner on an off-month view; closing is a
           decision (بستن button / Escape), same grammar as destructive
           confirmations. */}
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
-      <div ref={panelRef} tabIndex={-1} className="relative w-full max-w-sm rounded-none border border-border bg-card p-5">
+      <div ref={panelRef} tabIndex={-1} className="relative w-full max-w-sm rounded-none border border-border bg-card p-5 text-card-foreground">
         <div className="mb-3 flex items-center justify-between">
           <button
             type="button"
@@ -354,8 +354,8 @@ function CalendarModal({
             <ChevronRight className="h-5 w-5" aria-hidden="true" />
           </button>
           <div className="text-center">
-            <p className="text-sm font-bold text-foreground">{PERSIAN_MONTHS[viewMonth - 1]}</p>
-            <p className="text-xs text-muted-foreground">{toPersianDigits(viewYear)}</p>
+            <p className="text-sm font-normal text-card-foreground">{PERSIAN_MONTHS[viewMonth - 1]}</p>
+            <p className="text-xs text-card-foreground/60">{toPersianDigits(viewYear)}</p>
           </div>
           <button
             type="button"
@@ -368,7 +368,7 @@ function CalendarModal({
         </div>
 
         {/* Year selector */}
-        <div className="mb-4 flex items-center justify-center gap-3">
+        <div className="mb-4 flex items-center justify-center gap-2">
           <button
             type="button"
             onClick={() => setViewYear((y) => y - 1)}
@@ -377,7 +377,7 @@ function CalendarModal({
           >
             <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </button>
-          <span className="min-w-[60px] text-center text-sm font-bold text-foreground">
+          <span className="min-w-[60px] text-center text-sm font-normal text-card-foreground">
             {toPersianDigits(viewYear)}
           </span>
           <button
@@ -390,7 +390,7 @@ function CalendarModal({
           </button>
         </div>
 
-        <div className="grid grid-cols-7 gap-1 text-center text-micro font-bold text-muted-foreground">
+        <div className="grid grid-cols-7 gap-1 text-center text-micro font-normal text-card-foreground/60">
           {PERSIAN_WEEKDAYS_SHORT.map((wd) => (
             <div key={wd} className="py-1">
               {wd}
@@ -409,14 +409,14 @@ function CalendarModal({
                 disabled={cell.isPast}
                 onClick={() => cell.date && onSelect(cell.date)}
                 className={`
-                  flex h-11 w-full items-center justify-center rounded-none text-sm font-bold
+                  flex h-11 w-full items-center justify-center rounded-none text-sm font-normal
                   ${cell.isSelected
                     ? "bg-primary text-primary-foreground"
                     : cell.isToday
-                      ? "border border-ring bg-card text-foreground"
+                      ? "border border-ring bg-card text-card-foreground"
                       : cell.isPast
-                        ? "text-muted-foreground cursor-not-allowed"
-                        : "text-foreground"
+                        ? "text-card-foreground/40 cursor-not-allowed"
+                        : "text-card-foreground"
                   }
                 `}
               >

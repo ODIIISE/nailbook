@@ -36,6 +36,7 @@ function extractBlock(selector: string): string {
 
 const lightBlock = extractBlock(":root");
 const darkBlock = extractBlock(".dark");
+const sheetBlock = extractBlock(".sheet-light");
 
 function hexOf(block: string, name: string): string {
   const m = block.match(new RegExp(`--${name}\\s*:\\s*(#[0-9a-fA-F]{6})\\s*;`));
@@ -123,6 +124,44 @@ function themeOf(block: string): Theme {
 const LIGHT = themeOf(lightBlock);
 const DARK = themeOf(darkBlock);
 
+/* Sheet island theme: .sheet-light re-maps the semantic layer to a white
+ * surface with black elements. Same solid-hex discipline as :root/.dark so
+ * the matrix below reads it live. */
+function sheetThemeOf(block: string): Theme {
+  const pick = (name: string): string => {
+    const m = block.match(new RegExp(`--${name}\\s*:\\s*(#[0-9a-fA-F]{6})\\s*;`));
+    if (!m) throw new Error(`globals.css .sheet-light: --${name} has no direct 6-digit hex`);
+    return m[1].toLowerCase();
+  };
+  return {
+    background: pick("background"),
+    foreground: pick("foreground"),
+    card: pick("card"),
+    muted: pick("muted"),
+    "muted-foreground": pick("muted-foreground"),
+    primary: pick("primary"),
+    "primary-foreground": pick("primary-foreground"),
+    secondary: pick("secondary"),
+    "secondary-foreground": pick("secondary-foreground"),
+    accent: pick("accent"),
+    "accent-foreground": pick("accent-foreground"),
+    "accent-soft": pick("accent-soft"),
+    "accent-foreground-soft": pick("accent-foreground-soft"),
+    destructive: pick("destructive"),
+    "destructive-foreground": pick("destructive-foreground"),
+    success: pick("success"),
+    warning: pick("warning"),
+    ring: pick("ring"),
+  };
+}
+
+const SHEET = sheetThemeOf(sheetBlock);
+const SHEET_ON_DARK = (() => {
+  const m = sheetBlock.match(/--destructive-on-dark\s*:\s*(#[0-9a-fA-F]{6})\s*;/);
+  if (!m) throw new Error("globals.css .sheet-light: --destructive-on-dark has no direct 6-digit hex");
+  return m[1].toLowerCase();
+})();
+
 /* ── The matrix ──────────────────────────────────────────────────── */
 
 interface Row {
@@ -166,17 +205,84 @@ function rowsFor(T: Theme): Row[] {
   ];
 }
 
+function stateRows(T: Theme, scope: string, card: string, muted: string): Row[] {
+  /* Glyph tones actually used inside .icon-btn: foreground glyphs
+   * (route back buttons) and muted glyphs (row actions). */
+  return [
+    { label: `${scope} back glyph on card`, fg: T.foreground, bg: card, min: 4.5 },
+    { label: `${scope} back glyph on hover fill`, fg: T.foreground, bg: muted, min: 4.5 },
+    { label: `${scope} muted glyph on card`, fg: T["muted-foreground"], bg: card, min: 4.5 },
+    { label: `${scope} muted glyph on hover fill`, fg: T["muted-foreground"], bg: muted, min: 4.5 },
+    /* Primary button hover: fill darkens toward the card it sits on. */
+    {
+      label: `${scope} primary label on hover fill`,
+      fg: T["primary-foreground"],
+      bg: blend(T.primary, 0.85, card),
+      min: 4.5,
+    },
+    /* Destructive outline button: tinted fill + tinted text on card. */
+    {
+      label: `${scope} destructive outline on card`,
+      fg: T.destructive,
+      bg: blend(T.destructive, 0.1, card),
+      min: 4.5,
+    },
+    {
+      label: `${scope} destructive fill label`,
+      fg: T["destructive-foreground"],
+      bg: T.destructive,
+      min: 4.5,
+    },
+  ];
+}
+
+function sheetRows(): Row[] {
+  const T = SHEET;
+  const cardFg60 = blend("#ffffff", 0.6, T.card);
+  const chipOnBlack = blend("#ffffff", 0.15, T.primary);
+  return [
+    { label: "sheet text on white", fg: T.foreground, bg: T.background, min: 4.5 },
+    { label: "sheet card text on black card", fg: "#ffffff", bg: T.card, min: 4.5 },
+    { label: "sheet dim text on black card", fg: cardFg60, bg: T.card, min: 4.5 },
+    { label: "sheet muted text on white", fg: T["muted-foreground"], bg: T.background, min: 4.5 },
+    { label: "sheet muted text on muted fill", fg: T["muted-foreground"], bg: T.muted, min: 4.5 },
+    { label: "sheet button label on black fill", fg: T["primary-foreground"], bg: T.primary, min: 4.5 },
+    { label: "sheet destructive text on white", fg: T.destructive, bg: T.background, min: 4.5 },
+    { label: "sheet destructive fill label", fg: T["destructive-foreground"], bg: T.destructive, min: 4.5 },
+    { label: "sheet danger text on black card", fg: SHEET_ON_DARK, bg: T.card, min: 4.5 },
+    { label: "sheet success text on white", fg: T.success, bg: T.background, min: 4.5 },
+    { label: "sheet warning text on white", fg: T.warning, bg: T.background, min: 4.5 },
+    { label: "sheet icon glyph on black disc", fg: "#ffffff", bg: T.card, min: 4.5 },
+    { label: "sheet icon glyph on disc hover", fg: "#ffffff", bg: "#2e2e2e", min: 4.5 },
+    { label: "sheet CTA chip text on chip fill", fg: "#ffffff", bg: chipOnBlack, min: 4.5 },
+    ...stateRows(T, "sheet", T.background, T.muted),
+  ];
+}
+
 describe.each([
   ["light", LIGHT],
   ["dark", DARK],
 ])("contrast governance — %s theme (live globals.css)", (_name, T) => {
-  it.each(rowsFor(T))("$label ≥ $min:1", ({ label, fg, bg, min }) => {
+  it.each([...rowsFor(T), ...stateRows(T, _name as string, T.card, T.muted)])("$label ≥ $min:1", ({ label, fg, bg, min }) => {
     const ratio = contrast(fg, bg);
     if (ratio < min) {
       throw new Error(
         `AA FAILURE: ${label} = ${ratio.toFixed(2)}:1 (needs ${min}:1).\n` +
           `  fg ${fg} on bg ${bg}. Fix the token in src/app/globals.css —\n` +
           `  see docs/AUDIT-008-hardening.md for the Phase 11 matrix.`
+      );
+    }
+    expect(ratio).toBeGreaterThanOrEqual(min);
+  });
+});
+
+describe("contrast governance — sheet island (live .sheet-light)", () => {
+  it.each(sheetRows())("$label ≥ $min:1", ({ label, fg, bg, min }) => {
+    const ratio = contrast(fg, bg);
+    if (ratio < min) {
+      throw new Error(
+        `AA FAILURE: ${label} = ${ratio.toFixed(2)}:1 (needs ${min}:1).\n` +
+          `  fg ${fg} on bg ${bg}. Fix the token in src/app/globals.css (.sheet-light scope).`
       );
     }
     expect(ratio).toBeGreaterThanOrEqual(min);
