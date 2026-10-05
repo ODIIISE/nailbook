@@ -718,3 +718,33 @@
 
 /* Touch: never double-tap zoom on controls. */
 button, a, input, select, textarea { touch-action: manipulation; }
+
+/* ── Prototype motion (isolated /prototypes/* harness only; deleted with it).
+     Raw CSS lives here — never in prototype files — because the
+     motion-governance test allows raw motion only in the system, Editorial
+     mode, and stock primitives. Sheet rise (ease-out, sub-300ms) and picker
+     chrome transitions; variant swaps stay instant by design. */
+.proto-sheet {
+  animation: pv-rise var(--duration-standard) var(--ease-standard) backwards;
+}
+@keyframes pv-rise {
+  from { transform: translateY(100%); }
+}
+.proto-scrim {
+  animation: pv-fade var(--duration-micro) var(--ease-standard) backwards;
+}
+@keyframes pv-fade {
+  from { opacity: 0; }
+}
+.proto-picker[data-ready] .proto-picker-highlight {
+  transition:
+    transform 250ms cubic-bezier(0.23, 1, 0.32, 1),
+    width 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.proto-picker-item {
+  transition: color 150ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .proto-sheet, .proto-scrim { animation-duration: 0.01ms; }
+  .proto-picker[data-ready] .proto-picker-highlight { transition: none; }
+}
