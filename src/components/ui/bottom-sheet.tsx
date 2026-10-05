@@ -10,6 +10,11 @@ interface BottomSheetProps {
   onClosed?: () => void;
   title: string;
   children: ReactNode;
+  /* Persian-first app: the sheet is always RTL unless a caller overrides.
+   * Without this, sheets opened from inside LTR islands (homepage editorial
+   * shell) inherit dir="ltr" and every logical property, icon order and text
+   * alignment flips. */
+  dir?: "rtl" | "ltr";
 }
 
 /* Glass bottom sheet — mounted through both phases so open AND close animate.
@@ -19,7 +24,7 @@ interface BottomSheetProps {
  * Phase state uses render-adjust (never setState-in-effect); the exit phase
  * ends on transitionend. Glass surface with solid fallback under
  * prefers-reduced-transparency. */
-export function BottomSheet({ open, onClose, onClosed, title, children }: BottomSheetProps) {
+export function BottomSheet({ open, onClose, onClosed, title, children, dir = "rtl" }: BottomSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
 
   const [prevOpen, setPrevOpen] = useState(open);
@@ -60,6 +65,7 @@ export function BottomSheet({ open, onClose, onClosed, title, children }: Bottom
       role="dialog"
       aria-modal="true"
       aria-label={title}
+      dir={dir}
     >
       <div
         className="sheet-overlay absolute inset-0 bg-black/40"

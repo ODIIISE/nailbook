@@ -23,7 +23,8 @@ describe("specs/003 mascot contracts (hero is a background clip)", () => {
     // swipe and autoplay) was replaced by a muted, looping background clip, so
     // the old "reverted to slideshow" contract no longer describes this page.
     // The mascot guarantees below are unchanged by that decision.
-    expect(luxHome).toContain("heroVideoSrc");
+    expect(luxHome).toContain("clipSrc");
+    expect(luxHome).toContain("FALLBACK_HERO_POSTER");
     expect(luxHome).not.toContain("goToSlide");
     expect(luxHome).not.toMatch(/TouchMascot|touch-mascot|mascots\//i);
   });

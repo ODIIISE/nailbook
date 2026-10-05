@@ -31,14 +31,17 @@ function BookingSheetHost({ open, onClose }: { open: boolean; onClose: () => voi
  * replaces it through salon.hero_video_url. Always played muted — the file
  * itself carries an audio track that must never reach the visitor. */
 const FALLBACK_HERO_VIDEO = "/media/forehand-hero.mp4";
-const FALLBACK_HERO_POSTER = "/hero-default.jpg";
+/* True first frame of the bundled clip (captured, not chosen): the backdrop
+ * and the clip's first painted frame are pixel-identical, so there is no
+ * visible cut when playback starts. */
+const FALLBACK_HERO_POSTER = "/media/forehand-hero-poster.jpg";
 const X_ICON = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
 );
 
 export function LuxHome() {
   const router = useRouter();
-  const { salon, highlights, loaded } = useSalon();
+  const { salon, highlights } = useSalon();
   const { openMenu } = useMenu();
 
   const [ready, setReady] = useState(false);
@@ -51,18 +54,27 @@ export function LuxHome() {
   const [addrOpen, setAddrOpen] = useState(false);
   const [videoBlocked, setVideoBlocked] = useState(false);
   const [videoOn, setVideoOn] = useState(false);
+  /* The mounted clip. Starts bundled (already preloading via layout) so the
+     hero plays in ~1s without waiting for bootstrap; an owner clip swaps in
+     only after a hidden loader proves it can play through. */
+  const [clipSrc, setClipSrc] = useState(FALLBACK_HERO_VIDEO);
+  const [prevClipSrc, setPrevClipSrc] = useState(clipSrc);
+  if (prevClipSrc !== clipSrc) {
+    setPrevClipSrc(clipSrc);
+    setVideoOn(false);
+  }
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const addrTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /* Media resolves once with bootstrap — the video mounts a single time with
-     its final src, so there is never a fallback→owner swap flash. Before that
-     the frame is just the gradient; the poster crossfades under the clip. */
+  /* Owner media arrives with bootstrap, seconds after first paint. The poster
+     follows the owner gallery (crossfade masks the cut); the clip itself only
+     swaps once preloaded — never mid-buffer. */
+  const ownerVideoSrc = salon?.hero_video_url?.trim() || null;
   const heroPoster =
     salon?.home_gallery_urls?.find((u): u is string => Boolean(u?.trim())) ??
     salon?.hero_image_url ??
     FALLBACK_HERO_POSTER;
-  const heroVideoSrc = salon?.hero_video_url || FALLBACK_HERO_VIDEO;
 
   /* Background video lifecycle. Poster-only when the visitor asked for less
    * motion or is on a metered connection — an autoplaying hero is exactly what
@@ -98,7 +110,7 @@ export function LuxHome() {
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [videoBlocked, loaded]);
+  }, [videoBlocked, clipSrc]);
 
   /* Splash → choreography (load + fallback), then settle to hand
    * transform control back to :active press feedback. */
@@ -172,11 +184,11 @@ export function LuxHome() {
               over it on first frame — nothing ever pops or vanishes. */}
           {/* eslint-disable-next-line @next/next/no-img-element -- hero poster layer */}
           <img src={heroPoster} alt="" className={styles.heroPoster} fetchPriority="high" decoding="async" draggable={false} />
-          {loaded && !videoBlocked && (
+          {!videoBlocked && (
             <video
               ref={videoRef}
               className={`${styles.heroVideo} ${videoOn ? styles.videoOn : ""}`}
-              src={heroVideoSrc}
+              src={clipSrc}
               muted
               autoPlay
               playsInline
@@ -186,6 +198,23 @@ export function LuxHome() {
               tabIndex={-1}
               onCanPlay={(e) => e.currentTarget.play().catch(() => {})}
               onPlaying={() => setVideoOn(true)}
+              onError={() => {
+                if (clipSrc !== FALLBACK_HERO_VIDEO) setClipSrc(FALLBACK_HERO_VIDEO);
+              }}
+            />
+          )}
+          {/* Hidden owner-clip loader: the mounted clip swaps only after this
+              proves the owner file plays through — no mid-buffer blank frame. */}
+          {ownerVideoSrc && ownerVideoSrc !== clipSrc && !videoBlocked && (
+            <video
+              src={ownerVideoSrc}
+              muted
+              playsInline
+              preload="auto"
+              aria-hidden="true"
+              tabIndex={-1}
+              style={{ display: "none" }}
+              onCanPlayThrough={() => setClipSrc(ownerVideoSrc)}
             />
           )}
         </div>

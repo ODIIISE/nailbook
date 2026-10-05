@@ -66,6 +66,12 @@ export default function RootLayout({
             text never flashes in a fallback font. Estedad FD is the primary
             variable face. */}
         <link rel="preload" href="https://cdn.jsdelivr.net/gh/aminabedi68/Estedad@v7.3/fonts/webfonts/variable/Estedad-FD%5BKSHD%2Cwght%5D.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        {/* Homepage hero: the first-frame poster preloads with the HTML so the
+            backdrop paints instantly; the clip itself streams via the video
+            element (preload="auto") and dissolves in on first frame. (A
+            preload as="video" would be ideal but Chrome rejects the
+            destination — the element fetch is the loader.) */}
+        <link rel="preload" href="/media/forehand-hero-poster.jpg" as="image" type="image/jpeg" />
         {/* Lux homepage faces (Great Vibes script, Playfair Display, Poppins). */}
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link href="https://cdn.jsdelivr.net/fontsource/css/great-vibes@latest/index.css" rel="stylesheet" />
