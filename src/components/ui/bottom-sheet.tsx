@@ -15,6 +15,11 @@ interface BottomSheetProps {
    * shell) inherit dir="ltr" and every logical property, icon order and text
    * alignment flips. */
   dir?: "rtl" | "ltr";
+  /* "auto" grows with content (menus, short forms). "full" pins the panel to
+   * 88dvh so children with absolute/flex-fill layouts (booking flow steps,
+   * sticky footers) get a definite height — otherwise they collapse to zero
+   * and the sheet renders empty. */
+  size?: "auto" | "full";
 }
 
 /* White bottom sheet (sheet-light island: white surface, black elements) —
@@ -25,7 +30,7 @@ interface BottomSheetProps {
  * Phase state uses render-adjust (never setState-in-effect); the exit phase
  * ends on transitionend. Glass surface with solid fallback under
  * prefers-reduced-transparency. */
-export function BottomSheet({ open, onClose, onClosed, title, children, dir = "rtl" }: BottomSheetProps) {
+export function BottomSheet({ open, onClose, onClosed, title, children, dir = "rtl", size = "auto" }: BottomSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
 
   const [prevOpen, setPrevOpen] = useState(open);
@@ -76,7 +81,7 @@ export function BottomSheet({ open, onClose, onClosed, title, children, dir = "r
       />
       <div
         ref={sheetRef}
-        className="sheet-panel sheet-light relative z-10 flex max-h-[88dvh] w-full flex-col border-t pb-[env(safe-area-inset-bottom)] text-popover-foreground"
+        className={`sheet-panel sheet-light relative z-10 flex w-full max-w-[var(--frame-max-w)] flex-col border-t pb-[env(safe-area-inset-bottom)] text-popover-foreground ${size === "full" ? "h-[88dvh]" : "max-h-[88dvh]"}`}
         data-open={open}
         data-closing={leaving}
         onTransitionEnd={endLeave}

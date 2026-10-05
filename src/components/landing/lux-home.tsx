@@ -21,7 +21,7 @@ const d = (v: string) => ({ "--d": v }) as CSSProperties;
  * like any dialog. /book stays reachable by deep-link (?service= / ?look=). */
 function BookingSheetHost({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
-    <BottomSheet open={open} onClose={onClose} title="رزرو نوبت">
+    <BottomSheet open={open} onClose={onClose} title="رزرو نوبت" size="full">
       {open ? <BookingFlow inSheet /> : null}
     </BottomSheet>
   );
