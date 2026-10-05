@@ -31,7 +31,7 @@ function Switch({ checked, onCheckedChange, disabled, className }: SwitchProps) 
     >
       <span
         className={cn(
-          "block h-[26px] w-[26px] rounded-full bg-card shadow-xs transition-transform duration-[var(--duration-micro)] ease-[var(--ease-standard)]",
+          "block h-[26px] w-[26px] rounded-full bg-card transition-transform duration-[var(--duration-micro)] ease-[var(--ease-standard)]",
           checked ? "translate-x-[20px]" : "translate-x-0"
         )}
       />

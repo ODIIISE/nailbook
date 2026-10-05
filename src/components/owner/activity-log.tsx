@@ -159,7 +159,7 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
                       <p className="text-small text-foreground truncate leading-tight">{log.description}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-small text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                      <span className="text-small text-muted-foreground bg-muted px-1.5 py-0.5 rounded-none">
                         {config.label}
                       </span>
                       <span className="text-small text-muted-foreground" dir="ltr">
@@ -184,14 +184,14 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
             <div className="space-y-4">
               {/* Event + Entity badges */}
               <div className="flex gap-2 flex-wrap">
-                <span className="text-small font-medium bg-primary/10 text-primary px-2 py-1 rounded-md">
+                <span className="text-small font-medium bg-primary/10 text-primary px-2 py-1 rounded-none">
                   {getEventConfig(selectedLog.event_type).label}
                 </span>
-                <span className="text-small font-medium bg-muted text-muted-foreground px-2 py-1 rounded-md">
+                <span className="text-small font-medium bg-muted text-muted-foreground px-2 py-1 rounded-none">
                   {selectedLog.entity_type}
                 </span>
                 {selectedLog.entity_id && (
-                  <span className="text-small font-mono text-muted-foreground bg-muted px-2 py-1 rounded-md">
+                  <span className="text-small font-mono text-muted-foreground bg-muted px-2 py-1 rounded-none">
                     {selectedLog.entity_id.slice(0, 8)}...
                   </span>
                 )}
@@ -212,7 +212,7 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
               {/* Metadata */}
               <div>
                 <p className="text-small text-muted-foreground mb-2">اطلاعات تکمیلی</p>
-                <div className="bg-muted/50 rounded-lg p-3">
+                <div className="bg-muted/50 rounded-none p-3">
                   <MetadataDisplay metadata={selectedLog.metadata} />
                 </div>
               </div>

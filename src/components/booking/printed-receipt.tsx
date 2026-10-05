@@ -71,7 +71,7 @@ function BookingQrCode({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="relative rounded-lg border border-border bg-card p-2 shadow-xs">
+      <div className="relative rounded-none border border-border bg-card p-2">
         {dataUrl ? (
           <Image
             src={dataUrl}
@@ -82,11 +82,11 @@ function BookingQrCode({
             className="block h-[120px] w-[120px]"
           />
         ) : error ? (
-          <div className="flex h-[120px] w-[120px] items-center justify-center rounded bg-muted text-center text-small leading-5 text-muted-foreground">
+          <div className="flex h-[120px] w-[120px] items-center justify-center rounded-none bg-muted text-center text-small leading-5 text-muted-foreground">
             خطا در ساخت QR
           </div>
         ) : (
-          <div className="h-[120px] w-[120px] rounded bg-muted" />
+          <div className="h-[120px] w-[120px] rounded-none bg-muted" />
         )}
       </div>
       {label && (
@@ -150,9 +150,9 @@ export function PrintedReceipt({
       className={`relative mx-auto max-w-md ${className}`}
       aria-label={isFinal ? "رسید نهایی رزرو" : "پیش‌فاکتور رزرو"}
     >
-      <div className="rounded-lg border bg-card shadow-card">
+      <div className="rounded-none border bg-card">
         <div
-          className="relative overflow-hidden rounded bg-transparent px-5 py-5"
+          className="relative overflow-hidden rounded-none bg-transparent px-5 py-5"
         >
           {/* Subtle paper grain */}
           <div
@@ -174,10 +174,10 @@ export function PrintedReceipt({
                   width={40}
                   height={40}
                   unoptimized
-                  className="h-10 w-10 rounded-xl object-cover"
+                  className="h-10 w-10 rounded-none object-cover"
                 />
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
+                <div className="flex h-10 w-10 items-center justify-center rounded-none bg-muted">
                   <span className="text-xs font-bold text-foreground">FN</span>
                 </div>
               )}
@@ -279,7 +279,7 @@ export function PrintedReceipt({
           </div>
 
           {/* Total block */}
-          <div className="relative z-10 mt-4 rounded-xl bg-muted/40 p-3">
+          <div className="relative z-10 mt-4 rounded-none bg-muted/40 p-3">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">
                 مدت کل
@@ -305,7 +305,7 @@ export function PrintedReceipt({
           </div>
 
           {/* Date / time row */}
-          <div className="relative z-10 mt-4 flex items-center justify-between rounded-lg border border-border/60 bg-card px-3 py-2.5">
+          <div className="relative z-10 mt-4 flex items-center justify-between rounded-none border border-border/60 bg-card px-3 py-2.5">
             <span className="text-xs font-medium text-muted-foreground">تاریخ و ساعت</span>
             <span className="sr-only">{accessibleDateTime}</span>
             <span
@@ -330,7 +330,7 @@ export function PrintedReceipt({
 
           {/* QR + promo section */}
           {isFinal && bookingIdRaw && (
-            <div className="relative z-10 mt-5 flex items-center gap-3 rounded-xl border border-border/60 bg-card p-3">
+            <div className="relative z-10 mt-5 flex items-center gap-3 rounded-none border border-border/60 bg-card p-3">
               <div className="shrink-0">
                 <BookingQrCode key={bookingIdRaw} bookingId={bookingIdRaw} label="رسید رزرو" />
               </div>

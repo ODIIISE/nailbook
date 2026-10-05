@@ -323,7 +323,7 @@ export default function OwnerSettingsPage() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="absolute -bottom-1 -left-1 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xs hover:bg-primary/90 disabled:bg-primary/15 disabled:text-foreground/70 disabled:shadow-none"
+              className="absolute -bottom-1 -left-1 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 disabled:bg-primary/15 disabled:text-foreground/70"
             >
               <Camera className="h-4 w-4" />
             </button>
@@ -426,7 +426,7 @@ export default function OwnerSettingsPage() {
         </div>
         <p className="text-small text-muted-foreground">تصویر پس‌زمینه بالای صفحه اصلی (پشت عکس پروفایل). افقی و با کیفیت بالا.</p>
         <div className="flex items-center gap-4">
-          <div className="relative h-24 w-36 overflow-hidden rounded-2xl bg-muted">
+          <div className="relative h-24 w-36 overflow-hidden rounded-none bg-muted">
             <input ref={heroFileInputRef} type="file" accept="image/*" onChange={handleHeroFileSelect} className="hidden" />
             {heroUrl ? <Image src={heroUrl} alt="تصویر پس‌زمینه" fill unoptimized className="object-cover" /> : <div className="flex h-full w-full items-center justify-center"><Sparkles className="h-6 w-6 text-muted-foreground" /></div>}
             <button type="button" onClick={() => heroFileInputRef.current?.click()} disabled={heroUploading} aria-label="تغییر تصویر پس‌زمینه" className="absolute bottom-1 left-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"><Camera className="h-3.5 w-3.5" /></button>
@@ -453,7 +453,7 @@ export default function OwnerSettingsPage() {
           onChange={handleHeroVideoSelect}
           className="hidden"
         />
-        <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-muted">
+        <div className="relative aspect-video w-full overflow-hidden rounded-none border border-border bg-muted">
           {heroVideoUrl ? (
             <video src={heroVideoUrl} muted playsInline loop preload="metadata" className="h-full w-full object-cover" />
           ) : (
@@ -511,7 +511,7 @@ export default function OwnerSettingsPage() {
             const uploading = galleryUploading === index;
             return (
               <div key={index} className="space-y-1.5">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-muted">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-none border border-border bg-muted">
                   {url ? (
                     <Image src={url} alt={`تصویر ${index + 1} گالری`} fill unoptimized className="object-cover" />
                   ) : (
@@ -612,10 +612,10 @@ export default function OwnerSettingsPage() {
                 width={64}
                 height={64}
                 unoptimized
-                className="h-16 w-16 rounded-2xl object-cover border border-border"
+                className="h-16 w-16 rounded-none object-cover border border-border"
               />
             ) : (
-              <div className="h-16 w-16 rounded-2xl bg-foreground/5 border border-border border-dashed flex items-center justify-center">
+              <div className="h-16 w-16 rounded-none bg-foreground/5 border border-border border-dashed flex items-center justify-center">
                 <Sparkles className="h-6 w-6 text-muted-foreground" />
               </div>
             )}
@@ -623,7 +623,7 @@ export default function OwnerSettingsPage() {
               onClick={() => splashFileInputRef.current?.click()}
               disabled={splashUploading}
               aria-label="تغییر لوگوی اسپلش"
-              className="tap-44 absolute -bottom-1 -left-1 h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xs hover:bg-primary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:bg-primary/15 disabled:text-foreground/70 disabled:shadow-none"
+              className="tap-44 absolute -bottom-1 -left-1 h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:bg-primary/15 disabled:text-foreground/70"
             >
               <Camera className="h-3.5 w-3.5" />
             </button>

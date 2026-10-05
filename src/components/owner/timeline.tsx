@@ -270,7 +270,7 @@ export function Timeline({
                   aria-label={`${b.customer_name}، ${b.service?.name}، ${b.start_time.slice(0, 5)} تا ${b.end_time.slice(0, 5)}${b.paid ? "" : "، پرداخت نشده"}`}
                 >
                   <div
-                    className={`h-full rounded-xl overflow-hidden flex shadow-xs hover:shadow-card transition-shadow ${borderClass(isDark)} ${compact ? "items-stretch" : "flex-col"}`}
+                    className={`h-full rounded-none overflow-hidden flex ${borderClass(isDark)} ${compact ? "items-stretch" : "flex-col"}`}
                     style={{ backgroundColor: style.bg }}
                   >
                     <div className={`flex min-w-0 ${compact ? "items-stretch" : "flex-1"}`}>
@@ -362,16 +362,16 @@ export function Timeline({
               return (
                 <div key={`blk-${idx}`} className="absolute z-10" style={{ top: pos.top + 1, height: pos.height - 2, insetInlineStart: GUTTER, insetInlineEnd: 12 }}>
                   {isConfirming ? (
-                    <div className={`h-full ${wb} border ${wbBorder} overflow-hidden flex flex-col justify-center items-center p-2 rounded-xl`}>
+                    <div className={`h-full ${wb} border ${wbBorder} overflow-hidden flex flex-col justify-center items-center p-2 rounded-none`}>
                       <AlertTriangle className={`h-4 w-4 ${wa} mb-1`} />
                       <p className={`text-small ${wt} font-semibold mb-1.5 text-center`}>حذف شود؟</p>
                       <div className="flex gap-1">
                         <button onClick={(e) => { e.stopPropagation(); onRemoveBlock?.(idx); setConfirmRemoveIndex(null); }}
-                          className="min-h-11 px-4 bg-[var(--destructive)] text-[var(--destructive-foreground)] text-small font-semibold rounded-lg">
+                          className="min-h-11 px-4 bg-[var(--destructive)] text-[var(--destructive-foreground)] text-small font-semibold rounded-none">
                           بله
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); setConfirmRemoveIndex(null); }}
-                          className={`min-h-11 px-4 ${t("bg-black/10", "bg-white/10")} text-small font-semibold rounded-lg`}>
+                          className={`min-h-11 px-4 ${t("bg-black/10", "bg-white/10")} text-small font-semibold rounded-none`}>
                           خیر
                         </button>
                       </div>
@@ -381,7 +381,7 @@ export function Timeline({
                       role="button"
                       tabIndex={0}
                       aria-label={`حذف زمان استراحت ${blockedTimes[idx]?.start_time ?? ""}`}
-                      className={`h-full border border-dashed overflow-hidden flex cursor-pointer rounded-xl transition-colors`}
+                      className={`h-full border border-dashed overflow-hidden flex cursor-pointer rounded-none transition-colors`}
                       style={{ backgroundColor: wb, borderColor: wbBorder }}
                       onClick={() => setConfirmRemoveIndex(idx)}
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setConfirmRemoveIndex(idx); }}
@@ -421,7 +421,7 @@ export function Timeline({
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2.5">
-              <div className={`w-[52px] h-[52px] rounded-lg ${dotBg} flex items-center justify-center`}>
+              <div className={`w-[52px] h-[52px] rounded-none ${dotBg} flex items-center justify-center`}>
                 <Calendar className={`h-[22px] w-[22px] ${dotIcon}`} />
               </div>
               <p className={`text-body font-medium ${dotText}`}>برنامه‌ای برای این روز نیست</p>

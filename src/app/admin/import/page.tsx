@@ -63,7 +63,7 @@ export default function AdminImportPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       <h2 className="text-xl font-bold">ایمپورت سالن موجود</h2>
 
-      <div className="p-5 rounded-2xl border border-border space-y-4">
+      <div className="p-5 rounded-none border border-border space-y-4">
         <p className="text-sm text-muted-foreground">
           آدرس URL سالن خود را وارد کنید تا اطلاعات آن شناسایی و وارد سیستم شود.
         </p>
@@ -92,7 +92,7 @@ export default function AdminImportPage() {
 
         {detected && !done && (
           <div className="space-y-4">
-            <div className="p-3 rounded-xl bg-success/10 text-sm text-success">
+            <div className="p-3 rounded-none bg-success/10 text-sm text-success">
               اطلاعات سالن شناسایی شد. بررسی کنید و ایمپورت کنید.
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -124,9 +124,9 @@ export default function AdminImportPage() {
               <CheckCircle className="h-5 w-5" />
               <span className="font-bold">ایمپورت با موفقیت انجام شد</span>
             </div>
-            <div className="p-3 rounded-xl bg-muted/50">
+            <div className="p-3 rounded-none bg-muted/50">
               <p className="text-sm font-bold mb-2">Salon ID:</p>
-              <code className="text-sm bg-background px-2 py-1 rounded-lg" dir="ltr">{salonId}</code>
+              <code className="text-sm bg-background px-2 py-1 rounded-none" dir="ltr">{salonId}</code>
             </div>
             <div className="text-sm space-y-1">
               {results.map((r, i) => (
@@ -135,12 +135,12 @@ export default function AdminImportPage() {
                 </p>
               ))}
             </div>
-            <div className="p-3 rounded-xl bg-primary/10 text-sm">
+            <div className="p-3 rounded-none bg-primary/10 text-sm">
               <p className="font-bold mb-1">مرحله بعدی:</p>
               <p className="text-muted-foreground">
                 این Salon ID را در پروژه Vercel مربوط به {slug}.vercel.app تنظیم کنید:
               </p>
-              <code className="text-xs bg-background px-2 py-1 rounded-lg mt-1 inline-block" dir="ltr">
+              <code className="text-xs bg-background px-2 py-1 rounded-none mt-1 inline-block" dir="ltr">
                 SALON_ID={salonId}
               </code>
             </div>

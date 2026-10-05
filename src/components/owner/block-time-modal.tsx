@@ -90,7 +90,7 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
         </div>
         {timeError && <p className="text-small text-destructive" role="alert">{timeError}</p>}
         <div className="flex gap-3">
-          <Button type="submit" size="lg" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl">
+          <Button type="submit" size="lg" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-none">
             مسدود کن
           </Button>
           <Button type="button" size="lg" variant="outline" onClick={onCancel} className="flex-1">

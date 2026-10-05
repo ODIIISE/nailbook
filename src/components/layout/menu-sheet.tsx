@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -17,18 +17,16 @@ import {
   ShieldCheck,
   User,
   Users,
-  X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "./menu-context";
-import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
 import { haptic } from "@/lib/haptics";
 import { displayDigits } from "@/lib/digits";
 import { toPersianDigits } from "@/lib/jalali";
 import { getTehranDateKey } from "@/lib/time";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -41,7 +39,7 @@ const ACTIVE_BOOKING_STATUSES = new Set(["reserved", "confirmed", "in_progress"]
 type MenuTone = "default" | "danger";
 
 const ITEM_BASE =
-  "flex min-h-11 items-center gap-3 rounded-lg px-3 text-body text-start hover:bg-muted";
+  "flex min-h-11 items-center gap-3 rounded-none px-3 text-body text-start hover:bg-muted";
 const ICON_MUTED = "flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground";
 const ICON_DANGER = "flex h-4 w-4 shrink-0 items-center justify-center text-destructive";
 
@@ -138,7 +136,7 @@ function InfoRow({
   );
   if (href) {
     return (
-      <a href={href} className="flex min-h-11 items-center gap-3 rounded-lg p-1 hover:bg-muted">
+      <a href={href} className="flex min-h-11 items-center gap-3 rounded-none p-1 hover:bg-muted">
         {body}
       </a>
     );
@@ -184,7 +182,7 @@ function AccountCard({ onRequestLogout }: { onRequestLogout?: () => void }) {
       (b) =>
         (b.user_id === user.id || b.customer_phone === user.phone) &&
         ACTIVE_BOOKING_STATUSES.has(b.status) &&
-        b.date_gregorian >= today
+        b.date_gregorian >= today,
     ).length;
   }, [user, loaded, bookings]);
 
@@ -196,7 +194,7 @@ function AccountCard({ onRequestLogout }: { onRequestLogout?: () => void }) {
           haptic.tap();
           closeMenu();
         }}
-        className="flex min-h-14 items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:bg-muted/60"
+        className="flex min-h-14 items-center gap-3 rounded-none border border-border bg-card px-4 py-3 hover:bg-muted/60"
       >
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <LogIn className="h-4 w-4" aria-hidden="true" />
@@ -211,7 +209,7 @@ function AccountCard({ onRequestLogout }: { onRequestLogout?: () => void }) {
   }
 
   return (
-    <section aria-label="حساب کاربری" className="rounded-xl border border-border bg-card p-4">
+    <section aria-label="حساب کاربری" className="rounded-none border border-border bg-card p-4">
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <User className="h-4 w-4" aria-hidden="true" />
@@ -224,7 +222,7 @@ function AccountCard({ onRequestLogout }: { onRequestLogout?: () => void }) {
 
       <div className="mt-3 flex min-h-11 items-center justify-between gap-2 border-t border-border pt-3">
         {/* Navbar-covered destinations (نوبت‌ها/پروفایل) intentionally live
-          * only in the bottom navbar — see specs/001-two-tier-navigation. */}
+        only in the bottom navbar — see specs/001-two-tier-navigation. */}
         {activeCount > 0 ? (
           <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-micro font-bold text-primary">
             {toPersianDigits(activeCount)} رزرو فعال
@@ -241,7 +239,7 @@ function AccountCard({ onRequestLogout }: { onRequestLogout?: () => void }) {
             haptic.tap();
             onRequestLogout?.();
           }}
-          className="flex min-h-11 w-full items-center rounded-lg px-2 text-small font-semibold text-destructive hover:bg-destructive/10"
+          className="flex min-h-11 w-full items-center rounded-none px-2 text-small font-semibold text-destructive hover:bg-destructive/10"
         >
           خروج از حساب
         </button>
@@ -255,7 +253,7 @@ function OwnerAccountCard() {
   const { salon } = useSalon();
 
   return (
-    <section aria-label="حساب مدیریت" className="rounded-xl border border-border bg-card p-4">
+    <section aria-label="حساب مدیریت" className="rounded-none border border-border bg-card p-4">
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <ShieldCheck className="h-4 w-4" aria-hidden="true" />
@@ -300,8 +298,8 @@ function OwnerContent({ onRequestLogout }: { onRequestLogout: () => void }) {
     <>
       <OwnerAccountCard />
       {/* Primary owner destinations (داشبورد، ساعات، تاریخچه) live in the
-        * bottom navbar — the menu carries only secondary management surfaces
-        * (specs/001-two-tier-navigation). */}
+      bottom navbar — the menu carries only secondary management surfaces
+      (specs/001-two-tier-navigation). */}
       <p className="mt-3 mb-1 px-3 text-micro font-bold text-muted-foreground">مدیریت</p>
       <div className="space-y-1">
         <MenuLink href="/owner/services" icon={<Scissors className="h-4 w-4" />} label="خدمات" />
@@ -324,23 +322,18 @@ function OwnerContent({ onRequestLogout }: { onRequestLogout: () => void }) {
   );
 }
 
-export function HamburgerMenu() {
+export function MenuSheet() {
   const { open, closeMenu } = useMenu();
   const { user, isOwner, logout } = useAuth();
   const { salon } = useSalon();
   const router = useRouter();
   const pathname = usePathname();
-  const panelRef = useRef<HTMLDivElement>(null);
   const [confirmLogout, setConfirmLogout] = useState(false);
 
-  useFocusTrap(panelRef, open);
-  useEffect(() => {
-    if (open) panelRef.current?.focus();
-  }, [open]);
   useEffect(() => {
     closeMenu();
   }, [pathname, closeMenu]);
-  // Dismissing the menu (Escape / route change) also cancels a pending
+  // Dismissing the sheet (Escape / route change) also cancels a pending
   // logout confirmation — reset during render to avoid an effect cascade.
   if (!open && confirmLogout) {
     setConfirmLogout(false);
@@ -355,67 +348,35 @@ export function HamburgerMenu() {
     router.push(pathname.startsWith("/owner") ? "/owner/login" : "/");
   };
 
-  if (!open) return null;
-
   return (
     <>
-      <div className="fixed inset-0 z-50">
-        <div
-          className="menu-overlay-in absolute inset-0 bg-black/50"
-          onClick={closeMenu}
-          role="presentation"
-        />
-        <div
-          ref={panelRef}
-          tabIndex={-1}
-          role="dialog"
-          aria-modal="true"
-          aria-label="منو"
-          className="menu-panel-in absolute inset-y-0 start-0 flex w-[280px] max-w-[85vw] flex-col border-e border-border bg-background shadow-floating"
-          style={{
-            paddingTop: "env(safe-area-inset-top, 0px)",
-            paddingBottom: "env(safe-area-inset-bottom, 0px)",
-          }}
-        >
-          <div className="flex items-center justify-between gap-2 px-4 pb-2 pt-5">
-            <span className="text-body font-bold text-foreground">{salon.name?.trim() || "منو"}</span>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="h-11 w-11"
-              onClick={closeMenu}
-              aria-label="بستن"
+      <BottomSheet
+        open={open}
+        onClose={closeMenu}
+        title={salon.name?.trim() || "منو"}
+      >
+        <nav aria-label="منوی اصلی">
+          {role === "guest" && <GuestContent />}
+          {role === "customer" && <CustomerContent onRequestLogout={() => setConfirmLogout(true)} />}
+          {role === "owner" && <OwnerContent onRequestLogout={() => setConfirmLogout(true)} />}
+        </nav>
+
+        {role !== "owner" && (
+          <div className="mt-4 border-t border-border py-2 text-center">
+            <Link
+              href="/owner/login"
+              onClick={() => {
+                haptic.tap();
+                closeMenu();
+              }}
+              className="inline-flex min-h-11 items-center gap-1.5 px-3 text-caption text-muted-foreground hover:text-foreground"
             >
-              <X className="h-4 w-4" />
-            </Button>
+              <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+              ورود مدیریت
+            </Link>
           </div>
-
-          <nav
-            aria-label="منوی اصلی"
-            className="native-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-4"
-          >
-            {role === "guest" && <GuestContent />}
-            {role === "customer" && <CustomerContent onRequestLogout={() => setConfirmLogout(true)} />}
-            {role === "owner" && <OwnerContent onRequestLogout={() => setConfirmLogout(true)} />}
-          </nav>
-
-          {role !== "owner" && (
-            <div className="border-t border-border px-5 py-2 text-center">
-              <Link
-                href="/owner/login"
-                onClick={() => {
-                  haptic.tap();
-                  closeMenu();
-                }}
-                className="inline-flex min-h-11 items-center gap-1.5 px-3 text-caption text-muted-foreground hover:text-foreground"
-              >
-                <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                ورود مدیریت
-              </Link>
-            </div>
-          )}
-        </div>
-      </div>
+        )}
+      </BottomSheet>
 
       <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
         <AlertDialogContent className="max-w-[300px]">

@@ -104,11 +104,14 @@ Editorial moments may use display faces (Great Vibes script, Playfair Display) a
 
 ---
 
-## 5. Radius, borders, elevation
+## 5. Shape, borders, flatness
 
-- **Radius:** `--radius: 12px` base; derived `sm(−4) · md(−2) · lg(=) · xl(+4)`. Pills (`999px`) reserved for buttons/chips by role — not everything is a pill.
-- **Borders:** 1px default; `--border` (subtle) / `--border-strong` where emphasis is needed. No decorative border stacking.
-- **Elevation (4 levels):** `flat` → `--shadow-xs` · `raised` → `--shadow-card` · `overlay` → `--shadow-elevated` · `modal` → `--shadow-floating`. Dark mode uses inset highlight + halo, never colored shadows. Prefer surface contrast and borders over large shadows.
+Sharp rectangles + pills. No shadows anywhere, no arbitrary radii:
+
+- **Pill** (`rounded-full`): primary CTAs (`button default/paper`), chips, tags, badges/status pills, icon buttons, avatars, dots, switch, spinners. Everything else is sharp.
+- **Rectangle** (`--radius: 0`, whole ladder 0): cards, inputs, sheets, dialogs, dropdowns, tooltips, tab segments, selection boxes — in **every state** (hover/active/disabled/invalid inherit the variant shape; focus ring `--focus-radius: 0`).
+- **Borders:** 1px hairlines everywhere — never 2px+ except functional rings (spinners, selected checkboxes, dashed dropzones). `--border` is the natural default: black @12% light (`#0000001f`), white @14% dark (`#ffffff24`). `--border-strong` (black @19% / white @24%) is reserved for selected/emphasis edges. No decorative border stacking.
+- **Flat:** `--shadow-*` tokens are `none`; `shadow-*` classes are banned. Separation comes from borders + surface contrast only. Glass (translucent + `blur(20px) saturate(180%)`) is allowed for overlay sheets with a solid fallback under `prefers-reduced-transparency`.
 
 ---
 

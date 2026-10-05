@@ -16,7 +16,7 @@ const ManualReserveModal = dynamic(
   {
     loading: () => (
       <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" aria-label="در حال بارگذاری رزرو دستی">
-        <div className="w-full max-w-lg rounded-t-2xl bg-card p-6 text-center text-sm text-muted-foreground">
+        <div className="w-full max-w-lg bg-card p-6 text-center text-sm text-muted-foreground">
           در حال آماده‌سازی فرم رزرو...
         </div>
       </div>
@@ -355,7 +355,7 @@ function OwnerDashboardContent() {
             type="button"
             variant="default"
             size="lg"
-            className="h-12 w-full rounded-xl gap-2"
+            className="h-12 w-full rounded-none gap-2"
             onClick={() => setShowManualReserve(true)}
             disabled={!loaded}
             aria-busy={!loaded}
@@ -367,7 +367,7 @@ function OwnerDashboardContent() {
             type="button"
             variant="outline"
             size="lg"
-            className="h-12 w-full rounded-xl gap-2 border-border bg-card hover:bg-muted"
+            className="h-12 w-full rounded-none gap-2 border-border bg-card hover:bg-muted"
             onClick={() => setShowBlockTime(true)}
           >
             <Ban className="h-4 w-4" aria-hidden="true" />

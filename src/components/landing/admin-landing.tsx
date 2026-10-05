@@ -11,14 +11,14 @@ export function AdminLanding() {
         <nav className="sticky top-0 z-50 border-b border-border bg-background">
           <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-2xl bg-foreground text-background flex items-center justify-center shadow-card">
+              <div className="h-10 w-10 rounded-none bg-foreground text-background flex items-center justify-center">
                 <Sparkles className="h-5 w-5" />
               </div>
               <span className="text-body font-bold text-foreground">پنل مدیریت سالن</span>
             </div>
             <Button
               size="sm"
-              className="rounded-xl bg-foreground text-background hover:bg-foreground/90 font-semibold"
+              className="rounded-none bg-foreground text-background hover:bg-foreground/90 font-semibold"
               onClick={() => window.location.href = "/admin/login"}
             >
               ورود
@@ -40,7 +40,7 @@ export function AdminLanding() {
             </p>
             <Button
               size="lg"
-              className="rounded-2xl px-8 py-4 bg-foreground text-background hover:bg-foreground/90 font-bold h-14"
+              className="rounded-none px-8 py-4 bg-foreground text-background hover:bg-foreground/90 font-bold h-14"
               onClick={() => window.location.href = "/admin/login"}
             >
               ورود به پنل
@@ -56,8 +56,8 @@ export function AdminLanding() {
                 { icon: Users, label: "کاربران", desc: "مدیران و مشتریان" },
                 { icon: Calendar, label: "رزروها", desc: "رزرو و درآمد" },
               ].map((f) => (
-                <div key={f.label} className="bg-card border border-border rounded-2xl p-6">
-                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                <div key={f.label} className="bg-card border border-border rounded-none p-6">
+                  <div className="h-10 w-10 rounded-none bg-primary/10 flex items-center justify-center mb-4">
                     <f.icon className="h-5 w-5 text-primary" />
                   </div>
                   <p className="text-h3 font-bold mb-1">{f.label}</p>

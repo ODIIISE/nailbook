@@ -90,7 +90,7 @@ export default function ActivityPage() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-16 rounded-xl" />
+              <Skeleton key={i} className="h-16 rounded-none" />
             ))}
           </div>
         ) : (
@@ -106,7 +106,7 @@ export default function ActivityPage() {
                 type="button"
                 onClick={loadMore}
                 disabled={loadingMore}
-                className="w-full py-2.5 mt-3 rounded-xl border border-border text-caption font-bold text-muted-foreground hover:bg-muted disabled:text-foreground/70 disabled:pointer-events-none"
+                className="w-full py-2.5 mt-3 rounded-none border border-border text-caption font-bold text-muted-foreground hover:bg-muted disabled:text-foreground/70 disabled:pointer-events-none"
               >
                 {loadingMore ? "در حال بارگذاری…" : "نمایش لاگ‌های قدیمی‌تر"}
               </button>

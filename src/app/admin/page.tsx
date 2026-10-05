@@ -146,7 +146,7 @@ export default function AdminDashboard() {
     return (
       <div className="space-y-6">
         <h2 className="text-xl font-bold">داشبورد</h2>
-        <div className="p-8 rounded-2xl border border-border flex flex-col items-center gap-3 text-center">
+        <div className="p-8 rounded-none border border-border flex flex-col items-center gap-3 text-center">
           <ShieldAlert className="h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
           <p className="text-body font-bold">آمار بارگذاری نشد</p>
           <p className="text-small text-muted-foreground">دریافت داده‌ها از سرور ناموفق بود.</p>
@@ -253,7 +253,7 @@ function OverviewTab({ stats, chartData, statusData }: { stats: Stats; chartData
 
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-4 rounded-2xl border border-border">
+        <div className="p-4 rounded-none border border-border">
           <h3 className="text-sm font-bold mb-4">رزروهای ۷ روز اخیر</h3>
           {chartData.length > 0 ? (
             <div className="h-48">
@@ -273,7 +273,7 @@ function OverviewTab({ stats, chartData, statusData }: { stats: Stats; chartData
             <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">داده‌ای موجود نیست</div>
           )}
         </div>
-        <div className="p-4 rounded-2xl border border-border">
+        <div className="p-4 rounded-none border border-border">
           <h3 className="text-sm font-bold mb-4">وضعیت رزروها</h3>
           <div className="space-y-2">
             {statusData.map((d) => (
@@ -307,7 +307,7 @@ function BookingsTab({ analytics }: { analytics: Analytics }) {
       </div>
 
       {/* Peak Hours */}
-      <div className="p-4 rounded-2xl border border-border">
+      <div className="p-4 rounded-none border border-border">
         <h3 className="text-sm font-bold mb-4">ساعات شلوغ</h3>
         {analytics.peakHours && analytics.peakHours.length > 0 ? (
           <div className="h-48">
@@ -329,7 +329,7 @@ function BookingsTab({ analytics }: { analytics: Analytics }) {
       </div>
 
       {/* Service Popularity */}
-      <div className="p-4 rounded-2xl border border-border">
+      <div className="p-4 rounded-none border border-border">
         <h3 className="text-sm font-bold mb-4">محبوبیت خدمات</h3>
         <div className="space-y-2">
           {analytics.servicePop?.slice(0, 5).map((s) => (
@@ -352,17 +352,17 @@ function CustomersTab({ analytics }: { analytics: Analytics }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        <div className="p-4 rounded-2xl border border-border">
+        <div className="p-4 rounded-none border border-border">
           <p className="text-xs text-muted-foreground mb-1">مشتریان جدید</p>
           <p className="text-2xl font-bold">{analytics.customerSplit?.new_customers || 0}</p>
         </div>
-        <div className="p-4 rounded-2xl border border-border">
+        <div className="p-4 rounded-none border border-border">
           <p className="text-xs text-muted-foreground mb-1">مشتریان بازگشتی</p>
           <p className="text-2xl font-bold">{analytics.customerSplit?.returning_customers || 0}</p>
         </div>
       </div>
 
-      <div className="p-4 rounded-2xl border border-border">
+      <div className="p-4 rounded-none border border-border">
         <h3 className="text-sm font-bold mb-4">برترین مشتریان</h3>
         <div className="space-y-2">
           {analytics.topCustomers?.slice(0, 8).map((c) => (
@@ -422,7 +422,7 @@ function AlertsTab({ alerts }: { alerts: Alert[] }) {
         alerts.map((alert) => {
           const Icon = severityIcons[alert.severity] || AlertTriangle;
           return (
-            <div key={alert.title} className={`p-4 rounded-2xl border ${severityColors[alert.severity] || "border-border"}`}>
+            <div key={alert.title} className={`p-4 rounded-none border ${severityColors[alert.severity] || "border-border"}`}>
               <div className="flex items-start gap-3">
                 <Icon className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div className="flex-1">
@@ -451,7 +451,7 @@ function AlertsTab({ alerts }: { alerts: Alert[] }) {
 // Shared Components
 function StatCard({ icon: Icon, label, value, sub, color }: { icon: LucideIcon; label: string; value: string; sub?: string; color: string }) {
   return (
-    <div className="p-4 rounded-2xl border border-border">
+    <div className="p-4 rounded-none border border-border">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs text-muted-foreground">{label}</span>
         <Icon className={`h-4 w-4 ${color}`} />
@@ -464,7 +464,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: { icon: LucideIcon; 
 
 function QuickStat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="p-3 rounded-2xl border border-border text-center">
+    <div className="p-3 rounded-none border border-border text-center">
       <p className="text-2xl font-bold">{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
     </div>
@@ -473,7 +473,7 @@ function QuickStat({ label, value }: { label: string; value: string | number }) 
 
 function SalonTable({ salons, salonRevenue }: { salons: Salon[]; salonRevenue: SalonRevenue[] }) {
   return (
-    <div className="rounded-2xl border border-border overflow-hidden">
+    <div className="rounded-none border border-border overflow-hidden">
       <div className="p-4 border-b border-border">
         <h3 className="text-sm font-bold">مقایسه سالن‌ها</h3>
       </div>

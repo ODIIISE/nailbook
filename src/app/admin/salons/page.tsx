@@ -57,7 +57,7 @@ export default function AdminSalonsPage() {
           </Button>
         </div>
       ) : (
-        <div className="rounded-2xl border border-border overflow-hidden">
+        <div className="rounded-none border border-border overflow-hidden">
           {salons.map((salon, i) => (
             <div
               key={salon.id}

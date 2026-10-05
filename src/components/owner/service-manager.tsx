@@ -265,7 +265,7 @@ function ServicesTab({
       <DeleteConfirmDialog target={confirmDelete} kind="service" onCancel={() => setConfirmDelete(null)} onConfirm={confirmDeleteTarget} />
       {!isAdding && !editingId && (
         <Button
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-none"
           onClick={() => setIsAdding(true)}
         >
           <Plus className="h-4 w-4 ms-1" />
@@ -302,10 +302,10 @@ function ServicesTab({
                     width={48}
                     height={48}
                     unoptimized
-                    className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+                    className="w-12 h-12 rounded-none object-cover flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-none bg-muted flex items-center justify-center flex-shrink-0">
                     <ImageIcon className="h-5 w-5 text-muted-foreground/50" />
                   </div>
                 )}
@@ -535,7 +535,7 @@ function AddonsTab({
       <DeleteConfirmDialog target={confirmDelete} kind="addon" onCancel={() => setConfirmDelete(null)} onConfirm={confirmDeleteTarget} />
       {!isAdding && !editingId && (
         <Button
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-none"
           onClick={() => setIsAdding(true)}
         >
           <Plus className="h-4 w-4 ms-1" />
@@ -672,7 +672,7 @@ function ServiceForm({
       {/* Image Upload */}
       <div className="flex items-center gap-4">
         <div
-          className="relative w-20 h-20 rounded-xl border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/50 overflow-hidden"
+          className="relative w-20 h-20 rounded-none border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/50 overflow-hidden"
           onClick={() => fileInputRef.current?.click()}
         >
           {isUploading ? (
@@ -725,7 +725,7 @@ function ServiceForm({
       <div className="grid grid-cols-2 gap-3">
         <div>
           <Label className="text-xs">آیکون کارت</Label>
-          <select value={form.icon_key} onChange={(e) => setForm({ ...form, icon_key: e.target.value })} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+          <select value={form.icon_key} onChange={(e) => setForm({ ...form, icon_key: e.target.value })} className="mt-1 h-10 w-full rounded-none border border-input bg-background px-3 text-sm">
             <option value="">خودکار بر اساس نام خدمت</option>
             <option value="hand">دست / مانیکور</option>
             <option value="paintbrush">براش / ژل و لاک</option>
@@ -733,7 +733,7 @@ function ServiceForm({
             <option value="wrench">آچار / ترمیم</option>
           </select>
         </div>
-        <div className="flex items-end justify-between gap-3 rounded-md border border-border px-3 py-2">
+        <div className="flex items-end justify-between gap-3 rounded-none border border-border px-3 py-2">
           <Label className="text-xs leading-5">نمایش پرطرفدار</Label>
           <Switch checked={form.is_popular} onCheckedChange={(checked) => setForm({ ...form, is_popular: checked })} />
         </div>
@@ -771,7 +771,7 @@ function ServiceForm({
           />
         </div>
       </div>
-      <div className="flex gap-2">          <Button size="sm" onClick={onSave} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl">
+      <div className="flex gap-2">          <Button size="sm" onClick={onSave} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-none">
           ذخیره
         </Button>
         <Button size="sm" variant="outline" onClick={onCancel}>
@@ -884,7 +884,7 @@ function AddonForm({
           />
         </div>
       </div>
-      <div className="flex gap-2">          <Button size="sm" onClick={onSave} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl">
+      <div className="flex gap-2">          <Button size="sm" onClick={onSave} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-none">
           ذخیره
         </Button>
         <Button size="sm" variant="outline" onClick={onCancel}>
@@ -913,13 +913,13 @@ function SaveBar({
   return (
     <div className="sticky bottom-20 z-10 space-y-2">
       {saveError && (
-        <p className="text-xs text-destructive text-center bg-destructive/10 rounded-xl px-3 py-2">{saveError}</p>
+        <p className="text-xs text-destructive text-center bg-destructive/10 rounded-none px-3 py-2">{saveError}</p>
       )}
       <div className="flex gap-3">
         <Button
           onClick={onSave}
           disabled={isSaving}
-          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12"
+          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-none h-12"
         >
           {isSaving ? "در حال ذخیره..." : "ذخیره تغییرات"}
         </Button>
@@ -927,7 +927,7 @@ function SaveBar({
           variant="outline"
           onClick={onDiscard}
           disabled={isSaving}
-          className="flex-1 rounded-xl h-12"
+          className="flex-1 rounded-none h-12"
         >
           انصراف
         </Button>

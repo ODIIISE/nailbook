@@ -57,7 +57,7 @@ export function AppNavbar({ items }: AppNavbarProps) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-20 bg-background border-t border-border shadow-floating"
+      className="fixed bottom-0 left-0 right-0 z-20 bg-background border-t border-border"
       style={{
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
@@ -72,7 +72,7 @@ export function AppNavbar({ items }: AppNavbarProps) {
               href={path}
               onClick={() => haptic.tap()}
               aria-current={active ? "page" : undefined}
-              className={`relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-card rounded-md ${
+              className={`relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-card rounded-none ${
                 active ? "text-primary" : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -101,7 +101,7 @@ export function AppNavbar({ items }: AppNavbarProps) {
             openMenu();
           }}
           aria-label="منو"
-          className="relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] text-muted-foreground hover:text-foreground rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="relative flex-1 flex flex-col items-center justify-center gap-1.5 h-[60px] text-muted-foreground hover:text-foreground rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <Bars3Icon className="h-[22px] w-[22px]" strokeWidth={1.5} />
           <span className="text-small leading-none font-medium">منو</span>

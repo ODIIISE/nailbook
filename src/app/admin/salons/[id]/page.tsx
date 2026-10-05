@@ -91,7 +91,7 @@ export default function SalonDetailPage({ params }: { params: Promise<{ id: stri
      once the toast dismissed. Explain and offer the way back (P5/F5). */
   if (!salon) {
     return (
-      <div className="p-8 rounded-2xl border border-border text-center space-y-3">
+      <div className="p-8 rounded-none border border-border text-center space-y-3">
         <p className="text-body font-bold">سالن بارگذاری نشد</p>
         <p className="text-small text-muted-foreground">دریافت اطلاعات سالن ناموفق بود.</p>
         <Button variant="outline" size="sm" onClick={() => router.push("/admin/salons")}>
@@ -162,15 +162,15 @@ export default function SalonDetailPage({ params }: { params: Promise<{ id: stri
 function OverviewTab({ salon }: { salon: Salon }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <div className="p-4 rounded-2xl border border-border">
+      <div className="p-4 rounded-none border border-border">
         <p className="text-xs text-muted-foreground mb-1">کاربران</p>
         <p className="text-2xl font-bold">{parseInt(String(salon.user_count)) || 0}</p>
       </div>
-      <div className="p-4 rounded-2xl border border-border">
+      <div className="p-4 rounded-none border border-border">
         <p className="text-xs text-muted-foreground mb-1">رزروها</p>
         <p className="text-2xl font-bold">{parseInt(String(salon.booking_count)) || 0}</p>
       </div>
-      <div className="p-4 rounded-2xl border border-border">
+      <div className="p-4 rounded-none border border-border">
         <p className="text-xs text-muted-foreground mb-1">خدمات</p>
         <p className="text-2xl font-bold">{parseInt(String(salon.service_count)) || 0}</p>
       </div>
@@ -244,7 +244,7 @@ function UsersTab({ salonId }: { salonId: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+      <div className="rounded-none border border-primary/20 bg-primary/5 p-4 space-y-3">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-primary" />
           <div>
@@ -286,7 +286,7 @@ function UsersTab({ salonId }: { salonId: string }) {
       ) : users.length === 0 ? (
         <div className="p-8 text-center text-muted-foreground text-sm">کاربری یافت نشد</div>
       ) : (
-        <div className="rounded-2xl border border-border overflow-hidden">
+        <div className="rounded-none border border-border overflow-hidden">
           {users.map((user, i) => (
             <div
               key={user.id}
@@ -363,7 +363,7 @@ function BookingsTab({ salonId }: { salonId: string }) {
       ) : bookings.length === 0 ? (
         <div className="p-8 text-center text-muted-foreground text-sm">رزروی یافت نشد</div>
       ) : (
-        <div className="rounded-2xl border border-border overflow-hidden">
+        <div className="rounded-none border border-border overflow-hidden">
           {bookings.map((b, i) => (
             <div
               key={b.id}
@@ -411,7 +411,7 @@ function ServicesTab({ salonId }: { salonId: string }) {
       ) : services.length === 0 ? (
         <div className="p-8 text-center text-muted-foreground text-sm">خدمتی یافت نشد</div>
       ) : (
-        <div className="rounded-2xl border border-border overflow-hidden">
+        <div className="rounded-none border border-border overflow-hidden">
           {services.map((s, i) => (
             <div
               key={s.id}
@@ -466,7 +466,7 @@ function SettingsTab({ salon }: { salon: Salon }) {
   };
 
   return (
-    <div className="p-5 rounded-2xl border border-border space-y-4 max-w-2xl">
+    <div className="p-5 rounded-none border border-border space-y-4 max-w-2xl">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label>نام سالن</Label>

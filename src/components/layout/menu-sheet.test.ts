@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 /**
  * Two-tier navigation contract (specs/001-two-tier-navigation):
- * primary destinations live in the bottom navbar; the hamburger menu carries
+ * primary destinations live in the bottom navbar; the menu sheet carries
  * only secondary content. These are source-contract tests — the suite runs in
  * a plain Node environment (no DOM), so they assert on component source
  * rather than rendering. That still guards the invariant: any reintroduced
@@ -11,7 +11,7 @@ import { describe, expect, it } from "vitest";
  */
 
 const menuSource = readFileSync(
-  new URL("./hamburger-menu.tsx", import.meta.url),
+  new URL("./menu-sheet.tsx", import.meta.url),
   "utf-8",
 );
 
@@ -23,9 +23,9 @@ function slice(startMarker: string, endMarker: string): string {
   return menuSource.slice(start, end);
 }
 
-describe("two-tier navigation: hamburger must not duplicate the navbar", () => {
+describe("two-tier navigation: menu sheet must not duplicate the navbar", () => {
   it("owner menu never repeats navbar destinations (/owner, /owner/schedule, /owner/activity)", () => {
-    const body = slice("function OwnerContent", "export function HamburgerMenu");
+    const body = slice("function OwnerContent", "export function MenuSheet");
     // The owner navbar covers /owner (exact), /owner/schedule and
     // /owner/activity. MenuLink matching is prefix-based, so /owner must not
     // appear as a menu href at all — otherwise the item would light up on
@@ -36,7 +36,7 @@ describe("two-tier navigation: hamburger must not duplicate the navbar", () => {
   });
 
   it("owner menu keeps secondary management surfaces reachable", () => {
-    const body = slice("function OwnerContent", "export function HamburgerMenu");
+    const body = slice("function OwnerContent", "export function MenuSheet");
     expect(body).toContain('href="/owner/services"');
     expect(body).toContain('href="/owner/users"');
     expect(body).toContain('href="/owner/highlights"');

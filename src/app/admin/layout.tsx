@@ -74,7 +74,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <header className="border-b border-border bg-background/90 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
+            <div className="h-8 w-8 rounded-none bg-primary flex items-center justify-center">
               <Shield className="h-4 w-4 text-primary-foreground" />
             </div>
             <span className="font-semibold text-sm tracking-wider uppercase">پنل مدیریت</span>
@@ -86,7 +86,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 variant={pathname === item.href ? "default" : "ghost"}
                 size="sm"
                 onClick={() => router.push(item.href)}
-                className="gap-2 rounded"
+                className="gap-2 rounded-none"
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
@@ -94,7 +94,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             ))}
             <div className="h-6 w-px bg-border mx-1" />
             <span className="text-sm text-muted-foreground">{user.name}</span>
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-destructive rounded">
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-destructive rounded-none">
               <LogOut className="h-4 w-4" />
             </Button>
           </nav>

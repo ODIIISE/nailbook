@@ -4,7 +4,7 @@ import { InternationalizationProvider } from "@astryxdesign/core/i18n";
 import { SalonProvider } from "@/lib/salon-context";
 import { AuthProvider } from "@/lib/auth-context";
 import { MenuProvider } from "@/components/layout/menu-context";
-import { HamburgerMenu } from "@/components/layout/hamburger-menu";
+import { MenuSheet } from "@/components/layout/menu-sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { faOverrides } from "@/i18n/fa";
 
@@ -21,7 +21,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 editorial homepage all call openMenu() on the same context. */}
             <MenuProvider>
               {children}
-              <HamburgerMenu />
+              <MenuSheet />
             </MenuProvider>
           </SalonProvider>
         </AuthProvider>

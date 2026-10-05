@@ -49,6 +49,7 @@
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
@@ -68,11 +69,14 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
-  /* ── Radius (stock shadcn) ── */
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /* ── Shape system: two families only ──
+     PILL (rounded-full, 999px): primary CTAs, chips, tags, badges, avatars,
+     dots, switch. Everything else is a sharp rectangle (0px) — no ladder,
+     no arbitrary values, no directional feet. */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
 
   /* ── Form Field Heights ── */
   --field-xs: 32px;
@@ -135,9 +139,14 @@
   --destructive-foreground: #ffffff;
   /* Astryx status accent blue (same hue as the focus ring). */
   --accent-now: #0074e2;
-  /* Astryx --color-border: black @8%. */
-  --border: #00000014;
-  --input: #00000014;
+  /* Borders: natural hairlines — visible on every surface, never bold.
+     Deliberately above Astryx stock (black @8%): 8% renders near-invisible
+     on warm paper and on small controls. 12% light / 14% dark is the
+     quiet-visible line; --border-strong serves selected/emphasis edges. */
+  --border: #0000001f;
+  --input: #0000001f;
+  /* Emphasis edge: selected controls, dropzones, highlighted rows. */
+  --border-strong: #00000030;
   /* Focus ring: Astryx status-fill-accent blue — 4.05:1 on background (≥3:1). */
   --ring: #0074e2;
 
@@ -163,11 +172,13 @@
   /* The one page gutter (§28). Full-bleed sections opt out deliberately. */
   --page-gutter: 1.25rem;
 
-  /* ── ELEVATION — Astryx neutral shadow ladder (low/med/high), neutral black ── */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.1);
-  --shadow-elevated: 0 2px 4px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.1);
-  --shadow-floating: 0 4px 6px rgba(0, 0, 0, 0.1), 0 12px 24px rgba(0, 0, 0, 0.15);
+  /* ── ELEVATION — flat system. No shadows anywhere: separation comes from
+     1px borders and surface contrast only. The tokens below exist solely so
+     legacy `shadow-*` classes resolve to nothing during migration. ── */
+  --shadow-xs: none;
+  --shadow-card: none;
+  --shadow-elevated: none;
+  --shadow-floating: none;
 
   /* ── LAYER 2 · MOTION — instant/micro/standard/expressive/editorial (§20) ── */
   /* Functional screens use instant/micro/standard only (§21). */
@@ -194,16 +205,17 @@
   --z-editorial: 40;
 
   /* ── LAYER 3 · COMPONENT TOKENS (semantic-mapped) ── */
-  --radius: 12px;
+  /* Sharp rectangles by default: --radius 0 collapses the whole ladder.
+     Pills (rounded-full) are the only curve, granted by role — never by size. */
+  --radius: 0px;
   --button-primary-bg: var(--primary);
   --button-primary-text: var(--primary-foreground);
   --input-bg: transparent;
   --input-border: var(--input);
   --input-focus-ring: var(--ring);
   /* Component-scope focus radius (§ base focus-visible). Keep single source. */
-  --focus-radius: 6px;
+  --focus-radius: 0px;
   --dialog-bg: var(--popover);
-  --dialog-shadow: var(--shadow-elevated);
   --toast-bg: var(--popover);
   --toast-border: var(--border);
   /* Booking surfaces */
@@ -238,8 +250,12 @@
   --warning: #f8d36a;
   --destructive-foreground: #111111;
   --accent-now: #6d9cfe;
-  --border: #ffffff14;
-  --input: #ffffff14;
+  /* Dark-side natural hairline (white @14%): matches the light 12% step —
+     white needs a touch more alpha to read the same on near-black. */
+  --border: #ffffff24;
+  --input: #ffffff24;
+  /* Emphasis edge: selected controls, dropzones, highlighted rows. */
+  --border-strong: #ffffff3d;
   --ring: #6d9cfe;
 
   /* Booking surface tokens (semantic aliases) */
@@ -249,11 +265,11 @@
   /* Astryx --color-overlay: dark #000000CC. */
   --booking-sheet-scrim: rgba(0, 0, 0, 0.8);
 
-  /* Dark elevation: inner highlight + soft black halo (not colored shadows) */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 2px 8px rgba(0, 0, 0, 0.5);
-  --shadow-elevated: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 8px 24px rgba(0, 0, 0, 0.55);
-  --shadow-floating: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 16px 40px rgba(0, 0, 0, 0.65);
+  /* Dark stays flat too — depth comes from --border-strong edges, not halos. */
+  --shadow-xs: none;
+  --shadow-card: none;
+  --shadow-elevated: none;
+  --shadow-floating: none;
 }
 
 
@@ -327,35 +343,53 @@
   }
 }
 
-/* ── Unified hamburger menu (Atelier surface) ─────────────── */
-/* Entrance motion only (transform/opacity) via motion tokens;
-   motion-governance allows raw CSS here as part of the system. */
-.menu-overlay-in {
-  animation: menuFadeIn var(--duration-standard) var(--ease-standard) both;
+/* ── Bottom-sheet motion (system-owned; motion-governance allows raw CSS here).
+     Interruptible transitions (never keyframes): the sheet re-targets from its
+     live position when toggled mid-flight. Enter 240ms ease-out, exit 150ms —
+     the system answers fast. Same translateY path both directions. */
+.sheet-overlay {
+  opacity: 0;
+  transition: opacity var(--duration-micro) var(--ease-standard);
 }
-.menu-panel-in {
-  animation: menuPanelIn var(--duration-standard) var(--ease-standard) both;
+.sheet-overlay[data-open="true"] {
+  opacity: 1;
 }
-@keyframes menuFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.sheet-panel {
+  transform: translateY(100%);
+  transition: transform var(--duration-standard) var(--ease-standard);
 }
-@keyframes menuPanelIn {
-  from { transform: translateX(-100%); }
-  to { transform: none; }
+.sheet-panel[data-open="true"] {
+  transform: none;
+  /* Enter runs on mount (no JS frame-flip needed): backwards fill applies the
+     from-frame only during the run, then hands control back to the transition
+     so exit/interrupt stay live-retargeted. */
+  animation: sheetEnter var(--duration-standard) var(--ease-standard) backwards;
 }
-/* RTL drawer slides from the start edge; mirror the slide direction. */
-[dir="rtl"] .menu-panel-in {
-  animation-name: menuPanelInRtl;
+@keyframes sheetEnter {
+  from { transform: translateY(100%); }
 }
-@keyframes menuPanelInRtl {
-  from { transform: translateX(100%); }
-  to { transform: none; }
+.sheet-panel[data-closing="true"] {
+  transition-duration: var(--duration-micro);
+}
+/* ── Glass surface: translucent + blurred, content readable over any backdrop.
+     Falls back to solid under prefers-reduced-transparency. */
+.glass-panel {
+  background: color-mix(in srgb, var(--popover) 82%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass-panel {
+    background: var(--popover);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .menu-overlay-in,
-  .menu-panel-in {
-    animation-duration: 0.01ms;
+  .sheet-overlay,
+  .sheet-panel {
+    transition-duration: 0.01ms;
   }
 }
 
@@ -370,31 +404,27 @@
   background: var(--background);
 }
 
-/* ── Surface (Clean Slate) ── */
+/* ── Surface (flat: borders + contrast only, never shadows) ── */
 
 .surface {
   background: var(--card);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-card);
 }
 
 .surface-strong {
   background: var(--card);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-elevated);
+  border: 1px solid var(--border-strong);
 }
 
 .surface-floating {
   background: var(--popover);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-floating);
 }
 
-/* Legacy aliases used across the codebase */
+/* Legacy alias used across the codebase */
 .glass {
   background: var(--card);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-card);
 }
 
 /* ── Clean Slate: Removed paper theme styles ── */
@@ -475,7 +505,6 @@
     border-radius: 9999px;
     border: 1px solid var(--border);
     background: var(--card);
-    box-shadow: var(--shadow-xs);
   }
   .icon-btn:hover {
     background: var(--muted);

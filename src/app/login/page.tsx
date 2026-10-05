@@ -166,7 +166,7 @@ export default function LoginPage() {
                 type="tel"
                 inputMode="numeric"
                 dir="ltr"
-                className="h-12 w-full rounded-lg border border-input bg-card px-3.5 text-left text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="h-12 w-full rounded-none border border-input bg-card px-3.5 text-left text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !isLoading && handlePhoneSubmit()}
@@ -192,7 +192,7 @@ export default function LoginPage() {
         {step === "otp" && (
           <Card padding={5} width="100%">
             <p className="mb-3.5 text-sm font-bold">کد ۶ رقمی پیامک‌شده را وارد کنید</p>
-            <div className="mb-4 flex items-center gap-3 rounded-lg border border-success/25 bg-muted p-3">
+            <div className="mb-4 flex items-center gap-3 rounded-none border border-success/25 bg-muted p-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">✓</span>
               <span className="min-w-0 flex-1">
                 <b className="block text-sm font-bold">شماره</b>

@@ -14,37 +14,40 @@
      update this page — it is a mirror, not a source of truth.
      ════════════════════════════════════════════════════════════ */
   :root {
-    /* ── Warm atelier — Light (globals.css :root) ── */
-    --background:#faf7f2; --foreground:#2a231e; --card:#ffffff; --popover:#ffffff;
-    --primary:#2a231e; --primary-foreground:#faf7f2; --secondary:#f1ece4;
-    --secondary-foreground:#2a231e; --muted:#f1ece4; --muted-foreground:#7d7166;
-    --accent:#f6ede4; --accent-foreground:#4a3f36; --accent-soft:#f3e4da;
-    --accent-foreground-soft:#8a6552; --destructive:#dc2626; --success:#16a34a;
-    --warning:#b45309; --border:#eae3d9; --input:#eae3d9; --ring:#b0a396; --radius:12px;
-    --shadow-xs:0 1px 2px rgba(42,35,30,.04);
-    --shadow-card:0 1px 2px rgba(42,35,30,.04),0 2px 8px rgba(42,35,30,.04);
-    --shadow-elevated:0 2px 4px rgba(42,35,30,.06),0 8px 24px rgba(42,35,30,.08);
-    --shadow-floating:0 4px 8px rgba(42,35,30,.08),0 16px 40px rgba(42,35,30,.14);
+    /* ── Astryx neutral — Light (globals.css :root) ── */
+    --background:#f1f1f1; --foreground:#000000; --card:#ffffff; --popover:#ffffff;
+    --primary:#000000; --primary-foreground:#f1f1f1; --secondary:#f1f1f1;
+    --secondary-foreground:#000000; --muted:#f1f1f1; --muted-foreground:#474747;
+    --accent:#ffffff; --accent-foreground:#000000; --accent-soft:#f1f1f1;
+    --accent-foreground-soft:#474747; --destructive:#76000c; --success:#00490b;
+    --warning:#4b3900; --destructive-foreground:#ffffff; --accent-now:#0074e2;
+    --border:#0000001f; --border-strong:#00000030; --input:#0000001f; --ring:#0074e2; --radius:12px;
+    --radius-sm:8px; --radius-md:10px; --radius-lg:12px; --radius-xl:16px;
+    --shadow-xs:0 1px 2px rgba(0,0,0,.05);
+    --shadow-card:0 2px 4px rgba(0,0,0,.05),0 4px 8px rgba(0,0,0,.1);
+    --shadow-elevated:0 2px 4px rgba(0,0,0,.05),0 4px 12px rgba(0,0,0,.1);
+    --shadow-floating:0 4px 6px rgba(0,0,0,.1),0 12px 24px rgba(0,0,0,.15);
     /* ── Field / button heights (globals.css @theme) ── */
     --field-xs:32px;--field-sm:36px;--field-md:40px;--field-lg:44px;--field-xl:48px;
-    --btn-xs:28px;--btn-sm:32px;--btn-md:36px;--btn-lg:40px;--btn-xl:48px;--btn-2xl:56px;
+    --btn-xs:28px;--btn-sm:44px;--btn-md:36px;--btn-lg:40px;--btn-xl:48px;--btn-2xl:56px;
     --frame-max-w:min(100vw,480px);
     /* page chrome */
-    --page-bg:#faf7f2; --page-ink:#2a231e; --page-mut:#7d7166; --page-line:#eae3d9;
+    --page-bg:#f1f1f1; --page-ink:#000000; --page-mut:#474747; --page-line:#0000001f;
   }
   .dark {
-    /* ── Warm espresso — Dark (globals.css .dark) ── */
-    --background:#171310; --foreground:#f5f0e9; --card:#241d17; --popover:#241d17;
-    --primary:#f5f0e9; --primary-foreground:#241d17; --secondary:#2b241d;
-    --secondary-foreground:#f5f0e9; --muted:#2b241d; --muted-foreground:#beb1a3;
-    --accent:#2b241d; --accent-foreground:#f5f0e9; --accent-soft:#382a21;
-    --accent-foreground-soft:#dfa98b; --destructive:#ef4444; --success:#22c55e;
-    --warning:#f59e0b; --border:#3a3128; --input:#3a3128; --ring:#7d7166;
+    /* ── Astryx neutral — Dark (globals.css .dark) ── */
+    --background:#1b1b1b; --foreground:#ffffff; --card:#1b1b1b; --popover:#1b1b1b;
+    --primary:#f1f1f1; --primary-foreground:#111111; --secondary:#262626;
+    --secondary-foreground:#ffffff; --muted:#262626; --muted-foreground:#9e9e9e;
+    --accent:#262626; --accent-foreground:#ffffff; --accent-soft:#262626;
+    --accent-foreground-soft:#9e9e9e; --destructive:#ffc4be; --success:#a4d6a3;
+    --warning:#f8d36a; --destructive-foreground:#111111; --accent-now:#6d9cfe;
+    --border:#ffffff24; --border-strong:#ffffff3d; --input:#ffffff24; --ring:#6d9cfe;
     --shadow-xs:0 1px 2px rgba(0,0,0,.4);
     --shadow-card:0 1px 0 rgba(255,255,255,.04) inset,0 2px 8px rgba(0,0,0,.5);
     --shadow-elevated:0 1px 0 rgba(255,255,255,.05) inset,0 8px 24px rgba(0,0,0,.55);
     --shadow-floating:0 1px 0 rgba(255,255,255,.06) inset,0 16px 40px rgba(0,0,0,.65);
-    --page-bg:#171310; --page-ink:#f5f0e9; --page-mut:#beb1a3; --page-line:#3a3128;
+    --page-bg:#1b1b1b; --page-ink:#ffffff; --page-mut:#9e9e9e; --page-line:#ffffff24;
     color-scheme:dark;
   }
   /* ── Lux homepage tokens (lux-home.module.css, espresso+gold) ── */
@@ -287,8 +290,8 @@
     <div class="sec-head"><span class="n">۰۳</span><h2>شعاع، فاصله، قاب</h2><span class="en">RADIUS · SPACING · FRAME</span></div>
     <div class="grid g2">
       <div class="panel">
-        <h4>شعاع‌ها (از <code>--radius: 12px</code>)</h4>
-        <div class="hint">مقادیر مشتق‌شده — همه از یک توکن پایه.</div>
+        <h4>دو خانواده شکل — تیز و قرص</h4>
+        <div class="hint">قرص فقط برای CTA/چیپ/تگ/بج — بقیه همه مستطیل تیز (0px) در همه‌ی حالت‌ها.</div>
         <div class="grid g4" id="radiusRow"></div>
       </div>
       <div class="panel">
@@ -309,12 +312,12 @@
 
   <!-- ═══════════ 4. ELEVATION ═══════════ -->
   <section id="elev">
-    <div class="sec-head"><span class="n">۰۴</span><h2>سطح و سایه</h2><span class="en">SURFACES · ELEVATION</span></div>
-    <p class="sec-sub">سه سطح از <code>--shadow-xs</code> تا <code>--shadow-floating</code>. در تم تیره، ارتفاع با های‌لایت داخلی + هاله‌ی سیاه ساخته می‌شود، نه سایه‌ی رنگی.</p>
+    <div class="sec-head"><span class="n">۰۴</span><h2>سطح تخت</h2><span class="en">SURFACES · FLAT</span></div>
+    <p class="sec-sub">بدون سایه — جدایی سطوح فقط با بوردر ۱px و کنتراست زمینه. شیشه (تار + شفاف) فقط برای شیت‌های شناور.</p>
     <div class="grid g3">
-      <div class="panel" style="box-shadow:var(--shadow-xs)"><h4>surface / xs</h4><div class="hint">کارت‌های عادی — <code>.surface</code></div></div>
-      <div class="panel" style="box-shadow:var(--shadow-elevated)"><h4>surface-strong / elevated</h4><div class="hint">کارت‌های برجسته — <code>.surface-strong</code></div></div>
-      <div class="panel" style="box-shadow:var(--shadow-floating)"><h4>surface-floating</h4><div class="hint">پاپ‌اور و شیت‌ها — <code>.surface-floating</code></div></div>
+      <div class="panel"><h4>surface</h4><div class="hint">کارت‌های عادی — <code>.surface</code> + <code>--border</code></div></div>
+      <div class="panel" style="border:1px solid var(--border-strong)"><h4>surface-strong</h4><div class="hint">تأکید — <code>.surface-strong</code> + <code>--border-strong</code></div></div>
+      <div class="panel"><h4>glass-panel</h4><div class="hint">شیت شناور — <code>.glass-panel</code> (تار ۲۰px)</div></div>
     </div>
   </section>
 
@@ -487,6 +490,8 @@
           <li>ارقام فارسی + تاریخ جلالی؛ <code>dir="ltr"</code> برای شماره/زمان</li>
           <li>هدف لمس ≥ ۴۴px، فوکوس‌رینگ، Escape روی همه‌ی لایه‌ها</li>
           <li>قبل از UI جدید: اول دیتاستیت‌ها (خالی/بارگذاری/خطا/جزیی)</li>
+          <li>دو خانواده شکل: قرص (<code>rounded-full</code>) فقط برای CTA/چیپ/تگ/بج — بقیه مستطیل تیز (0px) در همه‌ی حالت‌ها</li>
+          <li>بوردر ۱px از <code>--border</code> (طبیعی و خوانا)؛ <code>--border-strong</code> فقط برای لبه‌ی انتخاب/تأکید</li>
           <li>چک نهایی: <code>npm run check</code> + بررسی واقعی ۳۹۰px و ≥۱۲۸۰px، هر دو تم، بدون خطای کنسول</li>
         </ul>
       </div>
@@ -498,6 +503,9 @@
           <li>فونت لاتین نمایشی در اپ اصلی</li>
           <li>کارت داخل کارت؛ سایه‌ی رنگی در تم تیره</li>
           <li>استایل لوکس بیرون از <code>lux-home.*</code> — نشت ممنوع</li>
+          <li>هر شعاعی جز قرص روی مستطیل‌ها — همه <code>rounded-none</code></li>
+          <li>هر سایه (<code>shadow-*</code>، <code>box-shadow</code>) — جدایی فقط با بوردر و کنتراست</li>
+          <li>بوردر ضخیم (‎<code>border-2</code> به‌جز اسپینر/چک‌باکس/دراپ‌زون) یا بوردر نامرئی</li>
           <li>ویژگی قلابی: toast الکی، «به‌زودی»، دیتای نمایشی hardcode شده</li>
         </ul>
       </div>
@@ -505,7 +513,7 @@
   </section>
 
   <footer class="foot">
-    <b>Forehand Nailbook · Design System 1.0 (live mirror)</b> — ساخته‌شده از توکن‌های واقعی داخل <code>globals.css</code> و <code>design-tokens.ts</code> و <code>lux-home.module.css</code>.
+    <b>Forehand Nailbook · Design System 2.0 (live mirror — Astryx neutral)</b> — ساخته‌شده از توکن‌های واقعی داخل <code>globals.css</code> و <code>design-tokens.ts</code> و <code>lux-home.module.css</code>.
     وقتی آن‌ها تغییر کنند، این صفحه باید به‌روز شود. سواچ‌ها با کلیک کپی می‌شوند.
   </footer>
 </div>
@@ -531,20 +539,21 @@
 
   /* ── semantic swatches (exact globals.css values, light + dark) ── */
   const semantic = [
-    ['background · کرم کاغذی', '--background', '#faf7f2', '#171310', 'پس‌زمینه صفحه'],
-    ['foreground · اسپرسو', '--foreground', '#2a231e', '#f5f0e9', 'متن اصلی'],
-    ['card · سفید', '--card', '#ffffff', '#241d17', 'کارت و شیت'],
-    ['primary', '--primary', '#2a231e', '#f5f0e9', 'اکشن اصلی'],
-    ['secondary / muted', '--secondary', '#f1ece4', '#2b241d', 'سطح ثانویه'],
-    ['muted-foreground', '--muted-foreground', '#7d7166', '#beb1a3', 'متن محو'],
-    ['accent', '--accent', '#f6ede4', '#2b241d', 'های‌لایت تعامل'],
-    ['accent-soft', '--accent-soft', '#f3e4da', '#382a21', 'انتخاب/آیکون'],
-    ['accent-fg-soft', '--accent-foreground-soft', '#8a6552', '#dfa98b', 'تأکید گرم'],
-    ['border / input', '--border', '#eae3d9', '#3a3128', 'حاشیه‌ها'],
-    ['ring', '--ring', '#b0a396', '#7d7166', 'فوکوس‌رینگ'],
-    ['destructive', '--destructive', '#dc2626', '#ef4444', 'خطا/حذف'],
-    ['success', '--success', '#16a34a', '#22c55e', 'موفقیت'],
-    ['warning', '--warning', '#b45309', '#f59e0b', 'هشدار'],
+    ['background · خنثی', '--background', '#f1f1f1', '#1b1b1b', 'پس‌زمینه صفحه'],
+    ['foreground · جوهر', '--foreground', '#000000', '#ffffff', 'متن اصلی'],
+    ['card · سفید', '--card', '#ffffff', '#1b1b1b', 'کارت و شیت'],
+    ['primary', '--primary', '#000000', '#f1f1f1', 'اکشن اصلی'],
+    ['secondary / muted', '--secondary', '#f1f1f1', '#262626', 'سطح ثانویه'],
+    ['muted-foreground', '--muted-foreground', '#474747', '#9e9e9e', 'متن محو'],
+    ['accent', '--accent', '#ffffff', '#262626', 'های‌لایت تعامل'],
+    ['accent-soft', '--accent-soft', '#f1f1f1', '#262626', 'انتخاب/آیکون'],
+    ['accent-fg-soft', '--accent-foreground-soft', '#474747', '#9e9e9e', 'متن تأکیدی'],
+    ['border / input', '--border', '#0000001f', '#ffffff24', 'حاشیه طبیعی ۱px'],
+    ['border-strong', '--border-strong', '#00000030', '#ffffff3d', 'لبه انتخاب/تأکید'],
+    ['ring', '--ring', '#0074e2', '#6d9cfe', 'فوکوس‌رینگ'],
+    ['destructive', '--destructive', '#76000c', '#ffc4be', 'خطا/حذف'],
+    ['success', '--success', '#00490b', '#a4d6a3', 'موفقیت'],
+    ['warning', '--warning', '#4b3900', '#f8d36a', 'هشدار'],
   ];
   const sw = document.getElementById('swatches');
   semantic.forEach(([name, token, light, dark, use]) => {
@@ -576,7 +585,7 @@
   });
 
   /* ── radius ── */
-  const radiuses = [['r-sm', '8px', 'چیپ/بج'], ['r-md', '10px', 'بج'], ['r-lg = radius', '12px', 'پایه'], ['r-xl', '16px', 'مودال']];
+  const radiuses = [['pill · قرص', '999px', 'CTA/بج/چیپ/آواتار'], ['sharp · تیز', '0px', 'کارت/اینپوت/شیت/دیالوگ']];
   const rr = document.getElementById('radiusRow');
   radiuses.forEach(([n, v, use]) => {
     const d = document.createElement('div');

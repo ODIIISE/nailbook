@@ -86,7 +86,7 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
       </header>
 
       <div className="min-h-0 flex-1 page-gutter pb-8 pt-2">
-        <div className="rounded-lg border border-border bg-card p-4 shadow-card">
+        <div className="rounded-none border border-border bg-card p-4">
           {/* Salon */}
           <div className="flex items-center gap-3">
             {booking.salon_logo_url ? (
@@ -96,10 +96,10 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
                 width={44}
                 height={44}
                 unoptimized
-                className="h-11 w-11 rounded-xl object-cover"
+                className="h-11 w-11 rounded-none object-cover"
               />
             ) : (
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-bold text-foreground">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-muted text-xs font-bold text-foreground">
                 {String(booking.salon_name || "FN").slice(0, 2)}
               </span>
             )}
@@ -159,7 +159,7 @@ export default async function BookingVerifyPage({ params }: BookingVerifyPagePro
         <div className="mt-4">
           <Link
             href="/"
-            className="flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground"
+            className="flex h-12 w-full items-center justify-center rounded-none bg-primary text-sm font-bold text-primary-foreground"
           >
             رزرو نوبت جدید
           </Link>

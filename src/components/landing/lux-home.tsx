@@ -11,9 +11,21 @@ import {
 import { useRouter } from "next/navigation";
 import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "@/components/layout/menu-context";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { BookingFlow } from "@/components/booking/booking-flow";
 import styles from "./lux-home.module.css";
 
 const d = (v: string) => ({ "--d": v }) as CSSProperties;
+
+/* Booking sheet host — mounts the flow per open so every visit starts clean,
+ * like any dialog. /book stays reachable by deep-link (?service= / ?look=). */
+function BookingSheetHost({ open, onClose }: { open: boolean; onClose: () => void }) {
+  return (
+    <BottomSheet open={open} onClose={onClose} title="رزرو نوبت">
+      {open ? <BookingFlow /> : null}
+    </BottomSheet>
+  );
+}
 
 /* Bundled hero clip; an owner-uploaded video (settings → «ویدیوی پس‌زمینه»)
  * replaces it through salon.hero_video_url. Always played muted — the file
@@ -26,7 +38,7 @@ const X_ICON = (
 
 export function LuxHome() {
   const router = useRouter();
-  const { salon, highlights } = useSalon();
+  const { salon, highlights, loaded } = useSalon();
   const { openMenu } = useMenu();
 
   const [ready, setReady] = useState(false);
@@ -35,14 +47,17 @@ export function LuxHome() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [toastShow, setToastShow] = useState(false);
   const [lookbookOpen, setLookbookOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
   const [addrOpen, setAddrOpen] = useState(false);
   const [videoBlocked, setVideoBlocked] = useState(false);
+  const [videoOn, setVideoOn] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const addrTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /* Poster first: the hero paints from the owner's own image (gallery slot →
-     hero image → bundled default) while the ~7 MB clip streams in. */
+  /* Media resolves once with bootstrap — the video mounts a single time with
+     its final src, so there is never a fallback→owner swap flash. Before that
+     the frame is just the gradient; the poster crossfades under the clip. */
   const heroPoster =
     salon?.home_gallery_urls?.find((u): u is string => Boolean(u?.trim())) ??
     salon?.hero_image_url ??
@@ -65,28 +80,25 @@ export function LuxHome() {
 
   useEffect(() => {
     const v = videoRef.current;
-    if (!v) return;
+    if (!v || videoBlocked) return;
 
     const play = () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       v.play().catch(() => {});
     };
+    // The clip starts at first paint, not at idle: every idle-deferred second
+    // is a second the visitor stares at a still poster that then visibly cuts.
+    play();
     const onVisibility = () => {
       if (document.hidden) v.pause();
-      else if (!videoBlocked) play();
+      else play();
     };
 
-    // Start once the first paint has landed, so the clip never competes with
-    // the fonts/hero image the visitor is actually waiting for.
-    const kick = (window.requestIdleCallback ?? ((cb: IdleRequestCallback) => setTimeout(cb, 700)))(() => {
-      if (!videoBlocked) play();
-    });
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
-      if ("cancelIdleCallback" in window) window.cancelIdleCallback(kick);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [videoBlocked]);
+  }, [videoBlocked, loaded]);
 
   /* Splash → choreography (load + fallback), then settle to hand
    * transform control back to :active press feedback. */
@@ -128,17 +140,6 @@ export function LuxHome() {
     if (addrTimer.current) clearTimeout(addrTimer.current);
     setAddrOpen(false);
   };
-
-  /* Escape closes the lookbook sheet (the app menu handles its own Escape) */
-  useEffect(() => {
-    if (!lookbookOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLookbookOpen(false);
-    };
-    addEventListener("keydown", onKey);
-    return () => removeEventListener("keydown", onKey);
-  }, [lookbookOpen]);
-
   /* Haptics (delegated; no-op where unsupported, e.g. iOS Safari) */
   const buzz = (e: ReactPointerEvent) => {
     if ((e.target as HTMLElement).closest("button") && "vibrate" in navigator)
@@ -167,18 +168,26 @@ export function LuxHome() {
             bundled clip as fallback. Muted, no controls: it is decoration, and the
             file's own audio track must never reach the visitor. */}
         <div className={styles.videoLayer} aria-hidden="true">
-          <video
-            ref={videoRef}
-            className={styles.heroVideo}
-            src={heroVideoSrc}
-            poster={heroPoster}
-            muted
-            playsInline
-            loop
-            preload="metadata"
-            disablePictureInPicture
-            tabIndex={-1}
-          />
+          {/* Poster paints instantly as a plain image layer; the clip fades in
+              over it on first frame — nothing ever pops or vanishes. */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- hero poster layer */}
+          <img src={heroPoster} alt="" className={styles.heroPoster} fetchPriority="high" decoding="async" draggable={false} />
+          {loaded && !videoBlocked && (
+            <video
+              ref={videoRef}
+              className={`${styles.heroVideo} ${videoOn ? styles.videoOn : ""}`}
+              src={heroVideoSrc}
+              muted
+              autoPlay
+              playsInline
+              loop
+              preload="auto"
+              disablePictureInPicture
+              tabIndex={-1}
+              onCanPlay={(e) => e.currentTarget.play().catch(() => {})}
+              onPlaying={() => setVideoOn(true)}
+            />
+          )}
         </div>
         <div className={styles.ambient} aria-hidden="true" />
         {/* Legibility veil — alphas are derived from the clip's own sampled
@@ -219,7 +228,7 @@ export function LuxHome() {
               <button className={styles.addrClose} aria-label="بستن" onClick={closeAddress}>{X_ICON}</button>
             </div>
           )}
-          <button dir="rtl" className={`${styles.btn} ${styles.btnPrimary} ${styles.rvPop}`} style={d(".85s")} onClick={() => router.push("/book")}>
+          <button dir="rtl" className={`${styles.btn} ${styles.btnPrimary} ${styles.rvPop}`} style={d(".85s")} onClick={() => setBookingOpen(true)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="m9.2 12.5 2 2 3.8-3.8" /></svg>
             <span className={styles.btnFa}>رزرو نوبت</span>
           </button>
@@ -261,44 +270,33 @@ export function LuxHome() {
         {/* Menu drawer — one unified, role-aware menu (menu-context) is
             mounted app-wide in Providers; openDrawer toggles it. */}
 
+        {/* Booking sheet — the full flow, in place, glass. Draft resets on
+            close like any dialog; /book stays reachable by deep-link. */}
+        <BookingSheetHost open={bookingOpen} onClose={() => setBookingOpen(false)} />
+
         {/* Lookbook sheet — the nail-work portfolio experience */}
-        {lookbookOpen && (
-          <div className={styles.sheetScrim} onClick={() => setLookbookOpen(false)} role="presentation">
-            <div
-              dir="rtl"
-              role="dialog"
-              aria-modal="true"
-              aria-label={lookbookTitle}
-              className={styles.sheet}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className={styles.sheetHead}>
-                <span className={styles.sheetTitle}>{lookbookTitle}</span>
-                <button className={styles.iconBtn} aria-label="بستن" onClick={() => setLookbookOpen(false)}>{X_ICON}</button>
-              </div>
-              <div className={styles.sheetBody}>
-                {highlights.length === 0 ? (
-                  <p className={styles.sheetEmpty}>هنوز نمونه‌کاری ثبت نشده است.</p>
-                ) : (
-                  highlights
-                    .slice()
-                    .sort((a, b) => a.sort_order - b.sort_order)
-                    .map((h) => (
-                      <button key={h.id} className={styles.lookCard} onClick={() => router.push(`/book?look=${h.id}`)}>
-                        <span className={styles.lookThumb}>
-                          {h.cover_url && (
-                            // eslint-disable-next-line @next/next/no-img-element -- cover thumbnails inside the Lux sheet
-                            <img src={h.cover_url} alt={h.name} loading="lazy" />
-                          )}
-                        </span>
-                        <span className={styles.lookName}>{h.name}</span>
-                      </button>
-                    ))
-                )}
-              </div>
-            </div>
+        <BottomSheet open={lookbookOpen} onClose={() => setLookbookOpen(false)} title={lookbookTitle}>
+          <div dir="rtl" className={styles.sheetBody}>
+            {highlights.length === 0 ? (
+              <p className={styles.sheetEmpty}>هنوز نمونه‌کاری ثبت نشده است.</p>
+            ) : (
+              highlights
+                .slice()
+                .sort((a, b) => a.sort_order - b.sort_order)
+                .map((h) => (
+                  <button key={h.id} className={styles.lookCard} onClick={() => router.push(`/book?look=${h.id}`)}>
+                    <span className={styles.lookThumb}>
+                      {h.cover_url && (
+                        // eslint-disable-next-line @next/next/no-img-element -- cover thumbnails inside the Lux sheet
+                        <img src={h.cover_url} alt={h.name} loading="lazy" />
+                      )}
+                    </span>
+                    <span className={styles.lookName}>{h.name}</span>
+                  </button>
+                ))
+            )}
           </div>
-        )}
+        </BottomSheet>
 
         <div className={styles.grain} aria-hidden="true" />
       </div>

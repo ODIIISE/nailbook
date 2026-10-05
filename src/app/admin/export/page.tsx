@@ -70,7 +70,7 @@ export default function AdminExportPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       <h2 className="text-xl font-bold">خروجی داده</h2>
 
-      <div className="p-5 rounded-2xl border border-border space-y-4">
+      <div className="p-5 rounded-none border border-border space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label>نوع داده</Label>
@@ -94,7 +94,7 @@ export default function AdminExportPage() {
             <select
               value={selectedSalon}
               onChange={(e) => setSelectedSalon(e.target.value)}
-              className="w-full mt-2 h-9 px-3 rounded-xl border border-border bg-background text-sm"
+              className="w-full mt-2 h-9 px-3 rounded-none border border-border bg-background text-sm"
             >
               <option value="">همه سالن‌ها</option>
               {salons.map((s) => (

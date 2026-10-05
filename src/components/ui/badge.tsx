@@ -5,7 +5,8 @@ import { cn } from "@/lib/utils"
 const badgeVariants = cva(
   // Non-interactive element: no focus styles. Weight capped at 600 by the
   // typography roles; text-caption (12/500) + slight tracking reads premium.
-  "inline-flex items-center rounded-[8px] border px-2.5 py-0.5 text-caption tracking-[0.01em]",
+  // Pill family: badges are pills, never rectangles.
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-caption tracking-[0.01em]",
   {
     variants: {
       variant: {

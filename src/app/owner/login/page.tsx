@@ -118,7 +118,7 @@ export default function OwnerLoginPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handlePhoneSubmit()}
-                  className="h-14 text-left text-lg rounded-2xl"
+                  className="h-14 text-left text-lg rounded-none"
                   dir="ltr"
                   placeholder="۰۹۱۲۱۲۳۴۵۶۷"
                   autoFocus
@@ -127,7 +127,7 @@ export default function OwnerLoginPage() {
               <AuthError error={error} />
               <Button
                 size="xl"
-                className="w-full rounded-2xl bg-foreground text-background hover:bg-foreground/90"
+                className="w-full rounded-none bg-foreground text-background hover:bg-foreground/90"
                 onClick={handlePhoneSubmit}
                 disabled={isLoading || !isValidIranianPhone(normalizeDigits(phone))}
               >

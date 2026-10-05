@@ -75,7 +75,7 @@ function Help({ text }: { text: string }) {
   return (
     <Tooltip>
       <TooltipTrigger render={<HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help hover:text-foreground" />} />
-      <TooltipContent side="top" className="w-52 text-small leading-relaxed p-2.5 rounded-xl bg-card border border-border">
+      <TooltipContent side="top" className="w-52 text-small leading-relaxed p-2.5 rounded-none bg-card border border-border">
         {text}
       </TooltipContent>
     </Tooltip>
@@ -189,7 +189,7 @@ function JalaliMonthGrid({
               key={d}
               onClick={() => onToggleDayOff(dateStr)}
               className={`
-                min-h-11 rounded-lg text-xs font-medium
+                min-h-11 rounded-none text-xs font-medium
                 ${isOff
                   ? "bg-destructive text-destructive-foreground"
                   : isToday
@@ -525,9 +525,9 @@ export function ScheduleManager({
                   key={v}
                   onClick={() => { setSlotInterval(v); markChanged(); }}
                   className={`
-                    min-h-11 min-w-[44px] px-2 rounded-lg text-caption font-medium
+                    min-h-11 min-w-[44px] px-2 rounded-none text-caption font-medium
                     ${slotInterval === v
-                      ? "bg-foreground text-background shadow-xs"
+                      ? "bg-foreground text-background"
                       : "bg-secondary text-foreground hover:bg-secondary/80"
                     }
                   `}
@@ -634,7 +634,7 @@ export function ScheduleManager({
                   key={mode}
                   type="button"
                   onClick={() => { setOptimizationMode(mode); markChanged(); }}
-                  className={`h-10 rounded-xl text-small font-medium ${optimizationMode === mode ? "bg-foreground text-background" : "bg-secondary text-foreground hover:bg-secondary/80"}`}
+                  className={`h-10 rounded-none text-small font-medium ${optimizationMode === mode ? "bg-foreground text-background" : "bg-secondary text-foreground hover:bg-secondary/80"}`}
                 >
                   {mode === "hybrid" ? "هوشمند (پیشنهادی)" : "قدیمی"}
                 </button>
@@ -768,7 +768,7 @@ export function ScheduleManager({
                 key={d}
                 onClick={() => toggleSpecificDayOff(d)}
                 title={d}
-                className="px-2 py-0.5 rounded text-small bg-destructive/10 text-destructive hover:bg-destructive/20"
+                className="px-2 py-0.5 rounded-none text-small bg-destructive/10 text-destructive hover:bg-destructive/20"
               >
                 {formatDayOffChip(d)} ×
               </button>

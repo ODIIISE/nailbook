@@ -163,13 +163,13 @@ export function JalaliCalendar({
           <button
             type="button"
             onClick={() => setShowModal(true)}
-            className="flex h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-primary"
+            className="flex h-11 items-center gap-1.5 rounded-none px-2 text-xs font-bold text-primary"
           >
             <CalendarDays className="h-4 w-4" aria-hidden="true" />
             تقویم
           </button>
         </div>
-        {/* Outer wrapper with padding to prevent shadow clipping */}
+        {/* Outer wrapper with padding to keep focus rings unclipped */}
         <div className="px-1">
           <div
             ref={scrollRef}
@@ -184,7 +184,7 @@ export function JalaliCalendar({
                 if (!d.isSelected) haptic.tap();
                 onSelectDate(d.date);
               }}
-              className={`flex h-20 min-w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border px-3 text-sm font-bold ${
+              className={`flex h-20 min-w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-none border px-3 text-sm font-bold ${
                 d.isSelected
                   ? "border-primary bg-primary text-primary-foreground"
                   : d.isFullyBooked
@@ -343,7 +343,7 @@ function CalendarModal({
           decision (بستن button / Escape), same grammar as destructive
           confirmations. */}
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
-      <div ref={panelRef} tabIndex={-1} className="relative w-full max-w-sm rounded-xl border border-border bg-card p-5 shadow-card">
+      <div ref={panelRef} tabIndex={-1} className="relative w-full max-w-sm rounded-none border border-border bg-card p-5">
         <div className="mb-3 flex items-center justify-between">
           <button
             type="button"
@@ -409,7 +409,7 @@ function CalendarModal({
                 disabled={cell.isPast}
                 onClick={() => cell.date && onSelect(cell.date)}
                 className={`
-                  flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold
+                  flex h-11 w-full items-center justify-center rounded-none text-sm font-bold
                   ${cell.isSelected
                     ? "bg-primary text-primary-foreground"
                     : cell.isToday

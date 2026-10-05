@@ -102,8 +102,8 @@ export default function BookingsPage() {
           <span className="h-11 w-11" />
         </header>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
-          <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card">
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+          <div className="rounded-none border border-border bg-card p-6 text-center">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-none bg-muted text-muted-foreground">
               <User className="h-7 w-7" aria-hidden="true" />
             </div>
             <h3 className="text-sm font-bold">وارد شوید</h3>
@@ -142,10 +142,10 @@ export default function BookingsPage() {
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
         <section
-          className="relative mb-3 flex items-center gap-3 overflow-hidden rounded-xl border border-border bg-card p-4"
+          className="relative mb-3 flex items-center gap-3 overflow-hidden rounded-none border border-border bg-card p-4"
           aria-labelledby="booking-history-title"
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none bg-muted text-foreground">
             <Calendar className="h-5 w-5" aria-hidden="true" />
           </span>
           <span className="min-w-0">
@@ -158,8 +158,8 @@ export default function BookingsPage() {
           </span>
         </section>
         {myBookings.length === 0 ? (
-            <div className="mt-3 rounded-lg border border-border bg-card p-6 text-center shadow-card">
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+            <div className="mt-3 rounded-none border border-border bg-card p-6 text-center">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-none bg-muted text-muted-foreground">
                 <Calendar className="h-6 w-6" aria-hidden="true" />
               </div>
               <h3 className="text-sm font-bold">نوبتی ندارید</h3>
@@ -191,12 +191,12 @@ export default function BookingsPage() {
                     <button
                       key={booking.id}
                       type="button"
-                      className="mb-2.5 w-full rounded-lg border border-border bg-card p-4 text-start shadow-card"
+                      className="mb-2.5 w-full rounded-none border border-border bg-card p-4 text-start"
                       onClick={() => setSelectedBooking(booking)}
                       aria-label={`مشاهده نوبت ${getServiceName(booking.service_id)}`}
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-muted text-foreground"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
                         <span className="min-w-0 flex-1">
                           <b className="block truncate text-sm font-bold">{getServiceName(booking.service_id)}</b>
                           <small className="mt-0.5 block text-micro text-muted-foreground">{booking.customer_name || "مشتری"}</small>
@@ -323,7 +323,7 @@ function BookingDetailSheet({
       />
       <div
         ref={sheetRef}
-        className="relative z-10 flex max-h-[88dvh] w-full max-w-[var(--frame-max-w)] flex-col rounded-t-xl border-t bg-popover p-4 pb-[calc(16px+env(safe-area-inset-bottom))] text-popover-foreground shadow-floating"
+        className="relative z-10 flex max-h-[88dvh] w-full max-w-[var(--frame-max-w)] flex-col border-t bg-popover p-4 pb-[calc(16px+env(safe-area-inset-bottom))] text-popover-foreground"
       >
         <div className="mb-3 flex items-center justify-between gap-3">
           <h3 className="text-lg font-bold">جزئیات نوبت</h3>
@@ -339,7 +339,7 @@ function BookingDetailSheet({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <div className="mb-3.5 overflow-hidden rounded-lg border border-border bg-card">
+          <div className="mb-3.5 overflow-hidden rounded-none border border-border bg-card">
             <div className="flex items-center justify-between gap-3 px-4 py-3">
               <span className="text-xs text-muted-foreground">خدمت</span>
               <span className="text-sm font-bold">{getServiceName(booking.service_id)}</span>
@@ -390,7 +390,7 @@ function BookingDetailSheet({
             {canCancel && !confirming && (
               <button
                 type="button"
-                className="flex h-12 w-full items-center justify-center rounded-lg border border-destructive/30 bg-destructive/10 text-sm font-bold text-destructive"
+                className="flex h-12 w-full items-center justify-center rounded-none border border-destructive/30 bg-destructive/10 text-sm font-bold text-destructive"
                 onClick={() => setConfirming(true)}
               >
                 لغو نوبت
@@ -400,14 +400,14 @@ function BookingDetailSheet({
               <div className="flex gap-2.5">
                 <button
                   type="button"
-                  className="h-12 flex-1 rounded-lg bg-destructive text-sm font-bold text-destructive-foreground"
+                  className="h-12 flex-1 rounded-none bg-destructive text-sm font-bold text-destructive-foreground"
                   onClick={handleCancelClick}
                 >
                   بله، لغو کن
                 </button>
                 <button
                   type="button"
-                  className="h-12 flex-1 rounded-lg border border-destructive/30 bg-destructive/10 text-sm font-bold text-destructive"
+                  className="h-12 flex-1 rounded-none border border-destructive/30 bg-destructive/10 text-sm font-bold text-destructive"
                   onClick={() => setConfirming(false)}
                 >
                   انصراف
@@ -416,7 +416,7 @@ function BookingDetailSheet({
             )}
             <button
               type="button"
-              className="flex h-12 w-full items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground"
+              className="flex h-12 w-full items-center justify-center rounded-none bg-primary text-sm font-bold text-primary-foreground"
               onClick={requestClose}
             >
               بستن

@@ -16,8 +16,8 @@ export function SalonGuard({ children, fallback }: SalonGuardProps) {
       <div className="min-h-screen bg-background">
         <Skeleton className="h-16 w-full" />
         <div className="p-4 space-y-4">
-          <Skeleton className="h-48 w-full rounded-2xl" />
-          <Skeleton className="h-24 w-full rounded-2xl" />
+          <Skeleton className="h-48 w-full rounded-none" />
+          <Skeleton className="h-24 w-full rounded-none" />
         </div>
       </div>
     );

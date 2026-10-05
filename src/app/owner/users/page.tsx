@@ -243,7 +243,7 @@ export default function OwnerUsersPage() {
       {/* Users List */}
       {loading ? (
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 rounded-none" />)}
         </div>
       ) : filteredUsers.length === 0 ? (
         <div className="text-center py-12">
@@ -326,7 +326,7 @@ export default function OwnerUsersPage() {
               </div>
             )}
             {modal === "add" && formRole === "owner" && (
-              <p className="text-caption text-muted-foreground rounded-lg bg-muted/50 p-2">
+              <p className="text-caption text-muted-foreground rounded-none bg-muted/50 p-2">
                 این شماره می‌تواند پس از دریافت کد پیامکی وارد پنل مدیر شود.
               </p>
             )}

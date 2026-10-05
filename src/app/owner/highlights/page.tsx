@@ -297,7 +297,7 @@ export default function OwnerHighlightsPage() {
                       <select
                         value={expandedHighlight.service_id ?? ""}
                         onChange={(e) => handleLinkService(expandedHighlight, e.target.value)}
-                        className="mt-1.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                        className="mt-1.5 h-10 w-full rounded-none border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                       >
                         <option value="">بدون خدمت — فقط نمایش مدل</option>
                         {activeServices.map((s) => (
@@ -384,7 +384,7 @@ export default function OwnerHighlightsPage() {
 
                     {/* What the customer will see — price & duration */}
                     {preview && (preview.service || preview.addons.length > 0) && (
-                      <div className="rounded-xl bg-muted/60 border border-border/40 px-4 py-3 space-y-1">
+                      <div className="rounded-none bg-muted/60 border border-border/40 px-4 py-3 space-y-1">
                         <p className="text-small text-muted-foreground">نمایش به مشتری هنگام رزرو این مدل</p>
                         <p className="text-sm font-semibold text-foreground">
                           {preview.service?.name ?? "بدون خدمت"}
@@ -476,7 +476,7 @@ export default function OwnerHighlightsPage() {
                       ) : (
                         <div className="grid grid-cols-3 gap-2">
                           {expandedHighlight.images.map((image, index) => (
-                            <div key={image.id} className="relative group aspect-square rounded-xl overflow-hidden bg-muted">
+                            <div key={image.id} className="relative group aspect-square rounded-none overflow-hidden bg-muted">
                               <Image
                                 src={image.image_url}
                                 alt={`تصویر ${index + 1}`}

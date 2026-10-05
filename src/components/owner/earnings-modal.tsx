@@ -70,7 +70,7 @@ export function EarningsModal({
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent
         showCloseButton={false}
-        className="rounded-2xl p-6 max-h-[80vh] overflow-y-auto bg-card border border-border"
+        className="rounded-none p-6 max-h-[80vh] overflow-y-auto bg-card border border-border"
       >
         <DialogTitle className="text-h2 text-foreground">درآمد</DialogTitle>
 
@@ -91,7 +91,7 @@ export function EarningsModal({
         </div>
 
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 rounded-xl bg-success/10">
+          <div className="flex items-center justify-between p-3 rounded-none bg-success/10">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-success" />
               <span className="text-caption text-foreground">پرداخت شده</span>
@@ -106,7 +106,7 @@ export function EarningsModal({
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-3 rounded-xl bg-destructive/10">
+          <div className="flex items-center justify-between p-3 rounded-none bg-destructive/10">
             <div className="flex items-center gap-2">
               <TrendingDown className="h-4 w-4 text-destructive" />
               <span className="text-caption text-foreground">پرداخت نشده</span>
@@ -123,7 +123,7 @@ export function EarningsModal({
 
           <Separator />
 
-          <div className="flex items-center justify-between p-3 rounded-xl bg-foreground/5">
+          <div className="flex items-center justify-between p-3 rounded-none bg-foreground/5">
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-foreground" />
               <span className="text-caption font-bold text-foreground">کل درآمد</span>

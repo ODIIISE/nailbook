@@ -91,9 +91,9 @@
   }
 
   .app {
-    box-shadow:
-      0 0 0 1px var(--line),
-      0 3rem 9rem rgba(0, 0, 0, 0.5);
+    /* Flat: the 1px frame edge stays (border, not shadow); the ambient
+       glow is gone — depth on this page comes from the video + veil. */
+    box-shadow: 0 0 0 1px var(--line);
   }
 }
 
@@ -105,7 +105,7 @@
 .app :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 /* ── Ambient light + vignette ─────────────────────────── */
@@ -148,7 +148,6 @@
   font-family: 'Great Vibes', cursive;
   font-size: 46px;
   color: var(--gold);
-  text-shadow: light-dark(none, 0 0 44px rgba(255, 255, 255, 0.4));
   animation: wordIn 1s var(--ease) both;
 }
 
@@ -156,7 +155,6 @@
   width: 64px;
   height: 2px;
   margin: 16px auto 0;
-  border-radius: 2px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
   background-size: 200% 100%;
   animation: shimmer 1.3s linear infinite;
@@ -211,7 +209,7 @@
   justify-content: center;
   padding: 0.625rem 0.75rem;
   border: 0;
-  border-radius: 0.75rem;
+  border-radius: 999px;
   color: var(--ink);
   font: inherit;
   background: transparent;
@@ -239,7 +237,6 @@
   font-size: 29px;
   line-height: 1;
   transform: rotate(-3deg);
-  text-shadow: light-dark(none, 0 0 24px rgba(255, 255, 255, 0.18));
 }
 
 /* ── Scroll canvas ────────────────────────────────────── */
@@ -276,7 +273,6 @@
   font-size: clamp(1.75rem, 4.4dvh, 37px);
   line-height: 1.2;
   color: var(--gold);
-  text-shadow: light-dark(none, 0 0 30px rgba(255, 255, 255, 0.28));
 }
 
 .heroTitle {
@@ -286,7 +282,6 @@
   letter-spacing: 0.4px;
   line-height: 1.18;
   margin-top: 2px;
-  text-shadow: light-dark(none, 0 0 34px rgba(255, 255, 255, 0.14));
 }
 
 .lede {
@@ -325,6 +320,23 @@
 */
   object-position: center;
   pointer-events: none;
+  /* Poster-first crossfade: the clip dissolves in over its own poster frame
+     on first decoded frame instead of cutting. Opacity only (GPU). */
+  opacity: 0;
+  transition: opacity var(--duration-standard) var(--ease-standard);
+}
+
+.videoOn {
+  opacity: 1;
+}
+
+.heroPoster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 /* Alphas come from sampling this clip: worst-case frame patches measure
@@ -388,7 +400,7 @@
   background: transparent;
   /* Variant backgrounds (.btnPrimary / .btnGhost) are declared after this
      rule, so they win the equal-specificity cascade. */
-  transition: transform 0.18s var(--spring), box-shadow 0.25s var(--ease);
+  transition: transform 0.18s var(--spring);
 }
 
 .btn:active {
@@ -400,18 +412,13 @@
 }
 
 .btnPrimary {
-  /* Astryx primary: black fill + white ink in light, light fill + dark ink in dark. */
+  /* Astryx primary: black fill + white ink in light, light fill + dark ink in dark.
+     Flat: no drop shadow — the fill carries the emphasis. */
   background: light-dark(
     linear-gradient(180deg, #262626, #1b1b1b),
     linear-gradient(180deg, #ffffff, #f1f1f1)
   );
   color: var(--accent-ink);
-  box-shadow: light-dark(
-    0 18px 36px -14px rgba(0, 0, 0, 0.28), 0 6px 14px -6px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    0 18px 36px -14px rgba(0, 0, 0, 0.5), 0 6px 14px -6px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7)
-  );
 }
 
 .btnPrimary::before {
@@ -431,7 +438,7 @@
 }
 
 .btnGhost {
-  border: 1.5px solid var(--line);
+  border: 1px solid var(--line);
   color: var(--ink);
   background: light-dark(rgba(0, 0, 0, 0.02), rgba(255, 255, 255, 0.02));
   transition: transform 0.18s var(--spring), border-color 0.2s, background 0.2s;
@@ -478,7 +485,7 @@
   gap: 0.5rem;
   background: light-dark(rgba(255, 255, 255, 0.95), rgba(27, 27, 27, 0.95));
   border: 1px solid var(--line);
-  border-radius: 1.125rem;
+  border-radius: 0;
   padding: 0.875rem 1.125rem;
   text-align: center;
   font-size: 12px;
@@ -487,7 +494,6 @@
   color: var(--ink);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 0.875rem 2.125rem rgba(0, 0, 0, 0.45);
   animation: addrIn 0.4s var(--ease) both;
   user-select: text;
   -webkit-user-select: text;
@@ -502,58 +508,7 @@
   to { opacity: 1; transform: none; }
 }
 
-/* ── Lookbook sheet (portfolio) ───────────────────────── */
-.sheetScrim {
-  position: absolute;
-  inset: 0;
-  z-index: var(--z-sheet);
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  animation: fadeIn 0.35s var(--ease) both;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.sheet {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  max-height: 78%;
-  display: flex;
-  flex-direction: column;
-  background: var(--surface-deep);
-  border: 1px solid var(--line);
-  border-bottom: 0;
-  border-radius: 1.625rem 1.625rem 0 0;
-  padding: 1.125rem var(--page-padding) calc(1.25rem + var(--safe-b));
-  animation: sheetUp 0.45s var(--ease) both;
-}
-
-@keyframes sheetUp {
-  from { transform: translateY(48px); opacity: 0; }
-  to { transform: none; opacity: 1; }
-}
-
-.sheetHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.875rem;
-  flex-shrink: 0;
-}
-
-.sheetTitle {
-  font-family: 'Estedad', 'Vazirmatn', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--ink);
-}
-
+/* ── Lookbook grid (portfolio) — hosted in the shared glass BottomSheet ─ */
 .sheetBody {
   overflow-y: auto;
   scrollbar-width: none;
@@ -592,7 +547,7 @@
 .lookThumb {
   position: relative;
   aspect-ratio: 3 / 4;
-  border-radius: 16px;
+  border-radius: 0;
   overflow: hidden;
   background: var(--grad-frame);
   border: 1px solid var(--line);
@@ -694,8 +649,7 @@
   font-weight: 500;
   line-height: 1.9;
   padding: 0.625rem 0.75rem 0.625rem 1rem;
-  border-radius: 1rem;
-  box-shadow: 0 0.875rem 2.125rem rgba(0, 0, 0, 0.45);
+  border-radius: 0;
   transition: 0.35s var(--ease);
 }
 

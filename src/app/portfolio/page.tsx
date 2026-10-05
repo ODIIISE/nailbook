@@ -31,7 +31,7 @@ export default function PortfolioPage() {
 
         <div className="page-gutter min-h-0 flex-1 overflow-y-auto overscroll-contain pb-8 pt-2">
           {items.length === 0 ? (
-            <div className="rounded-lg border border-border bg-card p-6 text-center shadow-card">
+            <div className="rounded-none border border-border bg-card p-6 text-center">
               <h3 className="text-sm font-bold">هنوز نمونه‌کاری ثبت نشده است</h3>
               <p className="mx-auto mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">
                 به‌زودی مدل‌های جدید اضافه می‌شوند.
@@ -46,7 +46,7 @@ export default function PortfolioPage() {
                   className="group text-start"
                   onClick={() => router.push(`/book?look=${h.id}`)}
                 >
-                  <span className="block aspect-[3/4] overflow-hidden rounded-xl border border-border bg-muted">
+                  <span className="block aspect-[3/4] overflow-hidden rounded-none border border-border bg-muted">
                     {h.cover_url && (
                       // eslint-disable-next-line @next/next/no-img-element -- owner-uploaded cover in a fixed frame; next/image config not needed
                       <img

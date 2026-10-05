@@ -155,7 +155,7 @@ export default function NewSalonPage() {
 
       {/* Step 1: Basic Info */}
       {step === 1 && (
-        <div className="p-5 rounded-2xl border border-border space-y-4">
+        <div className="p-5 rounded-none border border-border space-y-4">
           <h3 className="font-bold">اطلاعات پایه سالن</h3>
           <div>
             <Label>نام سالن *</Label>
@@ -204,7 +204,7 @@ export default function NewSalonPage() {
 
       {/* Step 2: Contact Info */}
       {step === 2 && (
-        <div className="p-5 rounded-2xl border border-border space-y-4">
+        <div className="p-5 rounded-none border border-border space-y-4">
           <h3 className="font-bold">اطلاعات تماس</h3>
           <div>
             <Label>تلفن سالن</Label>
@@ -240,12 +240,12 @@ export default function NewSalonPage() {
 
       {/* Step 3: Working Hours */}
       {step === 3 && (
-        <div className="p-5 rounded-2xl border border-border space-y-4">
+        <div className="p-5 rounded-none border border-border space-y-4">
           <h3 className="font-bold">ساعات کاری</h3>
           <p className="text-sm text-muted-foreground">ساعات کاری پیش‌فرض تنظیم شده. می‌توانید بعداً تغییر دهید.</p>
           <div className="space-y-2">
             {Object.entries(DAY_NAMES).map(([key, label]) => (
-              <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
+              <div key={key} className="flex items-center justify-between p-3 rounded-none bg-muted/30">
                 <span className="text-sm font-medium">{label}</span>
                 {data.working_hours[key] ? (
                   <span className="text-sm text-muted-foreground">
@@ -272,7 +272,7 @@ export default function NewSalonPage() {
 
       {/* Step 4: Review & Create */}
       {step === 4 && (
-        <div className="p-5 rounded-2xl border border-border space-y-4">
+        <div className="p-5 rounded-none border border-border space-y-4">
           <h3 className="font-bold">بررسی و ایجاد</h3>
           <div className="space-y-3">
             <InfoRow label="نام" value={data.name} />
@@ -296,7 +296,7 @@ export default function NewSalonPage() {
 
       {/* Step 5: Deploy */}
       {step === 5 && (
-        <div className="p-5 rounded-2xl border border-border space-y-4">
+        <div className="p-5 rounded-none border border-border space-y-4">
           <h3 className="font-bold">استقرار سالن</h3>
           <div className="space-y-3">
             <InfoRow label="شناسه" value={salonId} mono />
@@ -306,7 +306,7 @@ export default function NewSalonPage() {
 
           {/* Deploy status: idle */}
           {deployStatus === "idle" && (
-            <div className="p-4 rounded-xl bg-muted/30 space-y-3">
+            <div className="p-4 rounded-none bg-muted/30 space-y-3">
               <div className="flex items-center gap-2 text-sm">
                 <Rocket className="h-4 w-4" />
                 <span className="font-medium">عملیات استقرار:</span>
@@ -334,7 +334,7 @@ export default function NewSalonPage() {
 
           {/* Deploy status: deploying */}
           {deployStatus === "deploying" && (
-            <div className="p-4 rounded-xl bg-primary/10 flex items-center gap-3">
+            <div className="p-4 rounded-none bg-primary/10 flex items-center gap-3">
               <Loader2 className="h-5 w-5 text-primary" />
               <span className="text-sm font-medium">در حال استقرار...</span>
             </div>
@@ -342,7 +342,7 @@ export default function NewSalonPage() {
 
           {/* Deploy status: error */}
           {deployStatus === "error" && (
-            <div className="p-4 rounded-xl bg-destructive/10 space-y-3">
+            <div className="p-4 rounded-none bg-destructive/10 space-y-3">
               <p className="text-sm text-destructive">{deployError}</p>
               <Button onClick={handleDeploy} variant="outline" size="sm" className="rounded-full gap-2">
                 <Loader2 className="h-4 w-4" />
@@ -368,7 +368,7 @@ export default function NewSalonPage() {
 
       {/* Step 6: Success */}
       {step === 6 && (
-        <div className="p-5 rounded-2xl border border-success/30 bg-success/5 space-y-4">
+        <div className="p-5 rounded-none border border-success/30 bg-success/5 space-y-4">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
               <Check className="h-5 w-5 text-success" />
@@ -380,13 +380,13 @@ export default function NewSalonPage() {
           </div>
 
           {/* Live URL */}
-          <div className="p-3 rounded-xl bg-muted/50 space-y-2">
+          <div className="p-3 rounded-none bg-muted/50 space-y-2">
             <InfoRow label="آدرس سایت" value={deployUrl || `${salonSlug}.vercel.app`} />
             <InfoRow label="شناسه" value={salonId} mono />
           </div>
 
           {/* Owner bootstrap */}
-          <div className="p-3 rounded-xl bg-primary/10 space-y-2">
+          <div className="p-3 rounded-none bg-primary/10 space-y-2">
             <div className="flex items-center gap-2 text-sm font-bold">
               <Shield className="h-4 w-4" />
               لینک راه‌اندازی مالک
@@ -407,7 +407,7 @@ export default function NewSalonPage() {
           </div>
 
           {/* Seeded services */}
-          <div className="p-3 rounded-xl bg-muted/30 space-y-2">
+          <div className="p-3 rounded-none bg-muted/30 space-y-2">
             <div className="flex items-center gap-2 text-sm font-bold">
               <Package className="h-4 w-4" />
               خدمات کاش‌شده

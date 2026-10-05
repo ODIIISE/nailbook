@@ -194,7 +194,7 @@ export function ManualReserveModal({
           <Label className="text-caption" htmlFor="mr-service">خدمت</Label>
           {activeServices.length > 0 ? (
             <Select value={resolvedServiceId} id="mr-service" onValueChange={(val) => handleServiceChange(val as string)}>
-              <SelectTrigger className="mt-1 w-full h-12 rounded-xl border border-border bg-card px-3 text-body" dir="rtl">
+              <SelectTrigger className="mt-1 w-full h-12 rounded-none border border-border bg-card px-3 text-body" dir="rtl">
                 {/* Base UI renders the raw value when SelectValue has no child.
                     Provide the selected label explicitly so UUIDs never leak into the form. */}
                 <SelectValue placeholder="خدمت را انتخاب کنید">
@@ -213,7 +213,7 @@ export function ManualReserveModal({
               </SelectContent>
             </Select>
           ) : (
-            <div className="mt-1 rounded-xl border border-border bg-muted/40 px-3 py-3 text-caption text-muted-foreground">
+            <div className="mt-1 rounded-none border border-border bg-muted/40 px-3 py-3 text-caption text-muted-foreground">
               هنوز خدمتی برای رزرو فعال نشده است
             </div>
           )}
@@ -245,7 +245,7 @@ export function ManualReserveModal({
         </div>
 
         {selectedService && expectedEndTime && endTime !== expectedEndTime && (
-          <div className="rounded-xl border border-border bg-muted/40 px-3 py-2 text-small text-muted-foreground flex items-center justify-between gap-2">
+          <div className="rounded-none border border-border bg-muted/40 px-3 py-2 text-small text-muted-foreground flex items-center justify-between gap-2">
             <span>برای رعایت تنظیمات سالن، ساعت پایان باید {toPersianDigits(expectedEndTime)} باشد</span>
             <button
               type="button"
