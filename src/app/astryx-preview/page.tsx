@@ -6,6 +6,7 @@
 'use client';
 
 import {useState} from 'react';
+import Image from 'next/image';
 import {Theme} from '@astryxdesign/core/theme';
 import {InternationalizationProvider} from '@astryxdesign/core/i18n';
 import {AppShell} from '@astryxdesign/core/AppShell';
@@ -101,7 +102,7 @@ function ServiceCard({service}: {service: Service}) {
     <VStack gap={3}>
       <Card padding={0}>
         <AspectRatio ratio={1}>
-          <img src={service.image} alt={service.name} style={image} />
+          <Image src={service.image} alt={service.name} style={image} width={400} height={300} unoptimized />
         </AspectRatio>
       </Card>
       <VStack gap={1}>

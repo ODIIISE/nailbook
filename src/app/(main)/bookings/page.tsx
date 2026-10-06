@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { useMemo, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { StatusPill } from "@/components/ui/status-pill";

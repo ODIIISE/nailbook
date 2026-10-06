@@ -120,28 +120,45 @@ Push to `main` branch — Vercel auto-deploys.
 
 | Route | Method | Auth | Purpose |
 |-------|--------|------|---------|
-| `/api/auth/check-phone` | POST | None | Check if phone exists |
-| `/api/auth/create-pin` | POST | None | Register new customer |
-| `/api/auth/verify-pin` | POST | None | Login with PIN |
-| `/api/owner-login` | POST | None | Owner login |
-| `/api/owner-logout` | POST | None | Owner logout (clears cookie) |
+| `/api/auth/send-otp` | POST | None | Send login OTP (customer + owner) |
+| `/api/auth/verify-otp` | POST | None | Verify OTP, create session |
+| `/api/auth/me` | GET | Customer | Current session user |
+| `/api/auth/update-profile` | POST | Customer | Update name / phone |
+| `/api/auth/logout` | POST | Customer | End session |
+| `/api/auth/google` + `/api/auth/google/callback` | GET/POST | None | Google sign-in |
+| `/api/owner-logout` | POST | Owner | Owner logout (clears cookie) |
 | `/api/owner/services` | PUT | Owner | Save services |
 | `/api/owner/addons` | PUT | Owner | Save addons |
 | `/api/owner/users` | GET/POST/PUT/DELETE | Owner | User CRUD |
-| `/api/owner/blocked-times` | GET/PUT | Owner (PUT) | Manage blocked times |
-| `/api/owner/reset-pin` | POST | Owner | Reset a user's PIN |
+| `/api/owner/users/check` | POST | Owner | Check user before edit |
+| `/api/owner/blocked-times` | GET/PUT | Owner | Manage blocked times |
+| `/api/owner/bookings` | GET | Owner | Owner booking list |
+| `/api/owner/bookings/paid` + `/status` | POST | Owner | Mark paid / update status |
+| `/api/owner/activity-logs` | GET | Owner | Audit log |
+| `/api/owner/backup` | GET/POST | Owner | Backup / restore |
+| `/api/owner/migrate` | GET | Owner | Migration helpers |
 | `/api/update-salon` | POST | Owner | Update salon info + config |
 | `/api/read/salon` | GET | None | Public salon info |
 | `/api/read/services` | GET | None | Public services list |
 | `/api/read/addons` | GET | None | Public addons list |
-| `/api/read/bookings` | GET | None | List bookings |
-| `/api/read/highlights` | GET/PUT/DELETE | None | Highlight CRUD |
-| `/api/read/highlight-images` | POST/DELETE | None | Highlight image CRUD |
-| `/api/book` | POST | None | Create booking (transactional) |
-| `/api/book/reserve` | POST | None | Server-side slot validation |
-| `/api/bookings/[id]` | PATCH | None | Cancel booking |
+| `/api/read/blocked-times` | GET | None | Public blocked times |
+| `/api/read/bootstrap` | GET | None | Public shell data (+ owner/customer scope when signed in) |
+| `/api/read/bookings` | GET | None | Public availability; owner/customer scopes when signed in |
+| `/api/read/highlights` | GET | None | Public highlights |
+| `/api/read/highlights` | PUT/DELETE | Owner | Highlight CRUD |
+| `/api/read/highlight-images` | POST/DELETE | Owner | Highlight image CRUD |
+| `/api/book` | POST | Customer | Create booking (verified session, anti-spam) |
+| `/api/bookings/[id]` | PATCH/DELETE | Owner or booker | Cancel booking (customers: reserved/confirmed only) |
 | `/api/upload-logo` | POST | Owner | Upload salon logo |
 | `/api/upload-highlight` | POST | Owner | Upload highlight image |
+| `/api/upload-service-image` | POST | Owner | Upload service image |
+| `/api/upload-hero-video` | POST | Owner | Upload hero video |
+| `/api/config` | GET | None | Public salon config |
+| `/api/social-proof` | GET | None | Social proof feed |
+| `/api/bootstrap-owner` | POST | None | First-run owner setup |
+| `/api/bootstrap-super-admin` | POST | None | First-run super-admin setup |
+| `/api/admin/*` | * | Super Admin | Multi-salon admin |
+| `/api/super-admin/login` + `/me` + `/logout` | POST/GET | Super Admin | Super-admin auth |
 
 ## Booking Engine Variables
 

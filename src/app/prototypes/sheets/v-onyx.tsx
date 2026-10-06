@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SERVICES, TOTAL } from "./data";
+import { SERVICES } from "./data";
 
 /* ONYX — axis: inverted drama. Black sheet, white hairlines, gold only where
    money or choice lives (price, selected check, progress). CTA is the single
