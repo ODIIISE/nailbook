@@ -2,16 +2,23 @@ import type { Booking, Service, Addon } from "./types";
 import { parseGregorianDateKey } from "./time";
 import { toPersianDigits } from "./jalali";
 
-/** Compact Persian money without currency, e.g. 350000 → "۳۵۰ هزار", 1500000 → "۱٫۵ میلیون". */
-export function compactPrice(n: number): string {
-  if (!Number.isFinite(n)) return "۰";
-  if (n < 1000) return toPersianDigits(n);
+/** Compact Persian money split for pill typography: 350000 → { amount: "۳۵۰", unit: "هزار" },
+ *  1500000 → { amount: "۱٫۵", unit: "میلیون" }, 750 → { amount: "۷۵۰", unit: "" }. */
+export function splitCompactPrice(n: number): { amount: string; unit: string } {
+  if (!Number.isFinite(n)) return { amount: "۰", unit: "" };
   if (n >= 1_000_000) {
     const m = n / 1_000_000;
     const s = m % 1 === 0 ? String(m) : m.toFixed(1).replace(".", "٫");
-    return `${toPersianDigits(s)} میلیون`;
+    return { amount: toPersianDigits(s), unit: "میلیون" };
   }
-  return `${toPersianDigits(Math.round(n / 1000))} هزار`;
+  if (n >= 1000) return { amount: toPersianDigits(Math.round(n / 1000)), unit: "هزار" };
+  return { amount: toPersianDigits(n), unit: "" };
+}
+
+/** Compact Persian money without currency, e.g. 350000 → "۳۵۰ هزار", 1500000 → "۱٫۵ میلیون". */
+export function compactPrice(n: number): string {
+  const { amount, unit } = splitCompactPrice(n);
+  return unit ? `${amount} ${unit}` : amount;
 }
 
 /** Compact Persian money with currency, e.g. 350000 → "۳۵۰ هزار تومان". */

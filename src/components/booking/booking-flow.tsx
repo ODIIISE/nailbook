@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, ArrowRight, CalendarDays, Check, Clock, Images, Loader2,
+  ArrowLeft, ArrowRight, CalendarDays, Check, Clock, Images, Loader2, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
@@ -17,10 +17,9 @@ import { generateTimeSlots, type TimeSlot } from "@/lib/slots";
 import { getTehranDateKey, parseGregorianDateKey } from "@/lib/time";
 import { useBookingsPolling } from "@/lib/hooks/use-bookings-polling";
 import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
-import { compactToman } from "@/lib/pricing";
+import { compactToman, splitCompactPrice } from "@/lib/pricing";
 import { haptic } from "@/lib/haptics";
 import { ServiceCard } from "@/components/booking/service-card";
-import { ServiceImage } from "@/components/ui/service-image";
 import { PinInput } from "@/components/booking/pin-input";
 import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { BookingConfirm } from "@/components/booking/booking-confirm";
@@ -32,19 +31,7 @@ type Step = "service" | "time" | "review" | "success";
 const STEP_ORDER: Step[] = ["service", "time", "review", "success"];
 // Success title is owner-editable via /owner/settings → booking_success_title;
 // resolved inside the component because it needs the salon context.
-const STEP_TITLES: Record<Step, string> = {
-  service: "خدمتت را انتخاب کن",
-  time: "زمانت را پیدا کن",
-  review: "مرور و تأیید",
-  success: "به‌زودی می‌بینیمت!",
-};
-const SUCCESS_TITLE_DEFAULT = STEP_TITLES.success;
-const STEP_KICKER: Record<Step, string> = {
-  service: "مرحله ۱ از ۳",
-  time: "مرحله ۲ از ۳",
-  review: "مرحله ۳ از ۳",
-  success: "تمام شد",
-};
+const SUCCESS_TITLE_DEFAULT = "به‌زودی می‌بینیمت!";
 const DAY_KEY = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
 function timeOfDay(hour: number): "morning" | "noon" | "evening" {
@@ -69,7 +56,7 @@ interface BookingFlowProps {
   inSheet?: boolean;
 }
 
-export function BookingFlow({ initialServiceId = null, lookId = null, inSheet = false }: BookingFlowProps) {
+export function BookingFlow({ initialServiceId = null, lookId = null }: BookingFlowProps) {
   const router = useRouter();
   const { salon, workingHours, services, addons, highlights, bookings, blockedTimes, addBooking, refreshBookings, specificDaysOff, loaded, loadFailed } = useSalon();
   const { user, sendOtp, verifyOtp, updateProfile } = useAuth();
@@ -596,21 +583,24 @@ export function BookingFlow({ initialServiceId = null, lookId = null, inSheet = 
     }
   }, [selectedService, selectedDate, selectedTime, user, authPhone, authName, otpState, totalDuration, addBooking, validSelectedAddonIds, refreshBookings, updateProfile, isSavingProfile, goTo]);
 
-  // ── Sticky CTA state ──
+  // ── Sticky CTA state — chip is the design's black price pill; the time step
+  // shows the picked slot instead (its sheet variant), review shows the exact total.
   const ctaState = useMemo(() => {
     if (step === "service") {
       const ok = Boolean(selectedService);
-      return { ok, label: "ادامه", chips: ok ? `${compactToman(totalPrice)} · ${toPersianDigits(totalDuration)} دقیقه` : "" };
+      const { amount, unit } = splitCompactPrice(totalPrice);
+      return { ok, label: "ادامه", chip: ok ? { kind: "price" as const, amount, unit, from: true } : null };
     }
     if (step === "time") {
       const ok = Boolean(selectedTime);
-      return { ok, label: "ادامه", chips: ok ? `${toPersianDigits(selectedTime!)} · ${toPersianDigits(totalDuration)} دقیقه` : "" };
+      return { ok, label: "ادامه", chip: ok ? { kind: "text" as const, text: `${toPersianDigits(selectedTime!)} · ${toPersianDigits(totalDuration)} دقیقه` } : null };
     }
     if (step === "review") {
       const ok = Boolean(selectedService && selectedDate && selectedTime && verificationComplete && authName.trim() && !isSavingProfile);
-      return { ok, label: isBookingLoading ? "در حال ثبت…" : "تأیید و رزرو", chips: compactToman(totalPrice) };
+      const { amount, unit } = splitCompactPrice(totalPrice);
+      return { ok, label: isBookingLoading ? "در حال ثبت…" : "تأیید و رزرو", chip: ok ? { kind: "price" as const, amount, unit, from: false } : null };
     }
-    return { ok: false, label: "", chips: "" };
+    return { ok: false, label: "", chip: null };
   }, [step, selectedService, selectedTime, selectedDate, verificationComplete, isBookingLoading, totalPrice, totalDuration, authName, isSavingProfile]);
 
   // ── Slot grouping (hybrid: time-of-day + suggested pins) ──
@@ -632,27 +622,35 @@ export function BookingFlow({ initialServiceId = null, lookId = null, inSheet = 
 
   const content = (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Header */}
-      <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3 pb-2 pt-3">
+      {/* Header — sheet chrome: X (بستن, navigates home) on the start edge, title
+          centered, back arrow on the end edge (hidden on step 1 where it does nothing) */}
+      <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-4 pb-2 pt-4">
         <button
           type="button"
-          className="icon-btn text-foreground"
+          className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground/5 text-foreground"
           onClick={handleBack}
-          aria-label="بازگشت"
-          style={{ visibility: step === "success" ? "hidden" : "visible" }}
+          aria-label="بستن"
         >
-          {/* RTL: back points right (toward the previous screen) */}
-          <ArrowRight className="h-5 w-5" aria-hidden="true" />
+          <X className="h-5 w-5" strokeWidth={1} aria-hidden="true" />
         </button>
         <div className="min-w-0 overflow-hidden text-center">
-          {!inSheet && <span className="block text-xs font-normal text-primary">{STEP_KICKER[step]}</span>}
-          {!inSheet && <h2 key={step} className="truncate text-lg font-normal">{(step === "success" ? (salon.booking_success_title || SUCCESS_TITLE_DEFAULT) : STEP_TITLES[step])}</h2>}
+          {/* Sheet title is static per design; the success step keeps the owner-editable title */}
+          <h2 key={step} className="truncate text-base font-normal">{step === "success" ? (salon.booking_success_title || SUCCESS_TITLE_DEFAULT) : "رزرو نوبت"}</h2>
         </div>
-        <span className="h-11 w-11" />
+        <button
+          type="button"
+          className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground/5 text-foreground"
+          onClick={handleBack}
+          aria-label="بازگشت"
+          style={{ visibility: step === "service" ? "hidden" : "visible" }}
+        >
+          {/* RTL: back points toward the previous screen */}
+          <ArrowRight className="h-5 w-5" strokeWidth={1} aria-hidden="true" />
+        </button>
       </header>
 
-      {/* Progress */}
-      <div className="flex items-center gap-1.5 px-5 pb-2.5 pt-2" aria-hidden="true">
+      {/* Progress — 4px tri-segment, active segment white from the right (RTL) */}
+      <div className="flex items-center gap-1.5 px-4 pb-2.5 pt-2.5" aria-hidden="true">
         {STEP_ORDER.filter((s) => s !== "success").map((s, i) => {
           const idx = STEP_ORDER.indexOf(step);
           const done = idx === 3 || idx > i;
@@ -660,7 +658,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null, inSheet = 
           return (
             <div
               key={s}
-              className={`h-1 flex-1 rounded-full ${done || current ? "bg-primary" : "bg-muted"}`}
+              className={`h-1 flex-1 rounded-full ${done || current ? "bg-foreground" : "bg-foreground/10"}`}
             />
           );
         })}
@@ -691,8 +689,9 @@ export function BookingFlow({ initialServiceId = null, lookId = null, inSheet = 
             </div>
           )}
 
-          <p className="mb-2.5 mt-3 text-xs font-normal text-muted-foreground">انتخاب خدمت</p>
-          <div className="flex flex-col gap-2">
+          <p className="mb-2.5 mt-1 text-xs font-normal text-foreground">انتخاب خدمات</p>
+          <p className="mb-3.5 text-sm font-light leading-relaxed text-foreground/60">با انتخاب خدمات موردنظرتون می‌تونید آپشن هایی که لازم دارید رو اضافه کنید</p>
+          <div className="flex flex-col gap-3">
             {activeServices.map((s, svcIdx) => {
               const isSelected = selectedService?.id === s.id;
               const isExpanded = expandedServiceId === s.id;
@@ -709,13 +708,12 @@ export function BookingFlow({ initialServiceId = null, lookId = null, inSheet = 
                 >
                   <ServiceCard
                     title={s.name}
+                    price={Number(s.price)}
                     badges={[
                       `${toPersianDigits(serviceAddons.length)} آپشن`,
-                      `از ${compactToman(Number(s.price))}`,
                       `از ${toPersianDigits(s.duration_minutes)} دقیقه`,
                     ]}
                     action={{ label: "انتخاب", expanded: isExpanded }}
-                    image={<ServiceImage service={s} sizes="128px" className="object-cover" />}
                     selected={isSelected}
                     onToggle={() => handleSelectService(s.id)}
                   >
@@ -856,12 +854,13 @@ export function BookingFlow({ initialServiceId = null, lookId = null, inSheet = 
         </section>
       </div>
 
-      {/* Sticky CTA */}
+      {/* Sticky CTA — white pill: black price chip on the start (right) edge,
+          thin forward arrow + label on the end edge, per the sheet design */}
       {step !== "success" && (
-        <footer className="border-t border-border bg-background/95 page-gutter pb-[calc(14px+env(safe-area-inset-bottom))] pt-2.5">
+        <footer className="px-3 pb-[calc(8px+env(safe-area-inset-bottom))] pt-5">
           <button
             type="button"
-            className="pressable flex h-12 w-full items-center justify-center gap-2 rounded-none bg-primary px-4 text-base font-normal text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
+            className="pressable flex h-16 w-full items-center justify-between rounded-full bg-primary px-2 text-black disabled:bg-muted"
             disabled={!ctaState.ok || isBookingLoading}
             onClick={() => {
               if (isBookingLoading) return;
@@ -870,27 +869,45 @@ export function BookingFlow({ initialServiceId = null, lookId = null, inSheet = 
               else if (step === "review") void handleConfirmBooking();
             }}
           >
-            {isBookingLoading ? (
-              <Loader2 className="h-5 w-5" aria-hidden="true" />
+            {ctaState.chip?.kind === "price" ? (
+              <span className="flex h-10 shrink-0 items-center gap-1 rounded-full bg-black/95 px-4 text-xs font-light text-white">
+                {ctaState.chip.from && <span>از</span>}
+                <b className="text-lg font-medium">{ctaState.chip.amount}</b>
+                <span>{[ctaState.chip.unit, "تومان"].filter(Boolean).join(" ")}</span>
+              </span>
+            ) : ctaState.chip ? (
+              <span className="flex h-10 shrink-0 items-center rounded-full bg-black/95 px-4 text-xs font-light text-white">
+                {ctaState.chip.text}
+              </span>
             ) : (
-              <span>{ctaState.label}</span>
+              <span aria-hidden="true" />
             )}
-            {ctaState.chips && !isBookingLoading && (
-              <span className="rounded-full bg-primary-foreground/15 px-3 py-0.5 text-xs font-normal">{ctaState.chips}</span>
-            )}
-            {!isBookingLoading && <ArrowLeft className="h-5 w-5 opacity-70" aria-hidden="true" />}
+            <span className="flex items-center gap-2 pl-2">
+              {isBookingLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+              ) : (
+                <>
+                  {/* RTL: forward points toward the next screen */}
+                  <ArrowLeft className="h-5 w-5" strokeWidth={1} aria-hidden="true" />
+                  <span className="text-xl font-extralight">{ctaState.label}</span>
+                </>
+              )}
+            </span>
           </button>
         </footer>
       )}
     </div>
   );
 
+  // Full-bleed glass sheet: dimmed page behind (scrim), sheet pinned to the
+  // bottom with 32px top corners and a #161616 hairline. Content scrolls
+  // inside; width capped at the design's 520px (frame max on phones).
   return (
-    <div className={inSheet
-      ? "flex h-full min-h-0 flex-col bg-background text-foreground"
-      : "mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground"
-    }>
-      {!loaded && !selectedService ? <div className="p-10 text-center text-sm font-normal text-muted-foreground">در حال آماده‌سازی…</div> : content}
+    <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label="رزرو نوبت">
+      <div className="absolute inset-0 bg-black/50" aria-hidden="true" />
+      <div className="relative flex h-[92dvh] w-full max-w-[520px] flex-col border-[0.8px] border-b-0 border-[#161616] rounded-t-[32px] bg-background text-foreground shadow-floating">
+        {!loaded && !selectedService ? <div className="p-10 text-center text-sm font-semibold text-muted-foreground">در حال آماده‌سازی…</div> : content}
+      </div>
     </div>
   );
 }
@@ -1265,7 +1282,7 @@ function ReviewStep(props: ReviewStepProps) {
                 <p className="mb-3 text-center text-xs font-normal text-muted-foreground">کد ۶ رقمی پیامک‌شده را وارد کن</p>
                 <PinInput key={otpAttempt} length={6} onComplete={onVerifyCode} disabled={isAuthLoading} />
                 <div className="mt-3 flex items-center justify-between gap-2">
-                  <ResendOtpButton onResend={onSendOtp} disabled={isAuthLoading} />
+                  <ResendOtpButton onResend={onSendOtp} disabled={isAuthLoading} fullWidth={false} />
                   <button type="button" onClick={onChangePhone} className="rounded-none px-2 py-1.5 text-xs font-normal text-primary">تغییر شماره</button>
                 </div>
               </div>

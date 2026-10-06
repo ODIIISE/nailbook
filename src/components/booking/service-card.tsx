@@ -2,6 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
+import { splitCompactPrice } from "@/lib/pricing";
 
 interface CardAction {
   label: string;
@@ -11,69 +12,80 @@ interface CardAction {
 interface CardProps {
   title: string;
   badges: string[];
+  /** Base service price in toman — rendered as the glass "از ۷۰۰ هزار تومان" pill. */
+  price: number;
   action: CardAction;
-  image?: ReactNode;
   selected: boolean;
   onToggle: () => void;
   children?: ReactNode;
 }
 
 /**
- * Generic card — layout mirrors the Figma frame (3:2): text column
- * (title + badge chips + full-width action) beside a square image slot.
- * Knows nothing about services: all copy arrives via props, the image
- * is a caller-supplied slot with a placeholder fallback when empty.
+ * Glass service card from the dark booking-sheet design: white/10 rounded-36
+ * surface, extralight title with hairline chips on the start edge and the
+ * soft price pill on the end edge, full-width white/10 "انتخاب" bar with a
+ * thin chevron. Selection keeps the primary ring (keyboard/eyeball affordance).
+ * Knows nothing about services: all copy arrives via props; prices are typed
+ * numbers formatted through the shared pricing helpers.
  */
 export function ServiceCard({
   title,
   badges,
+  price,
   action,
-  image,
   selected,
   onToggle,
   children,
 }: CardProps) {
+  const { amount, unit } = splitCompactPrice(price);
   return (
     <div
-      className={`overflow-hidden rounded-lg border bg-card shadow-card ${selected ? "border-primary" : "border-border"}`}
+      className={`overflow-hidden rounded-[36px] bg-foreground/10 state-fade ${
+        selected ? "ring-1 ring-primary" : "ring-1 ring-foreground/10"
+      }`}
     >
       <button
         type="button"
         onClick={onToggle}
         aria-pressed={selected}
         aria-expanded={action.expanded}
-        className="pressable-soft flex w-full items-center gap-3 p-3 text-start"
+        className="pressable-soft flex w-full flex-col items-stretch p-6 text-start"
       >
-        {/* ── Text column ── */}
-        <span className="min-w-0 flex-1">
-          <b className="block truncate text-base font-medium">{title}</b>
-          {badges.length > 0 && (
-            <span className="mt-2 flex flex-wrap gap-2">
-              {badges.map((badge) => (
-                <span
-                  key={badge}
-                  className="rounded-md border border-border bg-card px-2 py-1 text-[10px] font-light text-foreground"
-                >
-                  {badge}
-                </span>
-              ))}
-            </span>
-          )}
-          <span className="mt-3 flex w-full items-center justify-center gap-1 rounded-md bg-primary px-3 py-2 text-base font-extralight text-primary-foreground">
-            <ChevronDown
-              className={`h-4 w-4 ${action.expanded ? "rotate-180" : ""}`}
-              aria-hidden="true"
-            />
-            {action.label}
+        <span className="flex items-center justify-between gap-3">
+          <span className="min-w-0 flex-1">
+            <b className="block truncate text-base font-light leading-5 text-foreground/95">{title}</b>
+            {badges.length > 0 && (
+              <span className="mt-3 flex flex-wrap gap-2">
+                {badges.map((badge) => (
+                  <span
+                    key={badge}
+                    className="flex h-5 shrink-0 items-center rounded-full border-[0.5px] border-foreground/10 px-3 text-[10px] font-light leading-4 text-foreground/60"
+                  >
+                    {badge}
+                  </span>
+                ))}
+              </span>
+            )}
+          </span>
+          {/* Price pill — "از ۷۰۰ هزار تومان" (RTL: از starts the phrase) */}
+          <span className="flex h-12 shrink-0 items-center gap-1 rounded-full bg-foreground/5 px-4">
+            <span className="text-xs font-light leading-4 text-foreground/60">از</span>
+            <b className="text-xl font-medium leading-4 text-foreground">{amount}</b>
+            {unit && <span className="text-xs font-light leading-4 text-foreground/60">{unit} تومان</span>}
           </span>
         </span>
-        {/* ── Image slot (fixed square frame, placeholder when empty) ── */}
-        <span className="relative aspect-square w-32 shrink-0 overflow-hidden bg-muted">
-          {image ?? <span className="block h-full w-full bg-muted" aria-hidden="true" />}
+        <span className="mt-5 flex h-10 w-full items-center justify-center gap-1 rounded-full bg-foreground/10 text-base font-extralight text-foreground">
+          {action.label}
+          <ChevronDown
+            className={`h-4 w-4 transition-transform duration-[var(--duration-micro)] ${
+              action.expanded ? "rotate-180" : ""
+            }`}
+            strokeWidth={1}
+            aria-hidden="true"
+          />
         </span>
       </button>
-      {action.expanded && children ? <div className="px-3 pb-3">{children}</div> : null}
+      {action.expanded && children ? <div className="px-6 pb-5">{children}</div> : null}
     </div>
   );
 }
-

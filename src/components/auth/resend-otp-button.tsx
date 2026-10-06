@@ -10,6 +10,9 @@ interface ResendOtpButtonProps {
   disabled?: boolean;
   seconds?: number;
   autoStart?: boolean;
+  /** Full-width block button (login pages). Turn off inside flex rows where
+   * the shared Button's shrink-0 + w-full pushes siblings out of the viewport. */
+  fullWidth?: boolean;
 }
 
 export function ResendOtpButton({
@@ -17,6 +20,7 @@ export function ResendOtpButton({
   disabled,
   seconds = 120,
   autoStart = true,
+  fullWidth = true,
 }: ResendOtpButtonProps) {
   const { remaining, start, stop, isActive } = useCountdown({ initialSeconds: seconds });
 
@@ -43,7 +47,7 @@ export function ResendOtpButton({
     <Button
       type="button"
       variant="ghost"
-      className="w-full"
+      className={fullWidth ? "w-full" : undefined}
       onClick={handleClick}
       disabled={disabled || isActive}
     >
