@@ -75,7 +75,7 @@ function BookingQrCode({
         {dataUrl ? (
           <Image
             src={dataUrl}
-            alt={label || "QR code"}
+            alt={label || "کد QR رسید"}
             width={120}
             height={120}
             unoptimized

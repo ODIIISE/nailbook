@@ -953,7 +953,7 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
         >
           <span
             aria-hidden="true"
-            className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-destructive/15 text-[10px] font-normal"
+            className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-destructive/15 text-micro font-normal"
           >
             !
           </span>
@@ -1127,8 +1127,8 @@ function MonthModal({ selectedDate, onSelect, onClose, disabledDateKeys }: { sel
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+    <div className="fixed inset-0 z-[var(--z-dialog)] flex items-center justify-center p-6">
+      <button type="button" aria-label="بستن" className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div ref={dialogRef} tabIndex={-1} className="relative w-full max-w-sm rounded-none border border-border bg-card p-3 text-card-foreground" role="dialog" aria-modal="true" aria-label="تقویم">
         <div className="mb-3 flex items-center justify-between">
           <button type="button"

@@ -148,7 +148,7 @@ export default function LoginPage() {
         />
         <div className="min-w-0 overflow-hidden text-center">
           <span className="block text-xs font-normal text-primary">{kicker}</span>
-          <h2 className="truncate text-lg font-normal">{title}</h2>
+          <h1 className="truncate text-lg font-normal">{title}</h1>
         </div>
         <span className="h-11 w-11" />
       </header>

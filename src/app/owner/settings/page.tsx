@@ -410,7 +410,7 @@ export default function OwnerSettingsPage() {
           <div className="relative h-20 w-20 overflow-hidden rounded-full bg-muted">
             <input ref={portraitFileInputRef} type="file" accept="image/*" onChange={handlePortraitFileSelect} className="hidden" />
             {portraitUrl ? <Image src={portraitUrl} alt="تصویر صفحه اصلی" fill unoptimized className="object-cover" /> : <div className="flex h-full w-full items-center justify-center"><Sparkles className="h-7 w-7 text-muted-foreground" /></div>}
-            <button type="button" onClick={() => portraitFileInputRef.current?.click()} disabled={portraitUploading} aria-label="تغییر تصویر صفحه اصلی" className="absolute bottom-1 left-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"><Camera className="h-3.5 w-3.5" /></button>
+            <button type="button" onClick={() => portraitFileInputRef.current?.click()} disabled={portraitUploading} aria-label="تغییر تصویر صفحه اصلی" className="absolute bottom-1 end-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"><Camera className="h-3.5 w-3.5" /></button>
           </div>
           <div className="text-small text-muted-foreground">عکس دست یا ناخن، مربع یا عمودی، حداکثر ۵ مگابایت.</div>
         </div>
@@ -429,7 +429,7 @@ export default function OwnerSettingsPage() {
           <div className="relative h-24 w-36 overflow-hidden rounded-none bg-muted">
             <input ref={heroFileInputRef} type="file" accept="image/*" onChange={handleHeroFileSelect} className="hidden" />
             {heroUrl ? <Image src={heroUrl} alt="تصویر پس‌زمینه" fill unoptimized className="object-cover" /> : <div className="flex h-full w-full items-center justify-center"><Sparkles className="h-6 w-6 text-muted-foreground" /></div>}
-            <button type="button" onClick={() => heroFileInputRef.current?.click()} disabled={heroUploading} aria-label="تغییر تصویر پس‌زمینه" className="absolute bottom-1 left-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"><Camera className="h-3.5 w-3.5" /></button>
+            <button type="button" onClick={() => heroFileInputRef.current?.click()} disabled={heroUploading} aria-label="تغییر تصویر پس‌زمینه" className="absolute bottom-1 end-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"><Camera className="h-3.5 w-3.5" /></button>
           </div>
           <div className="text-small text-muted-foreground">افقی، حداکثر ۵ مگابایت. بدون این تصویر، رنگ گرم پیش‌فرض نمایش داده می‌شود.</div>
         </div>
@@ -466,7 +466,7 @@ export default function OwnerSettingsPage() {
             onClick={() => heroVideoInputRef.current?.click()}
             disabled={heroVideoUploading}
             aria-label="تغییر ویدیوی پس‌زمینه"
-            className="absolute bottom-1 left-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"
+            className="absolute bottom-1 end-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"
           >
             <Video className="h-3.5 w-3.5" />
           </button>
@@ -528,7 +528,7 @@ export default function OwnerSettingsPage() {
                     }}
                     disabled={galleryUploading !== null}
                     aria-label={`تغییر تصویر ${index + 1}`}
-                    className="absolute bottom-1 left-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"
+                    className="absolute bottom-1 end-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"
                   >
                     <Camera className="h-3.5 w-3.5" />
                   </button>

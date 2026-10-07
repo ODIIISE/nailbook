@@ -226,7 +226,7 @@ export function LuxHome() {
 
         {/* Header — inbox left, wordmark center, menu right */}
         <header className={`${styles.header} ${styles.rv}`} style={d(".1s")}>
-          <button className={styles.iconBtn} aria-label="سبد خرید" onClick={() => toast("🤍 Your bag is empty")}>
+          <button className={styles.iconBtn} aria-label="سبد خرید" onClick={() => toast("سبد خرید خالی است")}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="m9.2 12.5 2 2 3.8-3.8" /></svg>
           </button>
           <span className={styles.logo}>Forehand</span>

@@ -156,19 +156,20 @@ nailbook/
 
 ### 4.2 Color Tokens
 
+> Retired rose palette replaced by the stock Astryx neutral theme — source of truth is `DESIGN-SYSTEM.md` §2 and `src/app/globals.css` (`:root` light + `.dark`, the shipped dark theme). Do not use the values below.
+
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--background` | `#FAFAFA` | Page background |
-| `--foreground` | `#1A1A1A` | Primary text |
-| `--primary` | `#C97B7B` | Rose/mauve accent (CTAs, highlights) |
-| `--primary-foreground` | `#FFFFFF` | Text on primary |
-| `--secondary` | `#F4F4F6` | Subtle backgrounds |
-| `--destructive` | `#FF3B30` | Errors, delete actions |
-| `--success` | `#34C759` | Confirmations, paid states |
-| `--rose` | `#C97B7B` | Accent color |
-| `--gold` | `#D4A853` | Secondary accent |
-| `--border` | `rgba(0,0,0,0.08)` | Subtle borders |
-| `--card` | `rgba(255,255,255,0.85)` | Glass card background |
+| `--background` | `#1b1b1b` (dark) | Page background |
+| `--foreground` | `#ffffff` (dark) | Primary text |
+| `--primary` | `#f1f1f1` (dark) | Primary CTAs |
+| `--primary-foreground` | `#111111` (dark) | Text on primary |
+| `--muted-foreground` | `#9e9e9e` (dark) | Secondary text |
+| `--destructive` | `#ffc4be` (dark) | Errors, delete actions |
+| `--success` | `#a4d6a3` (dark) | Confirmations, paid states |
+| `--warning` | `#f8d36a` (dark) | Warnings |
+| `--border` | `#ffffff24` (dark) | Hairline borders |
+| `--ring` | `#6d9cfe` (dark) | Focus ring |
 
 ### 4.3 Typography Scale
 

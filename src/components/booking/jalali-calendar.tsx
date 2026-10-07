@@ -336,7 +336,7 @@ function CalendarModal({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3" role="dialog" aria-modal="true" aria-label="انتخاب تاریخ">
+    <div className="fixed inset-0 z-[var(--z-dialog)] flex items-center justify-center p-3" role="dialog" aria-modal="true" aria-label="انتخاب تاریخ">
       {/* AUDIT-013: the backdrop deliberately does NOT close the dialog. A
           stray tap outside while browsing months used to discard the whole
           selection and drop the owner on an off-month view; closing is a

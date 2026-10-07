@@ -75,7 +75,7 @@ export function BookingConfirm({
     await document.fonts?.ready;
     const { toBlob } = await import("html-to-image");
     return toBlob(receiptRef.current, {
-      backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--background").trim() || "#fafafa",
+      backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--background").trim() || "#1b1b1b",
       pixelRatio: 2,
       cacheBust: true,
     });

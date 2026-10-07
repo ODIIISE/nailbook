@@ -24,7 +24,7 @@ export default function PortfolioPage() {
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
           <div className="min-w-0 overflow-hidden text-center">
-            <h2 className="truncate text-lg font-normal">{title}</h2>
+            <h1 className="truncate text-lg font-normal">{title}</h1>
           </div>
           <span className="h-11 w-11" />
         </header>
@@ -38,7 +38,7 @@ export default function PortfolioPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label={title}>
+            <section className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label={title}>
               {items.map((h) => (
                 <button
                   key={h.id}
@@ -61,7 +61,7 @@ export default function PortfolioPage() {
                   <span className="mt-1.5 block truncate text-small font-normal">{h.name}</span>
                 </button>
               ))}
-            </div>
+            </section>
           )}
         </div>
       </div>

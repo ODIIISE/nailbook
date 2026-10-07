@@ -46,7 +46,7 @@ const ALL_STATUS_OPTIONS: { value: string; label: string; Icon: typeof CheckCirc
  * popover (3.0-4.0:1), so STATUS_CONFIG_DARK overrides them. */
 function statusColorFor(value: string, isDark: boolean): string {
   const config = isDark ? { ...STATUS_CONFIG, ...STATUS_CONFIG_DARK } : STATUS_CONFIG;
-  return config[value]?.color ?? STATUS_CONFIG[value]?.color ?? "#6B7280";
+  return config[value]?.color ?? STATUS_CONFIG[value]?.color ?? STATUS_CONFIG.pending.color;
 }
 
 export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, onStatusChange, onDelete, onClose }: BookingModalProps) {

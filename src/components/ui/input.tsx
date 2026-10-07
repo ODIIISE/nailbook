@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils"
 
 const inputVariants = {
   size: {
-    sm: "h-[var(--field-sm)] rounded-none px-2.5 py-1 text-sm",
-    md: "h-[var(--field-md)] rounded-none px-3 py-1.5 text-sm",
+    sm: "h-[var(--field-sm)] rounded-none px-2.5 py-1 text-base md:text-sm",
+    md: "h-[var(--field-md)] rounded-none px-3 py-1.5 text-base md:text-sm",
     lg: "h-[var(--field-lg)] rounded-none px-3 py-2 text-base",
     xl: "h-[var(--field-xl)] rounded-none px-3 py-2 text-base",
   },

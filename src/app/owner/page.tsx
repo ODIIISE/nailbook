@@ -15,7 +15,7 @@ const ManualReserveModal = dynamic(
   () => import("@/components/owner/manual-reserve-modal").then((m) => ({ default: m.ManualReserveModal })),
   {
     loading: () => (
-      <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" aria-label="در حال بارگذاری رزرو دستی">
+      <div className="fixed inset-0 z-[var(--z-dialog)] flex items-end justify-center bg-black/40 backdrop-blur-sm" aria-label="در حال بارگذاری رزرو دستی">
         <div className="w-full max-w-lg bg-card p-6 text-center text-sm text-muted-foreground">
           در حال آماده‌سازی فرم رزرو...
         </div>

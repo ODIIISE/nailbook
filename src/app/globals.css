@@ -656,7 +656,7 @@
     color-mix(in oklab, var(--muted) 80%, transparent) 75%
   );
   background-size: 200% 100%;
-  border-radius: 12px;
+  border-radius: 0;
 }
 
 

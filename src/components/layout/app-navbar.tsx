@@ -57,7 +57,7 @@ export function AppNavbar({ items }: AppNavbarProps) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-20 bg-background border-t border-border"
+      className="fixed bottom-0 left-0 right-0 z-[var(--z-header)] bg-background border-t border-border"
       style={{
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}

@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
                   type="button"
                   onClick={() => setShowPassword((s) => !s)}
                   aria-label={showPassword ? "پنهان‌کردن رمز" : "نمایش رمز"}
-                  className="absolute inset-y-0 left-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                  className="absolute inset-y-0 end-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
