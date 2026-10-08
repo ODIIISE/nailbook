@@ -415,6 +415,12 @@ function OwnerDashboardContent() {
           services={services}
           addons={addons}
           isPaid={selectedBooking.paid}
+          customerHistory={(() => {
+            const same = bookings.filter((b) => b.customer_phone === selectedBooking.customer_phone && b.id !== selectedBooking.id);
+            return {
+              completed: same.filter((b) => b.status === "completed").length,
+            };
+          })()}
           onTogglePaid={async () => {
             await toggleBookingPaid(selectedBooking.id, !selectedBooking.paid);
           }}

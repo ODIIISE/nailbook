@@ -801,6 +801,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
             onSelectTime={(t) => { setSelectedTime(t); haptic.tap(); }}
             onGoToNextDay={handleGoToNextDay}
             serviceName={selectedService?.name ?? ""}
+            totalDuration={totalDuration}
           />
         </section>
 
@@ -930,9 +931,10 @@ interface TimeStepProps {
   onSelectTime: (time: string) => void;
   onGoToNextDay: () => void;
   serviceName: string;
+  totalDuration: number;
 }
 
-function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, onSelectDate, onSelectTime, onGoToNextDay, serviceName, conflictMessage }: TimeStepProps) {
+function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, onSelectDate, onSelectTime, onGoToNextDay, serviceName, totalDuration, conflictMessage }: TimeStepProps) {
   const [showModal, setShowModal] = useState(false);
   // The month modal must agree with the day strip: off days (تعطیل) and fully
   // booked days (تکمیل) are disabled there, so offering them in the calendar
@@ -1052,6 +1054,11 @@ function TimeStep({ days, selectedDate, selectedTime, slotGroups, emptyReason, o
               </div>
             );
           })}
+          {totalDuration > 0 && (
+            <p className="mt-1 text-xs font-normal leading-6 text-muted-foreground">
+              مدت کل {toPersianDigits(totalDuration)} دقیقه برای خدمت و افزودنی‌های شما در نظر گرفته می‌شود.
+            </p>
+          )}
         </>
       )}
     </div>

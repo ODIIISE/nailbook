@@ -298,6 +298,50 @@
   font-family: 'Estedad', 'Vazirmatn', sans-serif;
 }
 
+/* Cinematic framing (v-1 cin-hero, Editorial-scoped): static film metadata,
+   never owner data. Latin lines keep letter-spacing; Persian lines do not. */
+.cinCaption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 var(--page-padding);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.cinCaption > span:last-child {
+  letter-spacing: 0.18em;
+}
+
+.kicker {
+  margin-top: 0.625rem;
+  font-size: 12px;
+  line-height: 1.6;
+  letter-spacing: 0.28em;
+  color: var(--gold);
+}
+
+.microLine {
+  margin: -0.25rem 0 0;
+  font-family: 'Estedad', 'Vazirmatn', sans-serif;
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--muted);
+  text-align: center;
+}
+
+.filmLabel {
+  margin: -0.375rem 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  opacity: 0.8;
+  text-align: center;
+}
+
 /* ── Background clip + legibility veil ─────────────────── */
 /* The video is the page backdrop, so it sits in the same z-0 sub-stack as the
    vignette and is fully covered by .videoScrim, which is the only tint that
@@ -706,6 +750,14 @@
 @media (max-height: 760px) {
   .hero {
     padding-bottom: 2rem;
+  }
+
+  .cinCaption {
+    display: none;
+  }
+
+  .filmLabel {
+    display: none;
   }
 
   .cta {

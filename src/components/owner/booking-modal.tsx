@@ -18,6 +18,11 @@ interface BookingModalProps {
   services: Service[];
   addons: Addon[];
   isPaid: boolean;
+  /** Display-only completed-booking count for this customer (computed by the
+     caller from the loaded bookings list) — mirrors the v-2 drawer history
+     line. No-show is omitted: the backend status constraint has no no-show
+     state, so a permanent "۰ غیبت" would be fake precision. */
+  customerHistory?: { completed: number };
   onTogglePaid: () => void;
   onStatusChange: (status: string) => void;
   onDelete: (id: string) => void;
@@ -49,7 +54,7 @@ function statusColorFor(value: string, isDark: boolean): string {
   return config[value]?.color ?? STATUS_CONFIG[value]?.color ?? STATUS_CONFIG.pending.color;
 }
 
-export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, onStatusChange, onDelete, onClose }: BookingModalProps) {
+export function BookingModal({ booking, services, addons, isPaid, customerHistory, onTogglePaid, onStatusChange, onDelete, onClose }: BookingModalProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   // In-flight flag: disables status/paid controls while a write runs so a
   // double-tap cannot queue opposite writes for a net no-op.
@@ -143,6 +148,11 @@ export function BookingModal({ booking, services, addons, isPaid, onTogglePaid, 
             </button>
           </div>
         </div>
+        {customerHistory && (
+          <p className="text-small text-muted-foreground mt-2 mb-3">
+            سابقه این مشتری: {toPersianDigits(customerHistory.completed)} نوبت انجام‌شده
+          </p>
+        )}
 
         {/* Details */}
         <div className="mb-3">

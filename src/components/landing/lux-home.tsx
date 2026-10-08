@@ -163,6 +163,15 @@ export function LuxHome() {
   };
 
   const lookbookTitle = salon?.lookbook_title || "نمونه‌کارها";
+  const heroName = salon?.name?.trim() || "Forehand";
+  const heroTitle = /nail/i.test(heroName) ? heroName : `${heroName} Nail Studio`;
+  const heroTagline =
+    salon?.slogan?.trim() ||
+    salon?.description?.trim() ||
+    "تجربه‌ای آرام و دقیق برای ناخن‌هایی که امضای تو هستند";
+  const heroKicker = salon?.homepage_kicker?.trim() || "NAIL · CARE · RITUAL";
+  const ctaLabel = salon?.homepage_cta_label?.trim() || "رزرو نوبت";
+  const microCopy = salon?.homepage_micro?.trim() || "";
   const instagramUrl = salon?.instagram_handle
     ? `https://instagram.com/${salon.instagram_handle.replace(/^@/, "")}`
     : null;
@@ -229,7 +238,7 @@ export function LuxHome() {
           <button className={styles.iconBtn} aria-label="سبد خرید" onClick={() => toast("سبد خرید خالی است")}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="m9.2 12.5 2 2 3.8-3.8" /></svg>
           </button>
-          <span className={styles.logo}>Forehand</span>
+          <span className={styles.logo} dir="ltr" lang="en">{heroName}</span>
           <span className={styles.r}>
             <button className={styles.iconBtn} aria-label="منو" onClick={openDrawer}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="4" y1="8" x2="20" y2="8" /><line x1="4" y1="13" x2="20" y2="13" /><line x1="4" y1="18" x2="12" y2="18" /></svg>
@@ -238,12 +247,18 @@ export function LuxHome() {
         </header>
 
         <main className={styles.scroll}>
+          {/* Cinematic caption (v-1 cin-caption): static film framing, not owner data. */}
+          <div className={`${styles.cinCaption} ${styles.rv}`} style={d(".12s")} dir="rtl">
+            <span lang="fa">یک فیلم کوتاه درباره جزئیات</span>
+            <span dir="ltr" lang="en">FOREHAND / VOL. 01</span>
+          </div>
           {/* Hero */}
           <section className={styles.hero}>
-            <p className={`${styles.script} ${styles.rvBlur}`} style={d(".2s")}>Welcome to</p>
-            <h1 className={`${styles.heroTitle} ${styles.rvBlur}`} style={d(".32s")}>Forehand Nail Studio</h1>
+            <p dir="ltr" lang="en" className={`${styles.script} ${styles.rvBlur}`} style={d(".2s")}>Welcome to</p>
+            <h1 dir="ltr" lang="en" className={`${styles.heroTitle} ${styles.rvBlur}`} style={d(".32s")}>{heroTitle}</h1>
+            <p dir="ltr" lang="en" className={`${styles.kicker} ${styles.rv}`} style={d(".4s")}>{heroKicker}</p>
             <p dir="rtl" lang="fa" className={`${styles.lede} ${styles.rv}`} style={d(".46s")}>
-              تجربه‌ای آرام و دقیق برای ناخن‌هایی که امضای تو هستند
+              {heroTagline}
             </p>
 
           </section>
@@ -252,16 +267,16 @@ export function LuxHome() {
         {/* CTAs — pinned to the bottom of the device */}
         <footer className={styles.cta}>
           {addrOpen && (
-            <div dir="rtl" className={styles.addrCard} role="status">
+            <div dir="rtl" lang="fa" className={styles.addrCard} role="status">
               <span>{salon?.address?.trim() ? salon.address : "آدرس سالن ثبت نشده است"}</span>
               <button className={styles.addrClose} aria-label="بستن" onClick={closeAddress}>{X_ICON}</button>
             </div>
           )}
-          <button dir="rtl" className={`${styles.btn} ${styles.btnPrimary} ${styles.rvPop}`} style={d(".85s")} onClick={() => setBookingOpen(true)}>
+          <button dir="rtl" lang="fa" className={`${styles.btn} ${styles.btnPrimary} ${styles.rvPop}`} style={d(".85s")} onClick={() => setBookingOpen(true)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="m9.2 12.5 2 2 3.8-3.8" /></svg>
-            <span className={styles.btnFa}>رزرو نوبت</span>
+            <span className={styles.btnFa}>{ctaLabel}</span>
           </button>
-          <button dir="rtl" className={`${styles.btn} ${styles.btnGhost} ${styles.rvPop}`} style={d(".95s")} onClick={() => setLookbookOpen(true)}>
+          <button dir="rtl" lang="fa" className={`${styles.btn} ${styles.btnGhost} ${styles.rvPop}`} style={d(".95s")} onClick={() => setLookbookOpen(true)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"><path d="M12 3c.7 3.9 2.4 5.6 6.3 6.3-3.9.7-5.6 2.4-6.3 6.3-.7-3.9-2.4-5.6-6.3-6.3C9.6 8.6 11.3 6.9 12 3z" /></svg>
             <span className={styles.btnFa}>نمونه کارها</span>
           </button>
@@ -288,6 +303,10 @@ export function LuxHome() {
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
             </button>
           </div>
+          {microCopy ? (
+            <p dir="rtl" lang="fa" className={styles.microLine}>{microCopy}</p>
+          ) : null}
+          <p dir="ltr" lang="en" className={styles.filmLabel} aria-hidden="true">35mm / IN THE DETAILS</p>
 
           {/* Bag/menu toast — sits centered just above the footer controls */}
           <div className={`${styles.toast} ${toastShow ? styles.toastShow : ""}`} role="status" aria-live="polite">
