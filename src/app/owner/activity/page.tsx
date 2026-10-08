@@ -21,6 +21,7 @@ export default function ActivityPage() {
   const [counts, setCounts] = useState<Record<string, number>>({ all: 0 });
   const [activeFilter, setActiveFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
 
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -84,9 +85,57 @@ export default function ActivityPage() {
     setActiveFilter(type);
   };
 
+  /* Client-side search over loaded logs + CSV export (v-2 خروجی CSV).
+     Formula-leading cells are apostrophe-prefixed like the admin export so a
+     crafted description cannot become a spreadsheet formula. */
+  const trimmedQuery = query.trim();
+  const visibleLogs = trimmedQuery
+    ? logs.filter((l) =>
+        l.description.includes(trimmedQuery)
+        || l.event_type.includes(trimmedQuery)
+        || (l.entity_id || "").includes(trimmedQuery))
+    : logs;
+  const exportCsv = () => {
+    const cell = (v: unknown) => {
+      const raw = String(v ?? "");
+      const safe = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+      return safe.includes(",") || safe.includes('"') || safe.includes("\n")
+        ? `"${safe.replace(/"/g, '""')}"`
+        : safe;
+    };
+    const rows = [
+      ["time", "event_type", "entity_type", "entity_id", "description"].join(","),
+      ...visibleLogs.map((l) => [l.created_at, l.event_type, l.entity_type, l.entity_id || "", l.description].map(cell).join(",")),
+    ];
+    const blob = new Blob(["\uFEFF" + rows.join("\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "forehand-activity.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
   return (
     <SalonGuard>
       <div className="px-4 py-4">
+        <div className="mb-3 flex gap-2">
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="جستجو در فعالیت‌ها"
+            aria-label="جستجو در فعالیت‌ها"
+            className="h-11 min-w-0 flex-1 rounded-none border border-input bg-card px-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
+          />
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={visibleLogs.length === 0}
+            className="h-11 shrink-0 rounded-none border border-border px-4 text-sm font-normal text-muted-foreground hover:text-foreground disabled:opacity-50"
+          >
+            خروجی CSV
+          </button>
+        </div>
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -96,7 +145,7 @@ export default function ActivityPage() {
         ) : (
           <>
             <ActivityLog
-              logs={logs}
+              logs={visibleLogs}
               counts={counts}
               onFilterChange={handleFilterChange}
               activeFilter={activeFilter}

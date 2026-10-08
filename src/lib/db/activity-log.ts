@@ -7,6 +7,7 @@ export type EventType =
   | "booking_cancelled"
   | "booking_deleted"
   | "booking_status_changed"
+  | "booking_rescheduled"
   | "payment_received"
   | "payment_reverted"
   | "user_registered"

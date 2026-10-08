@@ -436,6 +436,33 @@ export async function cancelBooking(bookingId: string) {
   }
 }
 
+export interface RescheduleResult {
+  date_gregorian: string;
+  start_time: string;
+  end_time: string;
+}
+
+export async function rescheduleBooking(
+  bookingId: string,
+  date_gregorian: string,
+  start_time: string,
+  end_time: string
+): Promise<RescheduleResult> {
+  const res = await fetch("/api/owner/bookings", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ id: bookingId, date_gregorian, start_time, end_time }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || "جابه‌جایی نوبت انجام نشد");
+  return {
+    date_gregorian: String(body.date_gregorian || date_gregorian),
+    start_time: String(body.start_time || start_time).slice(0, 5),
+    end_time: String(body.end_time || end_time).slice(0, 5),
+  };
+}
+
 export async function updateWorkingHours(workingHours: Record<string, unknown>, specificDaysOff: string[]) {
   const res = await fetch("/api/update-salon", {
     method: "POST",

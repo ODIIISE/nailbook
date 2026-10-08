@@ -14,6 +14,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { toPersianDigits } from "@/lib/jalali";
 import { normalizeDigits } from "@/lib/digits";
 import { handleAuthExpiry } from "@/lib/db/data";
+import { useSalon } from "@/lib/salon-context";
 
 interface User {
   id: string;
@@ -31,6 +32,8 @@ export default function OwnerUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"all" | "owner" | "customer">("all");
+  const { bookings } = useSalon();
   const [modal, setModal] = useState<Modal>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
@@ -62,9 +65,27 @@ export default function OwnerUsersPage() {
 
   // Normalize Persian/Arabic digits so searching "۰۹۱۲" matches stored "0912".
   const normalizedSearch = normalizeDigits(search);
+  const roleCounts = {
+    all: users.length,
+    owner: users.filter((u) => u.role === "owner").length,
+    customer: users.filter((u) => u.role !== "owner").length,
+  };
   const filteredUsers = users.filter(
-    (u) => u.phone.includes(normalizedSearch) || u.name.includes(search)
+    (u) =>
+      (roleFilter === "all" || (roleFilter === "owner" ? u.role === "owner" : u.role !== "owner")) &&
+      (u.phone.includes(normalizedSearch) || u.name.includes(search))
   );
+
+  /* Per-user visit stats from real bookings (v-2 directory columns). */
+  const userStats = (u: User) => {
+    const mine = bookings.filter((b) => b.user_id === u.id || b.customer_phone === u.phone);
+    const completed = mine.filter((b) => b.status === "completed").length;
+    const last = mine
+      .map((b) => b.date_gregorian.split("T")[0])
+      .sort()
+      .at(-1);
+    return { completed, last };
+  };
 
   const resetForm = () => {
     setFormName("");
@@ -240,6 +261,21 @@ export default function OwnerUsersPage() {
         />
       </div>
 
+      {/* Role filter */}
+      <div className="flex gap-1.5" role="group" aria-label="فیلتر نقش">
+        {([["all", "همه"], ["owner", "مدیر"], ["customer", "مشتری"]] as const).map(([v, label]) => (
+          <button
+            key={v}
+            type="button"
+            aria-pressed={roleFilter === v}
+            onClick={() => setRoleFilter(v)}
+            className={`h-11 rounded-full px-4 text-sm font-normal tabular-nums ${roleFilter === v ? "bg-primary text-primary-foreground" : "border border-border bg-card text-muted-foreground"}`}
+          >
+            {label} {toPersianDigits(roleCounts[v])}
+          </button>
+        ))}
+      </div>
+
       {/* Users List */}
       {loading ? (
         <div className="space-y-3">
@@ -252,7 +288,9 @@ export default function OwnerUsersPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {filteredUsers.map((user) => (
+          {filteredUsers.map((user) => {
+            const stats = userStats(user);
+            return (
             <Card key={user.id} className="p-3">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -274,6 +312,9 @@ export default function OwnerUsersPage() {
                   <div className="flex items-center gap-2">
                     <p className="text-small text-muted-foreground">عضویت: {formatDate(user.created_at)}</p>
                   </div>
+                  <p className="mt-0.5 text-small tabular-nums text-muted-foreground">
+                    {toPersianDigits(stats.completed)} نوبت انجام‌شده{stats.last ? ` · آخرین مراجعه ${formatDate(stats.last)}` : ""}
+                  </p>
                 </div>
                 {user.role !== "owner" && (
                   <div className="flex items-center gap-0.5 flex-shrink-0">
@@ -290,7 +331,8 @@ export default function OwnerUsersPage() {
                 )}
               </div>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
 

@@ -19,6 +19,9 @@ import type { Service, Addon } from "@/lib/types";
 interface ServiceManagerProps {
   services: Service[];
   addons: Addon[];
+  /** Live future bookings per service_id — when non-zero, delete offers
+     deactivation instead (deleting NULLs those bookings server-side). */
+  futureBookingCounts?: Record<string, number>;
   onUpdateServices: (services: Service[]) => Promise<string | null>;
   onUpdateAddons: (addons: Addon[]) => Promise<string | null>;
 }
@@ -26,6 +29,7 @@ interface ServiceManagerProps {
 export function ServiceManager({
   services,
   addons,
+  futureBookingCounts = {},
   onUpdateServices,
   onUpdateAddons,
 }: ServiceManagerProps) {
@@ -47,6 +51,7 @@ export function ServiceManager({
           <ServicesTab
             services={services}
             addons={addons}
+            futureBookingCounts={futureBookingCounts}
             onUpdate={onUpdateServices}
           />
         </TabsContent>
@@ -54,6 +59,7 @@ export function ServiceManager({
         <TabsContent value="addons">
           <AddonsTab
             addons={addons}
+            services={services}
             onUpdate={onUpdateAddons}
           />
         </TabsContent>
@@ -67,10 +73,12 @@ export function ServiceManager({
 function ServicesTab({
   services,
   addons,
+  futureBookingCounts = {},
   onUpdate,
 }: {
   services: Service[];
   addons: Addon[];
+  futureBookingCounts?: Record<string, number>;
   onUpdate: (services: Service[]) => Promise<string | null>;
 }) {
   const [isAdding, setIsAdding] = useState(false);
@@ -172,18 +180,23 @@ function ServicesTab({
   };
 
   // Deleting a service NULLs its bookings' service_id server-side, which
-  // blanks those bookings' name and re-prices them to 0 in earnings. Warn
-  // before that, and require an explicit confirm (was one accidental tap).
-  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  // blanks those bookings' name and re-prices them to 0 in earnings. When
+  // live future bookings exist, offer deactivation instead so they stay
+  // intact (v-2 delete guard); otherwise confirm a plain delete.
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string; future: number } | null>(null);
 
   const handleDelete = (id: string) => {
     const service = pending.find((s) => s.id === id);
-    setConfirmDelete({ id, name: service?.name || "" });
+    setConfirmDelete({ id, name: service?.name || "", future: futureBookingCounts[id] || 0 });
   };
 
   const confirmDeleteTarget = () => {
     if (!confirmDelete) return;
-    setPending(pending.filter((s) => s.id !== confirmDelete.id).map((s, i) => ({ ...s, sort_order: i + 1 })));
+    if (confirmDelete.future > 0) {
+      setPending(pending.map((s) => s.id === confirmDelete.id ? { ...s, is_active: false } : s));
+    } else {
+      setPending(pending.filter((s) => s.id !== confirmDelete.id).map((s, i) => ({ ...s, sort_order: i + 1 })));
+    }
     setConfirmDelete(null);
     markChanged();
   };
@@ -385,9 +398,11 @@ function ServicesTab({
 
 function AddonsTab({
   addons,
+  services,
   onUpdate,
 }: {
   addons: Addon[];
+  services: Service[];
   onUpdate: (addons: Addon[]) => Promise<string | null>;
 }) {
   const [isAdding, setIsAdding] = useState(false);
@@ -573,7 +588,7 @@ function AddonsTab({
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   +{toPersianDigits(addon.duration_minutes)} دقیقه ·{" "}
-                  +{formatPrice(Number(addon.price))} تومان
+                  +{formatPrice(Number(addon.price))} تومان · در {toPersianDigits(services.filter((s) => s.addon_ids.includes(addon.id)).length)} خدمت
                 </p>
               </div>
               <div className="flex items-center gap-0.5">
@@ -939,19 +954,26 @@ function SaveBar({
 // ── Shared delete confirm ──
 
 function DeleteConfirmDialog({ target, kind, onCancel, onConfirm }: {
-  target: { id: string; name: string } | null;
+  target: { id: string; name: string; future?: number } | null;
   kind: "service" | "addon";
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const future = target?.future || 0;
   return (
     <AlertDialog open={!!target} onOpenChange={(open) => { if (!open) onCancel(); }}>
       <AlertDialogContent className="max-w-[340px]">
         <AlertDialogHeader>
-          <AlertDialogTitle>{kind === "service" ? "حذف خدمت" : "حذف آپشن"}</AlertDialogTitle>
+          <AlertDialogTitle>
+            {kind === "service"
+              ? (future > 0 ? "این خدمت نوبت فعال دارد" : "حذف خدمت")
+              : "حذف آپشن"}
+          </AlertDialogTitle>
           <AlertDialogDescription>
             {kind === "service"
-              ? `«${target?.name || "این خدمت"}» حذف می‌شود. نوبت‌های قبلیِ این خدمت بدون نام و قیمت خواهند شد و از گزارش درآمد حذف می‌شوند.`
+              ? (future > 0
+                ? `${toPersianDigits(future)} نوبت آینده با این خدمت ثبت شده. به‌جای حذف، غیرفعالش می‌کنیم تا نوبت‌ها سالم بمانند.`
+                : `«${target?.name || "این خدمت"}» حذف می‌شود. نوبت‌های قبلیِ این خدمت بدون نام و قیمت خواهند شد و از گزارش درآمد حذف می‌شوند.`)
               : `«${target?.name || "این آپشن"}» حذف می‌شود و از همهٔ خدمات برداشته خواهد شد.`}
             {" "}تغییر پس از ذخیره اعمال می‌شود.
           </AlertDialogDescription>
@@ -959,7 +981,7 @@ function DeleteConfirmDialog({ target, kind, onCancel, onConfirm }: {
         <AlertDialogFooter>
           <AlertDialogCancel>انصراف</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            حذف
+            {kind === "service" && future > 0 ? "غیرفعال شود" : "حذف"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

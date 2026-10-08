@@ -22,7 +22,9 @@ import {
   JS_TO_IRAN_DAY,
 } from "@/lib/jalali";
 import type { WorkingHours } from "@/lib/slots";
+import { generateTimeSlots } from "@/lib/slots";
 import { getTehranDateKey, parseGregorianDateKey } from "@/lib/time";
+import type { Service, Booking } from "@/lib/types";
 
 interface ScheduleManagerProps {
   workingHours: WorkingHours;
@@ -38,6 +40,16 @@ interface ScheduleManagerProps {
   optimizationMode: "hybrid" | "legacy";
   suggestionLimit: number;
   minUsefulGapMinutes: number;
+  /** Active bookings per Gregorian date key — toggling a booked day off asks
+     for confirmation first (v-2 booked-day gate). */
+  dayBookingCounts?: Record<string, number>;
+  /** Live preview inputs (v-2 پیش‌نمایش زنده): services + bookings +
+     blocks rendered through the *draft* tunables below. */
+  previewContext?: {
+    services: Service[];
+    bookings: Booking[];
+    blockedTimes: Array<{ date_gregorian: string; start_time: string; end_time: string }>;
+  };
   onSave: (
     hours: WorkingHours,
     daysOff: string[],
@@ -218,6 +230,127 @@ function formatDayOffChip(dateKey: string): string {
   return formatJalaliDateShort(j.jy, j.jm, j.jd);
 }
 
+// ─── Live Preview ───
+
+// Shows what a customer would see under the *unsaved draft* tunables, so the
+// owner can judge a setting before saving. Read-only: no booking happens here.
+function EnginePreview({
+  hours,
+  daysOff,
+  tunables,
+  previewContext,
+}: {
+  hours: WorkingHours;
+  daysOff: string[];
+  tunables: {
+    earlyExtraHours: number; lateExtraHours: number; expandThreshold: number;
+    proximityWindowHours: number; allowOverflow: boolean; overflowMinutes: number;
+    slotInterval: number; slotBuffer: number; optimizationMode: "hybrid" | "legacy";
+    suggestionLimit: number; minUsefulGapMinutes: number;
+  };
+  previewContext: NonNullable<ScheduleManagerProps["previewContext"]>;
+}) {
+  const { services, bookings, blockedTimes } = previewContext;
+  const activeServices = services.filter((s) => s.is_active);
+  const [serviceId, setServiceId] = useState<string | null>(null);
+  const [dayOffset, setDayOffset] = useState(0);
+  const service = activeServices.find((s) => s.id === serviceId) ?? activeServices[0] ?? null;
+
+  const dateKey = (() => {
+    const base = parseGregorianDateKey(getTehranDateKey(new Date()));
+    return getTehranDateKey(new Date(base.getTime() + dayOffset * 864e5));
+  })();
+  const dayOptions = Array.from({ length: 10 }, (_, i) => {
+    const base = parseGregorianDateKey(getTehranDateKey(new Date()));
+    return getTehranDateKey(new Date(base.getTime() + i * 864e5));
+  });
+
+  const slots = (() => {
+    if (!service) return [];
+    const dayBookings = bookings
+      .filter((b) => b.date_gregorian.split("T")[0] === dateKey
+        && (b.status === "reserved" || b.status === "confirmed" || b.status === "in_progress" || b.status === "pending"))
+      .map((b) => ({ start_time: b.start_time, end_time: b.end_time }));
+    const dayLocks = blockedTimes
+      .filter((l) => l.date_gregorian.split("T")[0] === dateKey)
+      .map((l) => ({ start_time: l.start_time, end_time: l.end_time }));
+    return generateTimeSlots(
+      hours, parseGregorianDateKey(dateKey), Number(service.duration_minutes), 0,
+      tunables.slotInterval, tunables.slotBuffer, dayBookings, dayLocks,
+      {
+        proximity_window_hours: tunables.proximityWindowHours,
+        early_extra_hours: tunables.earlyExtraHours,
+        late_extra_hours: tunables.lateExtraHours,
+        expand_threshold: tunables.expandThreshold,
+        allow_overflow: tunables.allowOverflow,
+        overflow_minutes: tunables.overflowMinutes,
+        optimization_mode: tunables.optimizationMode,
+        suggestion_limit: tunables.suggestionLimit,
+        min_useful_gap_minutes: tunables.minUsefulGapMinutes,
+      },
+      daysOff,
+    );
+  })();
+  const available = slots.filter((s) => s.available);
+  const suggested = available.filter((s) => s.suggested);
+
+  return (
+    <Card className="p-4">
+      <h3 className="font-normal text-foreground mb-1">پیش‌نمایش زنده</h3>
+      <p className="text-xs text-muted-foreground mb-4">
+        مشتری با این تنظیمات (حتی ذخیره‌نشده)، این ساعت‌ها را می‌بیند.
+      </p>
+      {activeServices.length === 0 ? (
+        <p className="text-sm text-muted-foreground">خدمت فعالی برای پیش‌نمایش نیست.</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              value={service?.id || ""}
+              onChange={(e) => setServiceId(e.target.value)}
+              aria-label="خدمت پیش‌نمایش"
+              className="h-11 rounded-none border border-input bg-card px-2 text-sm"
+            >
+              {activeServices.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+            <select
+              value={dayOffset}
+              onChange={(e) => setDayOffset(Number(e.target.value))}
+              aria-label="روز پیش‌نمایش"
+              className="h-11 rounded-none border border-input bg-card px-2 text-sm tabular-nums"
+            >
+              {dayOptions.map((key, i) => (
+                <option key={key} value={i}>{formatDayOffChip(key)}</option>
+              ))}
+            </select>
+          </div>
+          {available.length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">در این روز ساعتی نمایش داده نمی‌شود.</p>
+          ) : (
+            <>
+              <div className="mt-3 grid grid-cols-4 gap-1.5" aria-label="پیش‌نمایش ساعت‌ها">
+                {available.map((s) => (
+                  <span
+                    key={s.time}
+                    className={`flex h-10 items-center justify-center rounded-none border text-sm tabular-nums ${s.suggested ? "border-primary/60 bg-primary/5" : "border-border"}`}
+                  >
+                    {toPersianDigits(s.time)}
+                  </span>
+                ))}
+              </div>
+              <p className="mt-2 text-xs tabular-nums text-muted-foreground">
+                {toPersianDigits(available.length)} ساعت، {toPersianDigits(suggested.length)} پیشنهادی
+              </p>
+            </>
+          )}
+        </>
+      )}
+    </Card>
+  );
+}
+
 // ─── Main Component ───
 
 export function ScheduleManager({
@@ -234,6 +367,8 @@ export function ScheduleManager({
   optimizationMode: initialOptimizationMode,
   suggestionLimit: initialSuggestionLimit,
   minUsefulGapMinutes: initialMinUsefulGapMinutes,
+  dayBookingCounts = {},
+  previewContext,
   onSave,
 }: ScheduleManagerProps) {
   const [hours, setHours] = useState<WorkingHours>({ ...workingHours });
@@ -385,11 +520,18 @@ export function ScheduleManager({
   };
 
   const toggleSpecificDayOff = (dateStr: string) => {
+    // Booked days need an explicit second tap: closing the day does not
+    // cancel those bookings, so the owner must acknowledge them first.
+    if (!daysOff.includes(dateStr) && (dayBookingCounts[dateStr] || 0) > 0) {
+      setPendingDayOff(dateStr);
+      return;
+    }
     setDaysOff((prev) =>
       prev.includes(dateStr) ? prev.filter((d) => d !== dateStr) : [...prev, dateStr]
     );
     markChanged();
   };
+  const [pendingDayOff, setPendingDayOff] = useState<string | null>(null);
 
   const handleSave = async () => {
     if (isSaving) return;
@@ -735,13 +877,57 @@ export function ScheduleManager({
         </div>
       </Card>
 
-      {/* ─── Section 5: Days Off ─── */}
+      {/* ─── Section 5: Live Preview ─── */}
+      {previewContext && (
+        <EnginePreview
+          hours={hours}
+          daysOff={daysOff}
+          tunables={{
+            earlyExtraHours, lateExtraHours, expandThreshold, proximityWindowHours,
+            allowOverflow, overflowMinutes, slotInterval, slotBuffer,
+            optimizationMode, suggestionLimit, minUsefulGapMinutes,
+          }}
+          previewContext={previewContext}
+        />
+      )}
+
+      {/* ─── Section 6: Days Off ─── */}
       <div>
         <h3 className="font-normal text-foreground mb-1">روزهای تعطیل</h3>
         <p className="text-xs text-muted-foreground mb-3">
           روی روزها کلیک کنید تا تعطیل شوند
         </p>
 
+        {pendingDayOff && (
+          <div className="mb-3 rounded-none border border-warning/40 bg-warning/10 p-3" role="alert">
+            <p className="text-sm font-normal">
+              این روز {toPersianDigits(dayBookingCounts[pendingDayOff] || 0)} نوبت فعال دارد
+            </p>
+            <p className="mt-1 text-xs leading-6 text-muted-foreground">
+              نوبت‌ها لغو نمی‌شوند ولی روز برای رزرو جدید بسته می‌شود. بعد از تعطیل کردن با مشتری‌ها تماس بگیرید.
+            </p>
+            <div className="mt-2.5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setDaysOff((prev) => [...prev, pendingDayOff]);
+                  setPendingDayOff(null);
+                  markChanged();
+                }}
+                className="h-11 flex-1 rounded-none bg-primary text-sm font-normal text-primary-foreground"
+              >
+                تعطیل شود
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingDayOff(null)}
+                className="h-11 flex-1 rounded-none border border-border text-sm font-normal"
+              >
+                انصراف
+              </button>
+            </div>
+          </div>
+        )}
         <div className="space-y-4">
           <JalaliMonthGrid
             year={currentYear}

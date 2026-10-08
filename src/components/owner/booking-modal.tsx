@@ -2,12 +2,13 @@
 
 import { useState, useMemo } from "react";
 import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Trash2, AlertTriangle, CheckCircle2, XCircle, Loader, X } from "lucide-react";
-import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali } from "@/lib/jalali";
+import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali, PERSIAN_MONTHS } from "@/lib/jalali";
 import { calculateBookingPrice } from "@/lib/pricing";
 import { STATUS_CONFIG, STATUS_CONFIG_DARK, themeColor } from "@/lib/design-tokens";
 import { VALID_TRANSITIONS } from "@/lib/constants";
 import { useIsDark } from "@/lib/hooks/use-is-dark";
-import { parseGregorianDateKey } from "@/lib/time";
+import { parseGregorianDateKey, getTehranDateKey } from "@/lib/time";
+import { generateTimeSlots, type WorkingHours } from "@/lib/slots";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -23,6 +24,21 @@ interface BookingModalProps {
      line. No-show is omitted: the backend status constraint has no no-show
      state, so a permanent "۰ غیبت" would be fake precision. */
   customerHistory?: { completed: number };
+  /** Reschedule support (v-2 جابه‌جایی): engine context + server mover.
+     When absent the move UI stays hidden and the drawer is unchanged. */
+  rescheduleContext?: {
+    workingHours: WorkingHours;
+    bookings: Booking[];
+    blockedTimes: Array<{ date_gregorian: string; start_time: string; end_time: string }>;
+    specificDaysOff: string[];
+    engine: {
+      slot_interval_minutes: number; slot_buffer_minutes: number;
+      proximity_window_hours: number; early_extra_hours: number; late_extra_hours: number;
+      expand_threshold: number; allow_overflow: boolean; overflow_minutes: number;
+      optimization_mode: "hybrid" | "legacy"; suggestion_limit: number; min_useful_gap_minutes: number;
+    };
+  };
+  onReschedule?: (date_gregorian: string, start_time: string, end_time: string) => Promise<{ success: boolean; error?: string }>;
   onTogglePaid: () => void;
   onStatusChange: (status: string) => void;
   onDelete: (id: string) => void;
@@ -54,8 +70,12 @@ function statusColorFor(value: string, isDark: boolean): string {
   return config[value]?.color ?? STATUS_CONFIG[value]?.color ?? STATUS_CONFIG.pending.color;
 }
 
-export function BookingModal({ booking, services, addons, isPaid, customerHistory, onTogglePaid, onStatusChange, onDelete, onClose }: BookingModalProps) {
+export function BookingModal({ booking, services, addons, isPaid, customerHistory, rescheduleContext, onReschedule, onTogglePaid, onStatusChange, onDelete, onClose }: BookingModalProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [rescheduling, setRescheduling] = useState(false);
+  const [reschedDate, setReschedDate] = useState(() => booking.date_gregorian.split("T")[0]);
+  const [reschedError, setReschedError] = useState("");
+  const [isMoving, setIsMoving] = useState(false);
   // In-flight flag: disables status/paid controls while a write runs so a
   // double-tap cannot queue opposite writes for a net no-op.
   const [isMutating, setIsMutating] = useState(false);
@@ -91,6 +111,58 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
   const statusConfig = { ...statusConfigBase, color: statusColorFor(currentStatus, isDark) };
   const shortId = `BK-${booking.id.slice(-6).toUpperCase()}`;
   const createdAtTime = booking.created_at ? new Date(booking.created_at).toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit", hour12: false }) : "";
+
+  /* Reschedule (v-2 RP): move preserving duration, validated atomically by
+     PATCH /api/owner/bookings. Slot list excludes this booking itself. */
+  const canReschedule = booking.status !== "cancelled" && booking.status !== "completed" && rescheduleContext && onReschedule;
+  const reschedDays = useMemo(() => {
+    const base = parseGregorianDateKey(getTehranDateKey(new Date()));
+    return Array.from({ length: 14 }, (_, i) => getTehranDateKey(new Date(base.getTime() + i * 864e5)));
+  }, []);
+  const reschedSlots = useMemo(() => {
+    if (!rescheduling || !rescheduleContext) return [];
+    const ctx = rescheduleContext;
+    const dayBookings = ctx.bookings
+      .filter((b) => b.date_gregorian.split("T")[0] === reschedDate
+        && b.id !== booking.id
+        && (b.status === "reserved" || b.status === "confirmed" || b.status === "in_progress" || b.status === "pending"))
+      .map((b) => ({ start_time: b.start_time, end_time: b.end_time }));
+    const dayLocks = ctx.blockedTimes
+      .filter((l) => l.date_gregorian.split("T")[0] === reschedDate)
+      .map((l) => ({ start_time: l.start_time, end_time: l.end_time }));
+    return generateTimeSlots(
+      ctx.workingHours, parseGregorianDateKey(reschedDate), duration, 0,
+      ctx.engine.slot_interval_minutes ?? 15, ctx.engine.slot_buffer_minutes ?? 0,
+      dayBookings, dayLocks,
+      {
+        proximity_window_hours: ctx.engine.proximity_window_hours,
+        early_extra_hours: ctx.engine.early_extra_hours,
+        late_extra_hours: ctx.engine.late_extra_hours,
+        expand_threshold: ctx.engine.expand_threshold,
+        allow_overflow: ctx.engine.allow_overflow,
+        overflow_minutes: ctx.engine.overflow_minutes,
+        optimization_mode: ctx.engine.optimization_mode,
+        suggestion_limit: ctx.engine.suggestion_limit,
+        min_useful_gap_minutes: ctx.engine.min_useful_gap_minutes,
+      },
+      ctx.specificDaysOff,
+    ).filter((s) => s.available);
+  }, [rescheduling, reschedDate, rescheduleContext, booking.id, duration]);
+  const handleMove = async (start: string) => {
+    if (!onReschedule || isMoving) return;
+    const [h, m] = start.split(":").map(Number);
+    const endMin = (h || 0) * 60 + (m || 0) + duration;
+    const end = `${String(Math.floor(endMin / 60)).padStart(2, "0")}:${String(endMin % 60).padStart(2, "0")}`;
+    setIsMoving(true);
+    setReschedError("");
+    try {
+      const r = await onReschedule(reschedDate, start, end);
+      if (r.success) onClose();
+      else setReschedError(r.error || "جابه‌جایی انجام نشد");
+    } finally {
+      setIsMoving(false);
+    }
+  };
 
   /* Category icon tints: neutral tokens (same recipe as customer list rows);
      price keeps its semantic warning tint. Status colors stay categorical via
@@ -247,6 +319,14 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
 
         {/* Actions */}
         <div className="flex gap-2">
+          {canReschedule && (
+            <button onClick={() => { setRescheduling((v) => !v); setReschedError(""); }}
+              aria-expanded={rescheduling}
+              className="flex-1 py-2.5 rounded-none text-small font-normal flex items-center justify-center gap-1.5 border border-border bg-card">
+              <Calendar className="h-3.5 w-3.5" />
+              جابه‌جایی
+            </button>
+          )}
           <button onClick={() => setDeleteOpen(true)}
             className={`flex-1 py-2.5 rounded-none text-small font-normal flex items-center justify-center gap-1.5`}
             style={{ backgroundColor: `${deleteColor}14`, color: deleteColor as string }}
@@ -256,6 +336,50 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
             حذف نوبت
           </button>
         </div>
+
+        {canReschedule && rescheduling && (
+          <div className="mt-3 rounded-none border border-border p-3">
+            <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
+              {reschedDays.map((key) => {
+                const j = gregorianToJalali(parseGregorianDateKey(key));
+                const sel = key === reschedDate;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setReschedDate(key)}
+                    aria-pressed={sel}
+                    aria-label={`${toPersianDigits(j.jd)} ${PERSIAN_MONTHS[j.jm - 1]}`}
+                    className={`flex h-14 min-w-[52px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-none border px-2 text-xs font-normal ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}
+                  >
+                    <span className="text-base leading-none">{toPersianDigits(j.jd)}</span>
+                    <span className={`text-micro leading-none ${sel ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{PERSIAN_MONTHS[j.jm - 1].slice(0, 5)}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {reschedSlots.length === 0 ? (
+              <p className="py-3 text-center text-xs text-muted-foreground">در این روز ساعت آزادی نیست.</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {reschedSlots.map((s) => (
+                  <button
+                    key={s.time}
+                    type="button"
+                    disabled={isMoving}
+                    onClick={() => handleMove(s.time)}
+                    className="flex h-11 items-center justify-center rounded-none border border-border bg-card text-sm font-normal tabular-nums disabled:opacity-50"
+                  >
+                    {toPersianDigits(s.time)}
+                  </button>
+                ))}
+              </div>
+            )}
+            {reschedError && (
+              <p role="alert" className="mt-2 text-center text-xs text-destructive">{reschedError}</p>
+            )}
+          </div>
+        )}
 
         {/* Created at */}
         {createdAtTime && (

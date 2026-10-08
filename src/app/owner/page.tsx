@@ -4,6 +4,7 @@ import { Suspense, useState, useMemo, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { StatusPill } from "@/components/ui/status-pill";
 import { Timeline } from "@/components/owner/timeline";
 import { useAuth } from "@/lib/auth-context";
 import dynamic from "next/dynamic";
@@ -39,7 +40,7 @@ function OwnerDashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, isLoading: authLoading, hasRole } = useAuth();
-  const { salon, loaded, bookings, services, addons, workingHours, blockedTimes, updateBlockedTimes, addOwnerBooking, cancelBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
+  const { salon, loaded, bookings, services, addons, workingHours, blockedTimes, specificDaysOff, updateBlockedTimes, addOwnerBooking, cancelBooking, rescheduleBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
@@ -150,11 +151,42 @@ function OwnerDashboardContent() {
     return { count: todayBookings.length, revenue: totalRevenue, unpaidCount, nextBooking };
   }, [currentDate, bookings, services, addons]);
 
-  const handleBlockTime = async (startTime: string, endTime: string) => {
-    const dateStr = getTehranDateKey(currentDate);
+  /* Day capacity strip (v-2 kv row): awaiting + booked minutes + fill %. */
+  const [timelineView, setTimelineView] = useState<"day" | "list">("day");
+  const [listFilter, setListFilter] = useState<string>("all");
+  const dayCapacity = useMemo(() => {
+    const toMin = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return (h || 0) * 60 + (m || 0);
+    };
+    const live = dayBookings.filter((b) => b.status !== "cancelled");
+    const awaiting = live.filter((b) => b.status === "reserved").length;
+    const minutes = live.reduce((sum, b) => sum + Math.max(0, toMin(b.end_time) - toMin(b.start_time)), 0);
+    const openMinutes = Math.max(1, (timelineRange.endHour - timelineRange.startHour) * 60);
+    return { awaiting, minutes, pct: Math.min(100, Math.round((minutes / openMinutes) * 100)) };
+  }, [dayBookings, timelineRange]);
+  const listBookings = useMemo(() => {
+    const rows = (listFilter === "all" ? dayBookings : dayBookings.filter((b) => b.status === listFilter))
+      .slice().sort((a, b) => a.start_time.localeCompare(b.start_time));
+    return rows;
+  }, [dayBookings, listFilter]);
+
+  /* Past customers for the manual-booking quick-pick. */
+  const knownCustomers = useMemo(() => {
+    const seen = new Set<string>();
+    const out: Array<{ name: string; phone: string }> = [];
+    for (const b of bookings) {
+      if (!b.customer_phone || seen.has(b.customer_phone)) continue;
+      seen.add(b.customer_phone);
+      out.push({ name: b.customer_name || "مشتری", phone: b.customer_phone });
+    }
+    return out;
+  }, [bookings]);
+
+  const handleBlockTime = async (dateKey: string, startTime: string, endTime: string) => {
     const saved = await updateBlockedTimes([
       ...blockedTimes,
-      { date_gregorian: dateStr, start_time: startTime, end_time: endTime },
+      { date_gregorian: dateKey, start_time: startTime, end_time: endTime },
     ]);
 
     if (saved.success) {
@@ -375,6 +407,27 @@ function OwnerDashboardContent() {
           </Button>
         </div>
 
+        {/* Day capacity + day/list views (v-2 kv row + BookingList). */}
+        <div className="flex items-center justify-between gap-2" role="group" aria-label="نمای برنامه">
+          <p className="text-xs text-muted-foreground tabular-nums">
+            {toPersianDigits(dayBookings.length)} نوبت · {toPersianDigits(dayCapacity.awaiting)} منتظر تأیید · {toPersianDigits(dayCapacity.minutes)} دقیقه رزرو · {toPersianDigits(dayCapacity.pct)}٪ پر
+          </p>
+          <div className="flex gap-1.5">
+            {(["day", "list"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                aria-pressed={timelineView === v}
+                onClick={() => setTimelineView(v)}
+                className={`h-11 rounded-full px-4 text-sm font-normal ${timelineView === v ? "bg-primary text-primary-foreground" : "border border-border bg-card text-muted-foreground"}`}
+              >
+                {v === "day" ? "تایم‌لاین" : "فهرست"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {timelineView === "day" ? (
         <Timeline
           bookings={dayBookings}
           blockedTimes={dayBlockedTimes}
@@ -384,6 +437,47 @@ function OwnerDashboardContent() {
           onRemoveBlock={handleRemoveBlock}
           addons={addons}
         />
+        ) : (
+          <div className="rounded-none border border-border bg-card">
+            <div className="flex flex-wrap gap-1.5 border-b border-border p-3">
+              {[["all", "همه"], ["reserved", "رزرو شده"], ["confirmed", "تأیید شده"], ["in_progress", "در حال انجام"], ["completed", "انجام شده"], ["cancelled", "لغو شده"]].map(([v, label]) => (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={listFilter === v}
+                  onClick={() => setListFilter(v)}
+                  className={`h-11 rounded-full px-3.5 text-xs font-normal ${listFilter === v ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {listBookings.length === 0 ? (
+              <p className="p-6 text-center text-sm text-muted-foreground">نوبتی برای نمایش نیست.</p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {listBookings.map((b) => (
+                  <li key={b.id}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedBookingId(b.id)}
+                      className="flex w-full items-center gap-3 p-3 text-start"
+                      aria-label={`مشاهده نوبت ${b.customer_name}`}
+                    >
+                      <span className="w-14 shrink-0 text-sm font-normal tabular-nums">{toPersianDigits(b.start_time.slice(0, 5))}</span>
+                      <span className="min-w-0 flex-1">
+                        <b className="block truncate text-sm font-normal">{b.customer_name}</b>
+                        <small className="mt-0.5 block truncate text-xs text-muted-foreground">{b.service?.name || "نامعلوم"}</small>
+                      </span>
+                      <StatusPill status={b.status} />
+                      <span className="shrink-0 text-xs font-normal tabular-nums">{formatPrice(calculateBookingPrice(b, services, addons))}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
 
       </div>
@@ -404,6 +498,7 @@ function OwnerDashboardContent() {
           workingHours={workingHours}
           slotIntervalMinutes={salon?.slot_interval_minutes}
           slotBufferMinutes={salon?.slot_buffer_minutes}
+          knownCustomers={knownCustomers}
           onReserve={handleManualReserve}
           onClose={() => setShowManualReserve(false)}
         />
@@ -434,6 +529,34 @@ function OwnerDashboardContent() {
               toast.error(result.error || "خطا در لغو نوبت");
             }
             setSelectedBookingId(null);
+          }}
+          rescheduleContext={{
+            workingHours,
+            bookings,
+            blockedTimes,
+            specificDaysOff,
+            engine: {
+              slot_interval_minutes: salon.slot_interval_minutes,
+              slot_buffer_minutes: salon.slot_buffer_minutes,
+              proximity_window_hours: salon.proximity_window_hours,
+              early_extra_hours: salon.early_extra_hours,
+              late_extra_hours: salon.late_extra_hours,
+              expand_threshold: salon.expand_threshold,
+              allow_overflow: salon.allow_overflow,
+              overflow_minutes: salon.overflow_minutes,
+              optimization_mode: salon.optimization_mode,
+              suggestion_limit: salon.suggestion_limit,
+              min_useful_gap_minutes: salon.min_useful_gap_minutes,
+            },
+          }}
+          onReschedule={async (date_gregorian, start_time, end_time) => {
+            if (!selectedBooking) return { success: false, error: "نوبت یافت نشد" };
+            const result = await rescheduleBooking(selectedBooking.id, date_gregorian, start_time, end_time);
+            if (result.success) {
+              toast.success("نوبت جابه‌جا شد");
+              void refreshBookings("owner");
+            }
+            return result;
           }}
           onClose={() => setSelectedBookingId(null)}
         />

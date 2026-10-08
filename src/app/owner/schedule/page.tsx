@@ -7,7 +7,15 @@ import { toast } from "sonner";
 import { persianizeError } from "@/lib/error-sanitize";
 
 export default function OwnerSchedulePage() {
-  const { salon, workingHours, specificDaysOff, updateSalon } = useSalon();
+  const { salon, workingHours, specificDaysOff, services, bookings, blockedTimes, updateSalon } = useSalon();
+
+  /* Active bookings per date for the booked-day-off gate. */
+  const dayBookingCounts: Record<string, number> = {};
+  for (const b of bookings) {
+    if (b.status !== "reserved" && b.status !== "confirmed" && b.status !== "in_progress" && b.status !== "pending") continue;
+    const day = b.date_gregorian.split("T")[0];
+    dayBookingCounts[day] = (dayBookingCounts[day] || 0) + 1;
+  }
 
   const handleSave = async (hours: typeof workingHours, daysOff: string[], extra: { early_extra_hours: number; late_extra_hours: number; expand_threshold: number; proximity_window_hours: number; allow_overflow: boolean; overflow_minutes: number; slot_interval_minutes: number; slot_buffer_minutes: number; optimization_mode: "hybrid" | "legacy"; suggestion_limit: number; min_useful_gap_minutes: number }) => {
     try {
@@ -44,6 +52,8 @@ export default function OwnerSchedulePage() {
           optimizationMode={salon.optimization_mode ?? "hybrid"}
           suggestionLimit={salon.suggestion_limit ?? 3}
           minUsefulGapMinutes={salon.min_useful_gap_minutes ?? 30}
+          dayBookingCounts={dayBookingCounts}
+          previewContext={{ services, bookings, blockedTimes }}
           onSave={handleSave}
         />
       </div>

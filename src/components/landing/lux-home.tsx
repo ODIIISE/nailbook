@@ -16,6 +16,7 @@ import { gregorianToJalali, formatJalaliDateShort, toPersianDigits } from "@/lib
 import { useMenu } from "@/components/layout/menu-context";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { BookingFlow } from "@/components/booking/booking-flow";
+import { StoryViewer } from "@/components/landing/story-viewer";
 import styles from "./lux-home.module.css";
 
 const d = (v: string) => ({ "--d": v }) as CSSProperties;
@@ -44,7 +45,7 @@ const X_ICON = (
 
 export function LuxHome() {
   const router = useRouter();
-  const { salon, highlights, services, workingHours, bookings, blockedTimes, specificDaysOff } = useSalon();
+  const { salon, highlights, services, addons, workingHours, bookings, blockedTimes, specificDaysOff } = useSalon();
   const { openMenu } = useMenu();
 
   const [ready, setReady] = useState(false);
@@ -53,6 +54,7 @@ export function LuxHome() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [toastShow, setToastShow] = useState(false);
   const [lookbookOpen, setLookbookOpen] = useState(false);
+  const [storyIndex, setStoryIndex] = useState<number | null>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [addrOpen, setAddrOpen] = useState(false);
   const [videoBlocked, setVideoBlocked] = useState(false);
@@ -380,8 +382,27 @@ export function LuxHome() {
             close like any dialog; /book stays reachable by deep-link. */}
         <BookingSheetHost open={bookingOpen} onClose={() => setBookingOpen(false)} />
 
-        {/* Lookbook sheet — the nail-work portfolio experience */}
-        <BottomSheet open={lookbookOpen} onClose={() => setLookbookOpen(false)} title={lookbookTitle}>
+        {/* Lookbook sheet — grid opens the fullscreen story viewer */}
+        <BottomSheet open={lookbookOpen} onClose={() => { setLookbookOpen(false); setStoryIndex(null); }} title={lookbookTitle}>
+          {storyIndex !== null && highlights[storyIndex] ? (
+            <StoryViewer
+              highlights={highlights.slice().sort((a, b) => a.sort_order - b.sort_order)}
+              services={services}
+              addons={addons}
+              index={Math.min(storyIndex, highlights.length - 1)}
+              onIndexChange={setStoryIndex}
+              onBack={() => setStoryIndex(null)}
+              onBook={(preset) => {
+                setStoryIndex(null);
+                setLookbookOpen(false);
+                const params = new URLSearchParams();
+                if (preset.serviceId) params.set("service", preset.serviceId);
+                if (preset.addonIds?.length) params.set("addons", preset.addonIds.join(","));
+                if (preset.lookId) params.set("look", preset.lookId);
+                router.push(`/book?${params.toString()}`);
+              }}
+            />
+          ) : (
           <div dir="rtl" className={styles.sheetBody}>
             {highlights.length === 0 ? (
               <p className={styles.sheetEmpty}>هنوز نمونه‌کاری ثبت نشده است.</p>
@@ -389,8 +410,8 @@ export function LuxHome() {
               highlights
                 .slice()
                 .sort((a, b) => a.sort_order - b.sort_order)
-                .map((h) => (
-                  <button key={h.id} className={styles.lookCard} onClick={() => router.push(`/book?look=${h.id}`)}>
+                .map((h, i) => (
+                  <button key={h.id} className={styles.lookCard} onClick={() => setStoryIndex(i)} aria-label={`مشاهده ${h.name}`}>
                     <span className={styles.lookThumb}>
                       {h.cover_url && (
                         // eslint-disable-next-line @next/next/no-img-element -- cover thumbnails inside the Lux sheet
@@ -402,6 +423,7 @@ export function LuxHome() {
                 ))
             )}
           </div>
+          )}
         </BottomSheet>
 
         <div className={styles.grain} aria-hidden="true" />

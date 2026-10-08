@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { normalizeDigits } from "@/lib/digits";
-import { toPersianDigits } from "@/lib/jalali";
+import { toPersianDigits, formatPrice } from "@/lib/jalali";
 import { getIranWeekDay } from "@/lib/slots";
 import { resolveSlotInterval, resolveSlotBuffer } from "@/lib/salon-settings";
 import type { Service } from "@/lib/types";
@@ -19,6 +19,8 @@ interface ManualReserveModalProps {
   workingHours: WorkingHours;
   slotIntervalMinutes?: number;
   slotBufferMinutes?: number;
+  /** Past customers for quick-pick (derived from bookings by the caller). */
+  knownCustomers?: Array<{ name: string; phone: string }>;
   onReserve: (data: {
     customer_name: string;
     customer_phone: string;
@@ -54,6 +56,7 @@ export function ManualReserveModal({
   workingHours,
   slotIntervalMinutes = 15,
   slotBufferMinutes = 0,
+  knownCustomers = [],
   onReserve,
   onClose,
 }: ManualReserveModalProps) {
@@ -144,6 +147,25 @@ export function ManualReserveModal({
     endTime === expectedEndTime
   );
 
+  /* Quick-pick from past customers (v-2 search): match typed name/phone
+     against previous bookings so repeat customers fill in with one tap. */
+  const query = `${name.trim()}${normalizeDigits(phone)}`.trim();
+  const suggestions = useMemo(() => {
+    if (query.length < 2) return [];
+    const seen = new Set<string>();
+    const out: Array<{ name: string; phone: string }> = [];
+    for (const c of knownCustomers) {
+      if (out.length >= 5) break;
+      if (seen.has(c.phone)) continue;
+      if (c.name.includes(name.trim()) || normalizeDigits(c.phone).includes(normalizeDigits(phone))) {
+        if (normalizeDigits(c.phone) === normalizeDigits(phone) && c.name === name.trim()) continue;
+        seen.add(c.phone);
+        out.push(c);
+      }
+    }
+    return out;
+  }, [knownCustomers, name, phone, query]);
+
   const handleSubmit = async () => {
     if (!isValid || isSubmitting) return;
     setIsSubmitting(true);
@@ -188,6 +210,23 @@ export function ManualReserveModal({
           <p className="text-small text-muted-foreground mt-1">
             اگر شماره جدید باشد، کاربر خودکار ساخته می‌شود
           </p>
+          {suggestions.length > 0 && (
+            <div className="mt-1.5 overflow-hidden rounded-none border border-border" role="listbox" aria-label="مشتریان قبلی">
+              {suggestions.map((c) => (
+                <button
+                  key={c.phone}
+                  type="button"
+                  role="option"
+                  aria-selected="false"
+                  onClick={() => { setName(c.name); setPhone(c.phone); }}
+                  className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-start text-sm hover:bg-muted"
+                >
+                  <span className="font-normal">{c.name}</span>
+                  <span className="text-xs tabular-nums text-muted-foreground" dir="ltr">{toPersianDigits(c.phone)}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
@@ -265,7 +304,7 @@ export function ManualReserveModal({
 
       <div className="flex gap-2 mt-5">
         <Button onClick={handleSubmit} className="flex-1" disabled={!isValid || isSubmitting} aria-busy={isSubmitting}>
-          {isSubmitting ? "در حال ثبت..." : "ثبت رزرو"}
+          {isSubmitting ? "در حال ثبت..." : selectedService ? `ثبت رزرو · ${formatPrice(Number(selectedService.price))} تومان` : "ثبت رزرو"}
         </Button>
         <Button variant="outline" onClick={onClose} className="flex-1" disabled={isSubmitting}>
           انصراف

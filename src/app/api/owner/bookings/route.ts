@@ -268,3 +268,198 @@ export async function POST(request: NextRequest) {
     if (client) client.release();
   }
 }
+
+/**
+ * PATCH /api/owner/bookings
+ *
+ * Moves an existing booking to a new date/time, preserving its duration.
+ * Mirrors the POST validation (day-off, working hours, atomic overlap and
+ * block checks, self excluded) so a reschedule can never land where a new
+ * booking would be rejected. Only live bookings move — completed/cancelled
+ * stay untouched.
+ */
+export async function PATCH(request: NextRequest) {
+  let client;
+  try {
+    const owner = await verifyOwner(request);
+    if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+
+    const body = await request.json();
+    const { id, date_gregorian, start_time, end_time } = body;
+    if (!id || !date_gregorian || !start_time || !end_time) {
+      return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
+    }
+
+    const normStart = String(start_time).slice(0, 5);
+    const normEnd = String(end_time).slice(0, 5);
+    if (toMinutes(normEnd) <= toMinutes(normStart)) {
+      return NextResponse.json({ error: "ساعت پایان باید بعد از ساعت شروع باشد" }, { status: 400 });
+    }
+
+    const parsedDate = parseGregorianDateKey(String(date_gregorian));
+    if (
+      !Number.isFinite(parsedDate.getTime())
+      || parsedDate.toISOString().slice(0, 10) !== String(date_gregorian)
+    ) {
+      return NextResponse.json({ error: "تاریخ نامعتبر است" }, { status: 400 });
+    }
+
+    const salonId = await resolveSalonId();
+
+    // Load the booking to move (service/addons define the expected duration).
+    const existingResult = salonId
+      ? await sql.query(
+          `SELECT id, service_id, selected_addons, status, date_gregorian FROM bookings WHERE id = $1 AND salon_id = $2 LIMIT 1`,
+          [id, salonId]
+        )
+      : await sql.query(`SELECT id, service_id, selected_addons, status, date_gregorian FROM bookings WHERE id = $1 LIMIT 1`, [id]);
+    const existing = existingResult.rows[0];
+    if (!existing) {
+      return NextResponse.json({ error: "نوبت یافت نشد" }, { status: 404 });
+    }
+    if (existing.status === "cancelled" || existing.status === "completed") {
+      return NextResponse.json({ error: "این نوبت قابل جابه‌جایی نیست" }, { status: 409 });
+    }
+
+    // Same duration math as POST: the move preserves the booked length.
+    const settingsResult = salonId
+      ? await sql.query(
+          "SELECT working_hours, specific_days_off, allow_overflow, overflow_minutes, slot_buffer_minutes, slot_interval_minutes FROM salons WHERE id = $1",
+          [salonId]
+        )
+      : await sql`SELECT working_hours, specific_days_off, allow_overflow, overflow_minutes, slot_buffer_minutes, slot_interval_minutes FROM salon_info LIMIT 1`;
+    const settings = settingsResult.rows[0] || {};
+    const svcResult = salonId
+      ? await sql.query("SELECT duration_minutes FROM services WHERE id = $1 AND salon_id = $2 LIMIT 1", [existing.service_id, salonId])
+      : await sql.query("SELECT duration_minutes FROM services WHERE id = $1 LIMIT 1", [existing.service_id]);
+    const addonIds: string[] = Array.isArray(existing.selected_addons) ? existing.selected_addons.filter((a: unknown): a is string => typeof a === "string") : [];
+    const addonDurationResult = addonIds.length > 0
+      ? salonId
+        ? await sql.query("SELECT duration_minutes FROM addons WHERE id = ANY($1) AND salon_id = $2", [addonIds, salonId])
+        : await sql.query("SELECT duration_minutes FROM addons WHERE id = ANY($1)", [addonIds])
+      : { rows: [] as Array<{ duration_minutes: number | string }> };
+    const rawDuration = Number(svcResult.rows[0]?.duration_minutes || 0)
+      + addonDurationResult.rows.reduce((sum, row) => sum + Number(row.duration_minutes || 0), 0);
+    const interval = resolveSlotInterval(settings.slot_interval_minutes);
+    const buffer = resolveSlotBuffer(settings.slot_buffer_minutes);
+    const expectedDuration = Math.ceil((rawDuration + buffer) / interval) * interval;
+    if (toMinutes(normEnd) - toMinutes(normStart) !== expectedDuration) {
+      return NextResponse.json({ error: "مدت زمان با تنظیمات سالن مطابقت ندارد" }, { status: 400 });
+    }
+
+    const dayOffs = Array.isArray(settings.specific_days_off) ? settings.specific_days_off : [];
+    if (dayOffs.includes(date_gregorian)) {
+      return NextResponse.json({ error: "این روز تعطیل است" }, { status: 409 });
+    }
+    const dateParts = date_gregorian.split("-").map(Number);
+    const weekday = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2], 12)).getUTCDay();
+    const dayKeys = ["sat", "sun", "mon", "tue", "wed", "thu", "fri"];
+    const dayHours = settings.working_hours?.[dayKeys[weekday === 6 ? 0 : weekday + 1]];
+    if (dayHours) {
+      const hardClose = toMinutes(dayHours.close) + (settings.allow_overflow ? Number(settings.overflow_minutes || 0) : 0);
+      if (toMinutes(normStart) < toMinutes(dayHours.open) || toMinutes(normEnd) > hardClose) {
+        return NextResponse.json({ error: "ساعت خارج از ساعات کاری است" }, { status: 409 });
+      }
+    } else if (settings.working_hours) {
+      return NextResponse.json({ error: "این روز تعطیل است" }, { status: 409 });
+    }
+
+    client = await sql.connect();
+    await client.query("BEGIN");
+    await client.query(
+      "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+      [`${salonId ?? "legacy"}:${date_gregorian}`]
+    );
+
+    // Lock the row first: a concurrent status change (cancel/complete) racing
+    // this move must serialize rather than silently move a dead booking.
+    const lockedResult = salonId
+      ? await client.query(`SELECT id, status FROM bookings WHERE id = $1 AND salon_id = $2 FOR UPDATE`, [id, salonId])
+      : await client.query(`SELECT id, status FROM bookings WHERE id = $1 FOR UPDATE`, [id]);
+    const locked = lockedResult.rows[0];
+    if (!locked) {
+      await client.query("ROLLBACK");
+      return NextResponse.json({ error: "نوبت یافت نشد" }, { status: 404 });
+    }
+    if (locked.status === "cancelled" || locked.status === "completed") {
+      await client.query("ROLLBACK");
+      return NextResponse.json({ error: "این نوبت قابل جابه‌جایی نیست" }, { status: 409 });
+    }
+
+    const { rows: conflicts } = await client.query(
+      salonId
+        ? `SELECT id FROM bookings
+       WHERE salon_id = $1 AND date_gregorian = $2::date
+       AND status IN ('reserved', 'confirmed', 'in_progress')
+       AND id <> $5
+       AND start_time < ($3 || ':00')::time
+       AND end_time > ($4 || ':00')::time`
+        : `SELECT id FROM bookings
+       WHERE date_gregorian = $1::date
+       AND status IN ('reserved', 'confirmed', 'in_progress')
+       AND id <> $4
+       AND start_time < ($2 || ':00')::time
+       AND end_time > ($3 || ':00')::time`,
+      salonId ? [salonId, date_gregorian, normEnd, normStart, id] : [date_gregorian, normEnd, normStart, id]
+    );
+    if (conflicts.length > 0) {
+      await client.query("ROLLBACK");
+      return NextResponse.json({ error: "این زمان قبلاً رزرو شده", conflict: true }, { status: 409 });
+    }
+
+    const { rows: blocked } = await client.query(
+      salonId
+        ? `SELECT id FROM blocked_times
+       WHERE salon_id = $1 AND date_gregorian = $2::date
+       AND start_time < ($3 || ':00')::time
+       AND end_time > ($4 || ':00')::time`
+        : `SELECT id FROM blocked_times
+       WHERE date_gregorian = $1::date
+       AND start_time < ($2 || ':00')::time
+       AND end_time > ($3 || ':00')::time`,
+      salonId ? [salonId, date_gregorian, normEnd, normStart] : [date_gregorian, normEnd, normStart]
+    );
+    if (blocked.length > 0) {
+      await client.query("ROLLBACK");
+      return NextResponse.json({ error: "این زمان مسدود شده", conflict: true }, { status: 409 });
+    }
+
+    const { rows: updated } = await client.query(
+      salonId
+        ? `UPDATE bookings SET date_gregorian = $2::date, date = $2, start_time = ($3 || ':00')::time, end_time = ($4 || ':00')::time
+           WHERE id = $1 AND salon_id = $5
+           RETURNING id, TO_CHAR(date_gregorian, 'YYYY-MM-DD') as date_gregorian, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time`
+        : `UPDATE bookings SET date_gregorian = $2::date, date = $2, start_time = ($3 || ':00')::time, end_time = ($4 || ':00')::time
+           WHERE id = $1
+           RETURNING id, TO_CHAR(date_gregorian, 'YYYY-MM-DD') as date_gregorian, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time`,
+      salonId ? [id, date_gregorian, normStart, normEnd, salonId] : [id, date_gregorian, normStart, normEnd]
+    );
+
+    await client.query("COMMIT");
+
+    logActivity({
+      eventType: "booking_rescheduled",
+      entityType: "booking",
+      entityId: id,
+      description: `مدیر نوبت را به ${date_gregorian} ${normStart} منتقل کرد`,
+      metadata: { date_gregorian, start_time: normStart, end_time: normEnd },
+    });
+
+    const moved = updated[0];
+    return NextResponse.json({
+      success: true,
+      booking_id: moved.id,
+      date_gregorian: moved.date_gregorian,
+      start_time: moved.start_time,
+      end_time: moved.end_time,
+    });
+  } catch (error) {
+    if (client) {
+      try { await client.query("ROLLBACK"); } catch { /* ignore */ }
+    }
+    console.error("[OWNER-RESCHED] Error:", error);
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+  } finally {
+    if (client) client.release();
+  }
+}

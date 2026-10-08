@@ -686,8 +686,136 @@
   padding: 0 2px;
 }
 
-/* ── Entrance choreography ────────────────────────────── */
-.rv {
+/* ── Story viewer (lookbook fullscreen) ─────────────────── */
+.storyWrap {
+  position: relative;
+  min-height: 70dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 0;
+  background: #000;
+}
+
+.storyBars {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  z-index: 3;
+  display: flex;
+  gap: 4px;
+  direction: ltr;
+}
+
+.storyBar {
+  flex: 1;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.28);
+  overflow: hidden;
+}
+
+.storyBarDone {
+  display: block;
+  height: 100%;
+  background: #fff;
+}
+
+.storyBarActive {
+  display: block;
+  height: 100%;
+  background: #fff;
+  transform-origin: left;
+  animation: storyFill 5s linear both;
+}
+
+@keyframes storyFill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.storyTop {
+  position: absolute;
+  top: 22px;
+  left: 8px;
+  right: 8px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.storyTop .iconBtn {
+  color: #fff;
+}
+
+.storyCount {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  padding-inline-end: 8px;
+}
+
+.storyImg {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-height: 62dvh;
+  object-fit: cover;
+  display: block;
+  animation: storyZoom 5.2s linear both;
+}
+
+@keyframes storyZoom {
+  from { transform: scale(1.08); }
+  to { transform: scale(1); }
+}
+
+.storyPrev,
+.storyNext {
+  position: absolute;
+  top: 60px;
+  bottom: 150px;
+  width: 40%;
+  z-index: 2;
+  background: transparent;
+  border: 0;
+}
+
+.storyPrev {
+  right: 0;
+}
+
+.storyNext {
+  left: 0;
+  width: 60%;
+}
+
+.storyFoot {
+  padding: 14px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg);
+}
+
+.storyTitle {
+  font-size: 20px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.storyMeta {
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--muted);
+}
+
+.storyFoot .btn {
+  margin-top: 8px;
+  width: 100%;
+}
+
+/* ── Entrance choreography ────────────────────────────── */.rv {
   opacity: 0;
 }
 
@@ -846,6 +974,10 @@
    an instant image change. */
 @media (prefers-reduced-motion: reduce) {
   .pulse {
+    animation: none;
+  }
+  .storyBarActive,
+  .storyImg {
     animation: none;
   }
   .rootReady .rv,

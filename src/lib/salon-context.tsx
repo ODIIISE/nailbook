@@ -21,6 +21,7 @@ import {
   insertBooking,
   insertOwnerBooking,
   cancelBooking as cancelBookingApi,
+  rescheduleBooking as rescheduleBookingApi,
   updateWorkingHours as saveWorkingHours,
   fetchHighlights,
   upsertHighlight,
@@ -54,6 +55,7 @@ interface SalonContextType {
   addBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   addOwnerBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   cancelBooking: (bookingId: string) => Promise<{ success: boolean; error?: string }>;
+  rescheduleBooking: (bookingId: string, date_gregorian: string, start_time: string, end_time: string) => Promise<{ success: boolean; error?: string }>;
   refreshBookings: (scope?: "owner" | "default") => Promise<void>;
   addHighlight: (highlight: Highlight) => Promise<void>;
   updateHighlight: (highlight: Highlight) => Promise<void>;
@@ -100,6 +102,7 @@ const EMPTY_SALON_CONTEXT: SalonContextType = {
   addBooking: async () => ({ success: false }),
   addOwnerBooking: async () => ({ success: false }),
   cancelBooking: async () => ({ success: false }),
+  rescheduleBooking: async () => ({ success: false }),
   refreshBookings: async () => {},
   addHighlight: async () => {},
   updateHighlight: async () => {},
@@ -435,6 +438,30 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const handleRescheduleBooking = useCallback(async (
+    bookingId: string, date_gregorian: string, start_time: string, end_time: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    // Snapshot the row for rollback (same ref-first pattern as cancel).
+    const original = bookingsRef.current.find((b) => b.id === bookingId);
+    setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, date_gregorian, start_time, end_time } : b));
+    try {
+      const moved = await rescheduleBookingApi(bookingId, date_gregorian, start_time, end_time);
+      // Adopt server-normalized values (trailing :00 trimmed there).
+      setBookings((prev) => prev.map((b) => b.id === bookingId
+        ? { ...b, date_gregorian: moved.date_gregorian, start_time: moved.start_time, end_time: moved.end_time } : b));
+      return { success: true };
+    } catch (e) {
+      devLog("Failed to reschedule booking:", e);
+      if (original) {
+        setBookings((prev) => prev.map((b) => b.id === bookingId
+          ? { ...b, date_gregorian: original.date_gregorian, start_time: original.start_time, end_time: original.end_time } : b));
+      }
+      // Surface the server guard text (overlap/block/hours) so the owner can
+      // pick another slot instead of retrying blindly.
+      return { success: false, error: e instanceof Error ? persianizeError(e, "جابه‌جایی نوبت انجام نشد — لطفاً زمان دیگری انتخاب کنید") : undefined };
+    }
+  }, []);
+
   const refreshBookings = useCallback(async (scope: "owner" | "default" = "default") => {
     const requestId = ++bookingsRequestRef.current;
     const data = await fetchBookings(scope);
@@ -698,6 +725,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       addBooking: handleAddBooking,
       addOwnerBooking: handleAddOwnerBooking,
       cancelBooking: handleCancelBooking,
+      rescheduleBooking: handleRescheduleBooking,
       refreshBookings: refreshBookings,
       addHighlight: handleAddHighlight,
       updateHighlight: handleUpdateHighlight,
@@ -719,6 +747,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     handleAddBooking,
     handleAddOwnerBooking,
     handleCancelBooking,
+    handleRescheduleBooking,
     refreshBookings,
     handleAddHighlight,
     handleUpdateHighlight,

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchBookings, fetchSalonInfo, fetchServices } from "./data";
+import { fetchBookings, fetchSalonInfo, fetchServices, rescheduleBooking } from "./data";
 
 const jsonResponse = (body: unknown, init: ResponseInit = {}) =>
   new Response(JSON.stringify(body), {
@@ -65,8 +65,7 @@ describe("client data readers", () => {
     }));
   });
 
-  it("does not throw when a service or salon response has the wrong shape", async () => {
-    vi.stubGlobal("fetch", vi.fn()
+  it("does not throw when a service or salon response has the wrong shape", async () => {    vi.stubGlobal("fetch", vi.fn()
       .mockResolvedValueOnce(jsonResponse({ error: "خطای سرور" }, { status: 500 }))
       .mockResolvedValueOnce(jsonResponse({ id: "salon-1", name: null, working_hours: null })));
 
@@ -78,5 +77,32 @@ describe("client data readers", () => {
       name: "",
       working_hours: {},
     }));
+  });
+
+  it("moves a booking via PATCH /api/owner/bookings and adopts server times", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({ success: true, booking_id: "b1", date_gregorian: "2026-08-01", start_time: "14:00:00", end_time: "15:00:00" })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(rescheduleBooking("b1", "2026-08-01", "14:00", "15:00")).resolves.toEqual({
+      date_gregorian: "2026-08-01",
+      start_time: "14:00",
+      end_time: "15:00",
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/owner/bookings",
+      expect.objectContaining({
+        method: "PATCH",
+        body: JSON.stringify({ id: "b1", date_gregorian: "2026-08-01", start_time: "14:00", end_time: "15:00" }),
+      })
+    );
+  });
+
+  it("surfaces the server guard text when a move is rejected", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+      jsonResponse({ error: "این زمان قبلاً رزرو شده" }, { status: 409 })
+    ));
+    await expect(rescheduleBooking("b1", "2026-08-01", "14:00", "15:00")).rejects.toThrow("این زمان قبلاً رزرو شده");
   });
 });
