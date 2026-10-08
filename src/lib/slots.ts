@@ -565,7 +565,7 @@ export function getNearestAvailableSlot(
   slotIntervalMinutes: number,
   bufferMinutes: number,
   existingBookings: Array<{ date_gregorian: string; start_time: string; end_time: string }>,
-  activeLocks: Array<{ date_gregorian: string; start_time: string; expires_at: string }>,
+  activeLocks: Array<{ date_gregorian: string; start_time: string; end_time?: string; expires_at?: string }>,
   config: {
     proximity_window_hours?: number;
     early_extra_hours?: number;
@@ -609,7 +609,7 @@ export function getNearestAvailableSlot(
 
     const dayLocks = activeLocks
       .filter((l) => l.date_gregorian === dateStr)
-      .map((l) => ({ start_time: l.start_time, expires_at: l.expires_at }));
+      .map((l) => ({ start_time: l.start_time, end_time: l.end_time, expires_at: l.expires_at }));
 
     const slots = generateTimeSlots(
       workingHours, checkDate, serviceDurationMinutes, addonsDurationMinutes,

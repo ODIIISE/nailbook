@@ -49,6 +49,8 @@ const TIME_OF_DAY_META = {
 interface BookingFlowProps {
   /** Standalone /book route page. */
   initialServiceId?: string | null;
+  /** Rebook preset (?addons=a1,a2) — filtered to the service's active add-ons. */
+  initialAddons?: string[] | null;
   lookId?: string | null;
   /** Inside a bottom sheet: fill the sheet height (sticky footer included)
      instead of the page frame, and skip the title block (the sheet header
@@ -56,7 +58,7 @@ interface BookingFlowProps {
   inSheet?: boolean;
 }
 
-export function BookingFlow({ initialServiceId = null, lookId = null }: BookingFlowProps) {
+export function BookingFlow({ initialServiceId = null, initialAddons = null, lookId = null }: BookingFlowProps) {
   const router = useRouter();
   const { salon, workingHours, services, addons, highlights, bookings, blockedTimes, addBooking, refreshBookings, specificDaysOff, loaded, loadFailed } = useSalon();
   const { user, sendOtp, verifyOtp, updateProfile } = useAuth();
@@ -68,7 +70,7 @@ export function BookingFlow({ initialServiceId = null, lookId = null }: BookingF
   const [step, setStep] = useState<Step>("service");
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(initialServiceId);
   const [expandedServiceId, setExpandedServiceId] = useState<string | null>(initialServiceId);
-  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [selectedAddons, setSelectedAddons] = useState<string[]>(() => initialAddons ?? []);
   const [selectedDate, setSelectedDate] = useState<Date>(() => parseGregorianDateKey(getTehranDateKey(new Date())));
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState("");

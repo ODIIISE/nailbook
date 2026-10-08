@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -10,6 +11,8 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { useSalon } from "@/lib/salon-context";
+import { getNearestAvailableSlot } from "@/lib/slots";
+import { gregorianToJalali, formatJalaliDateShort, toPersianDigits } from "@/lib/jalali";
 import { useMenu } from "@/components/layout/menu-context";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { BookingFlow } from "@/components/booking/booking-flow";
@@ -41,7 +44,7 @@ const X_ICON = (
 
 export function LuxHome() {
   const router = useRouter();
-  const { salon, highlights } = useSalon();
+  const { salon, highlights, services, workingHours, bookings, blockedTimes, specificDaysOff } = useSalon();
   const { openMenu } = useMenu();
 
   const [ready, setReady] = useState(false);
@@ -172,6 +175,39 @@ export function LuxHome() {
   const heroKicker = salon?.homepage_kicker?.trim() || "NAIL · CARE · RITUAL";
   const ctaLabel = salon?.homepage_cta_label?.trim() || "رزرو نوبت";
   const microCopy = salon?.homepage_micro?.trim() || "";
+  /* Nearest free slot across active services (v-2 next-chip): display-only
+     14-day scan through the same engine the booking flow uses. */
+  const nearestSlot = useMemo(() => {
+    const active = services.filter((s) => s.is_active);
+    if (!active.length) return null;
+    const existing = bookings
+      .filter((b) => b.status === "reserved" || b.status === "confirmed" || b.status === "in_progress" || b.status === "pending")
+      .map((b) => ({ date_gregorian: b.date_gregorian.split("T")[0], start_time: b.start_time, end_time: b.end_time }));
+    const locks = blockedTimes.map((l) => ({ date_gregorian: l.date_gregorian.split("T")[0], start_time: l.start_time, end_time: l.end_time }));
+    const cfg = {
+      proximity_window_hours: salon.proximity_window_hours,
+      early_extra_hours: salon.early_extra_hours,
+      late_extra_hours: salon.late_extra_hours,
+      expand_threshold: salon.expand_threshold,
+      allow_overflow: salon.allow_overflow,
+      overflow_minutes: salon.overflow_minutes,
+      optimization_mode: salon.optimization_mode,
+      suggestion_limit: salon.suggestion_limit,
+      min_useful_gap_minutes: salon.min_useful_gap_minutes,
+    };
+    let best: { date: Date; time: string } | null = null;
+    for (const svc of active) {
+      const r = getNearestAvailableSlot(
+        workingHours, Number(svc.duration_minutes), 0,
+        salon.slot_interval_minutes, salon.slot_buffer_minutes,
+        existing, locks, cfg, specificDaysOff,
+      );
+      if (r && (!best || r.date.getTime() < best.date.getTime() || (r.date.getTime() === best.date.getTime() && r.time < best.time))) best = r;
+    }
+    if (!best) return null;
+    const j = gregorianToJalali(best.date);
+    return { dateLabel: formatJalaliDateShort(j.jy, j.jm, j.jd), timeLabel: toPersianDigits(best.time) };
+  }, [services, workingHours, bookings, blockedTimes, specificDaysOff, salon]);
   const instagramUrl = salon?.instagram_handle
     ? `https://instagram.com/${salon.instagram_handle.replace(/^@/, "")}`
     : null;
@@ -266,9 +302,31 @@ export function LuxHome() {
 
         {/* CTAs — pinned to the bottom of the device */}
         <footer className={styles.cta}>
+          {nearestSlot && (
+            <button dir="rtl" type="button" className={`${styles.nextChip} ${styles.rv}`} style={d(".75s")} onClick={() => setBookingOpen(true)} aria-label={`نزدیک‌ترین وقت خالی: ${nearestSlot.dateLabel}، ${nearestSlot.timeLabel}`}>
+              <span className={styles.pulse} aria-hidden="true" />
+              <span className={styles.nextChipLabel}>نزدیک‌ترین وقت خالی</span>
+              <span className={styles.nextChipTime}>{nearestSlot.dateLabel}، {nearestSlot.timeLabel}</span>
+            </button>
+          )}
           {addrOpen && (
             <div dir="rtl" lang="fa" className={styles.addrCard} role="status">
-              <span>{salon?.address?.trim() ? salon.address : "آدرس سالن ثبت نشده است"}</span>
+              <div className={styles.addrText}>
+                <span>{salon?.address?.trim() ? salon.address : "آدرس سالن ثبت نشده است"}</span>
+                {salon?.working_hours_text?.trim() ? (
+                  <span className={styles.addrHours}>{salon.working_hours_text}</span>
+                ) : null}
+                {salon?.address?.trim() ? (
+                  <a
+                    className={styles.addrNav}
+                    target="_blank"
+                    rel="noreferrer"
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.address)}`}
+                  >
+                    مسیریابی
+                  </a>
+                ) : null}
+              </div>
               <button className={styles.addrClose} aria-label="بستن" onClick={closeAddress}>{X_ICON}</button>
             </div>
           )}

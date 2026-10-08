@@ -148,6 +148,18 @@ export default function ProfilePage() {
   const getServiceName = (serviceId: string) => services.find((s) => s.id === serviceId)?.name || "نامعلوم";
   const getServicePrice = (serviceId: string) => services.find((s) => s.id === serviceId)?.price ?? null;
 
+  /* Lifetime stats (v-2 profile): completed visits + spend, from real bookings. */
+  const myBookings = useMemo(() => {
+    if (!user) return [];
+    return bookings.filter((b) => b.user_id === user.id || b.customer_phone === user.phone);
+  }, [bookings, user]);
+  const completedCount = useMemo(() => myBookings.filter((b) => b.status === "completed").length, [myBookings]);
+  const lifetimeSpend = useMemo(() => myBookings
+    .filter((b) => b.status === "completed")
+    .reduce((sum, b) => sum + Number(b.price_total ?? getServicePrice(b.service_id) ?? 0), 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [myBookings]);
+
   const handleCancelBooking = async (id: string) => {
     if (confirmingCancel !== id) {
       setConfirmingCancel(id);
@@ -234,6 +246,17 @@ export default function ProfilePage() {
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
         <div className="mx-auto my-2.5 flex h-20 w-20 items-center justify-center rounded-full border border-border bg-muted text-2xl font-normal text-foreground" aria-hidden="true">{initial}</div>
+
+        <div className="mt-4 flex items-stretch justify-center gap-8" aria-label="آمار نوبت‌ها">
+          <div className="text-center">
+            <div className="text-2xl font-light tabular-nums">{toPersianDigits(completedCount)}</div>
+            <div className="mt-1 text-xs text-muted-foreground">نوبت انجام‌شده</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-light tabular-nums">{compactToman(lifetimeSpend)}</div>
+            <div className="mt-1 text-xs text-muted-foreground">مجموع خرید</div>
+          </div>
+        </div>
 
         <section className="overflow-hidden rounded-none border border-border bg-card" aria-labelledby="profile-details-title">
           <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/50 px-4 pb-3 pt-4">

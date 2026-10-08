@@ -12,7 +12,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { useBookingsPolling } from "@/lib/hooks/use-bookings-polling";
 import { gregorianToJalali, toPersianDigits, formatJalaliTime } from "@/lib/jalali";
-import { parseGregorianDateKey } from "@/lib/time";
+import { parseGregorianDateKey, getTehranNow } from "@/lib/time";
 import { compactToman } from "@/lib/pricing";
 import type { Booking } from "@/lib/types";
 
@@ -48,10 +48,40 @@ export default function BookingsPage() {
   const getAddonNames = (addonIds: string[]) => addonIds.map((id) => addons.find((a) => a.id === id)?.name || "").filter(Boolean);
   const getServicePrice = (serviceId: string) => services.find((s) => s.id === serviceId)?.price ?? null;
 
+  /* Upcoming / past split (v-2 پیش‌رو / گذشته tabs). Upcoming = live status
+     and end time still ahead in Tehran; everything else is history. */
+  const [tab, setTab] = useState<"up" | "past">("up");
+  const now = getTehranNow();
+  const nowKey = now.dateKey;
+  const nowMinutes = now.minutes;
+  const isUpcoming = (b: Booking) => {
+    if (!["reserved", "confirmed", "in_progress", "pending"].includes(b.status)) return false;
+    const day = b.date_gregorian.split("T")[0];
+    if (day !== nowKey) return day > nowKey;
+    const [h, m] = b.end_time.split(":").map(Number);
+    return (h || 0) * 60 + (m || 0) > nowMinutes;
+  };
+  const upBookings = useMemo(() => myBookings.filter(isUpcoming).sort((a, b) =>
+    (a.date_gregorian + a.start_time).localeCompare(b.date_gregorian + b.start_time),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ), [myBookings, nowKey, nowMinutes]);
+  const pastBookings = useMemo(() => myBookings.filter((b) => !isUpcoming(b)).sort((a, b) =>
+    (b.date_gregorian + b.start_time).localeCompare(a.date_gregorian + a.start_time),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ), [myBookings, nowKey, nowMinutes]);
+  const visibleBookings = tab === "up" ? upBookings : pastBookings;
+
+  const rebook = (b: Booking) => {
+    const params = new URLSearchParams();
+    if (b.service_id) params.set("service", b.service_id);
+    if (b.selected_addons?.length) params.set("addons", b.selected_addons.join(","));
+    router.push(`/book?${params.toString()}`);
+  };
+
   const groupedByDate = useMemo(() => {
     const groups: { date: string; jalaliStr: string; bookings: Booking[] }[] = [];
     const map = new Map<string, Booking[]>();
-    for (const b of myBookings) {
+    for (const b of visibleBookings) {
       const key = b.date_gregorian;
       if (!map.has(key)) {
         const jalali = gregorianToJalali(parseGregorianDateKey(key));
@@ -62,7 +92,7 @@ export default function BookingsPage() {
       map.get(key)!.push(b);
     }
     return groups;
-  }, [myBookings]);
+  }, [visibleBookings]);
 
   const goBack = () => {
     window.dispatchEvent(new Event("nailbook:back"));
@@ -140,6 +170,20 @@ export default function BookingsPage() {
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
+        <div role="tablist" aria-label="نوبت‌ها" className="mb-3 flex gap-2">
+          {(["up", "past"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              aria-selected={tab === t}
+              onClick={() => setTab(t)}
+              className={`h-11 flex-1 rounded-full text-sm font-normal ${tab === t ? "bg-primary text-primary-foreground" : "border border-border bg-card text-muted-foreground"}`}
+            >
+              {t === "up" ? `پیش‌رو (${toPersianDigits(upBookings.length)})` : `گذشته (${toPersianDigits(pastBookings.length)})`}
+            </button>
+          ))}
+        </div>
         <section
           className="relative mb-3 flex items-center gap-2 overflow-hidden rounded-none border border-border bg-card p-3"
           aria-labelledby="booking-history-title"
@@ -156,19 +200,19 @@ export default function BookingsPage() {
             {toPersianDigits(myBookings.length)}
           </span>
         </section>
-        {myBookings.length === 0 ? (
+        {visibleBookings.length === 0 ? (
             <div className="mt-3 rounded-none border border-border bg-card p-6 text-center">
               <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-none bg-muted text-muted-foreground">
                 <Calendar className="h-6 w-6" aria-hidden="true" />
               </div>
-              <h3 className="text-sm font-normal">نوبتی ندارید</h3>
-              <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">هنوز نوبتی رزرو نکرده‌اید. همین حالا اولین نوبت خود را بگیرید.</p>
+              <h3 className="text-sm font-normal">{tab === "up" ? "هنوز نوبتی ندارید." : "سابقه‌ای ثبت نشده."}</h3>
+              <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">{tab === "up" ? "هنوز نوبتی رزرو نکرده‌اید. همین حالا اولین نوبت خود را بگیرید." : "نوبت‌های گذشته شما اینجا نمایش داده می‌شود."}</p>
               <button
                 type="button"
                 className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-normal text-primary-foreground"
-                onClick={() => router.push("/")}
+                onClick={() => router.push(tab === "up" ? "/" : "/book")}
               >
-                رزرو نوبت
+                {tab === "up" ? "رزرو نوبت" : "رزرو وقت"}
               </button>
             </div>
           ) : (
@@ -229,6 +273,7 @@ export default function BookingsPage() {
           booking={selectedBooking}
           onClose={() => setSelectedBooking(null)}
           onCancel={handleCancel}
+          onRebook={() => rebook(selectedBooking)}
           getServiceName={getServiceName}
           getAddonNames={getAddonNames}
           getServicePrice={getServicePrice}
@@ -243,6 +288,7 @@ function BookingDetailSheet({
   booking,
   onClose,
   onCancel,
+  onRebook,
   getServiceName,
   getAddonNames,
   getServicePrice,
@@ -250,6 +296,7 @@ function BookingDetailSheet({
   booking: Booking;
   onClose: () => void;
   onCancel: (id: string) => Promise<boolean>;
+  onRebook: () => void;
   getServiceName: (id: string) => string;
   getAddonNames: (ids: string[]) => string[];
   getServicePrice: (id: string) => number | null;
@@ -338,6 +385,15 @@ function BookingDetailSheet({
       </div>
 
       <div className="mt-1 flex flex-col gap-2.5">
+        {!canCancel && (
+          <button
+            type="button"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-none border border-border bg-card text-sm font-normal"
+            onClick={onRebook}
+          >
+            رزرو دوباره
+          </button>
+        )}
         {canCancel && !confirming && (
           <button
             type="button"

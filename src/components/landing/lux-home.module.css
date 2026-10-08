@@ -342,6 +342,47 @@
   text-align: center;
 }
 
+/* Nearest-slot chip (v-2 next-chip): one-tap jump to booking. */
+.nextChip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 auto 2px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.06));
+  color: var(--ink);
+  font-family: 'Estedad', 'Vazirmatn', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.nextChipLabel {
+  color: var(--muted);
+}
+
+.nextChipTime {
+  font-variant-numeric: tabular-nums;
+}
+
+.pulse {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--gold);
+  animation: pulseDot 2.4s var(--ease) infinite;
+}
+
+@keyframes pulseDot {
+  0% { box-shadow: 0 0 0 0 rgba(128, 128, 128, 0.45); }
+  70% { box-shadow: 0 0 0 10px rgba(128, 128, 128, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(128, 128, 128, 0); }
+}
+
 /* ── Background clip + legibility veil ─────────────────── */
 /* The video is the page backdrop, so it sits in the same z-0 sub-stack as the
    vignette and is fully covered by .videoScrim, which is the only tint that
@@ -552,6 +593,30 @@
   flex: 1;
 }
 
+.addrText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.addrHours {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.addrNav {
+  margin-top: 6px;
+  align-self: center;
+  padding: 6px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 14px;
+  text-decoration: none;
+}
+
 @keyframes addrIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
@@ -756,6 +821,10 @@
     display: none;
   }
 
+  .nextChip {
+    display: none;
+  }
+
   .filmLabel {
     display: none;
   }
@@ -776,6 +845,9 @@
    visible end-state of the entrance choreography and makes the slideshow
    an instant image change. */
 @media (prefers-reduced-motion: reduce) {
+  .pulse {
+    animation: none;
+  }
   .rootReady .rv,
   .rootReady .rvBlur,
   .rootReady .rvPop,
