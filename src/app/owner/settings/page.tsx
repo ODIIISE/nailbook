@@ -6,6 +6,7 @@ import { SalonGuard } from "@/components/ui/salon-guard";
 import { useSalon } from "@/lib/salon-context";
 import { toast } from "sonner";
 import Image from "next/image";
+import { toPersianDigits } from "@/lib/jalali";
 import { Save, Camera, Phone, FileText, Sparkles, Video } from "lucide-react";
 
 export default function OwnerSettingsPage() {
@@ -348,7 +349,7 @@ export default function OwnerSettingsPage() {
 
       <section className="panel">
         <div className="row" style={{ gap: 8, marginBottom: 4 }}>
-          <FileText className="h-4 w-4 text-primary" />
+          <FileText size={16} strokeWidth={1.5} aria-hidden="true" style={{ color: "var(--faint)" }} />
           <h3 style={{ fontSize: 17 }}>اطلاعات پایه</h3>
         </div>
 
@@ -370,7 +371,7 @@ export default function OwnerSettingsPage() {
 
       <section className="panel">
         <div className="row" style={{ gap: 8, marginBottom: 4 }}>
-          <Phone className="h-4 w-4 text-primary" />
+          <Phone size={16} strokeWidth={1.5} aria-hidden="true" style={{ color: "var(--faint)" }} />
           <h3 style={{ fontSize: 17 }}>اطلاعات تماس</h3>
         </div>
 
@@ -402,47 +403,47 @@ export default function OwnerSettingsPage() {
 
       <section className="panel">
         <div className="row" style={{ gap: 8, marginBottom: 4 }}>
-          <Camera className="h-4 w-4 text-primary" />
+          <Camera size={16} strokeWidth={1.5} aria-hidden="true" style={{ color: "var(--faint)" }} />
           <h3 style={{ fontSize: 17 }}>تصویر صفحه اصلی</h3>
         </div>
-        <p className="text-small text-muted-foreground">این تصویر جدا از لوگو است و داخل دایره پروفایل صفحه اصلی نمایش داده می‌شود؛ مثلاً عکس دست یا نمونه کار ناخن.</p>
-        <div className="flex items-center gap-4">
-          <div className="relative h-20 w-20 overflow-hidden rounded-full bg-muted">
-            <input ref={portraitFileInputRef} type="file" accept="image/*" onChange={handlePortraitFileSelect} className="hidden" />
-            {portraitUrl ? <Image src={portraitUrl} alt="تصویر صفحه اصلی" fill unoptimized className="object-cover" /> : <div className="flex h-full w-full items-center justify-center"><Sparkles className="h-7 w-7 text-muted-foreground" /></div>}
-            <button type="button" onClick={() => portraitFileInputRef.current?.click()} disabled={portraitUploading} aria-label="تغییر تصویر صفحه اصلی" className="absolute bottom-1 end-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"><Camera className="h-3.5 w-3.5" /></button>
+        <p className="t-s">این تصویر جدا از لوگو است و داخل دایره پروفایل صفحه اصلی نمایش داده می‌شود؛ مثلاً عکس دست یا نمونه کار ناخن.</p>
+        <div className="row" style={{ gap: 14, marginTop: 12 }}>
+          <div style={{ position: "relative", width: 80, height: 80, overflow: "hidden", borderRadius: "50%", background: "var(--bg3)", flex: "none" }}>
+            <input ref={portraitFileInputRef} type="file" accept="image/*" onChange={handlePortraitFileSelect} style={{ display: "none" }} aria-hidden="true" tabIndex={-1} />
+            {portraitUrl ? <Image src={portraitUrl} alt="تصویر صفحه اصلی" fill unoptimized style={{ objectFit: "cover" }} /> : <div style={{ display: "grid", placeItems: "center", height: "100%" }}><Sparkles size={26} strokeWidth={1.3} aria-hidden="true" style={{ color: "var(--faint)" }} /></div>}
+            <button type="button" onClick={() => portraitFileInputRef.current?.click()} disabled={portraitUploading} aria-label="تغییر تصویر صفحه اصلی" className="iconbtn" style={{ position: "absolute", bottom: 0, insetInlineEnd: 0, width: 32, height: 32, background: "var(--pearl)", color: "#1b1511" }}><Camera size={14} strokeWidth={1.6} /></button>
           </div>
-          <div className="text-small text-muted-foreground">عکس دست یا ناخن، مربع یا عمودی، حداکثر ۵ مگابایت.</div>
+          <div className="t-s">عکس دست یا ناخن، مربع یا عمودی، حداکثر ۵ مگابایت.</div>
         </div>
-        {portraitUrl && <button type="button" onClick={async () => { setPortraitUrl(""); await updateSalon({ portrait_image_url: null }); toast.success("تصویر حذف شد"); }} className="text-small text-destructive hover:underline">حذف تصویر</button>}
+        {portraitUrl && <button type="button" onClick={async () => { setPortraitUrl(""); await updateSalon({ portrait_image_url: null }); toast.success("تصویر حذف شد"); }} className="t-s" style={{ color: "var(--wine-hi)", marginTop: 8 }}>حذف تصویر</button>}
       </section>
 
       {/* Splash Screen section */}
       {/* Hero background image — full-bleed cover behind the homepage profile */}
       <section className="panel">
         <div className="row" style={{ gap: 8, marginBottom: 4 }}>
-          <Camera className="h-4 w-4 text-primary" />
+          <Camera size={16} strokeWidth={1.5} aria-hidden="true" style={{ color: "var(--faint)" }} />
           <h3 style={{ fontSize: 17 }}>تصویر پس‌زمینه صفحه اصلی</h3>
         </div>
-        <p className="text-small text-muted-foreground">تصویر پس‌زمینه بالای صفحه اصلی (پشت عکس پروفایل). افقی و با کیفیت بالا.</p>
-        <div className="flex items-center gap-4">
-          <div className="relative h-24 w-36 overflow-hidden rounded-none bg-muted">
-            <input ref={heroFileInputRef} type="file" accept="image/*" onChange={handleHeroFileSelect} className="hidden" />
-            {heroUrl ? <Image src={heroUrl} alt="تصویر پس‌زمینه" fill unoptimized className="object-cover" /> : <div className="flex h-full w-full items-center justify-center"><Sparkles className="h-6 w-6 text-muted-foreground" /></div>}
-            <button type="button" onClick={() => heroFileInputRef.current?.click()} disabled={heroUploading} aria-label="تغییر تصویر پس‌زمینه" className="absolute bottom-1 end-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"><Camera className="h-3.5 w-3.5" /></button>
+        <p className="t-s">تصویر پس‌زمینه بالای صفحه اصلی (پشت عکس پروفایل). افقی و با کیفیت بالا.</p>
+        <div className="row" style={{ gap: 14, marginTop: 12 }}>
+          <div style={{ position: "relative", width: 144, height: 96, overflow: "hidden", borderRadius: 14, background: "var(--bg3)", flex: "none" }}>
+            <input ref={heroFileInputRef} type="file" accept="image/*" onChange={handleHeroFileSelect} style={{ display: "none" }} aria-hidden="true" tabIndex={-1} />
+            {heroUrl ? <Image src={heroUrl} alt="تصویر پس‌زمینه" fill unoptimized style={{ objectFit: "cover" }} /> : <div style={{ display: "grid", placeItems: "center", height: "100%" }}><Sparkles size={22} strokeWidth={1.3} aria-hidden="true" style={{ color: "var(--faint)" }} /></div>}
+            <button type="button" onClick={() => heroFileInputRef.current?.click()} disabled={heroUploading} aria-label="تغییر تصویر پس‌زمینه" className="iconbtn" style={{ position: "absolute", bottom: 4, insetInlineEnd: 4, width: 32, height: 32, background: "var(--pearl)", color: "#1b1511" }}><Camera size={14} strokeWidth={1.6} /></button>
           </div>
-          <div className="text-small text-muted-foreground">افقی، حداکثر ۵ مگابایت. بدون این تصویر، رنگ گرم پیش‌فرض نمایش داده می‌شود.</div>
+          <div className="t-s">افقی، حداکثر ۵ مگابایت. بدون این تصویر، رنگ گرم پیش‌فرض نمایش داده می‌شود.</div>
         </div>
-        {heroUrl && <button type="button" onClick={async () => { setHeroUrl(""); await updateSalon({ hero_image_url: null }); toast.success("تصویر حذف شد"); }} className="text-small text-destructive hover:underline">حذف تصویر</button>}
+        {heroUrl && <button type="button" onClick={async () => { setHeroUrl(""); await updateSalon({ hero_image_url: null }); toast.success("تصویر حذف شد"); }} className="t-s" style={{ color: "var(--wine-hi)", marginTop: 8 }}>حذف تصویر</button>}
       </section>
 
       {/* Homepage background video — silent, looping clip behind the hero */}
       <section className="panel">
         <div className="row" style={{ gap: 8, marginBottom: 4 }}>
-          <Video className="h-4 w-4 text-primary" />
+          <Video size={16} strokeWidth={1.5} aria-hidden="true" style={{ color: "var(--faint)" }} />
           <h3 style={{ fontSize: 17 }}>ویدیوی پس‌زمینه صفحه اصلی</h3>
         </div>
-        <p className="text-small text-muted-foreground -mt-2">
+        <p className="t-s">
           یک کلیپ کوتاه و بی‌صدا پشت عنوان صفحه اصلی پخش می‌شود. افقی یا عمودی، حداکثر ۲۵ مگابایت.
           بدون ویدیو، کلیپ پیش‌فرض سایت نمایش داده می‌شود.
         </p>
@@ -451,14 +452,16 @@ export default function OwnerSettingsPage() {
           type="file"
           accept="video/mp4,video/webm"
           onChange={handleHeroVideoSelect}
-          className="hidden"
+          style={{ display: "none" }}
+          aria-hidden="true"
+          tabIndex={-1}
         />
-        <div className="relative aspect-video w-full overflow-hidden rounded-none border border-border bg-muted">
+        <div style={{ position: "relative", aspectRatio: "16/9", width: "100%", overflow: "hidden", borderRadius: 14, border: "1px solid var(--line)", background: "var(--bg3)", marginTop: 12 }}>
           {heroVideoUrl ? (
-            <video src={heroVideoUrl} muted playsInline loop preload="metadata" className="h-full w-full object-cover" />
+            <video src={heroVideoUrl} muted playsInline loop preload="metadata" style={{ height: "100%", width: "100%", objectFit: "cover" }} />
           ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <Video className="h-5 w-5 text-muted-foreground" />
+            <div style={{ display: "grid", placeItems: "center", height: "100%" }}>
+              <Video size={20} strokeWidth={1.3} aria-hidden="true" style={{ color: "var(--faint)" }} />
             </div>
           )}
           <button
@@ -466,12 +469,13 @@ export default function OwnerSettingsPage() {
             onClick={() => heroVideoInputRef.current?.click()}
             disabled={heroVideoUploading}
             aria-label="تغییر ویدیوی پس‌زمینه"
-            className="absolute bottom-1 end-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"
+            className="iconbtn"
+            style={{ position: "absolute", bottom: 6, insetInlineEnd: 6, width: 36, height: 36, background: "var(--pearl)", color: "#1b1511" }}
           >
-            <Video className="h-3.5 w-3.5" />
+            <Video size={15} strokeWidth={1.6} />
           </button>
           {heroVideoUploading && (
-            <div className="absolute inset-0 grid place-items-center bg-background/60 text-caption">در حال آپلود…</div>
+            <div className="t-s center" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: "#0f0d0bcc" }}>در حال آپلود…</div>
           )}
         </div>
         {heroVideoUrl && (
@@ -482,7 +486,8 @@ export default function OwnerSettingsPage() {
               await updateSalon({ hero_video_url: null });
               toast.success("ویدیو حذف شد");
             }}
-            className="text-small text-destructive hover:underline"
+            className="t-s"
+            style={{ color: "var(--wine-hi)", marginTop: 8 }}
           >
             حذف ویدیو
           </button>
@@ -492,10 +497,10 @@ export default function OwnerSettingsPage() {
       {/* Homepage gallery — 3 customer-facing slots */}
       <section className="panel">
         <div className="row" style={{ gap: 8, marginBottom: 4 }}>
-          <Camera className="h-4 w-4 text-primary" />
+          <Camera size={16} strokeWidth={1.5} aria-hidden="true" style={{ color: "var(--faint)" }} />
           <h3 style={{ fontSize: 17 }}>گالری صفحه اصلی</h3>
         </div>
-        <p className="text-small text-muted-foreground -mt-2">
+        <p className="t-s">
           تصویر اول نقش «پوستر» ویدیوی پس‌زمینه صفحه اصلی را دارد و پیش از پخش ویدیو نشان داده می‌شود؛ تصاویر دوم و سوم فعلاً استفاده نمی‌شوند. مربع یا افقی، حداکثر ۵ مگابایت.
         </p>
         <input
@@ -503,19 +508,21 @@ export default function OwnerSettingsPage() {
           type="file"
           accept="image/*"
           onChange={handleGalleryFileSelect}
-          className="hidden"
+          style={{ display: "none" }}
+          aria-hidden="true"
+          tabIndex={-1}
         />
-        <div className="grid grid-cols-3 gap-3">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 12 }}>
           {[0, 1, 2].map((index) => {
             const url = galleryUrls[index] || "";
             const uploading = galleryUploading === index;
             return (
-              <div key={index} className="space-y-1.5">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-none border border-border bg-muted">
+              <div key={index} style={{ display: "grid", gap: 6 }}>
+                <div style={{ position: "relative", aspectRatio: "4/3", overflow: "hidden", borderRadius: 12, border: "1px solid var(--line)", background: "var(--bg3)" }}>
                   {url ? (
-                    <Image src={url} alt={`تصویر ${index + 1} گالری`} fill unoptimized className="object-cover" />
+                    <Image src={url} alt={`تصویر ${index + 1} گالری`} fill unoptimized style={{ objectFit: "cover" }} />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center"><Sparkles className="h-5 w-5 text-muted-foreground" /></div>
+                    <div style={{ display: "grid", placeItems: "center", height: "100%" }}><Sparkles size={18} strokeWidth={1.3} aria-hidden="true" style={{ color: "var(--faint)" }} /></div>
                   )}
                   <button
                     type="button"
@@ -528,16 +535,17 @@ export default function OwnerSettingsPage() {
                     }}
                     disabled={galleryUploading !== null}
                     aria-label={`تغییر تصویر ${index + 1}`}
-                    className="absolute bottom-1 end-1 grid tap-44 place-items-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70"
+                    className="iconbtn"
+                    style={{ position: "absolute", bottom: 4, insetInlineEnd: 4, width: 30, height: 30, background: "var(--pearl)", color: "#1b1511" }}
                   >
-                    <Camera className="h-3.5 w-3.5" />
+                    <Camera size={13} strokeWidth={1.6} />
                   </button>
-                  {uploading && <div className="absolute inset-0 grid place-items-center bg-background/60 text-caption">در حال آپلود…</div>}
+                  {uploading && <div className="t-s center" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: "#0f0d0bcc" }}>در حال آپلود…</div>}
                 </div>
-                <div className="flex items-center justify-between text-caption text-muted-foreground">
-                  <span>تصویر {index + 1}</span>
+                <div className="row" style={{ justifyContent: "space-between" }}>
+                  <span className="t-s num">تصویر {toPersianDigits(index + 1)}</span>
                   {url && (
-                    <button type="button" onClick={() => handleGalleryRemove(index)} className="text-destructive hover:underline">حذف</button>
+                    <button type="button" onClick={() => handleGalleryRemove(index)} className="t-s" style={{ color: "var(--wine-hi)" }}>حذف</button>
                   )}
                 </div>
               </div>
@@ -549,10 +557,10 @@ export default function OwnerSettingsPage() {
       {/* Customer-facing text — every brand string shown to customers */}
       <section className="panel">
         <div className="row" style={{ gap: 8, marginBottom: 4 }}>
-          <FileText className="h-4 w-4 text-primary" />
+          <FileText size={16} strokeWidth={1.5} aria-hidden="true" style={{ color: "var(--faint)" }} />
           <h3 style={{ fontSize: 17 }}>متن‌های نمایشی مشتریان</h3>
         </div>
-        <p className="text-small text-muted-foreground -mt-2">
+        <p className="t-s" style={{ marginBottom: 12 }}>
           این متن‌ها همان‌هایی هستند که مشتری در صفحه اصلی و روند رزرو می‌بیند.
         </p>
 
@@ -584,21 +592,23 @@ export default function OwnerSettingsPage() {
 
       <section className="panel">
         <div className="row" style={{ gap: 8, marginBottom: 4 }}>
-          <Sparkles className="h-4 w-4 text-primary" />
+          <Sparkles size={16} strokeWidth={1.5} aria-hidden="true" style={{ color: "var(--faint)" }} />
           <h3 style={{ fontSize: 17 }}>اسپلش (صفحه ورود)</h3>
         </div>
-        <p className="text-small text-muted-foreground -mt-2">
+        <p className="t-s" style={{ marginBottom: 12 }}>
           متن و لوگوی صفحه ورود مشتریان. برای دیدن تغییرات، صفحه را رفرش کنید.
         </p>
 
-        <div className="flex items-center gap-4">
-          <div className="relative">
+        <div className="row" style={{ gap: 14 }}>
+          <div style={{ position: "relative", flex: "none" }}>
             <input
               ref={splashFileInputRef}
               type="file"
               accept="image/*"
               onChange={handleSplashFileSelect}
-              className="hidden"
+              style={{ display: "none" }}
+              aria-hidden="true"
+              tabIndex={-1}
             />
             {splashLogoUrl ? (
               <Image
@@ -607,32 +617,34 @@ export default function OwnerSettingsPage() {
                 width={64}
                 height={64}
                 unoptimized
-                className="h-16 w-16 rounded-none object-cover border border-border"
+                style={{ width: 64, height: 64, borderRadius: 14, objectFit: "cover", border: "1px solid var(--line)" }}
               />
             ) : (
-              <div className="h-16 w-16 rounded-none bg-foreground/5 border border-border border-dashed flex items-center justify-center">
-                <Sparkles className="h-6 w-6 text-muted-foreground" />
-              </div>
+              <span className="nail" style={{ width: 64, height: 64, borderStyle: "dashed" }}>
+                <Sparkles size={22} strokeWidth={1.3} aria-hidden="true" style={{ color: "var(--faint)" }} />
+              </span>
             )}
             <button
               onClick={() => splashFileInputRef.current?.click()}
               disabled={splashUploading}
               aria-label="تغییر لوگوی اسپلش"
-              className="tap-44 absolute -bottom-1 -left-1 h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:bg-primary/15 disabled:text-foreground/70"
+              className="iconbtn"
+              style={{ position: "absolute", bottom: -6, insetInlineEnd: -6, width: 30, height: 30, background: "var(--pearl)", color: "#1b1511" }}
             >
-              <Camera className="h-3.5 w-3.5" />
+              <Camera size={13} strokeWidth={1.6} />
             </button>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-caption font-normal text-foreground">لوگوی اسپلش</p>
-            <p className="text-small text-muted-foreground mt-0.5">PNG، JPG تا ۵ مگابایت. اختیاری.</p>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 15 }}>لوگوی اسپلش</p>
+            <p className="t-s" style={{ marginTop: 2 }}>PNG، JPG تا ۵ مگابایت. اختیاری.</p>
             {splashLogoUrl && (
               <button
                 onClick={async () => {
                   setSplashLogoUrl("");
                   await updateSalon({ splash_logo_url: null });
                 }}
-                className="text-small text-destructive mt-1 hover:underline"
+                className="t-s"
+                style={{ color: "var(--wine-hi)", marginTop: 4 }}
               >
                 حذف عکس
               </button>

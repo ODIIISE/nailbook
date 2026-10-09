@@ -5,9 +5,8 @@ import { Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Trash2, Aler
 import { Monogram } from "@/components/ui/nail";
 import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali, PERSIAN_MONTHS } from "@/lib/jalali";
 import { calculateBookingPrice } from "@/lib/pricing";
-import { STATUS_CONFIG, STATUS_CONFIG_DARK, themeColor } from "@/lib/design-tokens";
+import { STATUS_CONFIG, STATUS_CONFIG_DARK } from "@/lib/design-tokens";
 import { VALID_TRANSITIONS } from "@/lib/constants";
-import { useIsDark } from "@/lib/hooks/use-is-dark";
 import { parseGregorianDateKey, getTehranDateKey } from "@/lib/time";
 import { generateTimeSlots, type WorkingHours } from "@/lib/slots";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -70,10 +69,10 @@ const ALL_STATUS_OPTIONS: { value: string; label: string; Icon: typeof CheckCirc
   Icon: STATUS_ICONS[value] || Clock,
 }));
 
-/** Colors resolve per theme at render: the light hexes fail AA on the dark
- * popover (3.0-4.0:1), so STATUS_CONFIG_DARK overrides them. */
-function statusColorFor(value: string, isDark: boolean): string {
-  const config = isDark ? { ...STATUS_CONFIG, ...STATUS_CONFIG_DARK } : STATUS_CONFIG;
+/** Single warm-dark theme: status colors always resolve from the dark
+ *  overrides (the light hexes fail AA on the dark popover). */
+function statusColorFor(value: string): string {
+  const config = { ...STATUS_CONFIG, ...STATUS_CONFIG_DARK };
   return config[value]?.color ?? STATUS_CONFIG[value]?.color ?? STATUS_CONFIG.pending.color;
 }
 
@@ -126,15 +125,13 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
     }
   };
   const currentStatus = booking.status;
-  const isDark = useIsDark();
   const allowedTransitions = useMemo(() => VALID_TRANSITIONS[currentStatus] || [], [currentStatus]);
   const statusOptions = useMemo(
     () => ALL_STATUS_OPTIONS
       .filter((opt) => allowedTransitions.includes(opt.value))
-      .map((opt) => ({ ...opt, color: statusColorFor(opt.value, isDark) })),
-    [allowedTransitions, isDark]
+      .map((opt) => ({ ...opt, color: statusColorFor(opt.value) })),
+    [allowedTransitions]
   );
-  const t = (l: string, d: string) => themeColor(l, d, isDark);
 
   const jalali = gregorianToJalali(parseGregorianDateKey(booking.date_gregorian));
   const shortDate = formatJalaliDateShort(jalali.jy, jalali.jm, jalali.jd);
@@ -144,7 +141,7 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
   const duration = endMinutes >= startMinutes ? endMinutes - startMinutes : (endMinutes + 24 * 60) - startMinutes;
   const selectedAddons = (booking.selected_addons || []).map((id) => addons.find((a) => a.id === id)).filter(Boolean);
   const statusConfigBase = ALL_STATUS_OPTIONS.find((s: { value: string }) => s.value === currentStatus) || ALL_STATUS_OPTIONS[0];
-  const statusConfig = { ...statusConfigBase, color: statusColorFor(currentStatus, isDark) };
+  const statusConfig = { ...statusConfigBase, color: statusColorFor(currentStatus) };
   const shortId = `BK-${booking.id.slice(-6).toUpperCase()}`;
   const createdAtTime = booking.created_at ? new Date(booking.created_at).toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit", hour12: false }) : "";
 
@@ -203,9 +200,9 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
   /* Category icon tints: neutral tokens (same recipe as customer list rows);
      price keeps its semantic warning tint. Status colors stay categorical via
      design-tokens (STATUS_CONFIG). */
-  const paidColor = t("text-success", "text-success");
-  const deleteColor = t("text-destructive", "text-destructive");
-  const deleteHover = t("text-destructive", "text-destructive");
+  const paidColor = "text-success";
+  const deleteColor = "text-destructive";
+  const deleteHover = "text-destructive";
 
   return (
     <>

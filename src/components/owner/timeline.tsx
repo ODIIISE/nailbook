@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { User, Ban, Clock, CreditCard, CheckCircle2, Loader, XCircle, Layers, DollarSign, Calendar, AlertTriangle } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
-import { blockedTimePalette, servicePalette, STATUS_CONFIG, themeColor } from "@/lib/design-tokens";
-import { useIsDark } from "@/lib/hooks/use-is-dark";
+import { blockedTimePalette, servicePalette, STATUS_CONFIG } from "@/lib/design-tokens";
 import type { Booking, Service, Addon } from "@/lib/types";
 
 interface BlockedTime {
@@ -56,10 +55,10 @@ function hashString(str: string): number {
   return Math.abs(hash);
 }
 
-function getServiceStyle(serviceId: string, isDark: boolean) {
+function getServiceStyle(serviceId: string) {
   const idx = hashString(serviceId) % servicePalette.length;
   const p = servicePalette[idx];
-  return { accent: p.accent, bg: isDark ? p.bgDark : p.bg };
+  return { accent: p.accent, bg: p.bgDark };
 }
 
 function getStatusConfig(status: string) {
@@ -167,7 +166,6 @@ export function Timeline({
   const [confirmRemoveIndex, setConfirmRemoveIndex] = useState<number | null>(null);
   const totalHours = endHour - startHour;
   const totalHeight = totalHours * HOUR_HEIGHT;
-  const isDark = useIsDark();
 
   const hourMarks = useMemo(
     () => Array.from({ length: totalHours + 1 }, (_, i) => startHour + i),
@@ -188,22 +186,19 @@ export function Timeline({
     }
   }, []);
 
-  // Theme-aware classes
-  const t = (light: string, dark: string) => themeColor(light, dark, isDark);
-  const hourColor = t("text-black/40", "text-white/40");
-  const lineColor = t("bg-black/[0.05]", "bg-white/[0.05]");
-  const dotBg = t("bg-black/[0.025]", "bg-white/[0.025]");
-  const dotIcon = t("text-black/[0.18]", "text-white/[0.18]");
-  const dotText = t("text-black/[0.28]", "text-white/[0.28]");
-  const dotSub = t("text-black/[0.18]", "text-white/[0.18]");
-  const textPrimary = isDark ? "text-white" : "text-black";
-  const textSecondary = t("text-black/50", "text-white/50");
-  const textTertiary = t("text-black/40", "text-white/40");
-  const textGhost = t("text-black/25", "text-white/25");
-  const dotPattern = t(
-    "repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 3px, transparent 3px, transparent 6px)",
-    "repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 3px, transparent 3px, transparent 6px)"
-  );
+  // Single warm-dark theme: the values below are the resolved dark branch.
+  const hourColor = "text-white/40";
+  const lineColor = "bg-white/[0.05]";
+  const dotBg = "bg-white/[0.025]";
+  const dotIcon = "text-white/[0.18]";
+  const dotText = "text-white/[0.28]";
+  const dotSub = "text-white/[0.18]";
+  const textPrimary = "text-white";
+  const textSecondary = "text-white/50";
+  const textTertiary = "text-white/40";
+  const textGhost = "text-white/25";
+  const dotPattern =
+    "repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 3px, transparent 3px, transparent 6px)";
 
   const laneAssignments = useMemo(() => assignLanes(bookings), [bookings]);
 
@@ -237,7 +232,7 @@ export function Timeline({
             {laneAssignments.map(({ item: b, lane, laneCount }) => {
               const pos = getBlockPosition(b.start_time, b.end_time, startHour);
               const { totalPrice, totalDuration, hasAddons } = computeBookingTotal(b, b.service, addons);
-              const style = getServiceStyle(b.service_id, isDark);
+              const style = getServiceStyle(b.service_id);
               const sc = getStatusConfig(b.status);
               const StatusIcon = sc.icon;
               const compact = pos.height < 64 || laneCount > 2;
@@ -248,8 +243,8 @@ export function Timeline({
               const span = laneCount > 1 ? Math.max(1 / laneCount, LANE_MIN_WIDTH) : 1;
               const laneStart = lane * span;
 
-              const paidColor = t("text-success", "text-success");
-              const addonColor = t("text-muted-foreground", "text-muted-foreground");
+              const paidColor = "text-success";
+              const addonColor = "text-muted-foreground";
 
               return (
                 <div
@@ -270,7 +265,7 @@ export function Timeline({
                   aria-label={`${b.customer_name}، ${b.service?.name}، ${b.start_time.slice(0, 5)} تا ${b.end_time.slice(0, 5)}${b.paid ? "" : "، پرداخت نشده"}`}
                 >
                   <div
-                    className={`h-full rounded-none overflow-hidden flex ${borderClass(isDark)} ${compact ? "items-stretch" : "flex-col"}`}
+                    className={`h-full rounded-none overflow-hidden flex border border-white/[0.08] hover:border-white/[0.16] ${compact ? "items-stretch" : "flex-col"}`}
                     style={{ backgroundColor: style.bg }}
                   >
                     <div className={`flex min-w-0 ${compact ? "items-stretch" : "flex-1"}`}>
@@ -352,12 +347,12 @@ export function Timeline({
             {blockedTimes.map((block, idx) => {
               const pos = getBlockPosition(block.start_time, block.end_time, startHour);
               const isConfirming = confirmRemoveIndex === idx;
-              const wb = t(blockedTimePalette.bg.light, blockedTimePalette.bg.dark);
-              const wbBorder = t(blockedTimePalette.border.light, blockedTimePalette.border.dark);
-              const wt = t(blockedTimePalette.text.light, blockedTimePalette.text.dark);
-              const wst = t(blockedTimePalette.textStrong.light, blockedTimePalette.textStrong.dark);
-              const wa = t(blockedTimePalette.accentBar.light, blockedTimePalette.accentBar.dark);
-              const bh = t(blockedTimePalette.bgHover.light, blockedTimePalette.bgHover.dark);
+              const wb = blockedTimePalette.bg.dark;
+              const wbBorder = blockedTimePalette.border.dark;
+              const wt = blockedTimePalette.text.dark;
+              const wst = blockedTimePalette.textStrong.dark;
+              const wa = blockedTimePalette.accentBar.dark;
+              const bh = blockedTimePalette.bgHover.dark;
 
               return (
                 <div key={`blk-${idx}`} className="absolute z-10" style={{ top: pos.top + 1, height: pos.height - 2, insetInlineStart: GUTTER, insetInlineEnd: 12 }}>
@@ -371,7 +366,7 @@ export function Timeline({
                           بله
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); setConfirmRemoveIndex(null); }}
-                          className={`min-h-11 px-4 ${t("bg-black/10", "bg-white/10")} text-small font-normal rounded-none`}>
+                          className="min-h-11 px-4 bg-white/10 text-small font-normal rounded-none">
                           خیر
                         </button>
                       </div>
@@ -435,8 +430,3 @@ export function Timeline({
   );
 }
 
-function borderClass(isDark: boolean): string {
-  return isDark
-    ? "border border-white/[0.08] hover:border-white/[0.16]"
-    : "border border-black/[0.06] hover:border-black/[0.12]";
-}
