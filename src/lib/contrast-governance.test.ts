@@ -110,7 +110,6 @@ function themeOf(block: string): Theme {
     accent: resolve(block, "accent"),
     "accent-foreground": resolve(block, "accent-foreground"),
     "accent-foreground-soft": resolve(block, "accent-foreground-soft"),
-    "accent-foreground-soft": resolve(block, "accent-foreground-soft"),
     destructive: resolve(block, "destructive"),
     "destructive-foreground": resolve(block, "destructive-foreground"),
     success: resolve(block, "success"),

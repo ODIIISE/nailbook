@@ -252,7 +252,6 @@ export async function POST(request: NextRequest) {
               svcVals(s, base)
             );
           } else {
-            const base = [s.id, s.name, s.description || "", Math.max(5, Number(s.duration_minutes) || 45), Math.max(0, Number(s.price) || 0), s.is_active ?? true, Number(s.sort_order) || 0, JSON.stringify(s.addon_ids || []), Math.min(10, Math.max(1, Number(s.priority_score) || 5))];
             await sql`
               INSERT INTO services (id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score)
               VALUES (${s.id}, ${s.name}, ${s.description || ""}, ${Math.max(5, Number(s.duration_minutes) || 45)}, ${Math.max(0, Number(s.price) || 0)}, ${s.is_active ?? true}, ${Number(s.sort_order) || 0}, ${JSON.stringify(s.addon_ids || [])}, ${Math.min(10, Math.max(1, Number(s.priority_score) || 5))})
