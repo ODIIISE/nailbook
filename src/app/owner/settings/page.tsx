@@ -1,10 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ImageCrop } from "@/components/ui/image-crop";
 import { SalonGuard } from "@/components/ui/salon-guard";
 import { useSalon } from "@/lib/salon-context";
@@ -295,9 +291,10 @@ export default function OwnerSettingsPage() {
 
   return (
     <SalonGuard>
-    <div className="px-4 py-4 space-y-6">
-      <Card className="p-5">
-        <div className="flex items-center gap-4">
+    <div className="page-gutter pb-8 pt-2" style={{ display: "grid", gap: 18 }}>
+      <h2 className="h-m">تنظیمات سالن</h2>
+      <section className="panel">
+        <div className="row" style={{ gap: 16 }}>
           <div className="relative">
             <input
               ref={fileInputRef}
@@ -313,97 +310,100 @@ export default function OwnerSettingsPage() {
                 width={80}
                 height={80}
                 unoptimized
-                className="h-20 w-20 rounded-full object-cover"
+                style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover" }}
               />
             ) : (
-              <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
-                <Sparkles className="h-8 w-8 text-primary" />
-              </div>
+              <span className="nail" style={{ width: 80, height: 80, borderRadius: "50%" }}>
+                <Sparkles size={30} strokeWidth={1.2} aria-hidden="true" style={{ color: "var(--faint)" }} />
+              </span>
             )}
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="absolute -bottom-1 -left-1 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 disabled:bg-primary/15 disabled:text-foreground/70"
+              aria-label="تغییر لوگو"
+              className="iconbtn"
+              style={{ position: "absolute", bottom: -4, insetInlineEnd: -4, background: "var(--pearl)", color: "#1b1511" }}
             >
-              <Camera className="h-4 w-4" />
+              <Camera size={16} strokeWidth={1.6} />
             </button>
           </div>
-          <div className="flex-1">
-            <p className="font-normal text-foreground">{salon.name}</p>
-            <p className="text-sm text-muted-foreground">لوگوی سالن</p>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 17 }}>{salon.name}</p>
+            <p className="t-s">لوگوی سالن</p>
             {avatarUrl && (
               <button
                 onClick={async () => {
                   setAvatarUrl("");
                   await updateSalon({ logo_url: null });
                 }}
-                className="text-xs text-destructive mt-1 hover:underline"
+                className="t-s"
+                style={{ color: "var(--wine-hi)", marginTop: 4 }}
               >
                 حذف عکس
               </button>
             )}
           </div>
         </div>
-      </Card>
+      </section>
 
-      <Card className="p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-2">
+      <section className="panel">
+        <div className="row" style={{ gap: 8, marginBottom: 4 }}>
           <FileText className="h-4 w-4 text-primary" />
-          <h3 className="font-normal text-foreground">اطلاعات پایه</h3>
+          <h3 style={{ fontSize: 17 }}>اطلاعات پایه</h3>
         </div>
 
-        <div>
-          <Label className="text-caption" htmlFor="settings-field-1">نام سالن</Label>
-          <Input id="settings-field-1" value={name} onChange={(e) => setName(e.target.value)} className="mt-1" placeholder="نام سالن" />
-        </div>
+        <label className="field">
+          <span>نام سالن</span>
+          <input id="settings-field-1" className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="نام سالن" />
+        </label>
 
-        <div>
-          <Label className="text-caption" htmlFor="settings-field-2">شعار تبلیغاتی</Label>
-          <Input id="settings-field-2" value={slogan} onChange={(e) => setSlogan(e.target.value)} className="mt-1" placeholder="مثلاً: زیبایی ناخن، اعتماد به نفس شما" />
-        </div>
+        <label className="field">
+          <span>شعار تبلیغاتی</span>
+          <input id="settings-field-2" className="input" value={slogan} onChange={(e) => setSlogan(e.target.value)} placeholder="مثلاً: زیبایی ناخن، اعتماد به نفس شما" />
+        </label>
 
-        <div>
-          <Label className="text-caption" htmlFor="settings-field-3">توضیحات</Label>
-          <Input id="settings-field-3" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" placeholder="توضیح کوتاه درباره سالن" />
-        </div>
-      </Card>
+        <label className="field">
+          <span>توضیحات</span>
+          <input id="settings-field-3" className="input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="توضیح کوتاه درباره سالن" />
+        </label>
+      </section>
 
-      <Card className="p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-2">
+      <section className="panel">
+        <div className="row" style={{ gap: 8, marginBottom: 4 }}>
           <Phone className="h-4 w-4 text-primary" />
-          <h3 className="font-normal text-foreground">اطلاعات تماس</h3>
+          <h3 style={{ fontSize: 17 }}>اطلاعات تماس</h3>
         </div>
 
-        <div>
-          <Label className="text-caption" htmlFor="settings-field-4">شماره موبایل</Label>
-          <Input id="settings-field-4" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" dir="ltr" placeholder="09121234567" />
-        </div>
+        <label className="field">
+          <span>شماره موبایل</span>
+          <input id="settings-field-4" className="input ltr" style={{ textAlign: "left" }} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="09121234567" />
+        </label>
 
-        <div>
-          <Label className="text-caption" htmlFor="settings-field-5">آدرس</Label>
-          <Input id="settings-field-5" value={address} onChange={(e) => setAddress(e.target.value)} className="mt-1" placeholder="آدرس سالن" />
-        </div>
+        <label className="field">
+          <span>آدرس</span>
+          <input id="settings-field-5" className="input" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="آدرس سالن" />
+        </label>
 
-        <div>
-          <Label className="text-caption" htmlFor="settings-field-6">شهر</Label>
-          <Input id="settings-field-6" value={city} onChange={(e) => setCity(e.target.value)} className="mt-1" placeholder="مثلاً مشهد" />
-        </div>
+        <label className="field">
+          <span>شهر</span>
+          <input id="settings-field-6" className="input" value={city} onChange={(e) => setCity(e.target.value)} placeholder="مثلاً مشهد" />
+        </label>
 
-        <div>
-          <Label className="text-caption" htmlFor="settings-field-7">آیدی اینستاگرام</Label>
-          <Input id="settings-field-7" value={instagramHandle} onChange={(e) => setInstagramHandle(e.target.value)} className="mt-1" dir="ltr" placeholder="forehand.nail" />
-        </div>
+        <label className="field">
+          <span>آیدی اینستاگرام</span>
+          <input id="settings-field-7" className="input ltr" style={{ textAlign: "left" }} value={instagramHandle} onChange={(e) => setInstagramHandle(e.target.value)} placeholder="forehand.nail" />
+        </label>
 
-        <div>
-          <Label className="text-caption" htmlFor="settings-field-8">ساعت کار</Label>
-          <Input id="settings-field-8" value={workingHoursText} onChange={(e) => setWorkingHoursText(e.target.value)} className="mt-1" placeholder="مثلاً: شنبه تا پنج شنبه . ۱۰ تا ۱۸" />
-        </div>
-      </Card>
+        <label className="field">
+          <span>ساعت کار</span>
+          <input id="settings-field-8" className="input" value={workingHoursText} onChange={(e) => setWorkingHoursText(e.target.value)} placeholder="مثلاً: شنبه تا پنج شنبه . ۱۰ تا ۱۸" />
+        </label>
+      </section>
 
-      <Card className="p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-2">
+      <section className="panel">
+        <div className="row" style={{ gap: 8, marginBottom: 4 }}>
           <Camera className="h-4 w-4 text-primary" />
-          <h3 className="font-normal text-foreground">تصویر صفحه اصلی</h3>
+          <h3 style={{ fontSize: 17 }}>تصویر صفحه اصلی</h3>
         </div>
         <p className="text-small text-muted-foreground">این تصویر جدا از لوگو است و داخل دایره پروفایل صفحه اصلی نمایش داده می‌شود؛ مثلاً عکس دست یا نمونه کار ناخن.</p>
         <div className="flex items-center gap-4">
@@ -415,14 +415,14 @@ export default function OwnerSettingsPage() {
           <div className="text-small text-muted-foreground">عکس دست یا ناخن، مربع یا عمودی، حداکثر ۵ مگابایت.</div>
         </div>
         {portraitUrl && <button type="button" onClick={async () => { setPortraitUrl(""); await updateSalon({ portrait_image_url: null }); toast.success("تصویر حذف شد"); }} className="text-small text-destructive hover:underline">حذف تصویر</button>}
-      </Card>
+      </section>
 
       {/* Splash Screen section */}
       {/* Hero background image — full-bleed cover behind the homepage profile */}
-      <Card className="p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-2">
+      <section className="panel">
+        <div className="row" style={{ gap: 8, marginBottom: 4 }}>
           <Camera className="h-4 w-4 text-primary" />
-          <h3 className="font-normal text-foreground">تصویر پس‌زمینه صفحه اصلی</h3>
+          <h3 style={{ fontSize: 17 }}>تصویر پس‌زمینه صفحه اصلی</h3>
         </div>
         <p className="text-small text-muted-foreground">تصویر پس‌زمینه بالای صفحه اصلی (پشت عکس پروفایل). افقی و با کیفیت بالا.</p>
         <div className="flex items-center gap-4">
@@ -434,13 +434,13 @@ export default function OwnerSettingsPage() {
           <div className="text-small text-muted-foreground">افقی، حداکثر ۵ مگابایت. بدون این تصویر، رنگ گرم پیش‌فرض نمایش داده می‌شود.</div>
         </div>
         {heroUrl && <button type="button" onClick={async () => { setHeroUrl(""); await updateSalon({ hero_image_url: null }); toast.success("تصویر حذف شد"); }} className="text-small text-destructive hover:underline">حذف تصویر</button>}
-      </Card>
+      </section>
 
       {/* Homepage background video — silent, looping clip behind the hero */}
-      <Card className="p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-2">
+      <section className="panel">
+        <div className="row" style={{ gap: 8, marginBottom: 4 }}>
           <Video className="h-4 w-4 text-primary" />
-          <h3 className="font-normal text-foreground">ویدیوی پس‌زمینه صفحه اصلی</h3>
+          <h3 style={{ fontSize: 17 }}>ویدیوی پس‌زمینه صفحه اصلی</h3>
         </div>
         <p className="text-small text-muted-foreground -mt-2">
           یک کلیپ کوتاه و بی‌صدا پشت عنوان صفحه اصلی پخش می‌شود. افقی یا عمودی، حداکثر ۲۵ مگابایت.
@@ -487,13 +487,13 @@ export default function OwnerSettingsPage() {
             حذف ویدیو
           </button>
         )}
-      </Card>
+      </section>
 
       {/* Homepage gallery — 3 customer-facing slots */}
-      <Card className="p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-2">
+      <section className="panel">
+        <div className="row" style={{ gap: 8, marginBottom: 4 }}>
           <Camera className="h-4 w-4 text-primary" />
-          <h3 className="font-normal text-foreground">گالری صفحه اصلی</h3>
+          <h3 style={{ fontSize: 17 }}>گالری صفحه اصلی</h3>
         </div>
         <p className="text-small text-muted-foreground -mt-2">
           تصویر اول نقش «پوستر» ویدیوی پس‌زمینه صفحه اصلی را دارد و پیش از پخش ویدیو نشان داده می‌شود؛ تصاویر دوم و سوم فعلاً استفاده نمی‌شوند. مربع یا افقی، حداکثر ۵ مگابایت.
@@ -544,53 +544,48 @@ export default function OwnerSettingsPage() {
             );
           })}
         </div>
-      </Card>
+      </section>
 
       {/* Customer-facing text — every brand string shown to customers */}
-      <Card className="p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-2">
+      <section className="panel">
+        <div className="row" style={{ gap: 8, marginBottom: 4 }}>
           <FileText className="h-4 w-4 text-primary" />
-          <h3 className="font-normal text-foreground">متن‌های نمایشی مشتریان</h3>
+          <h3 style={{ fontSize: 17 }}>متن‌های نمایشی مشتریان</h3>
         </div>
         <p className="text-small text-muted-foreground -mt-2">
           این متن‌ها همان‌هایی هستند که مشتری در صفحه اصلی و روند رزرو می‌بیند.
         </p>
 
-        <div>
-          <Label className="text-caption" htmlFor="settings-field-9">نوشته بالای نام برند (انگلیسی)</Label>
-          <Input id="settings-field-9" value={homepageKicker} onChange={(e) => setHomepageKicker(e.target.value)} className="mt-1" dir="ltr" placeholder="NAIL · CARE · RITUAL" maxLength={40} />
-          <p className="text-small text-muted-foreground mt-1">در بالای نام سالن در صفحه اصلی.</p>
-        </div>
+        <label className="field">
+          <span>نوشته بالای نام برند (انگلیسی)</span>
+          <input id="settings-field-9" className="input ltr" style={{ textAlign: "left" }} value={homepageKicker} onChange={(e) => setHomepageKicker(e.target.value)} placeholder="NAIL · CARE · RITUAL" maxLength={40} />
+        </label>
 
-        <div>
-          <Label className="text-caption" htmlFor="settings-field-10">متن دکمه اصلی رزرو</Label>
-          <Input id="settings-field-10" value={homepageCtaLabel} onChange={(e) => setHomepageCtaLabel(e.target.value)} className="mt-1" placeholder="شروع رزرو" maxLength={40} />
-          <p className="text-small text-muted-foreground mt-1">دکمه بزرگ «رزرو نوبت» در صفحه اصلی.</p>
-        </div>
+        <label className="field">
+          <span>متن دکمه اصلی رزرو</span>
+          <input id="settings-field-10" className="input" value={homepageCtaLabel} onChange={(e) => setHomepageCtaLabel(e.target.value)} placeholder="شروع رزرو" maxLength={40} />
+        </label>
 
-        <div>
-          <Label className="text-caption" htmlFor="settings-field-11">متن زیر دکمه رزرو</Label>
-          <Input id="settings-field-11" value={homepageMicro} onChange={(e) => setHomepageMicro(e.target.value)} className="mt-1" placeholder="بدون تماس تلفنی · زمان‌های آزاد همین‌جا" maxLength={80} />
-          <p className="text-small text-muted-foreground mt-1">یک خط توضیحی کوچک زیر دکمه اصلی.</p>
-        </div>
+        <label className="field">
+          <span>متن زیر دکمه رزرو</span>
+          <input id="settings-field-11" className="input" value={homepageMicro} onChange={(e) => setHomepageMicro(e.target.value)} placeholder="بدون تماس تلفنی · زمان‌های آزاد همین‌جا" maxLength={80} />
+        </label>
 
-        <div>
-          <Label className="text-caption" htmlFor="settings-field-12">عنوان بخش نمونه‌کارها</Label>
-          <Input id="settings-field-12" value={lookbookTitle} onChange={(e) => setLookbookTitle(e.target.value)} className="mt-1" placeholder="نمونه‌کارها" maxLength={40} />
-          <p className="text-small text-muted-foreground mt-1">عنوان گالری نمونه‌کارها در صفحه اصلی.</p>
-        </div>
+        <label className="field">
+          <span>عنوان بخش نمونه‌کارها</span>
+          <input id="settings-field-12" className="input" value={lookbookTitle} onChange={(e) => setLookbookTitle(e.target.value)} placeholder="نمونه‌کارها" maxLength={40} />
+        </label>
 
-        <div>
-          <Label className="text-caption" htmlFor="settings-field-13">متن موفقیت رزرو</Label>
-          <Input id="settings-field-13" value={bookingSuccessTitle} onChange={(e) => setBookingSuccessTitle(e.target.value)} className="mt-1" placeholder="به‌زودی می‌بینیمت!" maxLength={40} />
-          <p className="text-small text-muted-foreground mt-1">تیتر صفحه تأیید نوبت در پایان روند رزرو.</p>
-        </div>
-      </Card>
+        <label className="field">
+          <span>متن موفقیت رزرو</span>
+          <input id="settings-field-13" className="input" value={bookingSuccessTitle} onChange={(e) => setBookingSuccessTitle(e.target.value)} placeholder="به‌زودی می‌بینیمت!" maxLength={40} />
+        </label>
+      </section>
 
-      <Card className="p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-2">
+      <section className="panel">
+        <div className="row" style={{ gap: 8, marginBottom: 4 }}>
           <Sparkles className="h-4 w-4 text-primary" />
-          <h3 className="font-normal text-foreground">اسپلش (صفحه ورود)</h3>
+          <h3 style={{ fontSize: 17 }}>اسپلش (صفحه ورود)</h3>
         </div>
         <p className="text-small text-muted-foreground -mt-2">
           متن و لوگوی صفحه ورود مشتریان. برای دیدن تغییرات، صفحه را رفرش کنید.
@@ -644,26 +639,26 @@ export default function OwnerSettingsPage() {
             )}
           </div>
         </div>
-      </Card>
+      </section>
 
-      <Button onClick={handleSave} disabled={saving} className="w-full h-12 bg-foreground text-background hover:bg-foreground/90">
-        <Save className="h-5 w-5 ms-2" />
+      <button type="button" onClick={handleSave} disabled={saving} className="btn pri block">
+        <Save size={18} strokeWidth={1.6} aria-hidden="true" />
         {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
-      </Button>
+      </button>
 
       {/* Backup Section */}
-      <Card className="p-5 space-y-4">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-body">💾</span>
-          <h3 className="font-normal text-foreground">پشتیبان‌گیری</h3>
+      <section className="panel">
+        <div className="row" style={{ gap: 8, marginBottom: 4 }}>
+          <h3 style={{ fontSize: 17 }}>پشتیبان‌گیری</h3>
         </div>
-        <p className="text-small text-muted-foreground">
+        <p className="t-s">
           از تمام اطلاعات سالن (خدمات، قیمت‌ها، رزروها، تنظیمات) خروجی بگیرید
         </p>
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            className="flex-1"
+        <div className="row" style={{ gap: 10, marginTop: 14 }}>
+          <button
+            type="button"
+            className="btn gl"
+            style={{ flex: 1 }}
             onClick={async () => {
               try {
                 const res = await fetch("/api/owner/backup", { credentials: "include" });
@@ -682,10 +677,11 @@ export default function OwnerSettingsPage() {
             }}
           >
             دانلود پشتیبان
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1"
+          </button>
+          <button
+            type="button"
+            className="btn gl"
+            style={{ flex: 1 }}
             onClick={() => {
               const input = document.createElement("input");
               input.type = "file";
@@ -721,9 +717,9 @@ export default function OwnerSettingsPage() {
             }}
           >
             بازیابی از فایل
-          </Button>
+          </button>
         </div>
-      </Card>
+      </section>
 
       {/* Crop Modal (salon logo) */}
       {cropImage && (
