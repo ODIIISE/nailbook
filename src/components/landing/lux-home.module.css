@@ -4,25 +4,18 @@
    standard 4/3 ratio (mock was 5/7.1 — halved height).
    ══════════════════════════════════════════════════════════ */
 .viewport {
-  /* Astryx neutral stock tokens — light-dark() follows the app theme
-     (light default; .dark flips color-scheme on <html>). */
-  --bg: light-dark(#f1f1f1, #1b1b1b);
-  --ink: light-dark(#000000, #ffffff);
-  --muted: light-dark(#474747, #9e9e9e);
-  --gold: light-dark(#1b1b1b, #f1f1f1);
-  --accent: light-dark(#0074e2, #6d9cfe);
-  --accent-ink: light-dark(#ffffff, #111111);
-  --line: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08));
-  /* Surface treatments (Astryx neutrals, single definition). */
-  --surface-deep: light-dark(#ffffff, #262626);
-  --grad-frame: light-dark(
-    linear-gradient(160deg, #d4d4d4, #f1f1f1),
-    linear-gradient(160deg, #262626, #1b1b1b)
-  );
-  --grad-core: light-dark(
-    linear-gradient(180deg, #ffffff, #f1f1f1),
-    linear-gradient(180deg, #262626, #1b1b1b)
-  );
+  /* Studio v3 warm-dark (single theme): pearl ink, gold accents. */
+  --bg: #12100e;
+  --ink: #efe7db;
+  --muted: rgba(239, 231, 219, 0.62);
+  --gold: #d4b06a;
+  --accent: #d4b06a;
+  --accent-ink: #1b1511;
+  --line: rgba(239, 231, 219, 0.09);
+  /* Surface treatments (warm neutrals, single definition). */
+  --surface-deep: #1a1613;
+  --grad-frame: linear-gradient(160deg, #221d19, #12100e);
+  --grad-core: linear-gradient(180deg, #1a1613, #12100e);
   --ease: cubic-bezier(0.22, 0.9, 0.28, 1);
   --spring: cubic-bezier(0.34, 1.55, 0.44, 1);
   /* Golden-ratio type scale (φ = 1.618) — description → display title */
@@ -69,9 +62,9 @@
 @media (min-width: 520px) {
   .viewport {
     background:
-      radial-gradient(110rem 46rem at 50% -8%, light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.1)), transparent 72%),
-      radial-gradient(120% 85% at 50% 46%, light-dark(rgba(0, 0, 0, 0.02), rgba(255, 255, 255, 0.055)), transparent 76%),
-      radial-gradient(90rem 50rem at 50% 108%, light-dark(rgba(0, 0, 0, 0.03), rgba(255, 255, 255, 0.06)), transparent 72%),
+      radial-gradient(110rem 46rem at 50% -8%, rgba(233, 220, 195, 0.07), transparent 72%),
+      radial-gradient(120% 85% at 50% 46%, rgba(233, 220, 195, 0.04), transparent 76%),
+      radial-gradient(90rem 50rem at 50% 108%, rgba(233, 220, 195, 0.05), transparent 72%),
       radial-gradient(150% 110% at 50% 130%, rgba(0, 0, 0, 0.5), transparent 60%),
       var(--bg);
   }
@@ -115,8 +108,8 @@
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(460px 300px at 50% -70px, light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.11)), transparent 70%),
-    radial-gradient(520px 400px at 50% 64%, light-dark(rgba(0, 0, 0, 0.025), rgba(255, 255, 255, 0.07)), transparent 72%),
+    radial-gradient(460px 300px at 50% -70px, rgba(233, 220, 195, 0.09), transparent 70%),
+    radial-gradient(520px 400px at 50% 64%, rgba(233, 220, 195, 0.05), transparent 72%),
     radial-gradient(140% 100% at 50% 118%, rgba(0, 0, 0, 0.55), transparent 62%);
 }
 
@@ -502,12 +495,9 @@
 }
 
 .btnPrimary {
-  /* Astryx primary: black fill + white ink in light, light fill + dark ink in dark.
-     Flat: no drop shadow — the fill carries the emphasis. */
-  background: light-dark(
-    linear-gradient(180deg, #262626, #1b1b1b),
-    linear-gradient(180deg, #ffffff, #f1f1f1)
-  );
+  /* Studio primary: pearl fill + dark ink. Flat: no drop shadow —
+     the fill carries the emphasis. */
+  background: linear-gradient(180deg, #f2e7d2, #e9dcc3);
   color: var(--accent-ink);
 }
 
