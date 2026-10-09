@@ -164,12 +164,16 @@ scrims 60, sheets/drawers 61, confirms 80–81. Raw `z-index: 9999` is rejected.
 ## 8. Components (`src/components/ui/` + kit)
 
 Kit classes in `globals.css` are the API (same names as v2): `.btn`
-(`.pri/.gl/.ghost/.danger/.sm/.block`) · `.iconbtn` (44px circle)
-· `.chip` (+`.on`) · `.badge` (+`.tone-*`) · `.field/.input/textarea/select`
-· `.timein` · `.sw` switch · `.seg` segmented · `.scrim/.sheet/.drawer/.toast`
-· `.nail` tile · `.cal/.day` · `.slots/.slot` (+`.sug/.sel`) · `.tbl`
+(`.pri/.gl/.ghost/.danger/.sm/.block`) · `.iconbtn` (44px circle, `.bare`)
+· `.hd` page head · `.chip` (+`.on`) · `.badge` (+`.tone-*`) · `.pill` count
+· `.field/.input/textarea/select` · `.timein` · `.sw` switch · `.seg`
+segmented · `.scrim/.sheet/.drawer/.toast` · `.nail` tile · `.lk-grid/.lk`
+lookbook · `.cal/.day` · `.slots/.slot` (+`.sug/.sel`) · `.tbl`
 · `.dstrip/.dcell` · `.tl` timeline + `.bk` cards + `.now` · `.savebar`
-· `.panel/.glass` · `.kv/.sum` rows · `.empty` · `.grid2`.
+· `.panel/.glass` · `.kpi` band · `.kv/.sum` rows · `.list/.row` · `.set`
+drawer link · `.center` · `.empty` · `.spin` loader · `.grid2`.
+Type/utility: `.h-xl/.h-l/.h-m` · `.t-s` · `.eyebrow` · `.mute/.faint/.pearl`
+· `.ltr/.num` · `.page-gutter`.
 
 Conventions:
 - React wrappers (Sheet, Drawer, Toast host, Confirm, Badge, Switch, Seg,

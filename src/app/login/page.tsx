@@ -125,7 +125,7 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
-      <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3 pb-2 pt-3">
+      <header className="hd">
         <button type="button" className="iconbtn" onClick={goBack} aria-label="بازگشت">
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </button>
