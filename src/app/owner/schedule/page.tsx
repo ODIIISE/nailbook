@@ -17,7 +17,7 @@ export default function OwnerSchedulePage() {
     dayBookingCounts[day] = (dayBookingCounts[day] || 0) + 1;
   }
 
-  const handleSave = async (hours: typeof workingHours, daysOff: string[], extra: { early_extra_hours: number; late_extra_hours: number; expand_threshold: number; proximity_window_hours: number; allow_overflow: boolean; overflow_minutes: number; slot_interval_minutes: number; slot_buffer_minutes: number; optimization_mode: "hybrid" | "legacy"; suggestion_limit: number; min_useful_gap_minutes: number }) => {
+  const handleSave = async (hours: typeof workingHours, daysOff: string[], extra: { early_extra_hours: number; late_extra_hours: number; expand_threshold: number; proximity_window_hours: number; allow_overflow: boolean; overflow_minutes: number; slot_interval_minutes: number; slot_buffer_minutes: number; optimization_mode: "hybrid" | "legacy"; suggestion_limit: number; min_useful_gap_minutes: number; cancel_hours: number; lead_minutes: number; days_off_reasons: Record<string, string> }) => {
     try {
       // Send schedule and optimizer settings together so the API transaction
       // cannot leave working hours and slot behavior out of sync.
@@ -52,6 +52,9 @@ export default function OwnerSchedulePage() {
           optimizationMode={salon.optimization_mode ?? "hybrid"}
           suggestionLimit={salon.suggestion_limit ?? 3}
           minUsefulGapMinutes={salon.min_useful_gap_minutes ?? 30}
+          cancelHours={salon.cancel_hours ?? 24}
+          leadMinutes={salon.lead_minutes ?? 30}
+          daysOffReasons={salon.days_off_reasons ?? {}}
           dayBookingCounts={dayBookingCounts}
           previewContext={{ services, bookings, blockedTimes }}
           onSave={handleSave}

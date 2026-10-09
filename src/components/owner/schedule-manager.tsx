@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Save, Copy, HelpCircle, Undo2 } from "lucide-react";
+import { Save, Copy, HelpCircle, Undo2, Plus } from "lucide-react";
 import {
   Tooltip,
   TooltipTrigger,
@@ -40,6 +40,9 @@ interface ScheduleManagerProps {
   optimizationMode: "hybrid" | "legacy";
   suggestionLimit: number;
   minUsefulGapMinutes: number;
+  cancelHours: number;
+  leadMinutes: number;
+  daysOffReasons: Record<string, string>;
   /** Active bookings per Gregorian date key — toggling a booked day off asks
      for confirmation first (v-2 booked-day gate). */
   dayBookingCounts?: Record<string, number>;
@@ -65,6 +68,9 @@ interface ScheduleManagerProps {
       optimization_mode: "hybrid" | "legacy";
       suggestion_limit: number;
       min_useful_gap_minutes: number;
+      cancel_hours: number;
+      lead_minutes: number;
+      days_off_reasons: Record<string, string>;
     }
   ) => void | Promise<void>;
 }
@@ -246,7 +252,7 @@ function EnginePreview({
     earlyExtraHours: number; lateExtraHours: number; expandThreshold: number;
     proximityWindowHours: number; allowOverflow: boolean; overflowMinutes: number;
     slotInterval: number; slotBuffer: number; optimizationMode: "hybrid" | "legacy";
-    suggestionLimit: number; minUsefulGapMinutes: number;
+    suggestionLimit: number; minUsefulGapMinutes: number; leadMinutes: number;
   };
   previewContext: NonNullable<ScheduleManagerProps["previewContext"]>;
 }) {
@@ -287,6 +293,7 @@ function EnginePreview({
         optimization_mode: tunables.optimizationMode,
         suggestion_limit: tunables.suggestionLimit,
         min_useful_gap_minutes: tunables.minUsefulGapMinutes,
+        lead_minutes: tunables.leadMinutes,
       },
       daysOff,
     );
@@ -367,6 +374,9 @@ export function ScheduleManager({
   optimizationMode: initialOptimizationMode,
   suggestionLimit: initialSuggestionLimit,
   minUsefulGapMinutes: initialMinUsefulGapMinutes,
+  cancelHours: initialCancel,
+  leadMinutes: initialLead,
+  daysOffReasons: initialReasons,
   dayBookingCounts = {},
   previewContext,
   onSave,
@@ -384,6 +394,9 @@ export function ScheduleManager({
   const [optimizationMode, setOptimizationMode] = useState<"hybrid" | "legacy">(initialOptimizationMode);
   const [suggestionLimit, setSuggestionLimit] = useState(initialSuggestionLimit);
   const [minUsefulGapMinutes, setMinUsefulGapMinutes] = useState(initialMinUsefulGapMinutes);
+  const [cancelHours, setCancelHours] = useState(initialCancel);
+  const [leadMinutes, setLeadMinutes] = useState(initialLead);
+  const [daysOffReasons, setDaysOffReasons] = useState<Record<string, string>>({ ...initialReasons });
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -396,9 +409,10 @@ export function ScheduleManager({
         hours, daysOff, earlyExtraHours, lateExtraHours, expandThreshold,
         proximityWindowHours, allowOverflow, overflowMinutes, slotInterval,
         slotBuffer, optimizationMode, suggestionLimit, minUsefulGapMinutes,
+        cancelHours, leadMinutes, daysOffReasons,
       }));
     } catch { /* private mode — nothing to stash */ }
-  }, [hasChanges, hours, daysOff, earlyExtraHours, lateExtraHours, expandThreshold, proximityWindowHours, allowOverflow, overflowMinutes, slotInterval, slotBuffer, optimizationMode, suggestionLimit, minUsefulGapMinutes]);
+  }, [hasChanges, hours, daysOff, earlyExtraHours, lateExtraHours, expandThreshold, proximityWindowHours, allowOverflow, overflowMinutes, slotInterval, slotBuffer, optimizationMode, suggestionLimit, minUsefulGapMinutes, cancelHours, leadMinutes, daysOffReasons]);
   useEffect(() => {
     // AUDIT-012: restore a session-stashed draft (expiry redirect or refresh
     // mid-edit). Deferred out of the effect body per house rule
@@ -413,6 +427,7 @@ export function ScheduleManager({
           expandThreshold: number; proximityWindowHours: number; allowOverflow: boolean;
           overflowMinutes: number; slotInterval: number; slotBuffer: number;
           optimizationMode: "hybrid" | "legacy"; suggestionLimit: number; minUsefulGapMinutes: number;
+          cancelHours: number; leadMinutes: number; daysOffReasons: Record<string, string>;
         }>;
         if (d.hours) setHours(d.hours);
         if (d.daysOff) setDaysOff(d.daysOff);
@@ -427,6 +442,9 @@ export function ScheduleManager({
         if (d.optimizationMode === "hybrid" || d.optimizationMode === "legacy") setOptimizationMode(d.optimizationMode);
         if (typeof d.suggestionLimit === "number") setSuggestionLimit(d.suggestionLimit);
         if (typeof d.minUsefulGapMinutes === "number") setMinUsefulGapMinutes(d.minUsefulGapMinutes);
+        if (typeof d.cancelHours === "number") setCancelHours(d.cancelHours);
+        if (typeof d.leadMinutes === "number") setLeadMinutes(d.leadMinutes);
+        if (d.daysOffReasons && typeof d.daysOffReasons === "object") setDaysOffReasons({ ...d.daysOffReasons });
         setHasChanges(true);
       } catch { /* corrupt — start clean */ }
     });
@@ -451,8 +469,11 @@ export function ScheduleManager({
     setOptimizationMode(initialOptimizationMode);
     setSuggestionLimit(initialSuggestionLimit);
     setMinUsefulGapMinutes(initialMinUsefulGapMinutes);
+    setCancelHours(initialCancel);
+    setLeadMinutes(initialLead);
+    setDaysOffReasons({ ...initialReasons });
     setHasChanges(false);
-  }, [workingHours, specificDaysOff, initialEarly, initialLate, initialThreshold, initialProximity, initialOverflow, initialOverflowMinutes, initialInterval, initialBuffer, initialOptimizationMode, initialSuggestionLimit, initialMinUsefulGapMinutes, hasChanges]);
+  }, [workingHours, specificDaysOff, initialEarly, initialLate, initialThreshold, initialProximity, initialOverflow, initialOverflowMinutes, initialInterval, initialBuffer, initialOptimizationMode, initialSuggestionLimit, initialMinUsefulGapMinutes, initialCancel, initialLead, initialReasons, hasChanges]);
 
   const markChanged = () => setHasChanges(true);
 
@@ -474,6 +495,9 @@ export function ScheduleManager({
     setOptimizationMode(initialOptimizationMode);
     setSuggestionLimit(initialSuggestionLimit);
     setMinUsefulGapMinutes(initialMinUsefulGapMinutes);
+    setCancelHours(initialCancel);
+    setLeadMinutes(initialLead);
+    setDaysOffReasons({ ...initialReasons });
   };
 
   const toggleDay = (key: string) => {
@@ -508,6 +532,44 @@ export function ScheduleManager({
     markChanged();
   };
 
+  const toMinutes = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  };
+  const toHHMM = (m: number) =>
+    `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+
+  const addBreak = (key: string) => {
+    const current = hours[key];
+    if (!current) return;
+    // Default to a 1-hour rest starting an hour after opening, clamped into
+    // the shift. The server validator rejects anything outside open/close.
+    const open = toMinutes(current.open);
+    const close = toMinutes(current.close);
+    const start = open + 60;
+    const end = Math.min(start + 60, close);
+    if (!(open <= start && start < end && end <= close)) return;
+    const breaks = [...(current.breaks || []), { start: toHHMM(start), end: toHHMM(end) }];
+    setHours({ ...hours, [key]: { ...current, breaks } });
+    markChanged();
+  };
+
+  const updateBreak = (key: string, index: number, field: "start" | "end", value: string) => {
+    const current = hours[key];
+    if (!current || !current.breaks) return;
+    const breaks = current.breaks.map((b, i) => (i === index ? { ...b, [field]: value } : b));
+    setHours({ ...hours, [key]: { ...current, breaks } });
+    markChanged();
+  };
+
+  const removeBreak = (key: string, index: number) => {
+    const current = hours[key];
+    if (!current || !current.breaks) return;
+    const breaks = current.breaks.filter((_, i) => i !== index);
+    setHours({ ...hours, [key]: { ...current, breaks } });
+    markChanged();
+  };
+
   const applyToAll = (sourceKey: string) => {
     const source = hours[sourceKey];
     if (!source) return;
@@ -519,6 +581,27 @@ export function ScheduleManager({
     markChanged();
   };
 
+  const removeDayOff = (dateStr: string) => {
+    setDaysOff((prev) => prev.filter((d) => d !== dateStr));
+    setDaysOffReasons((prev) => {
+      if (!(dateStr in prev)) return prev;
+      const next = { ...prev };
+      delete next[dateStr];
+      return next;
+    });
+    markChanged();
+  };
+
+  const setDayOffReason = (dateStr: string, value: string) => {
+    setDaysOffReasons((prev) => {
+      const next = { ...prev };
+      if (value.trim()) next[dateStr] = value.trim().slice(0, 100);
+      else delete next[dateStr];
+      return next;
+    });
+    markChanged();
+  };
+
   const toggleSpecificDayOff = (dateStr: string) => {
     // Booked days need an explicit second tap: closing the day does not
     // cancel those bookings, so the owner must acknowledge them first.
@@ -526,9 +609,11 @@ export function ScheduleManager({
       setPendingDayOff(dateStr);
       return;
     }
-    setDaysOff((prev) =>
-      prev.includes(dateStr) ? prev.filter((d) => d !== dateStr) : [...prev, dateStr]
-    );
+    if (daysOff.includes(dateStr)) {
+      removeDayOff(dateStr);
+      return;
+    }
+    setDaysOff((prev) => [...prev, dateStr]);
     markChanged();
   };
   const [pendingDayOff, setPendingDayOff] = useState<string | null>(null);
@@ -549,6 +634,9 @@ export function ScheduleManager({
         optimization_mode: optimizationMode,
         suggestion_limit: suggestionLimit,
         min_useful_gap_minutes: minUsefulGapMinutes,
+        cancel_hours: cancelHours,
+        lead_minutes: leadMinutes,
+        days_off_reasons: daysOffReasons,
       });
       try { sessionStorage.removeItem("nailbook_schedule_draft"); } catch { /* noop */ }
       setHasChanges(false);
@@ -644,6 +732,49 @@ export function ScheduleManager({
                   </div>
                 </div>
               )}
+              {isActive && dayHours && (dayHours.breaks || []).length > 0 && (
+                <div className="mt-2 space-y-2">
+                  {(dayHours.breaks || []).map((b, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <Input
+                        type="time"
+                        value={b.start}
+                        onChange={(e) => updateBreak(day.key, i, "start", e.target.value)}
+                        className="text-center"
+                        dir="ltr"
+                        aria-label="شروع استراحت"
+                      />
+                      <span className="text-xs text-muted-foreground shrink-0">تا</span>
+                      <Input
+                        type="time"
+                        value={b.end}
+                        onChange={(e) => updateBreak(day.key, i, "end", e.target.value)}
+                        className="text-center"
+                        dir="ltr"
+                        aria-label="پایان استراحت"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeBreak(day.key, i)}
+                        aria-label="حذف استراحت"
+                        className="h-11 px-3 shrink-0 rounded-none text-small text-destructive hover:bg-destructive/10"
+                      >
+                        حذف
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {isActive && dayHours && (
+                <button
+                  type="button"
+                  onClick={() => addBreak(day.key)}
+                  className="mt-2 h-11 w-full rounded-none border border-dashed border-border text-small text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  افزودن استراحت روزانه
+                </button>
+              )}
             </Card>
           );
         })}
@@ -702,7 +833,54 @@ export function ScheduleManager({
         </div>
       </Card>
 
-      {/* ─── Section 3: Expansion ─── */}
+      {/* ─── Section 3: Booking Policies ─── */}
+      <Card className="p-4">
+        <h3 className="font-normal text-foreground mb-1">سیاست‌های رزرو</h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          مهلت لغو و حداقل زمان لازم برای ثبت رزرو
+        </p>
+        <div className="space-y-5">
+          <SettingRow
+            label="مهلت لغو"
+            help="مشتری فقط تا این زمان قبل از شروع نوبت می‌تواند لغو کند. صفر یعنی همیشه آزاد."
+            description={
+              cancelHours === 0
+                ? "لغو نوبت همیشه آزاد است"
+                : `لغو فقط تا ${toPersianDigits(cancelHours)} ساعت قبل از شروع نوبت`
+            }
+          >
+            <NumberInput
+              value={cancelHours}
+              onChange={(v) => { setCancelHours(v); markChanged(); }}
+              min={0}
+              max={72}
+              unit="ساعت"
+            />
+          </SettingRow>
+
+          <div className="border-t border-border/30" />
+
+          <SettingRow
+            label="حداقل زمان لازم"
+            help="رزروهای امروز باید حداقل این‌قدر زودتر ثبت شوند. صفر یعنی تا دقیقه آخر."
+            description={
+              leadMinutes === 0
+                ? "رزرو امروز تا دقیقه آخر ممکن است"
+                : `رزرو امروز حداقل ${toPersianDigits(leadMinutes)} دقیقه زودتر`
+            }
+          >
+            <NumberInput
+              value={leadMinutes}
+              onChange={(v) => { setLeadMinutes(v); markChanged(); }}
+              min={0}
+              max={240}
+              unit="دقیقه"
+            />
+          </SettingRow>
+        </div>
+      </Card>
+
+      {/* ─── Section 4: Expansion ─── */}
       <Card className="p-4">
         <h3 className="font-normal text-foreground mb-1">ساعت اضافی</h3>
         <p className="text-xs text-muted-foreground mb-4">
@@ -758,7 +936,7 @@ export function ScheduleManager({
         </div>
       </Card>
 
-      {/* ─── Section 4: Smart Scheduling ─── */}
+      {/* ─── Section 5: Smart Scheduling ─── */}
       <Card className="p-4">
         <h3 className="font-normal text-foreground mb-1">تنظیمات هوشمند</h3>
         <p className="text-xs text-muted-foreground mb-4">
@@ -877,7 +1055,7 @@ export function ScheduleManager({
         </div>
       </Card>
 
-      {/* ─── Section 5: Live Preview ─── */}
+      {/* ─── Section 6: Live Preview ─── */}
       {previewContext && (
         <EnginePreview
           hours={hours}
@@ -885,13 +1063,13 @@ export function ScheduleManager({
           tunables={{
             earlyExtraHours, lateExtraHours, expandThreshold, proximityWindowHours,
             allowOverflow, overflowMinutes, slotInterval, slotBuffer,
-            optimizationMode, suggestionLimit, minUsefulGapMinutes,
+            optimizationMode, suggestionLimit, minUsefulGapMinutes, leadMinutes,
           }}
           previewContext={previewContext}
         />
       )}
 
-      {/* ─── Section 6: Days Off ─── */}
+      {/* ─── Section 7: Days Off ─── */}
       <div>
         <h3 className="font-normal text-foreground mb-1">روزهای تعطیل</h3>
         <p className="text-xs text-muted-foreground mb-3">
@@ -965,6 +1143,23 @@ export function ScheduleManager({
                 </span>
               )}
             </div>
+          </div>
+        )}
+        {daysOff.length > 0 && (
+          <div className="mt-3 space-y-2">
+            <p className="text-xs text-muted-foreground">دلیل تعطیلی (اختیاری)</p>
+            {[...daysOff].sort().map((d) => (
+              <div key={d} className="flex items-center gap-2">
+                <span className="text-small text-foreground shrink-0 w-20">{formatDayOffChip(d)}</span>
+                <Input
+                  value={daysOffReasons[d] || ""}
+                  onChange={(e) => setDayOffReason(d, e.target.value)}
+                  placeholder="مثلاً تعطیلات رسمی"
+                  maxLength={100}
+                  className="h-10"
+                />
+              </div>
+            ))}
           </div>
         )}
       </div>

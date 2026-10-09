@@ -11,6 +11,7 @@ import { Users, Search, Plus, Pencil, Trash2, UserCheck, AlertTriangle, Lock, Un
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { toPersianDigits } from "@/lib/jalali";
 import { normalizeDigits } from "@/lib/digits";
 import { handleAuthExpiry } from "@/lib/db/data";
@@ -24,7 +25,23 @@ interface User {
   failed_attempts: number;
   locked_until: string | null;
   created_at: string;
+  specialty?: string;
+  work_days?: number[];
+  service_ids?: string[];
+  sms_reminders?: boolean;
+  offers?: boolean;
+  note?: string;
 }
+
+/** Iran-week day order matching work_days indexes (0 = Saturday). */
+const WEEKDAY_LABELS = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
+
+const ROLE_LABELS: Record<string, string> = {
+  owner: "مدیر",
+  manager: "مدیر داخلی",
+  artist: "هنرمند",
+  customer: "مشتری",
+};
 
 type Modal = "add" | "edit" | "delete" | null;
 
@@ -32,8 +49,8 @@ export default function OwnerUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState<"all" | "owner" | "customer">("all");
-  const { bookings } = useSalon();
+  const [roleFilter, setRoleFilter] = useState<"all" | "owner" | "manager" | "artist" | "customer">("all");
+  const { bookings, services } = useSalon();
   const [modal, setModal] = useState<Modal>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
@@ -42,6 +59,12 @@ export default function OwnerUsersPage() {
   const [formPhone, setFormPhone] = useState("");
 
   const [formRole, setFormRole] = useState("customer");
+  const [formSpecialty, setFormSpecialty] = useState("");
+  const [formWorkDays, setFormWorkDays] = useState<number[]>([]);
+  const [formServiceIds, setFormServiceIds] = useState<string[]>([]);
+  const [formSms, setFormSms] = useState(true);
+  const [formOffers, setFormOffers] = useState(false);
+  const [formNote, setFormNote] = useState("");
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -68,11 +91,19 @@ export default function OwnerUsersPage() {
   const roleCounts = {
     all: users.length,
     owner: users.filter((u) => u.role === "owner").length,
-    customer: users.filter((u) => u.role !== "owner").length,
+    manager: users.filter((u) => u.role === "manager").length,
+    artist: users.filter((u) => u.role === "artist").length,
+    customer: users.filter((u) => u.role !== "owner" && u.role !== "manager" && u.role !== "artist").length,
+  };
+  const inRoleBucket = (u: User) => {
+    if (roleFilter === "all") return true;
+    // Legacy or unknown role strings still land in the customer bucket.
+    if (roleFilter === "customer") return u.role !== "owner" && u.role !== "manager" && u.role !== "artist";
+    return u.role === roleFilter;
   };
   const filteredUsers = users.filter(
     (u) =>
-      (roleFilter === "all" || (roleFilter === "owner" ? u.role === "owner" : u.role !== "owner")) &&
+      inRoleBucket(u) &&
       (u.phone.includes(normalizedSearch) || u.name.includes(search))
   );
 
@@ -91,6 +122,12 @@ export default function OwnerUsersPage() {
     setFormName("");
     setFormPhone("");
     setFormRole("customer");
+    setFormSpecialty("");
+    setFormWorkDays([]);
+    setFormServiceIds([]);
+    setFormSms(true);
+    setFormOffers(false);
+    setFormNote("");
     setFormError("");
   };
 
@@ -100,11 +137,27 @@ export default function OwnerUsersPage() {
     setModal("add");
   };
 
+  const toggleWorkDay = (day: number) => {
+    setFormWorkDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort());
+  };
+
+  const toggleServiceId = (id: string) => {
+    setFormServiceIds((prev) => prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]);
+  };
+
+  const activeServices = services.filter((s) => s.is_active);
+
   const openEdit = (user: User) => {
     setSelectedUser(user);
     setFormName(user.name);
     setFormPhone(user.phone);
     setFormRole(user.role);
+    setFormSpecialty(user.specialty || "");
+    setFormWorkDays(Array.isArray(user.work_days) ? user.work_days.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6) : []);
+    setFormServiceIds(Array.isArray(user.service_ids) ? user.service_ids.filter((id) => typeof id === "string") : []);
+    setFormSms(user.sms_reminders !== false);
+    setFormOffers(user.offers === true);
+    setFormNote(user.note || "");
     setFormError("");
     setModal("edit");
   };
@@ -116,6 +169,16 @@ export default function OwnerUsersPage() {
 
 
 
+  /** Profile payload shared by add + edit (artist fields, prefs, note). */
+  const profilePayload = () => ({
+    specialty: formSpecialty.trim(),
+    work_days: formWorkDays,
+    service_ids: formServiceIds,
+    sms_reminders: formSms,
+    offers: formOffers,
+    note: formNote.trim(),
+  });
+
   const handleAdd = async () => {
     const phone = normalizeDigits(formPhone);
     if (phone.length < 10) { setFormError("شماره موبایل معتبر نیست"); return; }
@@ -126,7 +189,7 @@ export default function OwnerUsersPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ phone, name: formName, role: formRole }),
+        body: JSON.stringify({ phone, name: formName, role: formRole, ...profilePayload() }),
       });
       const data = await res.json();
       if (data.success) {
@@ -154,6 +217,7 @@ export default function OwnerUsersPage() {
         phone,
         name: formName,
         role: formRole,
+        ...profilePayload(),
       };
 
       const res = await fetch("/api/owner/users", {
@@ -262,8 +326,8 @@ export default function OwnerUsersPage() {
       </div>
 
       {/* Role filter */}
-      <div className="flex gap-1.5" role="group" aria-label="فیلتر نقش">
-        {([["all", "همه"], ["owner", "مدیر"], ["customer", "مشتری"]] as const).map(([v, label]) => (
+      <div className="flex gap-1.5 overflow-x-auto" role="group" aria-label="فیلتر نقش">
+        {([["all", "همه"], ["owner", "مدیر"], ["manager", "داخلی"], ["artist", "هنرمند"], ["customer", "مشتری"]] as const).map(([v, label]) => (
           <button
             key={v}
             type="button"
@@ -299,9 +363,9 @@ export default function OwnerUsersPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-body font-normal text-foreground truncate">{user.name || "بدون نام"}</p>
-                    {user.role === "owner" && (
+                    {user.role !== "customer" && (
                       <Badge variant="default" className="text-small px-1.5 py-0 h-5">
-                        مدیر
+                        {ROLE_LABELS[user.role] || user.role}
                       </Badge>
                     )}
                     {user.locked_until && (
@@ -362,11 +426,69 @@ export default function OwnerUsersPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="customer">مشتری</SelectItem>
+                    <SelectItem value="artist">هنرمند</SelectItem>
+                    <SelectItem value="manager">مدیر داخلی</SelectItem>
                     <SelectItem value="owner">مدیر</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             )}
+            {formRole === "artist" && (
+              <>
+                <div>
+                  <label className="text-caption text-muted-foreground">تخصص</label>
+                  <Input value={formSpecialty} onChange={(e) => setFormSpecialty(e.target.value)} placeholder="مثلاً کاشت، طراحی" maxLength={100} className="mt-1" />
+                </div>
+                <div>
+                  <span className="text-caption text-muted-foreground">روزهای کاری</span>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5" role="group" aria-label="روزهای کاری">
+                    {WEEKDAY_LABELS.map((label, day) => (
+                      <button
+                        key={day}
+                        type="button"
+                        aria-pressed={formWorkDays.includes(day)}
+                        onClick={() => toggleWorkDay(day)}
+                        className={`h-9 rounded-full px-3 text-sm font-normal ${formWorkDays.includes(day) ? "bg-primary text-primary-foreground" : "border border-border bg-card text-muted-foreground"}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {activeServices.length > 0 && (
+                  <div>
+                    <span className="text-caption text-muted-foreground">خدمات قابل ارائه</span>
+                    <div className="mt-1.5 space-y-1.5">
+                      {activeServices.map((s) => (
+                        <label key={s.id} className="flex items-center gap-2 text-sm text-foreground">
+                          <input
+                            type="checkbox"
+                            checked={formServiceIds.includes(s.id)}
+                            onChange={() => toggleServiceId(s.id)}
+                            className="h-4 w-4 accent-primary"
+                          />
+                          {s.name}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+            <div className="space-y-2.5 rounded-none border border-border p-3">
+              <label className="flex items-center justify-between gap-2 text-sm text-foreground">
+                یادآوری پیامکی
+                <Switch checked={formSms} onCheckedChange={setFormSms} />
+              </label>
+              <label className="flex items-center justify-between gap-2 text-sm text-foreground">
+                پیشنهادها و تخفیف‌ها
+                <Switch checked={formOffers} onCheckedChange={setFormOffers} />
+              </label>
+            </div>
+            <div>
+              <label className="text-caption text-muted-foreground">یادداشت داخلی</label>
+              <Input value={formNote} onChange={(e) => setFormNote(e.target.value)} placeholder="فقط برای همکاران نمایش داده می‌شود" maxLength={500} className="mt-1" />
+            </div>
             {modal === "add" && formRole === "owner" && (
               <p className="text-caption text-muted-foreground rounded-none bg-muted/50 p-2">
                 این شماره می‌تواند پس از دریافت کد پیامکی وارد پنل مدیر شود.
