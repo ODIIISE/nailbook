@@ -54,13 +54,56 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (salonId) {
+    const sets = ["name = $1"];
+    const vals: unknown[] = [sanitizedName];
+    if (cleanPhone) {
+      vals.push(cleanPhone);
+      sets.push(`phone = $${vals.length}`);
+    }
+    // Notification prefs (migration 026): only when the columns exist.
+    if (body.sms_reminders !== undefined || body.offers !== undefined) {
+        let prefCols = new Set<string>();
+        try {
+          const { rows: colRows } = await sql.query(
+            `SELECT column_name FROM information_schema.columns
+             WHERE table_schema = 'public' AND table_name = 'users'
+             AND column_name IN ('sms_reminders', 'offers')`
+          );
+          prefCols = new Set(colRows.map((r) => String(r.column_name)));
+        } catch {
+          prefCols = new Set();
+        }
+        if (body.sms_reminders !== undefined) {
+          if (typeof body.sms_reminders !== "boolean") {
+            return NextResponse.json({ error: "مقدار نامعتبر است" }, { status: 400 });
+          }
+          if (prefCols.has("sms_reminders")) {
+            vals.push(body.sms_reminders);
+            sets.push(`sms_reminders = $${vals.length}`);
+          }
+        }
+        if (body.offers !== undefined) {
+          if (typeof body.offers !== "boolean") {
+            return NextResponse.json({ error: "مقدار نامعتبر است" }, { status: 400 });
+          }
+          if (prefCols.has("offers")) {
+            vals.push(body.offers);
+            sets.push(`offers = $${vals.length}`);
+          }
+        }
+      }
+      if (salonId) {
+        vals.push(userId, salonId);
       await sql.query(
-        "UPDATE users SET name = $1, phone = COALESCE($2, phone) WHERE id = $3 AND salon_id = $4",
-        [sanitizedName, cleanPhone, userId, salonId]
+        `UPDATE users SET ${sets.join(", ")} WHERE id = $${vals.length - 1} AND salon_id = $${vals.length}`,
+        vals
       );
     } else {
-      await sql`UPDATE users SET name = ${sanitizedName}, phone = COALESCE(${cleanPhone}, phone) WHERE id = ${userId}`;
+      vals.push(userId);
+      await sql.query(
+        `UPDATE users SET ${sets.join(", ")} WHERE id = $${vals.length}`,
+        vals
+      );
     }
 
     if (cleanPhone && oldPhone && cleanPhone !== oldPhone) {

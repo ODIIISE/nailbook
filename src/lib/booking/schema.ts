@@ -23,6 +23,9 @@ export const bookingRequestSchema = z.object({
   customer_name: z.string().trim().min(1, "customer_name is required").max(100),
   selected_addons: z.array(z.string()).default([]),
   date: z.string().optional(),
+  // Optional artist assignment (v2 artist step). Validated server-side:
+  // must exist, carry the artist role, and serve the service.
+  artist_id: z.string().uuid().nullish(),
   // Deprecated: kept only so existing clients don't break; ignored server-side.
   user_id: z.string().optional(),
 });

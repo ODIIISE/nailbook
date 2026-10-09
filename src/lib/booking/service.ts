@@ -6,6 +6,7 @@ import { gregorianToJalali, toPersianDigits } from "@/lib/jalali";
 import { parseGregorianDateKey, getTehranNow } from "@/lib/time";
 import type { BookingRequestInput } from "./schema";
 import { resolveSalonId } from "@/lib/multi-tenant";
+import { isSalonArtist } from "@/lib/owner-auth";
 
 export interface CreateBookingResult {
   id: string;
@@ -277,30 +278,45 @@ async function insertBooking(
   normEnd: string,
   salonId: string | null,
   serviceName: string,
-  priceTotal: number
+  priceTotal: number,
+  artistId: string | null
 ): Promise<CreateBookingResult> {
   const parsedDate = parseGregorianDateKey(input.date_gregorian);
   const jalali = gregorianToJalali(parsedDate);
   const jalaliDate = `${jalali.jy}/${String(jalali.jm).padStart(2, "0")}/${String(jalali.jd).padStart(2, "0")}`;
 
+  // artist_id (migration 025) is absent pre-migration — omit it then.
+  let withArtist = false;
+  if (artistId) {
+    try {
+      const { rows } = await client.query(
+        `SELECT 1 FROM information_schema.columns
+         WHERE table_schema = 'public' AND table_name = 'bookings' AND column_name = 'artist_id' LIMIT 1`
+      );
+      withArtist = rows.length > 0;
+    } catch {
+      withArtist = false;
+    }
+  }
+
   const insertSql = salonId
     ? `INSERT INTO bookings (
         user_id, salon_id, customer_phone, customer_name, service_id,
         selected_addons, date, date_gregorian, start_time, end_time,
-        status, phone_verified, created_at, service_name, price_total
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::date, ($9 || ':00')::time, ($10 || ':00')::time, 'reserved', true, NOW(), $11, $12)`
+        status, phone_verified, created_at, service_name, price_total${withArtist ? ", artist_id" : ""}
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::date, ($9 || ':00')::time, ($10 || ':00')::time, 'reserved', true, NOW(), $11, $12${withArtist ? ", $13" : ""})`
     : `INSERT INTO bookings (
         user_id, customer_phone, customer_name, service_id,
         selected_addons, date, date_gregorian, start_time, end_time,
-        status, phone_verified, created_at, service_name, price_total
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, ($8 || ':00')::time, ($9 || ':00')::time, 'reserved', true, NOW(), $10, $11)`;
+        status, phone_verified, created_at, service_name, price_total${withArtist ? ", artist_id" : ""}
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, ($8 || ':00')::time, ($9 || ':00')::time, 'reserved', true, NOW(), $10, $11${withArtist ? ", $12" : ""})`;
   const result = await client.query(
     `${insertSql}
      ON CONFLICT DO NOTHING
      RETURNING id, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time`,
     salonId
-      ? [userId, salonId, phone, input.customer_name || "", input.service_id, JSON.stringify(input.selected_addons || []), jalaliDate, input.date_gregorian, normStart, normEnd, serviceName, Math.round(priceTotal)]
-      : [userId, phone, input.customer_name || "", input.service_id, JSON.stringify(input.selected_addons || []), jalaliDate, input.date_gregorian, normStart, normEnd, serviceName, Math.round(priceTotal)]
+      ? [userId, salonId, phone, input.customer_name || "", input.service_id, JSON.stringify(input.selected_addons || []), jalaliDate, input.date_gregorian, normStart, normEnd, serviceName, Math.round(priceTotal), ...(withArtist ? [artistId] : [])]
+      : [userId, phone, input.customer_name || "", input.service_id, JSON.stringify(input.selected_addons || []), jalaliDate, input.date_gregorian, normStart, normEnd, serviceName, Math.round(priceTotal), ...(withArtist ? [artistId] : [])]
   );
 
   if (result.rows.length === 0) {
@@ -356,6 +372,34 @@ export async function createBooking(
     throw createBookingError("SPAM_DETECTED", spamCheck.error);
   }
 
+  // Optional artist assignment (v2 artist step): must exist, carry the
+  // artist role, and serve the requested service (empty assignment list
+  // means all services). Validated before the transaction opens.
+  let artistId: string | null = null;
+  if (input.artist_id) {
+    if (!(await isSalonArtist(input.artist_id, salonId))) {
+      throw createBookingError("SERVICE_NOT_FOUND", "هنرمند یافت نشد");
+    }
+    try {
+      const { rows: artistRows } = salonId
+        ? await sql.query(`SELECT service_ids FROM users WHERE id = $1 AND salon_id = $2 LIMIT 1`, [input.artist_id, salonId])
+        : await sql.query(`SELECT service_ids FROM users WHERE id = $1 LIMIT 1`, [input.artist_id]);
+      const assigned = artistRows[0]?.service_ids;
+      const servesAll = !Array.isArray(assigned) || assigned.length === 0;
+      const servesService = Array.isArray(assigned) && assigned.some((id: unknown) => String(id) === input.service_id);
+      if (!servesAll && !servesService) {
+        throw createBookingError("SERVICE_NOT_FOUND", "این هنرمند این خدمت را انجام نمی‌دهد");
+      }
+    } catch (error) {
+      if (error instanceof BookingError) throw error;
+      const code = (error as { code?: string })?.code;
+      const message = String((error as { message?: string })?.message || "");
+      // Pre-025 schemas have no service_ids — role check above suffices.
+      if (code !== "42703" && !/column .* does not exist/i.test(message)) throw error;
+    }
+    artistId = input.artist_id;
+  }
+
   const client = await sql.connect();
 
   try {
@@ -407,7 +451,8 @@ export async function createBooking(
       normEnd,
       salonId,
       serviceName,
-      priceTotal
+      priceTotal,
+      artistId
     );
 
     await client.query("COMMIT");
@@ -423,6 +468,7 @@ export async function createBooking(
         start_time: normStart,
         end_time: normEnd,
         phone,
+        artist_id: artistId,
       },
     });
 
