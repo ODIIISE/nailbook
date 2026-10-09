@@ -3,6 +3,7 @@ import {
   DEFAULT_OPTIMIZER_SETTINGS,
   isValidSpecificDaysOff,
   isValidWorkingHours,
+  normalizeDaysOffReasons,
   normalizeOptimizerSettings,
 } from "./salon-settings";
 
@@ -48,5 +49,28 @@ describe("owner schedule payload validation", () => {
     expect(isValidWorkingHours({ saturday: { open: "09:00", close: "18:00" } })).toBe(false);
     expect(isValidSpecificDaysOff(["2026/08/05"])).toBe(false);
     expect(isValidSpecificDaysOff(["2026-02-30"])).toBe(false);
+  });
+
+  it("accepts in-hours breaks and rejects out-of-hours or overlapping breaks", () => {
+    expect(isValidWorkingHours({ sat: { open: "09:00", close: "18:00", breaks: [{ start: "13:00", end: "14:00" }] } })).toBe(true);
+    expect(isValidWorkingHours({ sat: { open: "09:00", close: "18:00" } })).toBe(true);
+    expect(isValidWorkingHours({ sat: { open: "09:00", close: "18:00", breaks: [{ start: "08:00", end: "09:30" }] } })).toBe(false);
+    expect(isValidWorkingHours({ sat: { open: "09:00", close: "18:00", breaks: [{ start: "14:00", end: "13:00" }] } })).toBe(false);
+    expect(isValidWorkingHours({ sat: { open: "09:00", close: "18:00", breaks: [{ start: "13:00", end: "14:00" }, { start: "13:30", end: "14:30" }] } })).toBe(false);
+    expect(isValidWorkingHours({ sat: { open: "09:00", close: "18:00", breaks: "lunch" } })).toBe(false);
+  });
+
+  it("keeps valid days-off reasons and drops malformed entries", () => {
+    expect(normalizeDaysOffReasons(undefined)).toEqual({});
+    expect(normalizeDaysOffReasons([])).toEqual({});
+    expect(normalizeDaysOffReasons({
+      "2026-08-05": "تعطیلات تابستانی",
+      "not-a-date": "x",
+      "2026-08-06": 42,
+      "2026-08-07": "   ",
+    })).toEqual({ "2026-08-05": "تعطیلات تابستانی" });
+    expect(normalizeDaysOffReasons({ "2026-08-05": "a".repeat(200) })).toEqual({
+      "2026-08-05": "a".repeat(100),
+    });
   });
 });

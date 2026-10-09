@@ -420,6 +420,38 @@ describe("generateTimeSlots - Blocked Times", () => {
   });
 });
 
+describe("generateTimeSlots - Scheduled Breaks", () => {
+  it("should block slots overlapping a scheduled break without marking them locked", () => {
+    const date = makeDate(3);
+    const hoursWithBreak: WorkingHours = {
+      ...standardHours,
+      wed: { open: "10:00", close: "18:00", breaks: [{ start: "13:00", end: "14:00" }] },
+    };
+
+    const slots = generateTimeSlots(
+      hoursWithBreak,
+      date,
+      30,
+      0,
+      15,
+      0,
+      [],
+      [],
+      {}
+    );
+
+    const inBreak = slots.find((s) => s.time === "13:00");
+    expect(inBreak).toBeDefined();
+    expect(inBreak!.available).toBe(false);
+    expect(inBreak!.locked).toBe(false);
+    expect(inBreak!.booked).toBe(false);
+    const before = slots.find((s) => s.time === "12:30");
+    expect(before!.available).toBe(true);
+    const after = slots.find((s) => s.time === "14:00");
+    expect(after!.available).toBe(true);
+  });
+});
+
 describe("generateTimeSlots - Today Filtering", () => {
   it("should filter past slots for today", () => {
     // getTehranNow returns 10:00 AM

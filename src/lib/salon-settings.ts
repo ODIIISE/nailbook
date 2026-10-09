@@ -42,26 +42,67 @@ function isValidIsoDate(value: string): boolean {
     && parsed.getUTCDate() === day;
 }
 
+export interface DayBreak {
+  start: string;
+  end: string;
+}
+
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+function isValidBreakList(value: unknown, open: string, close: string): boolean {
+  if (value === undefined) return true;
+  if (!Array.isArray(value)) return false;
+  const ranges = [];
+  for (const b of value) {
+    if (!b || typeof b !== "object") return false;
+    const { start, end } = b as { start?: unknown; end?: unknown };
+    if (typeof start !== "string" || typeof end !== "string") return false;
+    if (!HHMM.test(start) || !HHMM.test(end)) return false;
+    if (!(open <= start && start < end && end <= close)) return false;
+    ranges.push([start, end]);
+  }
+  ranges.sort();
+  for (let i = 1; i < ranges.length; i++) {
+    if (ranges[i][0] < ranges[i - 1][1]) return false;
+  }
+  return true;
+}
+
 export function isValidWorkingHours(
   value: unknown
-): value is Record<string, { open: string; close: string } | null> {
+): value is Record<string, { open: string; close: string; breaks?: DayBreak[] } | null> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
 
   return Object.entries(value).every(([day, hours]) => {
     if (!WORKING_HOUR_KEYS.has(day)) return false;
     if (hours === null) return true;
     if (!hours || typeof hours !== "object") return false;
-    const { open, close } = hours as { open?: unknown; close?: unknown };
+    const { open, close, breaks } = hours as { open?: unknown; close?: unknown; breaks?: unknown };
     if (typeof open !== "string" || typeof close !== "string") return false;
     if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(open)) return false;
     if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(close)) return false;
-    return open < close;
+    if (!(open < close)) return false;
+    return isValidBreakList(breaks, open, close);
   });
 }
 
 export function isValidSpecificDaysOff(value: unknown): value is string[] {
   return Array.isArray(value)
     && value.every((day) => typeof day === "string" && isValidIsoDate(day));
+}
+
+/** Days-off reasons ({YYYY-MM-DD: reason}) survive unknown shapes by
+ *  dropping malformed entries — a corrupt map must never break the salon
+ *  payload, and reasons are capped at 100 chars like the update-salon API. */
+export function normalizeDaysOffReasons(value: unknown): Record<string, string> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const out: Record<string, string> = {};
+  for (const [key, reason] of Object.entries(value)) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(key) && typeof reason === "string" && reason.trim()) {
+      out[key] = reason.trim().slice(0, 100);
+    }
+  }
+  return out;
 }
 
 /** Slot grid interval in minutes. Out-of-range or corrupt values fall back to

@@ -18,7 +18,7 @@ import { gregorianToJalali, jalaliToGregorian, DAYS_IN_MONTH, isJalaliLeapYear }
 // ─── Types ───
 
 export interface WorkingHours {
-  [key: string]: { open: string; close: string } | null;
+  [key: string]: { open: string; close: string; breaks?: Array<{ start: string; end: string }> } | null;
 }
 
 export interface TimeSlot {
@@ -430,7 +430,12 @@ export function generateTimeSlots(
     })
     .filter((b) => Number.isFinite(b.start) && Number.isFinite(b.end) && b.end > b.start);
 
-  const occupied = mergeBlocks([...bookings, ...blocks]);
+  const occupied = mergeBlocks([...bookings, ...blocks,
+    // Scheduled breaks behave like blocks: no slot may overlap them.
+    ...(Array.isArray(dayHours.breaks) ? dayHours.breaks : [])
+      .map((b) => ({ start: parseTime(b.start), end: parseTime(b.end) }))
+      .filter((b) => Number.isFinite(b.start) && Number.isFinite(b.end) && b.end > b.start),
+  ]);
 
   // Compute expanded shift
   const { start: shiftStart, end: shiftEnd } = computeExpandedShift(

@@ -14,7 +14,7 @@ export interface CreateBookingResult {
 }
 
 interface SalonWorkingHours {
-  [key: string]: { open: string; close: string } | null;
+  [key: string]: { open: string; close: string; breaks?: Array<{ start: string; end: string }> } | null;
 }
 
 interface SalonInfo {
