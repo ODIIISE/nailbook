@@ -1,13 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Seg } from "@/components/ui/seg";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Plus, Edit2, Trash2, X, Check, ChevronUp, ChevronDown, Upload, Image as ImageIcon } from "lucide-react";
@@ -37,33 +32,32 @@ export function ServiceManager({
 
   return (
     <div>
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="w-full">
-          <TabsTrigger value="services" className="flex-1">
-            خدمات ({toPersianDigits(services.length)})
-          </TabsTrigger>
-          <TabsTrigger value="addons" className="flex-1">
-            آپشن‌ها ({toPersianDigits(addons.length)})
-          </TabsTrigger>
-        </TabsList>
+      <Seg
+        value={tab}
+        onChange={setTab}
+        label="مدیریت خدمات"
+        options={[
+          { value: "services", label: `خدمات (${toPersianDigits(services.length)})` },
+          { value: "addons", label: `آپشن‌ها (${toPersianDigits(addons.length)})` },
+        ]}
+      />
 
-        <TabsContent value="services">
+      <div style={{ marginTop: 16 }}>
+        {tab === "services" ? (
           <ServicesTab
             services={services}
             addons={addons}
             futureBookingCounts={futureBookingCounts}
             onUpdate={onUpdateServices}
           />
-        </TabsContent>
-
-        <TabsContent value="addons">
+        ) : (
           <AddonsTab
             addons={addons}
             services={services}
             onUpdate={onUpdateAddons}
           />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   );
 }
@@ -274,16 +268,17 @@ function ServicesTab({
   };
 
   return (
-    <div className="space-y-4 mt-4">
+    <div style={{ display: "grid", gap: 14 }}>
       <DeleteConfirmDialog target={confirmDelete} kind="service" onCancel={() => setConfirmDelete(null)} onConfirm={confirmDeleteTarget} />
       {!isAdding && !editingId && (
-        <Button
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-none"
+        <button
+          type="button"
+          className="btn pri block"
           onClick={() => setIsAdding(true)}
         >
-          <Plus className="h-4 w-4 ms-1" />
+          <Plus size={17} strokeWidth={1.6} aria-hidden="true" />
           افزودن خدمت
-        </Button>
+        </button>
       )}
 
       {isAdding && (
@@ -297,7 +292,7 @@ function ServicesTab({
       )}
 
       {pending.map((service, index) => (
-        <Card key={service.id} className="p-4">
+        <div key={service.id} className="panel">
           {editingId === service.id ? (
             <ServiceForm
               form={form}
@@ -307,7 +302,7 @@ function ServicesTab({
             />
           ) : (
             <>
-              <div className="flex items-center gap-3">
+              <div className="row">
                 {service.image_url ? (
                   <Image
                     src={service.image_url}
@@ -315,72 +310,72 @@ function ServicesTab({
                     width={48}
                     height={48}
                     unoptimized
-                    className="w-12 h-12 rounded-none object-cover flex-shrink-0"
+                    style={{ width: 48, height: 48, borderRadius: 14, objectFit: "cover", flex: "none" }}
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-none bg-muted flex items-center justify-center flex-shrink-0">
-                    <ImageIcon className="h-5 w-5 text-muted-foreground/50" />
-                  </div>
+                  <span className="nail" style={{ width: 48, height: 48 }}>
+                    <ImageIcon size={20} strokeWidth={1.4} aria-hidden="true" style={{ color: "var(--faint)" }} />
+                  </span>
                 )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-normal">{service.name}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="row" style={{ gap: 8 }}>
+                    <span style={{ fontSize: 16 }}>{service.name}</span>
                     {!service.is_active && (
-                      <Badge variant="secondary" className="text-xs">غیرفعال</Badge>
+                      <span className="badge tone-mute">غیرفعال</span>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="t-s num" style={{ marginTop: 2 }}>
                     {toPersianDigits(service.duration_minutes)} دقیقه ·{" "}
-                    {formatPrice(Number(service.price))} تومان
+                    {formatPrice(Number(service.price))}
                   </p>
-                </div>
-                <div className="flex items-center gap-0.5">
-                  <Button size="sm" variant="ghost" onClick={() => handleMoveUp(index)} disabled={index === 0} className="h-8 w-8 p-0">
-                    <ChevronUp className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => handleMoveDown(index)} disabled={index === pending.length - 1} className="h-8 w-8 p-0">
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => handleToggleActive(service.id)}>
-                    {service.is_active ? "غیرفعال" : "فعال"}
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => handleEdit(service)}>
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => handleDelete(service.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
                 </div>
               </div>
 
-              <div className="mt-3 pt-3 border-t">
-                <p className="text-xs text-muted-foreground mb-2">آپشن‌های فعال</p>
-                <div className="flex flex-wrap gap-2">
+              <div className="row" style={{ gap: 2, marginTop: 10 }}>
+                <button type="button" className="iconbtn bare" onClick={() => handleMoveUp(index)} disabled={index === 0} aria-label="انتقال به بالا">
+                  <ChevronUp size={18} strokeWidth={1.5} />
+                </button>
+                <button type="button" className="iconbtn bare" onClick={() => handleMoveDown(index)} disabled={index === pending.length - 1} aria-label="انتقال به پایین">
+                  <ChevronDown size={18} strokeWidth={1.5} />
+                </button>
+                <span style={{ flex: 1 }} />
+                <button type="button" className="btn ghost sm" onClick={() => handleToggleActive(service.id)}>
+                  {service.is_active ? "غیرفعال" : "فعال"}
+                </button>
+                <button type="button" className="iconbtn bare" onClick={() => handleEdit(service)} aria-label={`ویرایش ${service.name}`}>
+                  <Edit2 size={17} strokeWidth={1.5} />
+                </button>
+                <button type="button" className="iconbtn bare" onClick={() => handleDelete(service.id)} aria-label={`حذف ${service.name}`}>
+                  <Trash2 size={17} strokeWidth={1.5} style={{ color: "var(--wine-hi)" }} />
+                </button>
+              </div>
+
+              <div style={{ marginTop: 12 }}>
+                <p className="t-s" style={{ marginBottom: 8 }}>آپشن‌های فعال</p>
+                <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
                   {addons.filter((a) => a.is_active).map((addon) => {
                     const assigned = service.addon_ids.includes(addon.id);
                     return (
                       <button
                         key={addon.id}
+                        type="button"
+                        aria-pressed={assigned}
                         onClick={() => handleToggleAddon(service.id, addon.id)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-normal ${
-                          assigned
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                        }`}
+                        className={`chip${assigned ? " on" : ""}`}
                       >
-                        {assigned && <Check className="h-3 w-3" />}
+                        {assigned && <Check size={14} strokeWidth={2} aria-hidden="true" />}
                         {addon.name}
                       </button>
                     );
                   })}
                 </div>
                 {addons.filter((a) => a.is_active).length === 0 && (
-                  <p className="text-xs text-muted-foreground">ابتدا آپشن اضافه کنید</p>
+                  <p className="t-s">ابتدا آپشن اضافه کنید</p>
                 )}
               </div>
             </>
           )}
-        </Card>
+        </div>
       ))}
 
       <SaveBar
@@ -546,16 +541,17 @@ function AddonsTab({
   };
 
   return (
-    <div className="space-y-4 mt-4">
+    <div style={{ display: "grid", gap: 14 }}>
       <DeleteConfirmDialog target={confirmDelete} kind="addon" onCancel={() => setConfirmDelete(null)} onConfirm={confirmDeleteTarget} />
       {!isAdding && !editingId && (
-        <Button
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-none"
+        <button
+          type="button"
+          className="btn pri block"
           onClick={() => setIsAdding(true)}
         >
-          <Plus className="h-4 w-4 ms-1" />
+          <Plus size={17} strokeWidth={1.6} aria-hidden="true" />
           افزودن آپشن
-        </Button>
+        </button>
       )}
 
       {isAdding && (
@@ -569,7 +565,7 @@ function AddonsTab({
       )}
 
       {pending.map((addon, index) => (
-        <Card key={addon.id} className="p-4">
+        <div key={addon.id} className="panel">
           {editingId === addon.id ? (
             <AddonForm
               form={form}
@@ -578,39 +574,39 @@ function AddonsTab({
               onCancel={() => setEditingId(null)}
             />
           ) : (
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-normal">{addon.name}</span>
+            <div className="row">
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="row" style={{ gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>{addon.name}</span>
                   {!addon.is_active && (
-                    <Badge variant="secondary" className="text-xs">غیرفعال</Badge>
+                    <span className="badge tone-mute">غیرفعال</span>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="t-s num" style={{ marginTop: 2 }}>
                   +{toPersianDigits(addon.duration_minutes)} دقیقه ·{" "}
-                  +{formatPrice(Number(addon.price))} تومان · در {toPersianDigits(services.filter((s) => s.addon_ids.includes(addon.id)).length)} خدمت
+                  +{formatPrice(Number(addon.price))} · در {toPersianDigits(services.filter((s) => s.addon_ids.includes(addon.id)).length)} خدمت
                 </p>
               </div>
-              <div className="flex items-center gap-0.5">
-                <Button size="sm" variant="ghost" onClick={() => handleMoveUp(index)} disabled={index === 0} className="h-8 w-8 p-0">
-                  <ChevronUp className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => handleMoveDown(index)} disabled={index === pending.length - 1} className="h-8 w-8 p-0">
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => handleToggleActive(addon.id)}>
+              <div className="row" style={{ gap: 2 }}>
+                <button type="button" className="iconbtn bare" onClick={() => handleMoveUp(index)} disabled={index === 0} aria-label="انتقال به بالا">
+                  <ChevronUp size={18} strokeWidth={1.5} />
+                </button>
+                <button type="button" className="iconbtn bare" onClick={() => handleMoveDown(index)} disabled={index === pending.length - 1} aria-label="انتقال به پایین">
+                  <ChevronDown size={18} strokeWidth={1.5} />
+                </button>
+                <button type="button" className="btn ghost sm" onClick={() => handleToggleActive(addon.id)}>
                   {addon.is_active ? "غیرفعال" : "فعال"}
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => handleEdit(addon)}>
-                  <Edit2 className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => handleDelete(addon.id)}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+                </button>
+                <button type="button" className="iconbtn bare" onClick={() => handleEdit(addon)} aria-label={`ویرایش ${addon.name}`}>
+                  <Edit2 size={17} strokeWidth={1.5} />
+                </button>
+                <button type="button" className="iconbtn bare" onClick={() => handleDelete(addon.id)} aria-label={`حذف ${addon.name}`}>
+                  <Trash2 size={17} strokeWidth={1.5} style={{ color: "var(--wine-hi)" }} />
+                </button>
               </div>
             </div>
           )}
-        </Card>
+        </div>
       ))}
 
       <SaveBar
@@ -674,48 +670,54 @@ function ServiceForm({
   };
 
   return (
-    <Card className="p-4 space-y-3">
+    <div className="panel">
       {title && (
-        <div className="flex items-center justify-between mb-2">
-          <p className="font-normal text-sm">{title}</p>
-          <Button size="sm" variant="ghost" onClick={onCancel}>
-            <X className="h-4 w-4" />
-          </Button>
+        <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
+          <p style={{ fontSize: 16 }}>{title}</p>
+          <button type="button" className="iconbtn bare" onClick={onCancel} aria-label="بستن فرم">
+            <X size={18} strokeWidth={1.5} />
+          </button>
         </div>
       )}
 
       {/* Image Upload */}
-      <div className="flex items-center gap-4">
-        <div
-          className="relative w-20 h-20 rounded-none border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/50 overflow-hidden"
+      <div className="row" style={{ gap: 14 }}>
+        <button
+          type="button"
+          className="nail"
+          style={{ width: 76, height: 76, borderStyle: "dashed", overflow: "hidden" }}
           onClick={() => fileInputRef.current?.click()}
+          aria-label="آپلود تصویر خدمت"
         >
           {isUploading ? (
-            <div className=" rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
+            <span className="spin" aria-hidden="true" />
           ) : form.image_url ? (
-            <Image src={form.image_url} alt="" fill unoptimized className="object-cover" />
+            <Image src={form.image_url} alt="" fill unoptimized style={{ objectFit: "cover" }} />
           ) : (
-            <div className="text-center">
-              <Upload className="h-5 w-5 mx-auto text-muted-foreground" />
-              <span className="text-small text-muted-foreground">تصویر</span>
-            </div>
+            <span className="center">
+              <Upload size={20} strokeWidth={1.4} aria-hidden="true" style={{ color: "var(--faint)", margin: "0 auto" }} />
+              <span className="t-s" style={{ display: "block", fontSize: 12 }}>تصویر</span>
+            </span>
           )}
-        </div>
+        </button>
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
           onChange={handleImageUpload}
-          className="hidden"
+          style={{ display: "none" }}
+          aria-hidden="true"
+          tabIndex={-1}
         />
-        <div className="flex-1">
-          <p className="text-xs text-muted-foreground">تصویر خدمت</p>
-          <p className="text-small text-muted-foreground">اختیاری - حداکثر ۵ مگابایت</p>
+        <div style={{ flex: 1 }}>
+          <p className="t-s">تصویر خدمت</p>
+          <p className="t-s">اختیاری - حداکثر ۵ مگابایت</p>
           {form.image_url && (
             <button
               type="button"
               onClick={() => setForm({ ...form, image_url: "" })}
-              className="text-xs text-destructive mt-1"
+              className="t-s"
+              style={{ color: "var(--wine-hi)", marginTop: 4 }}
             >
               حذف تصویر
             </button>
@@ -723,77 +725,89 @@ function ServiceForm({
         </div>
       </div>
 
-      <Input
-        value={form.name}
-        onChange={(e) => setForm({ ...form, name: e.target.value })}
-        placeholder="نام خدمت"
-      />
-      <Input
-        value={form.description}
-        onChange={(e) => setForm({ ...form, description: e.target.value })}
-        placeholder="توضیحات"
-      />
-      <BestForEditor
-        tags={form.best_for}
-        onChange={(tags) => setForm({ ...form, best_for: tags })}
-      />
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label className="text-xs">آیکون کارت</Label>
-          <select value={form.icon_key} onChange={(e) => setForm({ ...form, icon_key: e.target.value })} className="mt-1 h-10 w-full rounded-none border border-input bg-background px-3 text-sm">
-            <option value="">خودکار بر اساس نام خدمت</option>
-            <option value="hand">دست / مانیکور</option>
-            <option value="paintbrush">براش / ژل و لاک</option>
-            <option value="footprints">پا / پدیکور</option>
-            <option value="wrench">آچار / ترمیم</option>
-          </select>
+      <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
+        <input
+          className="input"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          placeholder="نام خدمت"
+          aria-label="نام خدمت"
+        />
+        <input
+          className="input"
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          placeholder="توضیحات"
+          aria-label="توضیحات"
+        />
+        <BestForEditor
+          tags={form.best_for}
+          onChange={(tags) => setForm({ ...form, best_for: tags })}
+        />
+        <div className="row" style={{ gap: 10 }}>
+          <label className="field" style={{ flex: 1 }}>
+            <span>آیکون کارت</span>
+            <select className="input" value={form.icon_key} onChange={(e) => setForm({ ...form, icon_key: e.target.value })}>
+              <option value="">خودکار بر اساس نام خدمت</option>
+              <option value="hand">دست / مانیکور</option>
+              <option value="paintbrush">براش / ژل و لاک</option>
+              <option value="footprints">پا / پدیکور</option>
+              <option value="wrench">آچار / ترمیم</option>
+            </select>
+          </label>
+          <div className="field" style={{ flex: 1 }}>
+            <span>نمایش پرطرفدار</span>
+            <div style={{ minHeight: 52, display: "flex", alignItems: "center" }}>
+              <Switch checked={form.is_popular} onCheckedChange={(checked) => setForm({ ...form, is_popular: checked })} />
+            </div>
+          </div>
         </div>
-        <div className="flex items-end justify-between gap-3 rounded-none border border-border px-3 py-2">
-          <Label className="text-xs leading-5">نمایش پرطرفدار</Label>
-          <Switch checked={form.is_popular} onCheckedChange={(checked) => setForm({ ...form, is_popular: checked })} />
+        <div className="row" style={{ gap: 10 }}>
+          <label className="field" style={{ flex: 1 }}>
+            <span>مدت (دقیقه)</span>
+            <input
+              className="input ltr num"
+              type="number"
+              min={5}
+              value={form.duration_minutes}
+              onChange={(e) => setForm({ ...form, duration_minutes: Math.max(5, Number(e.target.value) || 5) })}
+              style={{ textAlign: "center" }}
+            />
+          </label>
+          <label className="field" style={{ flex: 1 }}>
+            <span>قیمت (تومان)</span>
+            <input
+              className="input ltr num"
+              type="number"
+              min={0}
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: Math.max(0, Number(e.target.value) || 0) })}
+              style={{ textAlign: "center" }}
+            />
+          </label>
+          <label className="field" style={{ flex: 1 }}>
+            <span>اولویت (۱-۱۰)</span>
+            <input
+              className="input ltr num"
+              type="number"
+              min={1}
+              max={10}
+              value={form.priority_score}
+              onChange={(e) => setForm({ ...form, priority_score: Math.min(10, Math.max(1, Number(e.target.value))) })}
+              style={{ textAlign: "center" }}
+            />
+          </label>
+        </div>
+        <div className="row" style={{ gap: 10 }}>
+          <button type="button" className="btn pri sm" style={{ flex: 1 }} onClick={onSave}>
+            ذخیره
+          </button>
+          <button type="button" className="btn gl sm" style={{ flex: 1 }} onClick={onCancel}>
+            انصراف
+          </button>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-3">
-        <div>
-          <Label className="text-xs">مدت (دقیقه)</Label>
-          <Input
-            type="number"
-            min={5}
-            value={form.duration_minutes}
-            onChange={(e) => setForm({ ...form, duration_minutes: Math.max(5, Number(e.target.value) || 5) })}
-            className="mt-1"
-          />
-        </div>
-        <div>
-          <Label className="text-xs">قیمت (تومان)</Label>
-          <Input
-            type="number"
-            min={0}
-            value={form.price}
-            onChange={(e) => setForm({ ...form, price: Math.max(0, Number(e.target.value) || 0) })}
-            className="mt-1"
-          />
-        </div>
-        <div>
-          <Label className="text-xs">اولویت (۱-۱۰)</Label>
-          <Input
-            type="number"
-            min={1}
-            max={10}
-            value={form.priority_score}
-            onChange={(e) => setForm({ ...form, priority_score: Math.min(10, Math.max(1, Number(e.target.value))) })}
-            className="mt-1"
-          />
-        </div>
-      </div>
-      <div className="flex gap-2">          <Button size="sm" onClick={onSave} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-none">
-          ذخیره
-        </Button>
-        <Button size="sm" variant="outline" onClick={onCancel}>
-          انصراف
-        </Button>
-      </div>
-    </Card>
+    </div>
   );
 }
 
@@ -816,24 +830,25 @@ function BestForEditor({
     setDraft("");
   };
   return (
-    <div className="space-y-1.5">
-      <Label className="text-xs">مناسب برای (تگ‌هایی که مشتری می‌بیند)</Label>
+    <div style={{ display: "grid", gap: 8 }}>
+      <span className="t-s">مناسب برای (تگ‌هایی که مشتری می‌بیند)</span>
       {tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="row" style={{ flexWrap: "wrap", gap: 6 }}>
           {tags.map((tag) => (
             <button
               key={tag}
               type="button"
               onClick={() => onChange(tags.filter((t) => t !== tag))}
-              className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground"
+              className="chip on"
             >
               {tag}
-              <X className="h-3 w-3" />
+              <X size={13} strokeWidth={2} aria-hidden="true" />
             </button>
           ))}
         </div>
       )}
-      <Input
+      <input
+        className="input"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={(e) => {
@@ -844,6 +859,7 @@ function BestForEditor({
         }}
         onBlur={commit}
         placeholder="مثلاً: عروس، محل کار، دانشجو — اینتر بزنید"
+        aria-label="افزودن تگ"
       />
     </div>
   );
@@ -863,50 +879,55 @@ function AddonForm({
   title?: string;
 }) {
   return (
-    <Card className="p-4 space-y-3">
+    <div className="panel">
       {title && (
-        <div className="flex items-center justify-between mb-2">
-          <p className="font-normal text-sm">{title}</p>
-          <Button size="sm" variant="ghost" onClick={onCancel}>
-            <X className="h-4 w-4" />
-          </Button>
+        <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
+          <p style={{ fontSize: 16 }}>{title}</p>
+          <button type="button" className="iconbtn bare" onClick={onCancel} aria-label="بستن فرم">
+            <X size={18} strokeWidth={1.5} />
+          </button>
         </div>
       )}
-      <Input
+      <input
+        className="input"
         value={form.name}
         onChange={(e) => setForm({ ...form, name: e.target.value })}
         placeholder="نام آپشن"
+        aria-label="نام آپشن"
       />
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label className="text-xs">مدت اضافه (دقیقه)</Label>
-          <Input
+      <div className="row" style={{ gap: 10, marginTop: 12 }}>
+        <label className="field" style={{ flex: 1 }}>
+          <span>مدت اضافه (دقیقه)</span>
+          <input
+            className="input ltr num"
             type="number"
             min={0}
             value={form.duration_minutes}
             onChange={(e) => setForm({ ...form, duration_minutes: Math.max(0, Number(e.target.value) || 0) })}
-            className="mt-1"
+            style={{ textAlign: "center" }}
           />
-        </div>
-        <div>
-          <Label className="text-xs">قیمت اضافه (تومان)</Label>
-          <Input
+        </label>
+        <label className="field" style={{ flex: 1 }}>
+          <span>قیمت اضافه (تومان)</span>
+          <input
+            className="input ltr num"
             type="number"
             min={0}
             value={form.price}
             onChange={(e) => setForm({ ...form, price: Math.max(0, Number(e.target.value) || 0) })}
-            className="mt-1"
+            style={{ textAlign: "center" }}
           />
-        </div>
+        </label>
       </div>
-      <div className="flex gap-2">          <Button size="sm" onClick={onSave} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-none">
+      <div className="row" style={{ gap: 10, marginTop: 14 }}>
+        <button type="button" className="btn pri sm" style={{ flex: 1 }} onClick={onSave}>
           ذخیره
-        </Button>
-        <Button size="sm" variant="outline" onClick={onCancel}>
+        </button>
+        <button type="button" className="btn gl sm" style={{ flex: 1 }} onClick={onCancel}>
           انصراف
-        </Button>
+        </button>
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -926,26 +947,29 @@ function SaveBar({
   if (!hasChanges && !saveError) return null;
 
   return (
-    <div className="sticky bottom-20 z-10 space-y-2">
+    <div style={{ position: "sticky", bottom: 88, zIndex: 10, display: "grid", gap: 8 }}>
       {saveError && (
-        <p className="text-xs text-destructive text-center bg-destructive/10 rounded-none px-3 py-2">{saveError}</p>
+        <p className="t-s center" role="alert" style={{ color: "var(--wine-hi)", background: "#8c2a3a22", borderRadius: 14, padding: "8px 12px" }}>{saveError}</p>
       )}
-      <div className="flex gap-3">
-        <Button
+      <div className="row" style={{ gap: 10 }}>
+        <button
+          type="button"
           onClick={onSave}
           disabled={isSaving}
-          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-none h-12"
+          className="btn pri"
+          style={{ flex: 1 }}
         >
           {isSaving ? "در حال ذخیره..." : "ذخیره تغییرات"}
-        </Button>
-        <Button
-          variant="outline"
+        </button>
+        <button
+          type="button"
+          className="btn gl"
+          style={{ flex: 1 }}
           onClick={onDiscard}
           disabled={isSaving}
-          className="flex-1 rounded-none h-12"
         >
           انصراف
-        </Button>
+        </button>
       </div>
     </div>
   );

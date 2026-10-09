@@ -229,6 +229,7 @@
 /* ── Reduced motion: kill loops/parallax/springs, keep opacity feedback ── */
 @media (prefers-reduced-motion: reduce) {
   .beam,
+  .spin,
   .grain {
     animation: none !important;
   }
@@ -744,6 +745,19 @@
 }
 
 /* ── Fields ── */
+.spin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--line2);
+  border-top-color: var(--pearl);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .field {
   display: flex;
   flex-direction: column;
@@ -1119,6 +1133,7 @@ select.input option {
 }
 @media (prefers-reduced-motion: reduce) {
   .beam,
+  .spin,
   .grain {
     animation: none !important;
   }
