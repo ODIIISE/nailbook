@@ -116,6 +116,7 @@ function normalizeBooking(value: unknown): Booking | null {
     service_id: typeof value.service_id === "string" ? value.service_id : "",
     artist_id: typeof value.artist_id === "string" ? value.artist_id : null,
     note: typeof value.note === "string" ? value.note : "",
+    artist_name: typeof value.artist_name === "string" && value.artist_name ? value.artist_name : null,
     selected_addons: normalizeTextArray(value.selected_addons),
     customer_name: typeof value.customer_name === "string" ? value.customer_name : "",
     customer_phone: typeof value.customer_phone === "string" ? value.customer_phone : "",
@@ -427,6 +428,8 @@ export async function insertOwnerBooking(booking: Booking): Promise<{ id: string
       start_time: booking.start_time,
       end_time: booking.end_time,
       selected_addons: booking.selected_addons,
+      artist_id: booking.artist_id ?? null,
+      note: booking.note ?? "",
     }),
   });
   if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");

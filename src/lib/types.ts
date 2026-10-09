@@ -106,6 +106,8 @@ export interface Booking {
   created_at: string;
   artist_id?: string | null;
   note?: string;
+  /** Resolved via LEFT JOIN in bookings reads; null when unassigned. */
+  artist_name?: string | null;
   service?: Service;
   /** Snapshot fields (migration 022): what the booking was worth at creation. */
     service_name?: string | null;

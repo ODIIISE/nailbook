@@ -35,6 +35,7 @@ import { useBookingsPolling } from "@/lib/hooks/use-bookings-polling";
 import type { Service } from "@/lib/types";
 import { calculateEarnings, calculateBookingPrice } from "@/lib/pricing";
 import { toast } from "sonner";
+import { handleAuthExpiry, handleForbidden } from "@/lib/db/data";
 
 function OwnerDashboardContent() {
   const searchParams = useSearchParams();
@@ -44,6 +45,7 @@ function OwnerDashboardContent() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
+  const [artists, setArtists] = useState<Array<{ id: string; name: string; phone?: string; specialty?: string }>>([]);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const selectedBooking = useMemo(() => bookings.find((b) => b.id === selectedBookingId) || null, [bookings, selectedBookingId]);
   const [showEarnings, setShowEarnings] = useState(false);
@@ -185,10 +187,27 @@ function OwnerDashboardContent() {
     return out;
   }, [bookings]);
 
-  const handleBlockTime = async (dateKey: string, startTime: string, endTime: string) => {
+  /* Artist directory for manual-booking assignment. Loaded when the modal
+     opens so the timeline itself never waits on it. */
+  useEffect(() => {
+    if (!showManualReserve) return;
+    void (async () => {
+      try {
+        const res = await fetch("/api/owner/artists", { credentials: "include" });
+        if (handleAuthExpiry(res) || handleForbidden(res)) return;
+        if (!res.ok) return;
+        const data = await res.json().catch(() => ({}));
+        if (Array.isArray(data.artists)) setArtists(data.artists);
+      } catch {
+        /* keep the previous list — the picker simply hides when empty */
+      }
+    })();
+  }, [showManualReserve]);
+
+  const handleBlockTime = async (dateKey: string, startTime: string, endTime: string, reason: string) => {
     const saved = await updateBlockedTimes([
       ...blockedTimes,
-      { date_gregorian: dateKey, start_time: startTime, end_time: endTime },
+      { date_gregorian: dateKey, start_time: startTime, end_time: endTime, reason },
     ]);
 
     if (saved.success) {
@@ -219,6 +238,8 @@ function OwnerDashboardContent() {
     service_id: string;
     start_time: string;
     end_time: string;
+    artist_id?: string | null;
+    note?: string;
   }) => {
     const dateStr = getTehranDateKey(currentDate);
     const service = services.find((s) => s.id === data.service_id && s.is_active);
@@ -245,6 +266,8 @@ function OwnerDashboardContent() {
       paid: false,
       created_at: new Date().toISOString(),
       service,
+      artist_id: data.artist_id ?? null,
+      note: data.note ?? "",
     });
 
     if (result.success) {
@@ -501,6 +524,7 @@ function OwnerDashboardContent() {
           slotIntervalMinutes={salon?.slot_interval_minutes}
           slotBufferMinutes={salon?.slot_buffer_minutes}
           knownCustomers={knownCustomers}
+          artists={artists}
           onReserve={handleManualReserve}
           onClose={() => setShowManualReserve(false)}
         />

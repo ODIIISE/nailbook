@@ -40,6 +40,7 @@ describe("client data readers", () => {
           phone_verified: 1,
           artist_id: "artist-1",
           note: "مشتری حساسیت دارد",
+          artist_name: "سارا",
         },
         { id: "broken-without-date", service_id: "service-1", date_gregorian: "not-a-date" },
         { date_gregorian: "2026-07-30" },
@@ -61,6 +62,7 @@ describe("client data readers", () => {
       phone_verified: true,
       artist_id: "artist-1",
       note: "مشتری حساسیت دارد",
+      artist_name: "سارا",
     }));
     expect(bookings[1]).toEqual(expect.objectContaining({
       id: "availability-2026-07-30-00:00-00:00",

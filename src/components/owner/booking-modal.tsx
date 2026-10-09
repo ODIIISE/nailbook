@@ -227,6 +227,20 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
             سابقه این مشتری: {toPersianDigits(customerHistory.completed)} نوبت انجام‌شده
           </p>
         )}
+        {(booking.artist_name || booking.note) && (
+          <div className="mt-2 mb-3 space-y-1">
+            {booking.artist_name && (
+              <p className="text-small text-muted-foreground">
+                هنرمند: <span className="text-foreground font-normal">{booking.artist_name}</span>
+              </p>
+            )}
+            {booking.note && (
+              <p className="text-small text-muted-foreground">
+                یادداشت: <span className="text-foreground">{booking.note}</span>
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Details */}
         <div className="mb-3">

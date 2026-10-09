@@ -13,6 +13,7 @@ interface BlockedTime {
   date_gregorian: string;
   start_time: string;
   end_time: string;
+  reason?: string;
 }
 
 interface TimelineProps {
@@ -395,6 +396,7 @@ export function Timeline({
                           <span className={`text-small font-normal truncate ${wt}`}>استراحت</span>
                         </div>
                         {pos.height > 30 && <p className={`text-small ${wst} mt-0.5`}>{toPersianDigits(block.start_time.slice(0, 5))} – {toPersianDigits(block.end_time.slice(0, 5))}</p>}
+                        {block.reason && pos.height > 66 && <p className={`text-small ${wt} mt-0.5 truncate`} title={block.reason}>{block.reason}</p>}
                         {pos.height > 50 && <p className={`text-small ${wst} mt-0.5`}>برای حذف کلیک کنید</p>}
                       </div>
                     </div>

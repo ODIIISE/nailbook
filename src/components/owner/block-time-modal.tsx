@@ -13,10 +13,8 @@ import { getTehranDateKey, parseGregorianDateKey } from "@/lib/time";
 interface BlockTimeModalProps {
   date: Date;
   workingHours: WorkingHours;
-  /* No reason param: the blocked-time store keeps only the interval, so a
-     reason field here would be collected and silently discarded (fake
-     feature). Reintroduce together with schema support. */
-  onBlock: (date_gregorian: string, startTime: string, endTime: string) => void;
+  /** Optional free-text reason (persisted on migration-027 databases). */
+  onBlock: (date_gregorian: string, startTime: string, endTime: string, reason: string) => void;
   onCancel: () => void;
 }
 
@@ -58,6 +56,7 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
 
   const [startTime, setStartTime] = useState(defaultTimes.start);
   const [endTime, setEndTime] = useState(defaultTimes.end);
+  const [reason, setReason] = useState("");
   const [timeError, setTimeError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -68,7 +67,7 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
       return;
     }
     setTimeError("");
-    onBlock(dateKey, startTime, endTime);
+    onBlock(dateKey, startTime, endTime, reason.trim());
   };
 
   const handleDateChange = (key: string) => {
@@ -134,6 +133,17 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
           </div>
         </div>
         {timeError && <p className="text-small text-destructive" role="alert">{timeError}</p>}
+        <div>
+          <Label htmlFor="block-reason" className="text-sm">دلیل (اختیاری)</Label>
+          <Input
+            id="block-reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="مثلاً جلسه، مرخصی، تعمیرات"
+            maxLength={100}
+            className="mt-1"
+          />
+        </div>
         <div className="flex gap-2">
           <Button type="submit" size="lg" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-none">
             مسدود کن

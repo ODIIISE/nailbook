@@ -21,12 +21,16 @@ interface ManualReserveModalProps {
   slotBufferMinutes?: number;
   /** Past customers for quick-pick (derived from bookings by the caller). */
   knownCustomers?: Array<{ name: string; phone: string }>;
+  /** Assignable artists (staff directory). Absent/empty hides the picker. */
+  artists?: Array<{ id: string; name: string; phone?: string; specialty?: string }>;
   onReserve: (data: {
     customer_name: string;
     customer_phone: string;
     service_id: string;
     start_time: string;
     end_time: string;
+    artist_id?: string | null;
+    note?: string;
   }) => void | Promise<void>;
   onClose: () => void;
 }
@@ -57,11 +61,14 @@ export function ManualReserveModal({
   slotIntervalMinutes = 15,
   slotBufferMinutes = 0,
   knownCustomers = [],
+  artists = [],
   onReserve,
   onClose,
 }: ManualReserveModalProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [artistId, setArtistId] = useState("");
+  const [note, setNote] = useState("");
   const [serviceId, setServiceId] = useState(() => services.find((service) => service.is_active)?.id || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -177,6 +184,8 @@ export function ManualReserveModal({
         service_id: resolvedServiceId,
         start_time: startTime,
         end_time: endTime,
+        artist_id: artistId || null,
+        note: note.trim(),
       });
     } catch {
       setSubmitError("ثبت رزرو انجام نشد؛ دوباره تلاش کنید");
@@ -281,6 +290,41 @@ export function ManualReserveModal({
               dir="ltr"
             />
           </div>
+        </div>
+
+        {artists.length > 0 && (
+          <div>
+            <Label className="text-caption" htmlFor="mr-artist">هنرمند</Label>
+            <Select value={artistId || "none"} id="mr-artist" onValueChange={(val) => setArtistId(val === "none" ? "" : String(val))}>
+              <SelectTrigger className="mt-1 w-full h-12 rounded-none border border-border bg-card px-3 text-body text-card-foreground" dir="rtl">
+                <SelectValue placeholder="بدون هنرمند">
+                  {(value) => {
+                    const artist = artists.find((item) => item.id === value);
+                    return artist ? `${artist.name}${artist.specialty ? ` · ${artist.specialty}` : ""}` : "بدون هنرمند";
+                  }}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">بدون هنرمند</SelectItem>
+                {artists.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name}{a.specialty ? ` - ${a.specialty}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <div>
+          <Label className="text-caption" htmlFor="mr-note">یادداشت داخلی (اختیاری)</Label>
+          <Input id="mr-note"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="مثلاً حساسیت، درخواست خاص مشتری"
+            maxLength={500}
+            className="mt-1"
+          />
         </div>
 
         {selectedService && expectedEndTime && endTime !== expectedEndTime && (
