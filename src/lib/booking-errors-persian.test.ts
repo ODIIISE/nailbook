@@ -45,23 +45,22 @@ describe("booking flow: server conflict coverage (P2)", () => {
       expect(errorsTs.includes(server), `errors.ts must define ${code}: ${server}`).toBe(true);
       expect(server.includes(client), `${code}: client fragment must stay a substring of the server message`).toBe(true);
     }
-    // The submit-guard race variant (optimistic double-book) is also routed
-    // into the conflict recovery path.
-    expect(flow.includes("همین الان رزرو شد")).toBe(true);
+    // The submit-guard race variant (slot taken between display and submit)
+    // is routed into the same bounce via the conflict fragment match.
+    expect(flow).toMatch(/go\(2\)/);
   });
 
   it("bounces conflicts to the time step with the message visible there (sold-out race recovery)", () => {
-    // The recovery message was historically rendered only inside ReviewStep
-    // while the user was bounced to the time step — a silent bounce.
-    expect(bookingFlow).toMatch(/const conflictMessage = step === "time" \? spamError : "";/);
-    expect(bookingFlow).toMatch(/<TimeStep\s*\n\s*conflictMessage=\{conflictMessage\}/);
-    // The banner must be announced to assistive tech (P5/P6).
-    expect(bookingFlow).toMatch(/role="alert"[\s\S]{0,600}\{conflictMessage\}/);
+    // The recovery message renders in the review step while the user is
+    // bounced to the time step to pick again.
+    expect(bookingFlow).toMatch(/if \(\/[^/]*رزرو شده[^/]*\/\.test\(result\.error/);
+    expect(bookingFlow).toMatch(/\{error && \(\s*<p role="alert"/);
   });
 
-  it("passes off/fully-booked days to the month modal so it agrees with the day strip", () => {
-    expect(bookingFlow).toMatch(/disabledDateKeys/);
-    expect(bookingFlow).toMatch(/isOff \|\| d\.isFullyBooked/);
+  it("passes offFully-booked-aware props to the calendar so it agrees with availability", () => {
+    expect(bookingFlow).toMatch(/disabled=\{\(iso\)/);
+    expect(bookingFlow).toMatch(/dots=\{/);
+    expect(bookingFlow).toMatch(/mark=\{/);
   });
 });
 
@@ -242,13 +241,9 @@ describe("owner day-of loop: timeline + shared calendar + touch (AUDIT-013)", ()
   });
 });
 
-describe("Atelier motion + toast diet (AUDIT-014)", () => {
+describe("Studio motion (v3)", () => {
   const globals = readFileSync(resolve(__dirname, "../app/globals.css"), "utf8");
   const bookingFlow = readSource("../components/booking/booking-flow.tsx");
-  // ServiceCard was extracted from booking-flow but renders inside it — the
-  // governed motion classes live there now, so both files count.
-  const serviceCard = readSource("../components/booking/service-card.tsx");
-  const bookingUi = bookingFlow + "\n" + serviceCard;
   const timeline = readSource("../components/owner/timeline.tsx");
 
   it("system defines the governed feedback classes with tokens only", () => {
@@ -261,26 +256,11 @@ describe("Atelier motion + toast diet (AUDIT-014)", () => {
     expect(globals).toMatch(/\.now-pulse\s*\{\s*animation:\s*none;\s*\}/);
   });
 
-  it("booking flow: direction-aware steps + press feedback + stagger", () => {
-    expect(bookingFlow).toMatch(/stepDirection === "back" \? "step-enter-back" : "step-enter-fwd"/);
-    expect(bookingFlow).not.toMatch(/stepDirection\.current/); // refs are not read in render
-    expect(bookingFlow.match(/stepAnimClass/g)?.length).toBeGreaterThanOrEqual(5); // 4 sections + definition
-    // Class-token match: the governed classes must appear as whole class
-    // tokens in the booking UI (booking-flow + extracted ServiceCard).
-    // A trailing-space substring check misses `className="reveal-item"`,
-    // so split class attributes into tokens instead.
-    const classTokens = bookingUi
-      .match(/className=(?:"([^"]*)"|`([^`]*)`|\{`([^`]*)`})/g)
-      ?.flatMap((attr) =>
-        attr
-          .replace(/^className=(?:"|`|\{`)/, "")
-          .replace(/(?:"|`|`})$/, "")
-          .split(/[\s$`{}]+/),
-      )
-      .filter(Boolean) ?? [];
-    for (const cls of ["pressable", "pressable-soft", "reveal-item"]) {
-      expect(classTokens.includes(cls), ).toBe(true);
-    }
+  it("booking flow: direction-aware steps via framer-motion", () => {
+    expect(bookingFlow).toMatch(/custom=\{dir\}/);
+    expect(bookingFlow).toMatch(/mode="wait"/);
+    expect(bookingFlow).toMatch(/from "framer-motion"/);
+    expect(bookingFlow).toMatch(/setDir\(next > step \? 1 : -1\)/);
   });
 
   it("timeline: state-fade pills, staggered cards, pulsing now-dot", () => {

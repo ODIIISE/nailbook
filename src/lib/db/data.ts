@@ -255,7 +255,7 @@ export function handleForbidden(res: Response): boolean {
   return true;
 }
 
-export type BlockedTime = { date_gregorian: string; start_time: string; end_time: string; reason?: string };
+export type BlockedTime = { date_gregorian: string; start_time: string; end_time: string; reason?: string; artist_id?: string | null };
 
 export type BootstrapPayload = {
   salon: SalonInfo | null;
@@ -280,13 +280,19 @@ export async function fetchBootstrap(scope: "home" | "all" = "all"): Promise<Boo
     const data = await readJson(res);
     if (!isRecord(data)) return null;
     const blockedTimes = Array.isArray(data.blockedTimes)
-      ? (data.blockedTimes as unknown[]).filter(
-          (row): row is BlockedTime =>
-            isRecord(row) &&
-            typeof row.date_gregorian === "string" &&
-            typeof row.start_time === "string" &&
-            typeof row.end_time === "string"
-        ).map((row) => (typeof row.reason === "string" && row.reason ? { ...row, reason: row.reason.slice(0, 100) } : row))
+      ? (data.blockedTimes as unknown[])
+          .filter(
+            (row): row is BlockedTime =>
+              isRecord(row) &&
+              typeof row.date_gregorian === "string" &&
+              typeof row.start_time === "string" &&
+              typeof row.end_time === "string"
+          )
+          .map((row) => ({
+            ...row,
+            ...(typeof row.reason === "string" && row.reason ? { reason: row.reason.slice(0, 100) } : {}),
+            ...(typeof row.artist_id === "string" && row.artist_id ? { artist_id: row.artist_id } : {}),
+          }))
       : null;
     return {
       salon: data.salon == null ? null : normalizeSalon(data.salon),
@@ -403,6 +409,7 @@ export async function insertBooking(booking: Booking): Promise<{ id: string; sta
       customer_name: booking.customer_name,
       selected_addons: booking.selected_addons,
       user_id: booking.user_id,
+      artist_id: booking.artist_id ?? null,
     }),
   });
   const body = await readJson(res);
