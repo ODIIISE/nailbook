@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "../types";
+import { normalizeDaysOffReasons } from "../salon-settings";
 import { redirectAfterExpiry } from "../session-expiry";
 
 // All reads go through API routes (Vercel Postgres is server-side only)
@@ -113,6 +114,8 @@ function normalizeBooking(value: unknown): Booking | null {
     // Public availability rows intentionally omit service_id and other
     // private fields; the booking calendar only needs their time block.
     service_id: typeof value.service_id === "string" ? value.service_id : "",
+    artist_id: typeof value.artist_id === "string" ? value.artist_id : null,
+    note: typeof value.note === "string" ? value.note : "",
     selected_addons: normalizeTextArray(value.selected_addons),
     customer_name: typeof value.customer_name === "string" ? value.customer_name : "",
     customer_phone: typeof value.customer_phone === "string" ? value.customer_phone : "",
@@ -201,6 +204,9 @@ function normalizeSalon(value: unknown): SalonInfo | null {
     optimization_mode: value.optimization_mode === "legacy" ? "legacy" : "hybrid",
     suggestion_limit: finiteNumber(value.suggestion_limit, 3),
     min_useful_gap_minutes: finiteNumber(value.min_useful_gap_minutes, 30),
+    cancel_hours: finiteNumber(value.cancel_hours, 24),
+    lead_minutes: finiteNumber(value.lead_minutes, 30),
+    days_off_reasons: normalizeDaysOffReasons(value.days_off_reasons),
     specific_days_off: Array.isArray(value.specific_days_off)
       ? value.specific_days_off.filter((day): day is string => typeof day === "string")
       : [],
@@ -232,6 +238,8 @@ export function handleAuthExpiry(res: Response): boolean {
   return true;
 }
 
+export type BlockedTime = { date_gregorian: string; start_time: string; end_time: string; reason?: string };
+
 export type BootstrapPayload = {
   salon: SalonInfo | null;
   services: Service[] | null;
@@ -239,7 +247,7 @@ export type BootstrapPayload = {
   highlights: Highlight[] | null;
   /** Present only on scope=all (undefined = not requested). null = failed. */
   bookings?: Booking[] | null;
-  blockedTimes?: Array<{ date_gregorian: string; start_time: string; end_time: string }> | null;
+  blockedTimes?: BlockedTime[] | null;
 };
 
 /**
@@ -256,12 +264,12 @@ export async function fetchBootstrap(scope: "home" | "all" = "all"): Promise<Boo
     if (!isRecord(data)) return null;
     const blockedTimes = Array.isArray(data.blockedTimes)
       ? (data.blockedTimes as unknown[]).filter(
-          (row): row is { date_gregorian: string; start_time: string; end_time: string } =>
+          (row): row is BlockedTime =>
             isRecord(row) &&
             typeof row.date_gregorian === "string" &&
             typeof row.start_time === "string" &&
             typeof row.end_time === "string"
-        )
+        ).map((row) => (typeof row.reason === "string" && row.reason ? { ...row, reason: row.reason.slice(0, 100) } : row))
       : null;
     return {
       salon: data.salon == null ? null : normalizeSalon(data.salon),

@@ -4,6 +4,14 @@ export interface User {
   name: string;
   role: "customer" | "owner";
   roles: string[];
+  /** Artist profile (roles includes "artist"). */
+  specialty?: string;
+  work_days?: number[];
+  service_ids?: string[];
+  /** Notification prefs + internal note (migration 026). */
+  sms_reminders?: boolean;
+  offers?: boolean;
+  note?: string;
 }
 
 export interface SalonInfo {
@@ -34,7 +42,7 @@ export interface SalonInfo {
   booking_success_title: string;
   working_hours_text: string;
   working_hours: {
-    [key: string]: { open: string; close: string } | null;
+    [key: string]: { open: string; close: string; breaks?: Array<{ start: string; end: string }> } | null;
   };
   specific_days_off?: string[];
   slot_buffer_minutes: number;
@@ -48,6 +56,11 @@ export interface SalonInfo {
   optimization_mode: "hybrid" | "legacy";
   suggestion_limit: number;
   min_useful_gap_minutes: number;
+  cancel_hours: number;
+  lead_minutes: number;
+  /** Days-off reasons keyed by YYYY-MM-DD (migration 027). Rides alongside
+   *  specific_days_off so legacy readers never break. */
+  days_off_reasons?: Record<string, string>;
 }
 
 export interface Addon {
@@ -91,6 +104,8 @@ export interface Booking {
   phone_verified: boolean;
   paid: boolean;
   created_at: string;
+  artist_id?: string | null;
+  note?: string;
   service?: Service;
   /** Snapshot fields (migration 022): what the booking was worth at creation. */
     service_name?: string | null;

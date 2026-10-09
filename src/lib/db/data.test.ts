@@ -38,6 +38,8 @@ describe("client data readers", () => {
           status: "reserved",
           paid: "false",
           phone_verified: 1,
+          artist_id: "artist-1",
+          note: "مشتری حساسیت دارد",
         },
         { id: "broken-without-date", service_id: "service-1", date_gregorian: "not-a-date" },
         { date_gregorian: "2026-07-30" },
@@ -57,6 +59,8 @@ describe("client data readers", () => {
       status: "reserved",
       paid: false,
       phone_verified: true,
+      artist_id: "artist-1",
+      note: "مشتری حساسیت دارد",
     }));
     expect(bookings[1]).toEqual(expect.objectContaining({
       id: "availability-2026-07-30-00:00-00:00",
@@ -67,7 +71,7 @@ describe("client data readers", () => {
 
   it("does not throw when a service or salon response has the wrong shape", async () => {    vi.stubGlobal("fetch", vi.fn()
       .mockResolvedValueOnce(jsonResponse({ error: "خطای سرور" }, { status: 500 }))
-      .mockResolvedValueOnce(jsonResponse({ id: "salon-1", name: null, working_hours: null })));
+      .mockResolvedValueOnce(jsonResponse({ id: "salon-1", name: null, working_hours: null, cancel_hours: "12", days_off_reasons: { "2026-08-05": "تعطیل", "bad": 1 } })));
 
     // Failed fetches resolve to null so consumers can keep their last-known
     // data instead of blanking the UI with an empty list.
@@ -76,6 +80,9 @@ describe("client data readers", () => {
       id: "salon-1",
       name: "",
       working_hours: {},
+      cancel_hours: 12,
+      lead_minutes: 30,
+      days_off_reasons: { "2026-08-05": "تعطیل" },
     }));
   });
 

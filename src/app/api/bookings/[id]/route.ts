@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyOwner } from "@/lib/owner-auth";
+import { verifyOwner, verifyStaff } from "@/lib/owner-auth";
 import { verifyCustomerSessionWithVersion } from "@/lib/customer-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { resolveSalonId } from "@/lib/multi-tenant";
@@ -28,8 +28,9 @@ export async function PATCH(
       return NextResponse.json({ error: "شناسه نوبت نامعتبر است" }, { status: 400 });
     }
 
-    // Check if owner
-    const owner = await verifyOwner(request);
+    // Check if staff (owner/manager/artist). Staff keep the full override;
+    // customers may only cancel their own future reserved/confirmed bookings.
+    const staff = await verifyStaff(request);
 
     // Get the booking within the current salon deployment when multi-tenant mode is enabled.
     const salonId = await resolveSalonId();
@@ -43,9 +44,9 @@ export async function PATCH(
 
     const booking = rows[0];
 
-    // If not owner, verify the customer owns this booking. The version-checked
+    // If not staff, verify the customer owns this booking. The version-checked
     // verifier rejects cookies revoked via logout/session bump.
-    if (!owner) {
+    if (!staff) {
       const customerUserId = await verifyCustomerSessionWithVersion(request.cookies.get("session")?.value);
       if (!customerUserId || booking.user_id !== customerUserId) {
         return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
@@ -57,8 +58,8 @@ export async function PATCH(
     }
 
     // Customers may only cancel their own future reserved/confirmed bookings.
-    // Owners keep the full override the spec grants them.
-    if (!owner) {
+    // Staff keep the full override the spec grants them.
+    if (!staff) {
       if (!CUSTOMER_CANCELLABLE_STATUSES.has(booking.status)) {
         return NextResponse.json({ error: "امکان لغو نوبت در این وضعیت وجود ندارد" }, { status: 400 });
       }

@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { persianizeError } from "@/lib/error-sanitize";
 import {
   fetchBootstrap,
+  type BlockedTime,
   type BootstrapPayload,
   fetchSalonInfo,
   fetchServices,
@@ -40,7 +41,7 @@ interface SalonContextType {
   addons: Addon[];
   bookings: Booking[];
   highlights: Highlight[];
-  blockedTimes: Array<{ date_gregorian: string; start_time: string; end_time: string }>;
+  blockedTimes: BlockedTime[];
   loaded: boolean;
   /** True when the initial load failed (network/DB) — consumers must not
    *  render "no services" empty states for an actual load error. */
@@ -51,7 +52,7 @@ interface SalonContextType {
   updateServices: (services: Service[]) => Promise<string | null>;
   updateAddons: (addons: Addon[]) => Promise<string | null>;
   updateSalon: (updates: Partial<SalonInfo>) => Promise<void>;
-  updateBlockedTimes: (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>) => Promise<{ success: boolean; error?: string }>;
+  updateBlockedTimes: (blocks: BlockedTime[]) => Promise<{ success: boolean; error?: string }>;
   addBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   addOwnerBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   cancelBooking: (bookingId: string) => Promise<{ success: boolean; error?: string }>;
@@ -82,7 +83,7 @@ const DEFAULT_WORKING_HOURS: WorkingHours = {
 };
 
 const EMPTY_SALON_CONTEXT: SalonContextType = {
-  salon: { id: "", name: "", description: "", slogan: "", phone: "", address: "", city: "", instagram_handle: "", portrait_image_url: null, hero_image_url: null, home_gallery_urls: [], hero_video_url: null, logo_url: null, splash_title: "Forehand Nail", splash_slogan: "Nail Art Studio", splash_logo_url: null, homepage_kicker: "NAIL · CARE · RITUAL", homepage_cta_label: "شروع رزرو", homepage_micro: "بدون تماس تلفنی · زمان‌های آزاد همین‌جا", lookbook_title: "نمونه‌کارها", booking_success_title: "به‌زودی می‌بینیمت!", working_hours_text: "", working_hours: DEFAULT_WORKING_HOURS, slot_buffer_minutes: 15, slot_interval_minutes: 15, early_extra_hours: 0, late_extra_hours: 0, expand_threshold: 80, proximity_window_hours: 2, allow_overflow: false, overflow_minutes: 0, optimization_mode: "hybrid", suggestion_limit: 3, min_useful_gap_minutes: 30 },
+  salon: { id: "", name: "", description: "", slogan: "", phone: "", address: "", city: "", instagram_handle: "", portrait_image_url: null, hero_image_url: null, home_gallery_urls: [], hero_video_url: null, logo_url: null, splash_title: "Forehand Nail", splash_slogan: "Nail Art Studio", splash_logo_url: null, homepage_kicker: "NAIL · CARE · RITUAL", homepage_cta_label: "شروع رزرو", homepage_micro: "بدون تماس تلفنی · زمان‌های آزاد همین‌جا", lookbook_title: "نمونه‌کارها", booking_success_title: "به‌زودی می‌بینیمت!", working_hours_text: "", working_hours: DEFAULT_WORKING_HOURS, slot_buffer_minutes: 15, slot_interval_minutes: 15, early_extra_hours: 0, late_extra_hours: 0, expand_threshold: 80, proximity_window_hours: 2, allow_overflow: false, overflow_minutes: 0, optimization_mode: "hybrid", suggestion_limit: 3, min_useful_gap_minutes: 30, cancel_hours: 24, lead_minutes: 30 },
   workingHours: DEFAULT_WORKING_HOURS,
   specificDaysOff: [],
   services: [],
@@ -123,7 +124,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
   const [addons, setAddons] = useState<Addon[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
-  const [blockedTimes, setBlockedTimes] = useState<Array<{ date_gregorian: string; start_time: string; end_time: string }>>([]);
+  const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
 
@@ -348,7 +349,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const handleUpdateBlockedTimes = useCallback(async (blocks: Array<{ date_gregorian: string; start_time: string; end_time: string }>): Promise<{ success: boolean; error?: string }> => {
+  const handleUpdateBlockedTimes = useCallback(async (blocks: BlockedTime[]): Promise<{ success: boolean; error?: string }> => {
     if (!blockedTimesLoadedRef.current) {
       // The saved list was never read; a full-replace here would delete
       // every block the client hasn't seen. Force a refresh first.
@@ -508,7 +509,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       : null;
     if (authSyncKeyRef.current === authKey) return;
     authSyncKeyRef.current = authKey;
-    void refreshBookings(authUser?.roles?.includes("owner") ? "owner" : "default");
+    void refreshBookings(authUser && authUser.roles.some((r) => r === "owner" || r === "manager" || r === "artist") ? "owner" : "default");
   }, [loaded, authLoading, authUser, refreshBookings]);
 
 
