@@ -203,6 +203,19 @@ export async function POST(request: NextRequest) {
 
     // Single auth cookie for both customer and owner. Owner dashboard is gated
     // by middleware checking 'owner' in DB roles array.
+    // Notification prefs (026): guarded fetch, safe defaults pre-migration.
+    let smsReminders = true;
+    let offers = false;
+    try {
+      const { rows: prefRows } = await sql.query(
+        `SELECT sms_reminders, offers FROM users WHERE id = $1 LIMIT 1`,
+        [signedInUser.id]
+      );
+      if (prefRows[0]?.sms_reminders === false) smsReminders = false;
+      if (prefRows[0]?.offers === true) offers = true;
+    } catch {
+      /* pre-026 schema — keep defaults */
+    }
     const response = NextResponse.json({
       success: true,
       user: {
@@ -211,6 +224,8 @@ export async function POST(request: NextRequest) {
         name: signedInUser.name,
         role: Array.isArray(signedInUser.roles) && signedInUser.roles.includes("owner") ? "owner" : (signedInUser.role ?? "customer"),
         roles: Array.isArray(signedInUser.roles) && signedInUser.roles.length > 0 ? signedInUser.roles : ["customer"],
+        sms_reminders: smsReminders,
+        offers,
       },
     });
     response.cookies.set("session", sessionToken, {

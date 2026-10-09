@@ -14,51 +14,44 @@ export default function PortfolioPage() {
   return (
     <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
       <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
-        <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
+        <header className="hd">
           <button
             type="button"
-            className="icon-btn text-foreground"
+            className="iconbtn"
             onClick={() => router.push("/")}
             aria-label="بازگشت"
           >
-            <ArrowRight className="h-5 w-5" aria-hidden="true" />
+            <ArrowRight size={20} strokeWidth={1.5} aria-hidden="true" />
           </button>
-          <div className="min-w-0 overflow-hidden text-center">
-            <h1 className="truncate text-lg font-normal">{title}</h1>
-          </div>
-          <span className="h-11 w-11" />
+          <h2 className="h-m">{title}</h2>
+          <span style={{ width: 40 }} />
         </header>
 
-        <div className="page-gutter min-h-0 flex-1 overflow-y-auto overscroll-contain pb-8 pt-2">
+        <div className="page-gutter min-h-0 flex-1 overflow-y-auto overscroll-contain pb-8">
           {items.length === 0 ? (
-            <div className="rounded-none border border-border bg-card p-6 text-center">
-              <h3 className="text-sm font-normal">هنوز نمونه‌کاری ثبت نشده است</h3>
-              <p className="mx-auto mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">
-                به‌زودی مدل‌های جدید اضافه می‌شوند.
-              </p>
+            <div className="panel center" style={{ padding: "52px 24px" }}>
+              <h3>هنوز نمونه‌کاری ثبت نشده است</h3>
+              <p className="t-s">به‌زودی مدل‌های جدید اضافه می‌شوند.</p>
             </div>
           ) : (
-            <section className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label={title}>
+            <section className="lk-grid" aria-label={title}>
               {items.map((h) => (
                 <button
                   key={h.id}
                   type="button"
-                  className="group text-start"
+                  className="lk"
                   onClick={() => router.push(`/book?look=${h.id}`)}
                 >
-                  <span className="block aspect-[3/4] overflow-hidden rounded-none border border-border bg-muted">
-                    {h.cover_url && (
-                      // eslint-disable-next-line @next/next/no-img-element -- owner-uploaded cover in a fixed frame; next/image config not needed
-                      <img
-                        src={h.cover_url}
-                        alt={h.name}
-                        loading="lazy"
-                        decoding="async"
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                  </span>
-                  <span className="mt-1.5 block truncate text-small font-normal">{h.name}</span>
+                  {h.cover_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- owner-uploaded cover in a fixed frame; next/image config not needed
+                    <img
+                      src={h.cover_url}
+                      alt={h.name}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : null}
+                  <span>{h.name}</span>
                 </button>
               ))}
             </section>

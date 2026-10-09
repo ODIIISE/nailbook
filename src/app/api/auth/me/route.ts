@@ -9,6 +9,8 @@ type AuthUserRow = {
   name: string;
   role: string | null;
   roles: unknown;
+  sms_reminders?: unknown;
+  offers?: unknown;
 };
 
 export async function GET(request: NextRequest) {
@@ -23,8 +25,8 @@ export async function GET(request: NextRequest) {
     // being rolled out; a missing optional column must not log everyone out.
     const salonId = getSalonId();
     const scoped = salonId
-      ? sql<AuthUserRow>`SELECT id, phone, name, "role", roles FROM users WHERE id = ${userId} AND salon_id = ${salonId} LIMIT 1`
-      : sql<AuthUserRow>`SELECT id, phone, name, "role", roles FROM users WHERE id = ${userId} LIMIT 1`;
+      ? sql<AuthUserRow>`SELECT id, phone, name, "role", roles, sms_reminders, offers FROM users WHERE id = ${userId} AND salon_id = ${salonId} LIMIT 1`
+      : sql<AuthUserRow>`SELECT id, phone, name, "role", roles, sms_reminders, offers FROM users WHERE id = ${userId} LIMIT 1`;
     let rows: AuthUserRow[];
     try {
       const result = await scoped;
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       const code = (error as { code?: string })?.code;
       const message = String((error as { message?: string })?.message || "");
-      if (code !== "42703" && !/column .*roles.*does not exist/i.test(message)) throw error;
+      if (code !== "42703" && !/column .*roles.*does not exist/i.test(message) && !/column .*sms_reminders.*does not exist/i.test(message) && !/column .*offers.*does not exist/i.test(message)) throw error;
       const result = salonId
         ? await sql<Omit<AuthUserRow, "roles"> & { roles?: never }>`SELECT id, phone, name, "role" FROM users WHERE id = ${userId} AND salon_id = ${salonId} LIMIT 1`
         : await sql<Omit<AuthUserRow, "roles"> & { roles?: never }>`SELECT id, phone, name, "role" FROM users WHERE id = ${userId} LIMIT 1`;
@@ -63,6 +65,8 @@ export async function GET(request: NextRequest) {
         name: user.name,
         role: user.role ?? (rolesArr.includes("owner") ? "owner" : "customer"),
         roles: rolesArr,
+        sms_reminders: user.sms_reminders !== false,
+        offers: user.offers === true,
       },
     });
   } catch (error) {

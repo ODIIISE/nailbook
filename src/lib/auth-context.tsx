@@ -10,6 +10,8 @@ export interface AuthUser {
   name: string;
   role: "customer" | "owner";
   roles: string[];
+  sms_reminders?: boolean;
+  offers?: boolean;
 }
 
 interface AuthContextType {
@@ -17,7 +19,7 @@ interface AuthContextType {
   isLoading: boolean;
   sendOtp: (phone: string) => Promise<{ success: boolean; error?: string }>;
   verifyOtp: (phone: string, code: string) => Promise<{ success: boolean; error?: string; user?: AuthUser }>;
-  updateProfile: (name: string, userId?: string, phone?: string) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (name: string, userId?: string, phone?: string, prefs?: { sms_reminders?: boolean; offers?: boolean }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isOwner: boolean;
   hasRole: (role: "customer" | "owner") => boolean;
@@ -144,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const updateProfile = useCallback(async (name: string, userId?: string, phone?: string) => {
+  const updateProfile = useCallback(async (name: string, userId?: string, phone?: string, prefs?: { sms_reminders?: boolean; offers?: boolean }) => {
     const trimmed = name.trim();
     const targetUserId = userId ?? user?.id;
     if (!trimmed) return { success: false, error: "نام الزامی است" };
@@ -162,6 +164,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           userId: targetUserId,
           name: trimmed,
           ...(cleanPhone !== undefined ? { phone: cleanPhone } : {}),
+          ...(prefs?.sms_reminders !== undefined ? { sms_reminders: prefs.sms_reminders } : {}),
+          ...(prefs?.offers !== undefined ? { offers: prefs.offers } : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -172,6 +176,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ...currentUser,
           name: trimmed,
           ...(cleanPhone !== undefined ? { phone: cleanPhone } : {}),
+          ...(prefs?.sms_reminders !== undefined ? { sms_reminders: prefs.sms_reminders } : {}),
+          ...(prefs?.offers !== undefined ? { offers: prefs.offers } : {}),
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
         return nextUser;

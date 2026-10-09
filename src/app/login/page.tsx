@@ -2,14 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle } from "lucide-react";
-import { ArrowRightIcon } from "@heroicons/react/24/outline";
-import { Button } from "@astryxdesign/core/Button";
-import { Card } from "@astryxdesign/core/Card";
-import { Field } from "@astryxdesign/core/Field";
-import { Icon } from "@astryxdesign/core/Icon";
-import { IconButton } from "@astryxdesign/core/IconButton";
-import { TextInput } from "@astryxdesign/core/TextInput";
+import { ArrowRight, AlertCircle } from "lucide-react";
 import { PinInput } from "@/components/booking/pin-input";
 import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { useAuth } from "@/lib/auth-context";
@@ -18,13 +11,9 @@ import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digit
 
 type Step = "phone" | "otp" | "name";
 
-/**
- * Validation message for the active step. Stays a live region (`role="alert"`)
- * so an error is announced the moment it appears, not only on next focus.
- */
 function FormError({ message }: { message: string }) {
   return (
-    <p className="mt-2.5 flex items-center gap-1.5 text-xs font-normal text-destructive" role="alert">
+    <p className="t-s" style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 6, color: "#eaa0ad" }} role="alert">
       <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
       {message}
     </p>
@@ -84,9 +73,7 @@ export default function LoginPage() {
 
     if (result.success && result.user) {
       // AUDIT-012: an expired session sent the user here mid-task — return
-      // them to where they were (bookings list, …) after login completes.
-      // New users (no name yet) finish registration first; the destination
-      // survives in a ref for the registration-complete navigation.
+      // them to where they were after login completes.
       returnToRef.current = getReturnTo();
       clearReturnTo();
       verifiedUserRef.current = result.user;
@@ -134,74 +121,52 @@ export default function LoginPage() {
 
   if (user) return null;
 
-  const title = step === "phone" ? "ورود" : step === "otp" ? "کد ورود" : "نام شما";
-  const kicker = step === "name" ? "ثبت‌نام" : "حساب کاربری";
+  const title = step === "phone" ? "شماره موبایل‌تان" : step === "otp" ? "کد تأیید" : "خوش آمدید";
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
-      <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
-        <IconButton
-          label="بازگشت"
-          icon={<Icon icon={ArrowRightIcon} color="inherit" />}
-          variant="ghost"
-          onClick={goBack}
-        />
-        <div className="min-w-0 overflow-hidden text-center">
-          <span className="block text-xs font-normal text-primary">{kicker}</span>
-          <h1 className="truncate text-lg font-normal">{title}</h1>
-        </div>
+      <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3 pb-2 pt-3">
+        <button type="button" className="iconbtn" onClick={goBack} aria-label="بازگشت">
+          <ArrowRight className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <h2 className="h-m truncate text-center">{title}</h2>
         <span className="h-11 w-11" />
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-[max(34px,calc(34px+env(safe-area-inset-bottom)))] pt-[clamp(18px,7dvh,64px)]">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
         {step === "phone" && (
-          <Card padding={5} width="100%">
-            <p className="mb-3.5 text-sm font-normal">شماره موبایل خود را وارد کنید</p>
-            {/* Stock Field shell + a native control: the phone field needs
-                type="tel", inputMode="numeric" and dir="ltr" for Persian number
-                entry (TextInput intentionally omits inputMode). */}
-            <Field label="شماره موبایل" inputID="login-phone">
-              <input
-                id="login-phone"
-                type="tel"
-                inputMode="numeric"
-                dir="ltr"
-                className="h-12 w-full rounded-none border border-input bg-card px-3.5 text-left text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !isLoading && handlePhoneSubmit()}
-                placeholder="۰۹۱۲۱۲۳۴۵۶۷"
-                autoComplete="tel"
-                autoFocus
-              />
-            </Field>
-            {error && <FormError message={error} />}
-            {/* Enabled while idle so an invalid number explains itself on tap
-                (the handler already shows the error) instead of a silently
-                dead button — no visible reason = missing state (P5). */}
-            <Button
-              label="دریافت کد"
-              variant="primary"
-              isLoading={isLoading}
-              onClick={handlePhoneSubmit}
-              className="mt-3.5 w-full"
+          <div style={{ paddingTop: 12 }}>
+            <p className="t-s" style={{ marginBottom: 20 }}>برای ثبت و پیگیری نوبت. کد تأیید پیامک می‌شود.</p>
+            <input
+              className="input"
+              type="tel"
+              inputMode="numeric"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !isLoading && void handlePhoneSubmit()}
+              placeholder="۰۹۱۲ ۰۰۰ ۰۰۰۰"
+              autoComplete="tel"
+              autoFocus
+              aria-label="شماره موبایل"
+              style={{ direction: "ltr", textAlign: "center", fontSize: 22, letterSpacing: ".08em", minHeight: 64 }}
             />
-          </Card>
+            {error && <FormError message={error} />}
+            <button type="button" className="btn pri block" style={{ marginTop: 20 }} disabled={isLoading} onClick={() => void handlePhoneSubmit()}>
+              {isLoading ? "..." : "ادامه"}
+            </button>
+          </div>
         )}
 
         {step === "otp" && (
-          <Card padding={5} width="100%">
-            <p className="mb-3.5 text-sm font-normal">کد ۶ رقمی پیامک‌شده را وارد کنید</p>
-            <div className="mb-4 flex items-center gap-3 rounded-none border border-success/25 bg-muted p-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">✓</span>
-              <span className="min-w-0 flex-1">
-                <b className="block text-sm font-normal">شماره</b>
-                <small dir="ltr" className="mt-0.5 block text-xs text-muted-foreground">{displayDigits(phone)}</small>
-              </span>
+          <div style={{ paddingTop: 8, textAlign: "center" }}>
+            <p className="t-s" style={{ marginBottom: 20 }}>
+              کد ۶ رقمی پیامک‌شده به <span className="ltr num">{displayDigits(phone)}</span> را وارد کنید.
+            </p>
+            <div dir="ltr">
+              <PinInput key={otpAttempt} length={6} onComplete={(code) => void handleOtpSubmit(code)} disabled={isLoading} />
             </div>
-            <PinInput key={otpAttempt} length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
             {error && <FormError message={error} />}
-            <div className="mt-4 flex flex-col items-stretch gap-1.5 border-t border-border pt-3" aria-label="گزینه‌های کد ورود">
+            <div style={{ marginTop: 16, display: "flex", flexDirection: "column", alignItems: "stretch", gap: 6 }}>
               <ResendOtpButton
                 onResend={async () => {
                   const result = await sendOtp(normalizeDigits(phone));
@@ -209,39 +174,37 @@ export default function LoginPage() {
                 }}
                 disabled={isLoading}
               />
-              <Button
-                label="تغییر شماره"
-                variant="ghost"
-                size="sm"
+              <button
+                type="button"
+                className="btn ghost sm"
                 onClick={() => { setStep("phone"); setError(""); }}
-                className="w-full"
-              />
+              >
+                تغییر شماره
+              </button>
             </div>
-          </Card>
+          </div>
         )}
 
         {step === "name" && (
-          <Card padding={5} width="100%">
-            <p className="mb-3.5 text-sm font-normal">نام و نام خانوادگی خود را وارد کنید</p>
-            <TextInput
-              label="نام و نام خانوادگی"
-              value={name}
-              onChange={(value) => setName(value)}
-              onEnter={handleNameSubmit}
-              hasAutoFocus
-              autoComplete="name"
-              placeholder="مثال: سارا احمدی"
-              width="100%"
-            />
+          <div style={{ paddingTop: 8 }}>
+            <p className="t-s" style={{ marginBottom: 18 }}>اولین بار است؛ یک حساب کوچک می‌سازیم.</p>
+            <label className="field">
+              <span>نام و نام خانوادگی</span>
+              <input
+                className="input"
+                autoFocus
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !isLoading && void handleNameSubmit()}
+                placeholder="مثال: سارا احمدی"
+                autoComplete="name"
+              />
+            </label>
             {error && <FormError message={error} />}
-            <Button
-              label="تکمیل ثبت‌نام"
-              variant="primary"
-              isLoading={isLoading}
-              onClick={handleNameSubmit}
-              className="mt-3.5 w-full"
-            />
-          </Card>
+            <button type="button" className="btn pri block" style={{ marginTop: 20 }} disabled={isLoading} onClick={() => void handleNameSubmit()}>
+              {isLoading ? "..." : "ساخت حساب"}
+            </button>
+          </div>
         )}
       </div>
     </div>

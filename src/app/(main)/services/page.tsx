@@ -1,14 +1,15 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 import { useSalon } from "@/lib/salon-context";
-import { ServiceCard } from "@/components/booking/service-card";
-import { toPersianDigits } from "@/lib/jalali";
-import { compactToman } from "@/lib/pricing";
+import { Nail } from "@/components/ui/nail";
+import { toPersianDigits, formatPrice } from "@/lib/jalali";
+import { SalonGuard } from "@/components/ui/salon-guard";
 
-/* Standalone customer menu (v-2 ServicesSheet): every active service with
-   its add-ons and a per-row deep-link into the booking flow. Booking logic
-   itself stays in /book — this page only links with ?service=. */
+/* Standalone customer menu (v2 ServicesSheet): every active service with
+   its add-ons and a per-row deep-link into the booking flow. */
 export default function ServicesPage() {
   const router = useRouter();
   const { services, addons, loaded } = useSalon();
@@ -18,58 +19,80 @@ export default function ServicesPage() {
     .sort((a, b) => a.sort_order - b.sort_order);
 
   return (
-    <div className="page-gutter mx-auto w-full max-w-xl pb-10 pt-6">
-      <p className="text-micro font-normal tracking-widest text-muted-foreground" dir="ltr">
-        MENU · {toPersianDigits(activeServices.length)}
-      </p>
-      <h1 className="mt-1 text-h1 font-normal">هر خدمت، با دقتی آهسته.</h1>
+    <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
+      <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
+        <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3 pb-2 pt-3">
+          <button type="button" className="iconbtn" onClick={() => router.push("/")} aria-label="بازگشت">
+            <ArrowRight className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <h2 className="h-m truncate text-center">خدمات و قیمت‌ها</h2>
+          <span className="h-11 w-11" />
+        </header>
 
-      {!loaded && activeServices.length === 0 ? (
-        <p className="mt-8 text-center text-sm text-muted-foreground">در حال بارگذاری خدمات…</p>
-      ) : activeServices.length === 0 ? (
-        <p className="mt-8 text-center text-sm text-muted-foreground">در حال حاضر خدمتی ثبت نشده است.</p>
-      ) : (
-        <div className="mt-5 flex flex-col gap-3">
-          {activeServices.map((s) => {
-            const serviceAddons = addons.filter((a) => s.addon_ids.includes(a.id) && a.is_active);
-            return (
-              <ServiceCard
-                key={s.id}
-                title={s.name}
-                price={Number(s.price)}
-                badges={[
-                  `${toPersianDigits(serviceAddons.length)} افزودنی`,
-                  `از ${toPersianDigits(s.duration_minutes)} دقیقه`,
-                ]}
-                action={{ label: "رزرو این خدمت", expanded: serviceAddons.length > 0 }}
-                selected={false}
-                onToggle={() => router.push(`/book?service=${s.id}`)}
-              >
-                {serviceAddons.length > 0 ? (
-                  <div>
-                    {serviceAddons.map((a) => (
-                      <div key={a.id} className="mt-1.5 flex w-full items-center gap-2 text-start text-card-foreground">
-                        <span className="min-w-0 flex-1">
-                          <b className="block text-sm font-normal">{a.name}</b>
-                          <small className="mt-0.5 block text-xs text-card-foreground/60">
-                            +{toPersianDigits(a.duration_minutes)} دقیقه
-                          </small>
-                        </span>
-                        <span className="shrink-0 text-xs font-normal text-card-foreground">
-                          +{compactToman(Number(a.price))}
-                        </span>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
+          <div className="eyebrow" style={{ textAlign: "right" }}>
+            MENU · {toPersianDigits(activeServices.length)}
+          </div>
+          <h2 className="h-l" style={{ margin: "4px 0 18px" }}>
+            هر خدمت، با دقتی آهسته.
+          </h2>
+
+          {!loaded && activeServices.length === 0 ? (
+            <div className="empty">در حال بارگذاری خدمات…</div>
+          ) : activeServices.length === 0 ? (
+            <div className="empty">در حال حاضر خدمتی ثبت نشده است.</div>
+          ) : (
+            <div className="list">
+              {activeServices.map((s, i) => {
+                const serviceAddons = addons.filter((a) => s.addon_ids.includes(a.id) && a.is_active);
+                return (
+                  <motion.div
+                    key={s.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: Math.min(i, 8) * 0.05 }}
+                    style={{ padding: "18px 0" }}
+                  >
+                    <div className="row">
+                      <Nail lacquer={s.lacquer || "pearl"} size={56} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 17 }}>{s.name}</div>
+                        <div className="t-s">
+                          {s.description}، {toPersianDigits(s.duration_minutes)} دقیقه
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                ) : null}
-              </ServiceCard>
-            );
-          })}
+                      <div className="num pearl" style={{ fontSize: 16 }}>
+                        {formatPrice(Number(s.price))}
+                        <span className="faint" style={{ fontSize: 14 }}> هزار</span>
+                      </div>
+                    </div>
+                    {serviceAddons.length > 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10, paddingInlineStart: 70 }}>
+                        {serviceAddons.map((a) => (
+                          <span key={a.id} className="badge tone-mute" style={{ height: 30 }}>
+                            {a.name}{" "}
+                            <span className="num">
+                              +{toPersianDigits(Math.round(Number(a.price) / 1000))}
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div style={{ paddingInlineStart: 70, marginTop: 10 }}>
+                      <button type="button" className="btn gl sm" onClick={() => router.push(`/book?service=${s.id}`)}>
+                        رزرو این خدمت
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+          <p className="t-s" style={{ marginTop: 12 }}>
+            طراحی‌های «هر انگشت» با نرخ یک انگشت محاسبه می‌شوند.
+          </p>
         </div>
-      )}
-      <p className="mt-6 text-center text-xs leading-7 text-muted-foreground">
-        طراحی‌های «هر انگشت» با نرخ یک انگشت محاسبه می‌شوند.
-      </p>
-    </div>
+      </div>
+    </SalonGuard>
   );
 }

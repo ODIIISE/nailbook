@@ -1,21 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  ArrowLeft,
-  Clock,
+  AtSign,
   Globe,
   Images,
-  LogIn,
   LogOut,
-  MapPin,
   Phone,
   Scissors,
   Settings,
   ShieldCheck,
-  User,
   Users,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
@@ -24,25 +20,19 @@ import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "./menu-context";
 import { haptic } from "@/lib/haptics";
 import { displayDigits } from "@/lib/digits";
-import { toPersianDigits } from "@/lib/jalali";
-import { getTehranDateKey } from "@/lib/time";
-import { Separator } from "@/components/ui/separator";
-import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Drawer } from "@/components/ui/drawers";
+import { Monogram } from "@/components/ui/nail";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-/* Active = the statuses /api/read/bookings treats as availability blocks,
- * still in the future. A past "confirmed" row is history, not active. */
-const ACTIVE_BOOKING_STATUSES = new Set(["reserved", "confirmed", "in_progress"]);
-
 type MenuTone = "default" | "danger";
 
 const ITEM_BASE =
-  "flex min-h-11 items-center gap-2 rounded-none px-3 text-body text-start hover:bg-muted";
-const ICON_MUTED = "flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground";
-const ICON_DANGER = "flex h-4 w-4 shrink-0 items-center justify-center text-destructive";
+  "flex w-full min-h-12 items-center gap-3 border-b border-white/5 px-1 py-3 text-start text-[16px] hover:bg-white/[.03]";
+const ICON_MUTED = "flex h-[18px] w-[18px] shrink-0 items-center justify-center text-[var(--mut)]";
+const ICON_DANGER = "flex h-[18px] w-[18px] shrink-0 items-center justify-center text-[var(--wine-hi)]";
 
 function MenuLink({
   href,
@@ -68,15 +58,15 @@ function MenuLink({
         haptic.tap();
         closeMenu();
       }}
-      className={`${ITEM_BASE} font-normal ${
+      className={`${ITEM_BASE} ${
         danger
-          ? "text-destructive hover:bg-destructive/10"
+          ? "text-[var(--wine-hi)]"
           : active
-            ? "bg-muted text-primary"
-            : "text-foreground"
+            ? "text-[var(--pearl)]"
+            : ""
       }`}
     >
-      {icon ? <span className={danger ? ICON_DANGER : active ? "text-primary" : ICON_MUTED} aria-hidden="true">{icon}</span> : null}
+      {icon ? <span className={danger ? ICON_DANGER : active ? "text-[var(--pearl)]" : ICON_MUTED} aria-hidden="true">{icon}</span> : null}
       <span>{label}</span>
     </Link>
   );
@@ -105,44 +95,12 @@ function MenuAction({
         if (closeOnClick) closeMenu();
         onClick();
       }}
-      className={`w-full ${ITEM_BASE} ${danger ? "text-destructive hover:bg-destructive/10" : "text-foreground"}`}
+      className={`w-full ${ITEM_BASE} ${danger ? "text-[var(--wine-hi)]" : ""}`}
     >
       {icon ? <span className={danger ? ICON_DANGER : ICON_MUTED} aria-hidden="true">{icon}</span> : null}
       <span>{label}</span>
     </button>
   );
-}
-
-function InfoRow({
-  icon,
-  label,
-  value,
-  dir,
-  href,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-  dir?: "ltr";
-  href?: string;
-}) {
-  const body = (
-    <>
-      <span className="mt-0.5 text-muted-foreground" aria-hidden="true">{icon}</span>
-      <span className="min-w-0">
-        <span className="block text-small font-normal text-foreground">{label}</span>
-        <span className="block text-small leading-relaxed text-muted-foreground" dir={dir}>{value}</span>
-      </span>
-    </>
-  );
-  if (href) {
-    return (
-      <a href={href} className="flex min-h-11 items-center gap-2 rounded-none p-1 hover:bg-muted">
-        {body}
-      </a>
-    );
-  }
-  return <div className="flex items-start gap-2 p-1">{body}</div>;
 }
 
 function SalonInfoSection() {
@@ -152,119 +110,103 @@ function SalonInfoSection() {
   const phone = salon.phone?.trim() ?? "";
 
   return (
-    <section aria-label="اطلاعات سالن" className="space-y-2 px-1">
-      <p className="text-micro font-normal text-muted-foreground">اطلاعات سالن</p>
-      <InfoRow icon={<Clock className="h-4 w-4" />} label="ساعات کاری" value={hours || "ثبت نشده است"} />
-      <InfoRow icon={<MapPin className="h-4 w-4" />} label="آدرس" value={address || "ثبت نشده است"} />
-      {phone ? (
-        <InfoRow
-          icon={<Phone className="h-4 w-4" />}
-          label="تلفن"
-          value={displayDigits(phone)}
-          dir="ltr"
-          href={`tel:${phone.replace(/\s+/g, "")}`}
-        />
-      ) : (
-        <InfoRow icon={<Phone className="h-4 w-4" />} label="تلفن" value="ثبت نشده است" />
-      )}
+    <section aria-label="اطلاعات سالن" style={{ marginTop: 18 }}>
+      <div className="t-s" style={{ marginBottom: 10 }}>اطلاعات سالن</div>
+      <div className="list">
+        {hours ? (
+          <div className="sum">
+            <span className="mute">ساعات کاری</span>
+            <span>{hours}</span>
+          </div>
+        ) : null}
+        {address ? (
+          <div className="sum">
+            <span className="mute">آدرس</span>
+            <span>{address}</span>
+          </div>
+        ) : null}
+      </div>
+      <div className="row" style={{ marginTop: 14, gap: 10 }}>
+        {phone ? (
+          <a className="btn gl sm" href={`tel:${phone.replace(/\s+/g, "")}`}>
+            <Phone size={16} strokeWidth={1.4} /> تماس
+          </a>
+        ) : null}
+        {salon.instagram_handle ? (
+          <a
+            className="btn gl sm"
+            href={`https://instagram.com/${salon.instagram_handle.replace(/^@/, "")}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <AtSign size={16} strokeWidth={1.4} /> اینستاگرام
+          </a>
+        ) : null}
+      </div>
     </section>
   );
 }
 
 function AccountCard({ onRequestLogout }: { onRequestLogout?: () => void }) {
   const { user } = useAuth();
-  const { bookings, loaded } = useSalon();
   const { closeMenu } = useMenu();
-
-  const activeCount = useMemo(() => {
-    if (!user || !loaded) return 0;
-    const today = getTehranDateKey(new Date());
-    return bookings.filter(
-      (b) =>
-        (b.user_id === user.id || b.customer_phone === user.phone) &&
-        ACTIVE_BOOKING_STATUSES.has(b.status) &&
-        b.date_gregorian >= today,
-    ).length;
-  }, [user, loaded, bookings]);
 
   if (!user) {
     return (
-      <Link
-        href="/login"
-        onClick={() => {
-          haptic.tap();
-          closeMenu();
-        }}
-        className="flex min-h-14 items-center gap-2 rounded-none border border-border bg-card px-4 py-3 text-card-foreground hover:bg-muted/60"
-      >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <LogIn className="h-4 w-4" aria-hidden="true" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-h3 font-normal">حساب کاربری</span>
-          <span className="block text-small text-card-foreground/60">ورود / ثبت‌نام</span>
-        </span>
-        <ArrowLeft className="h-4 w-4 shrink-0 text-card-foreground/60" aria-hidden="true" />
-      </Link>
+      <>
+        <div className="h-m">خوش آمدید</div>
+        <p className="t-s" style={{ marginBottom: 14 }}>
+          برای دیدن نوبت‌ها وارد شوید.
+        </p>
+        <Link
+          href="/login"
+          onClick={() => {
+            haptic.tap();
+            closeMenu();
+          }}
+          className="btn gl sm"
+        >
+          ورود / ثبت‌نام
+        </Link>
+      </>
     );
   }
 
   return (
-    <section aria-label="حساب کاربری" className="rounded-none border border-border bg-card p-3 text-card-foreground">
-      <div className="flex items-center gap-2">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <User className="h-4 w-4" aria-hidden="true" />
-        </span>
-        <div className="min-w-0">
-          <p className="truncate text-h3 font-normal">{user.name?.trim() || "کاربر"}</p>
-          <p className="text-small text-card-foreground/60" dir="ltr">{displayDigits(user.phone)}</p>
+    <>
+      <div className="row" style={{ padding: "4px 0 22px" }}>
+        <Monogram name={user.name} size={52} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 19 }}>{user.name?.trim() || "کاربر"}</div>
+          <div className="t-s ltr">{displayDigits(user.phone)}</div>
         </div>
       </div>
-
-      <div className="mt-3 flex min-h-11 items-center justify-between gap-2 border-t border-border pt-3">
-        {/* Navbar-covered destinations (نوبت‌ها/پروفایل) intentionally live
-        only in the bottom navbar — see specs/001-two-tier-navigation. */}
-        {activeCount > 0 ? (
-          <span className="inline-flex items-center rounded-full bg-card-foreground/10 px-2.5 py-1 text-micro font-normal text-card-foreground">
-            {toPersianDigits(activeCount)} رزرو فعال
-          </span>
-        ) : (
-          <span className="text-small text-card-foreground/60">رزرو فعالی ندارید</span>
-        )}
-      </div>
-
-      <div className="mt-2 space-y-0.5 border-t border-border pt-2">
-        <button
-          type="button"
-          onClick={() => {
-            haptic.tap();
-            onRequestLogout?.();
-          }}
-          className="flex min-h-11 w-full items-center rounded-none px-2 text-small font-normal text-destructive-on-dark hover:bg-white/5"
-        >
-          خروج از حساب
-        </button>
-      </div>
-    </section>
+      <button
+        type="button"
+        onClick={() => {
+          haptic.tap();
+          onRequestLogout?.();
+        }}
+        className="btn ghost sm"
+        style={{ padding: 0, marginTop: 4 }}
+      >
+        <LogOut size={16} strokeWidth={1.4} /> خروج از حساب
+      </button>
+    </>
   );
 }
-
 function OwnerAccountCard() {
   const { user } = useAuth();
   const { salon } = useSalon();
 
   return (
-    <section aria-label="حساب مدیریت" className="rounded-none border border-border bg-card p-3 text-card-foreground">
-      <div className="flex items-center gap-2">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-        </span>
-        <div className="min-w-0">
-          <p className="truncate text-h3 font-normal">{user?.name?.trim() || "مدیر"}</p>
-          <p className="truncate text-small text-card-foreground/60">{salon.name?.trim() || "پنل مدیریت"}</p>
-        </div>
+    <div className="row" style={{ padding: "4px 0 22px" }}>
+      <Monogram name={salon.name} size={52} />
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 19 }}>{user?.name?.trim() || "مدیر"}</div>
+        <div className="t-s">{salon.name?.trim() || "پنل مدیریت"}</div>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -272,10 +214,9 @@ function GuestContent() {
   return (
     <>
       <AccountCard />
-      <div className="mt-3 space-y-1">
+      <div style={{ marginTop: 10 }}>
         <MenuLink href="/portfolio" icon={<Images className="h-4 w-4" />} label="نمونه‌کارها" />
       </div>
-      <Separator className="my-4" />
       <SalonInfoSection />
     </>
   );
@@ -285,10 +226,9 @@ function CustomerContent({ onRequestLogout }: { onRequestLogout: () => void }) {
   return (
     <>
       <AccountCard onRequestLogout={onRequestLogout} />
-      <div className="mt-3 space-y-1">
+      <div style={{ marginTop: 10 }}>
         <MenuLink href="/portfolio" icon={<Images className="h-4 w-4" />} label="نمونه‌کارها" />
       </div>
-      <Separator className="my-4" />
       <SalonInfoSection />
     </>
   );
@@ -309,8 +249,8 @@ function OwnerContent({ onRequestLogout }: { onRequestLogout: () => void }) {
       (specs/001-two-tier-navigation). */}
       {(showServices || showUsers || showSettings) && (
         <>
-          <p className="mt-3 mb-1 px-3 text-micro font-normal text-muted-foreground">مدیریت</p>
-          <div className="space-y-1">
+          <div className="t-s" style={{ margin: "14px 0 2px" }}>مدیریت</div>
+          <div>
             {showServices && <MenuLink href="/owner/services" icon={<Scissors className="h-4 w-4" />} label="خدمات" />}
             {showUsers && <MenuLink href="/owner/users" icon={<Users className="h-4 w-4" />} label="مشتری‌ها" />}
             {showServices && <MenuLink href="/owner/highlights" icon={<Images className="h-4 w-4" />} label="نمونه‌کارها" />}
@@ -318,8 +258,7 @@ function OwnerContent({ onRequestLogout }: { onRequestLogout: () => void }) {
           </div>
         </>
       )}
-      <Separator className="my-4" />
-      <div className="space-y-1">
+      <div style={{ marginTop: 10 }}>
         <MenuLink href="/" icon={<Globe className="h-4 w-4" />} label="مشاهده سایت مشتری" />
         <MenuAction
           onClick={onRequestLogout}
@@ -336,7 +275,6 @@ function OwnerContent({ onRequestLogout }: { onRequestLogout: () => void }) {
 export function MenuSheet() {
   const { open, closeMenu } = useMenu();
   const { user, isOwner, logout } = useAuth();
-  const { salon } = useSalon();
   const router = useRouter();
   const pathname = usePathname();
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -361,10 +299,9 @@ export function MenuSheet() {
 
   return (
     <>
-      <BottomSheet
+      <Drawer
         open={open}
         onClose={closeMenu}
-        title={salon.name?.trim() || "منو"}
       >
         <nav aria-label="منوی اصلی">
           {role === "guest" && <GuestContent />}
@@ -373,21 +310,21 @@ export function MenuSheet() {
         </nav>
 
         {(role === "guest" || role === "customer") && (
-          <div className="mt-4 border-t border-border py-2 text-center">
+          <footer>
             <Link
               href="/owner/login"
               onClick={() => {
                 haptic.tap();
                 closeMenu();
               }}
-              className="inline-flex min-h-11 items-center gap-1.5 px-3 text-caption text-muted-foreground hover:text-foreground"
+              className="set"
             >
-              <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+              <ShieldCheck size={17} strokeWidth={1.4} />
               ورود مدیریت
             </Link>
-          </div>
+          </footer>
         )}
-      </BottomSheet>
+      </Drawer>
 
       <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
         <AlertDialogContent className="max-w-[300px]">

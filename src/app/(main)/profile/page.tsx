@@ -1,464 +1,188 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { persianizeError } from "@/lib/error-sanitize";
-import {
-  ArrowLeft, ArrowRight, Calendar, Check, Clock, LogOut, Pencil, Phone, Sparkles, User, X,
-} from "lucide-react";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
-  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { StatusPill } from "@/components/ui/status-pill";
+import { ArrowRight, LogOut } from "lucide-react";
+import { SalonGuard } from "@/components/ui/salon-guard";
+import { Switch } from "@/components/ui/switch";
+import { Confirm } from "@/components/ui/confirm";
+import { Monogram } from "@/components/ui/nail";
 import { useAuth } from "@/lib/auth-context";
 import { useSalon } from "@/lib/salon-context";
+import { toast } from "sonner";
 import { displayDigits, normalizeDigits, isValidIranianPhone } from "@/lib/digits";
-import { gregorianToJalali, toPersianDigits, formatJalaliTime } from "@/lib/jalali";
-import { parseGregorianDateKey } from "@/lib/time";
-import { compactToman } from "@/lib/pricing";
-
-// Shared status pill — see src/components/ui/status-pill.tsx.
-
-const JALALI_MONTHS = ["", "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
-
-function jalaliShort(dateKey: string) {
-  const jalali = gregorianToJalali(parseGregorianDateKey(dateKey));
-  return `${toPersianDigits(jalali.jd)} ${JALALI_MONTHS[jalali.jm]}`;
-}
-
-const CANCELABLE = new Set(["reserved", "confirmed"]);
+import { toPersianDigits, formatPrice } from "@/lib/jalali";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, logout, updateProfile } = useAuth();
-  const { bookings, services, cancelBooking, refreshBookings } = useSalon();
+  const { bookings, services, refreshBookings } = useSalon();
 
-  const [editing, setEditing] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [saving, setSaving] = useState(false);
-
+  const [name, setName] = useState(user?.name || "");
+  const [savingName, setSavingName] = useState(false);
+  const [phone, setPhone] = useState(user?.phone || "");
   const [editingPhone, setEditingPhone] = useState(false);
-  const [editPhone, setEditPhone] = useState("");
   const [savingPhone, setSavingPhone] = useState(false);
-
-  const [confirmingCancel, setConfirmingCancel] = useState<string | null>(null);
-  const cancelTimer = useRef<number | null>(null);
   const [confirmLogout, setConfirmLogout] = useState(false);
 
-  useEffect(() => {
-    return () => {
-      if (cancelTimer.current !== null) window.clearTimeout(cancelTimer.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    // Keep the fallback navigation warm for direct visits to /profile. When
-    // the user arrived from the homepage, router.back() below reuses the
-    // already-rendered route and avoids a second RSC fetch altogether.
-    router.prefetch("/");
-  }, [router]);
-
-  const goBack = () => {
-    window.dispatchEvent(new Event("nailbook:back"));
-    // In-app navigation already has the homepage in the browser history. Use
-    // that entry rather than pushing/reloading the homepage, which avoids the
-    // blank while the App Router requests the same route again.
-    if (window.history.length > 1) {
-      router.back();
-    } else {
-      router.replace("/");
-    }
-  };
-
-  const startEdit = () => {
-    setEditName(user?.name || "");
-    setEditing(true);
-  };
-
-  const cancelEdit = () => {
-    setEditing(false);
-    setEditName(user?.name || "");
-  };
-
-  const saveEdit = async () => {
-    const name = editName.trim();
-    if (!name || !user) return;
-    setSaving(true);
-    const result = await updateProfile(name);
-    setSaving(false);
-    if (result.success) {
-      setEditing(false);
-    } else {
-      toast.error(result.error || "خطا در به‌روزرسانی پروفایل");
-    }
-  };
-
-  const startPhoneEdit = () => {
-    setEditPhone(user?.phone || "");
-    setEditingPhone(true);
-  };
-
-  const cancelPhoneEdit = () => {
-    setEditingPhone(false);
-    setEditPhone(user?.phone || "");
-  };
-
-  const savePhone = async () => {
-    if (!user) return;
-    const clean = normalizeDigits(editPhone);
-    if (!isValidIranianPhone(clean)) {
-      toast.error("شماره موبایل معتبر نیست");
-      return;
-    }
-    setSavingPhone(true);
-    const result = await updateProfile(user.name, user.id, clean);
-    setSavingPhone(false);
-    if (result.success) {
-      setEditingPhone(false);
-      // The server re-linked past bookings to the new number — pull fresh data.
-      void refreshBookings();
-    } else {
-      toast.error(result.error || "خطا در به‌روزرسانی شماره موبایل");
-    }
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    window.location.href = "/";
-  };
-
-  // Latest bookings (newest first), shown right on the profile so the user can
-  // see and cancel appointments without leaving the hub. Full history lives at
-  // /bookings with polling and a detail sheet.
-  const recentBookings = useMemo(() => {
-    if (!user) return [];
-    return bookings
-      .filter((b) => b.user_id === user.id || b.customer_phone === user.phone)
-      .sort((a, b) => {
-        const dateA = parseGregorianDateKey(a.date_gregorian).getTime();
-        const dateB = parseGregorianDateKey(b.date_gregorian).getTime();
-        if (dateA !== dateB) return dateB - dateA;
-        return b.start_time.localeCompare(a.start_time);
-      })
-      .slice(0, 3);
-  }, [bookings, user]);
-
-  const getServiceName = (serviceId: string) => services.find((s) => s.id === serviceId)?.name || "نامعلوم";
-  const getServicePrice = (serviceId: string) => services.find((s) => s.id === serviceId)?.price ?? null;
-
-  /* Lifetime stats (v-2 profile): completed visits + spend, from real bookings. */
   const myBookings = useMemo(() => {
     if (!user) return [];
     return bookings.filter((b) => b.user_id === user.id || b.customer_phone === user.phone);
   }, [bookings, user]);
-  const completedCount = useMemo(() => myBookings.filter((b) => b.status === "completed").length, [myBookings]);
-  const lifetimeSpend = useMemo(() => myBookings
-    .filter((b) => b.status === "completed")
-    .reduce((sum, b) => sum + Number(b.price_total ?? getServicePrice(b.service_id) ?? 0), 0),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [myBookings]);
-
-  const handleCancelBooking = async (id: string) => {
-    if (confirmingCancel !== id) {
-      setConfirmingCancel(id);
-      if (cancelTimer.current !== null) window.clearTimeout(cancelTimer.current);
-      cancelTimer.current = window.setTimeout(() => setConfirmingCancel(null), 2600);
-      return;
-    }
-    if (cancelTimer.current !== null) {
-      window.clearTimeout(cancelTimer.current);
-      cancelTimer.current = null;
-    }
-    setConfirmingCancel(null);
-    try {
-      // cancelBooking catches its own errors and returns the server's guard
-      // text on failure — show it instead of an endless-retry generic message.
-      const result = await cancelBooking(id);
-      if (result.success) {
-        void refreshBookings();
-      } else {
-        toast.error(result.error || "خطا در لغو نوبت — لطفاً دوباره تلاش کنید");
-      }
-    } catch (error) {
-      toast.error(persianizeError(error, "خطا در لغو نوبت"));
-    }
-  };
+  const done = useMemo(() => myBookings.filter((b) => b.status === "completed"), [myBookings]);
+  const spend = useMemo(
+    () =>
+      done.reduce(
+        (sum, b) => sum + Number(b.price_total ?? services.find((s) => s.id === b.service_id)?.price ?? 0),
+        0
+      ),
+    [done, services]
+  );
 
   if (!user) {
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
-        <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
-          <button
-            type="button"
-            className="icon-btn text-foreground"
-            onClick={goBack}
-            aria-label="بازگشت"
-          >
+        <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3 pb-2 pt-3">
+          <button type="button" className="iconbtn" onClick={() => router.push("/")} aria-label="بازگشت">
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
-          <div className="min-w-0 overflow-hidden text-center">
-            <span className="block text-xs font-normal text-primary">حساب کاربری</span>
-            <h2 className="truncate text-lg font-normal">پروفایل</h2>
-          </div>
+          <h2 className="h-m truncate text-center">پروفایل</h2>
           <span className="h-11 w-11" />
         </header>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
-          <div className="rounded-none border border-border bg-card p-6 text-center">
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-none bg-muted text-muted-foreground">
-              <User className="h-7 w-7" aria-hidden="true" />
-            </div>
-            <h3 className="text-sm font-normal">وارد شوید</h3>
-            <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">برای مشاهده پروفایل و نوبت‌های خود، با شماره موبایل وارد شوید.</p>
-            <button
-              type="button"
-              className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-normal text-primary-foreground"
-              onClick={() => router.push("/login")}
-            >
-              ورود
-            </button>
-          </div>
+        <div className="empty">
+          برای مشاهده پروفایل وارد شوید.
+          <br />
+          <button type="button" className="btn pri sm" style={{ marginTop: 16 }} onClick={() => router.push("/login")}>
+            ورود / ثبت‌نام
+          </button>
         </div>
       </div>
     );
   }
 
-  const initial = (user.name || user.phone || "م").trim().charAt(0);
+  const saveName = async () => {
+    if (name.trim() === user.name || name.trim().length < 2) return;
+    setSavingName(true);
+    const r = await updateProfile(name.trim());
+    setSavingName(false);
+    if (!r.success) toast.error(r.error || "ذخیره نشد");
+    else toast.success("ذخیره شد");
+  };
+
+  const savePhone = async () => {
+    const clean = normalizeDigits(phone);
+    if (!isValidIranianPhone(clean)) {
+      toast.error("شماره موبایل معتبر نیست");
+      return;
+    }
+    setSavingPhone(true);
+    const r = await updateProfile(user.name, user.id, clean);
+    setSavingPhone(false);
+    if (!r.success) toast.error(r.error || "ذخیره نشد");
+    else {
+      setEditingPhone(false);
+      void refreshBookings();
+      toast.success("ذخیره شد");
+    }
+  };
+
+  const setPref = async (key: "sms_reminders" | "offers", value: boolean) => {
+    const r = await updateProfile(user.name, user.id, undefined, { [key]: value });
+    if (!r.success) toast.error(r.error || "ذخیره نشد");
+  };
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
-      <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3.5 pb-2 pt-3">
-        <button
-          type="button"
-          className="icon-btn text-foreground"
-          onClick={goBack}
-          aria-label="بازگشت"
-        >
-          <ArrowRight className="h-5 w-5" aria-hidden="true" />
-        </button>
-        <div className="min-w-0 overflow-hidden text-center">
-          <span className="block text-xs font-normal text-primary">حساب کاربری</span>
-          <h2 className="truncate text-lg font-normal">پروفایل</h2>
-        </div>
-        <span className="h-11 w-11" />
-      </header>
+    <SalonGuard fallback={<div className="min-h-screen bg-background" aria-hidden="true" />}>
+      <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col bg-background text-foreground">
+        <header className="grid grid-cols-[44px_1fr_44px] items-center gap-1 px-3 pb-2 pt-3">
+          <button type="button" className="iconbtn" onClick={() => router.push("/")} aria-label="بازگشت">
+            <ArrowRight className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <h2 className="h-m truncate text-center">پروفایل</h2>
+          <span className="h-11 w-11" />
+        </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
-        <div className="mx-auto my-2.5 flex h-20 w-20 items-center justify-center rounded-full border border-border bg-muted text-2xl font-normal text-foreground" aria-hidden="true">{initial}</div>
-
-        <div className="mt-4 flex items-stretch justify-center gap-8" aria-label="آمار نوبت‌ها">
-          <div className="text-center">
-            <div className="text-2xl font-light tabular-nums">{toPersianDigits(completedCount)}</div>
-            <div className="mt-1 text-xs text-muted-foreground">نوبت انجام‌شده</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-light tabular-nums">{compactToman(lifetimeSpend)}</div>
-            <div className="mt-1 text-xs text-muted-foreground">مجموع خرید</div>
-          </div>
-        </div>
-
-        <section className="overflow-hidden rounded-none border border-border bg-card" aria-labelledby="profile-details-title">
-          <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/50 px-4 pb-3 pt-4">
-            <div className="min-w-0">
-              <span className="mb-0.5 block text-xs font-normal text-primary">حساب کاربری</span>
-              <h3 id="profile-details-title" className="text-base font-normal">مشخصات شما</h3>
-            </div>
-            <User className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-          </div>
-
-          <div className="flex items-center gap-3 border-b border-border px-4 py-3.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-none bg-muted text-foreground"><User className="h-4 w-4" aria-hidden="true" /></span>
-            <div className="min-w-0 flex-1">
-              <small className="mb-0.5 block text-xs text-muted-foreground">نام</small>
-              {editing ? (
-                <input
-                  type="text"
-                  className="h-11 w-full rounded-none border border-input bg-card px-3 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && !saving && saveEdit()}
-                  placeholder="نام خود را وارد کنید"
-                  autoFocus
-                  aria-label="نام"
-                />
-              ) : (
-                <b className="block break-words text-sm font-normal">{user.name || "بدون نام"}</b>
-              )}
-            </div>
-            {editing ? (
-              <div className="flex shrink-0 items-center gap-1.5">
-                <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70" onClick={saveEdit} disabled={saving} aria-label="ذخیره نام" title="ذخیره نام">
-                  {saving ? <span className="h-3.5 w-3.5 rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
-                </button>
-                <button type="button" className="icon-btn text-muted-foreground" onClick={cancelEdit} aria-label="انصراف از ویرایش نام" title="انصراف">
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </button>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain page-gutter pb-8 pt-2">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="row" style={{ gap: 28, margin: "16px 0 24px", justifyContent: "center" }}>
+              <div>
+                <div className="num" style={{ fontSize: 30, fontWeight: 100 }}>{toPersianDigits(done.length)}</div>
+                <div className="t-s">نوبت انجام‌شده</div>
               </div>
-            ) : (
-              <button type="button" className="icon-btn text-muted-foreground" onClick={startEdit} aria-label="ویرایش نام" title="ویرایش نام">
-                <Pencil className="h-4 w-4" aria-hidden="true" />
-              </button>
-            )}
-          </div>
+              <Monogram name={user.name} size={64} />
+              <div>
+                <div className="num" style={{ fontSize: 30, fontWeight: 100 }}>{formatPrice(Math.round(spend / 1000))}</div>
+                <div className="t-s">هزار تومان خرید</div>
+              </div>
+            </div>
 
-          <div className="flex items-center gap-3 px-4 py-3.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-none bg-muted text-foreground"><Phone className="h-4 w-4" aria-hidden="true" /></span>
-            <div className="min-w-0 flex-1">
-              <small className="mb-0.5 block text-xs text-muted-foreground">شماره موبایل</small>
+            <label className="field">
+              <span>نام</span>
+              <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
+            </label>
+            <div className="field" style={{ marginTop: 14 }}>
+              <span>شماره موبایل</span>
               {editingPhone ? (
-                <input
-                  type="tel"
-                  dir="ltr"
-                  className="h-11 w-full rounded-none border border-input bg-card px-3 text-left text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
-                  value={editPhone}
-                  onChange={(e) => setEditPhone(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && !savingPhone && savePhone()}
-                  placeholder="0912 345 6789"
-                  autoFocus
-                  aria-label="شماره موبایل"
-                />
-              ) : (
-                <b className="block text-sm font-normal tracking-wide" dir="ltr">{displayDigits(user.phone)}</b>
-              )}
-              {!editingPhone && (
-                <span className="mt-1 block text-micro leading-relaxed text-muted-foreground">این شماره هویت ورود شماست؛ نوبت‌های قبلی با تغییر شماره به‌صورت خودکار منتقل می‌شوند.</span>
-              )}
-            </div>
-            {editingPhone ? (
-              <div className="flex shrink-0 items-center gap-1.5">
-                <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:bg-primary/15 disabled:text-foreground/70" onClick={savePhone} disabled={savingPhone} aria-label="ذخیره شماره موبایل" title="ذخیره شماره موبایل">
-                  {savingPhone ? <span className="h-3.5 w-3.5 rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
-                </button>
-                <button type="button" className="icon-btn text-muted-foreground" onClick={cancelPhoneEdit} aria-label="انصراف از ویرایش شماره" title="انصراف">
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </div>
-            ) : (
-              <button type="button" className="icon-btn text-muted-foreground" onClick={startPhoneEdit} aria-label="ویرایش شماره موبایل" title="ویرایش شماره موبایل">
-                <Pencil className="h-4 w-4" aria-hidden="true" />
-              </button>
-            )}
-          </div>
-        </section>
-
-        <section className="mt-6" aria-labelledby="profile-history-title">
-          <div className="mb-3 flex items-end justify-between gap-2.5">
-            <div className="min-w-0">
-              <span className="mb-0.5 block text-xs font-normal text-primary">رزروها</span>
-              <h3 id="profile-history-title" className="text-base font-normal">نوبت‌های من</h3>
-            </div>
-            <button
-              type="button"
-              className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full px-2 text-xs font-normal text-primary"
-              onClick={() => router.push("/bookings")}
-            >
-              همه نوبت‌ها
-              <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-            </button>
-          </div>
-
-        {recentBookings.length === 0 ? (
-          <div className="rounded-none border border-border bg-card p-6 text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-none bg-muted text-muted-foreground">
-              <Calendar className="h-6 w-6" aria-hidden="true" />
-            </div>
-            <h3 className="text-sm font-normal">نوبتی ندارید</h3>
-            <p className="mx-auto mb-4 mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">هنوز نوبتی رزرو نکرده‌اید. همین حالا اولین نوبت خود را بگیرید.</p>
-            <button type="button" className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-normal text-primary-foreground" onClick={() => router.push("/")}>
-              رزرو نوبت
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2.5">
-            {recentBookings.map((booking) => {
-              const time = booking.start_time.slice(0, 5);
-              const endTime = booking.end_time.slice(0, 5);
-              const startM = parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
-              const endM = parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
-              const duration = endM >= startM ? endM - startM : endM + 24 * 60 - startM;
-              // Price snapshot (migration 022) first — matches /bookings.
-              const price = booking.price_total ?? getServicePrice(booking.service_id);
-
-              return (
-                /* Plain container — no role="button" wrapper (a cancel button
-                   nested inside a pseudo-button breaks SR/keyboard order).
-                   Navigation lives on the real مشاهده button below. */
-                <div
-                  key={booking.id}
-                  className="w-full rounded-none border border-border bg-card p-4"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-muted text-foreground"><Sparkles className="h-4 w-4" aria-hidden="true" /></span>
-                    <span className="min-w-0 flex-1">
-                      <b className="block truncate text-sm font-normal">{getServiceName(booking.service_id)}</b>
-                      <small className="mt-0.5 block text-micro text-muted-foreground">{jalaliShort(booking.date_gregorian)}</small>
-                    </span>
-                    <StatusPill status={booking.status} />
-                  </div>
-                  <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>{formatJalaliTime(time)} تا {formatJalaliTime(endTime)}</span>
-                    <span>· {toPersianDigits(duration)} دقیقه</span>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
-                    <b className="text-sm font-normal">{price !== null ? compactToman(Number(price)) : "قیمت در سالن"}</b>
-                    <span className="flex shrink-0 items-center gap-2">
-                      <small dir="ltr" className="text-micro font-normal text-muted-foreground">#{booking.id.slice(-6).toUpperCase()}</small>
-                      <button
-                        type="button"
-                        className="inline-flex min-h-11 shrink-0 items-center rounded-none border border-border bg-muted px-3.5 text-micro font-normal text-foreground"
-                        onClick={() => router.push("/bookings")}
-                        aria-label={`مشاهده جزئیات نوبت ${getServiceName(booking.service_id)}`}
-                      >
-                        مشاهده
-                      </button>
-                      {CANCELABLE.has(booking.status) && (
-                        <button
-                          type="button"
-                          className={`inline-flex min-h-11 shrink-0 items-center rounded-none px-3.5 text-micro font-normal ${
-                            confirmingCancel === booking.id
-                              ? "bg-destructive text-destructive-foreground"
-                              : "border border-border bg-muted text-foreground"
-                          }`}
-                          onClick={() => handleCancelBooking(booking.id)}
-                        >
-                          {confirmingCancel === booking.id ? "تأیید لغو؟" : "لغو"}
-                        </button>
-                      )}
-                    </span>
-                  </div>
+                <div className="row" style={{ gap: 8 }}>
+                  <input
+                    className="input ltr num"
+                    style={{ textAlign: "center" }}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="۰۹…"
+                  />
+                  <button type="button" className="btn pri sm" disabled={savingPhone} onClick={() => void savePhone()}>
+                    ثبت
+                  </button>
                 </div>
-              );
-            })}
-          </div>
-        )}
-        </section>
+              ) : (
+                <button type="button" className="input ltr" style={{ display: "flex", alignItems: "center", color: "var(--mute)" }} onClick={() => { setPhone(user.phone); setEditingPhone(true); }}>
+                  {displayDigits(user.phone)}
+                </button>
+              )}
+            </div>
 
-        <button
-          type="button"
-          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-none border border-destructive/30 bg-destructive/10 text-sm font-normal text-destructive"
-          onClick={() => setConfirmLogout(true)}
-        >
-          <LogOut className="h-4 w-4" aria-hidden="true" />
-          خروج از حساب
-        </button>
+            <div className="list" style={{ marginTop: 18 }}>
+              <div className="sum" style={{ alignItems: "center" }}>
+                <span>یادآوری نوبت، یک روز قبل</span>
+                <Switch checked={user.sms_reminders !== false} onCheckedChange={(v) => void setPref("sms_reminders", v)} label="یادآوری" />
+              </div>
+              <div className="sum" style={{ alignItems: "center" }}>
+                <span>خبر کالکشن‌ها و پیشنهادها</span>
+                <Switch checked={user.offers === true} onCheckedChange={(v) => void setPref("offers", v)} label="پیشنهادها" />
+              </div>
+            </div>
+
+            <div className="row" style={{ marginTop: 22 }}>
+              <button
+                type="button"
+                className="btn pri"
+                disabled={name.trim() === user.name || name.trim().length < 2 || savingName}
+                onClick={() => void saveName()}
+              >
+                {savingName ? "..." : "ذخیره"}
+              </button>
+              <button type="button" className="btn ghost" onClick={() => setConfirmLogout(true)}>
+                <LogOut size={16} strokeWidth={1.4} />
+                خروج
+              </button>
+            </div>
+          </motion.div>
+        </div>
+
+        <Confirm
+          open={confirmLogout}
+          onClose={() => setConfirmLogout(false)}
+          title="خارج شوید؟"
+          body="نوبت‌های شما محفوظ می‌ماند."
+          okLabel="خروج"
+          onOk={() => {
+            void logout();
+            window.location.href = "/";
+          }}
+        />
       </div>
-
-      <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
-        <AlertDialogContent className="max-w-[300px]">
-          <AlertDialogHeader>
-            <AlertDialogTitle>خروج از حساب</AlertDialogTitle>
-            <AlertDialogDescription>
-              مطمئن هستید که می‌خواهید از حساب خود خارج شوید؟ نوبت‌های شما محفوظ می‌ماند.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>انصراف</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleLogout}>خروج</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+    </SalonGuard>
   );
 }
