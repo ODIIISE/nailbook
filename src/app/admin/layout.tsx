@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Store, Download, Database, Shield } from "lucide-react";
+import { LogOut, LayoutDashboard, Store, Download, Database, Shield, KeyRound } from "lucide-react";
 
 interface SuperAdminInfo {
   id: string;
@@ -62,6 +62,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/salons", label: "سالن‌ها", icon: Store },
     { href: "/admin/export", label: "خروجی", icon: Download },
     { href: "/admin/migrate", label: "مایگریشن", icon: Database },
+    { href: "/admin/security", label: "امنیت", icon: KeyRound },
   ];
 
   const handleLogout = async () => {

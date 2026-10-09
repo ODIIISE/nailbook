@@ -101,8 +101,16 @@ export async function setSuperAdminPassword(phone: string, password: string) {
   return rows[0]?.id || null;
 }
 
-export function hashPin(pin: string): string {
-  const ALGO = "sha256";
+/** New-password policy for the super-admin change screen. The initial
+ *  bootstrap PIN is 4 digits by design, but a replacement must be a real
+ *  password: 8–128 chars after trimming. Length-cap bounds the PBKDF2 work. */
+export function isValidSuperAdminPassword(value: unknown): value is string {
+  return typeof value === "string"
+    && value.trim().length >= 8
+    && value.trim().length <= 128;
+}
+
+export function hashPin(pin: string): string {  const ALGO = "sha256";
   const ITERATIONS = 100000;
   const KEY_LENGTH = 64;
   const SALT_LENGTH = 16;
