@@ -2,17 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Search, Plus, Pencil, Trash2, UserCheck, AlertTriangle, Lock, Unlock, ShieldCheck } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Users, Search, Plus, Pencil, Trash2, AlertTriangle, Lock, Unlock, ShieldCheck } from "lucide-react";
+import { Monogram } from "@/components/ui/nail";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { toPersianDigits } from "@/lib/jalali";
+import { toPersianDigits, gregorianToJalali, formatJalaliDateShort } from "@/lib/jalali";
+import { parseGregorianDateKey } from "@/lib/time";
 import { normalizeDigits } from "@/lib/digits";
 import { handleAuthExpiry } from "@/lib/db/data";
 import { useSalon } from "@/lib/salon-context";
@@ -287,53 +284,51 @@ export default function OwnerUsersPage() {
   };
 
   const formatPhone = (p: string) => toPersianDigits(p);
-  const formatDate = (d: string) => {
-    if (!d) return "نامعلوم";
-    const date = new Date(d);
-    if (isNaN(date.getTime())) return "نامعلوم";
-    return toPersianDigits(date.toLocaleDateString("fa-IR"));
+  const formatLastVisit = (key: string) => {
+    const j = gregorianToJalali(parseGregorianDateKey(key));
+    return formatJalaliDateShort(j.jy, j.jm, j.jd);
   };
 
   return (
-    <div className="px-4 py-4 space-y-4">
+    <div className="page-gutter space-y-4 pb-8 pt-2">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-normal text-foreground">کاربران</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => openAdd("owner")}>
-            <ShieldCheck className="h-4 w-4 ms-1" />
+      <div className="row" style={{ justifyContent: "space-between" }}>
+        <h2 className="h-m">کاربران</h2>
+        <div className="row" style={{ gap: 8 }}>
+          <button type="button" className="btn gl sm" onClick={() => openAdd("owner")}>
+            <ShieldCheck size={16} strokeWidth={1.5} />
             مدیر جدید
-          </Button>
-          <Button size="sm" onClick={() => openAdd("customer")}>
-            <Plus className="h-4 w-4 ms-1" />
+          </button>
+          <button type="button" className="btn pri sm" onClick={() => openAdd("customer")}>
+            <Plus size={16} strokeWidth={1.6} />
             مشتری جدید
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
+      <div style={{ position: "relative" }}>
+        <Search size={17} strokeWidth={1.5} aria-hidden="true" style={{ position: "absolute", insetInlineStart: 16, top: "50%", translate: "0 -50%", color: "var(--faint)" }} />
+        <input
+          className="input"
+          style={{ paddingInlineStart: 42 }}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="جستجو بر اساس نام یا شماره..."
-          className="ps-10"
+          aria-label="جستجوی کاربر"
         />
       </div>
 
       {/* Role filter */}
-      <div className="flex gap-1.5 overflow-x-auto" role="group" aria-label="فیلتر نقش">
+      <div className="row" style={{ gap: 8, overflowX: "auto" }} role="group" aria-label="فیلتر نقش">
         {([["all", "همه"], ["owner", "مدیر"], ["manager", "داخلی"], ["artist", "هنرمند"], ["customer", "مشتری"]] as const).map(([v, label]) => (
           <button
             key={v}
             type="button"
             aria-pressed={roleFilter === v}
             onClick={() => setRoleFilter(v)}
-            className={`h-11 rounded-full px-4 text-sm font-normal tabular-nums ${roleFilter === v ? "bg-primary text-primary-foreground" : "border border-border bg-card text-muted-foreground"}`}
+            className={`chip num${roleFilter === v ? " on" : ""}`}
+            style={{ flex: "none" }}
           >
             {label} {toPersianDigits(roleCounts[v])}
           </button>
@@ -342,86 +337,75 @@ export default function OwnerUsersPage() {
 
       {/* Users List */}
       {loading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 rounded-none" />)}
-        </div>
+        <div className="panel center">در حال بارگذاری...</div>
       ) : filteredUsers.length === 0 ? (
-        <div className="text-center py-12">
-          <Users className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
-          <p className="text-muted-foreground">کاربری یافت نشد</p>
+        <div className="panel center">
+          <Users size={30} strokeWidth={1.2} aria-hidden="true" style={{ margin: "0 auto 10px", color: "var(--faint)" }} />
+          <p className="mute">کاربری یافت نشد</p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="list">
           {filteredUsers.map((user) => {
             const stats = userStats(user);
             return (
-            <Card key={user.id} className="p-3">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <UserCheck className="h-5 w-5 text-primary" />
+            <div key={user.id} className="row" style={{ padding: "12px 0", alignItems: "flex-start" }}>
+              <Monogram name={user.name} size={44} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="row" style={{ gap: 8 }}>
+                  <p style={{ fontSize: 16, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.name || "بدون نام"}</p>
+                  {user.role !== "customer" && (
+                    <span className="badge">
+                      {ROLE_LABELS[user.role] || user.role}
+                    </span>
+                  )}
+                  {user.locked_until && (
+                    <span className="badge" style={{ color: "var(--wine-hi)", borderColor: "#8c2a3a66" }}>قفل</span>
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-body font-normal text-foreground truncate">{user.name || "بدون نام"}</p>
-                    {user.role !== "customer" && (
-                      <Badge variant="default" className="text-small px-1.5 py-0 h-5">
-                        {ROLE_LABELS[user.role] || user.role}
-                      </Badge>
-                    )}
-                    {user.locked_until && (
-                      <Badge variant="destructive" className="text-small px-1.5 py-0 h-5">قفل</Badge>
-                    )}
-                  </div>
-                  <p className="text-caption text-muted-foreground" dir="ltr">{formatPhone(user.phone)}</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-small text-muted-foreground">عضویت: {formatDate(user.created_at)}</p>
-                  </div>
-                  <p className="mt-0.5 text-small tabular-nums text-muted-foreground">
-                    {toPersianDigits(stats.completed)} نوبت انجام‌شده{stats.last ? ` · آخرین مراجعه ${formatDate(stats.last)}` : ""}
-                  </p>
-                </div>
-                {user.role !== "owner" && (
-                  <div className="flex items-center gap-0.5 flex-shrink-0">
-                    <Button variant="ghost" size="icon-sm" onClick={() => handleToggleBlock(user)} title={user.locked_until ? "رفع قفل" : "قفل"}>
-                      {user.locked_until ? <Unlock className="h-4 w-4 text-warning" /> : <Lock className="h-4 w-4 text-muted-foreground" />}
-                    </Button>
-                    <Button variant="ghost" size="icon-sm" onClick={() => openEdit(user)} title="ویرایش">
-                      <Pencil className="h-4 w-4 text-muted-foreground" />
-                    </Button>
-                    <Button variant="ghost" size="icon-sm" onClick={() => openDelete(user)} title="حذف">
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                )}
+                <p className="t-s ltr num">{formatPhone(user.phone)}</p>
+                <p className="t-s num">
+                  {toPersianDigits(stats.completed)} نوبت انجام‌شده{stats.last ? ` · آخرین مراجعه ${formatLastVisit(stats.last)}` : ""}
+                </p>
               </div>
-            </Card>
+              {user.role !== "owner" && (
+                <div className="row" style={{ gap: 0, flex: "none" }}>
+                  <button type="button" className="iconbtn bare" onClick={() => handleToggleBlock(user)} title={user.locked_until ? "رفع قفل" : "قفل"} aria-label={user.locked_until ? "رفع قفل" : "قفل"}>
+                    {user.locked_until ? <Unlock size={17} strokeWidth={1.5} style={{ color: "var(--gold)" }} /> : <Lock size={17} strokeWidth={1.5} />}
+                  </button>
+                  <button type="button" className="iconbtn bare" onClick={() => openEdit(user)} title="ویرایش" aria-label="ویرایش">
+                    <Pencil size={17} strokeWidth={1.5} />
+                  </button>
+                  <button type="button" className="iconbtn bare" onClick={() => openDelete(user)} title="حذف" aria-label="حذف">
+                    <Trash2 size={17} strokeWidth={1.5} style={{ color: "var(--wine-hi)" }} />
+                  </button>
+                </div>
+              )}
+            </div>
             );
           })}
         </div>
       )}
 
-      {/* ─── Add / Edit Dialog ─── */}
-      <Dialog open={modal === "add" || modal === "edit"} onOpenChange={(open) => { if (!open) setModal(null); }}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>
-              {modal === "add" ? (formRole === "owner" ? "ایجاد مدیر جدید" : "ایجاد مشتری جدید") : "ویرایش کاربر"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <label className="text-caption text-muted-foreground">نام</label>
-              <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="نام و نام خانوادگی" className="mt-1" />
-            </div>
-            <div>
-              <label className="text-caption text-muted-foreground">شماره موبایل</label>
-              <Input value={formPhone} onChange={(e) => setFormPhone(e.target.value)} placeholder="09121234567" dir="ltr" className="mt-1 text-left" />
-            </div>
+      {/* ─── Add / Edit Sheet ─── */}
+      <BottomSheet
+        open={modal === "add" || modal === "edit"}
+        onClose={() => setModal(null)}
+        title={modal === "add" ? (formRole === "owner" ? "ایجاد مدیر جدید" : "ایجاد مشتری جدید") : "ویرایش کاربر"}
+      >
+          <div style={{ display: "grid", gap: 12 }}>
+            <label className="field">
+              <span>نام</span>
+              <input className="input" value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="نام و نام خانوادگی" />
+            </label>
+            <label className="field">
+              <span>شماره موبایل</span>
+              <input className="input ltr" style={{ textAlign: "left" }} value={formPhone} onChange={(e) => setFormPhone(e.target.value)} placeholder="09121234567" />
+            </label>
             {(modal === "add" || selectedUser?.role !== "owner") && (
-              <div>
-                <label className="text-caption text-muted-foreground">نقش</label>
+              <div className="field">
+                <span>نقش</span>
                 <Select value={formRole} onValueChange={(val) => setFormRole(val as string)}>
-                  <SelectTrigger className="mt-1 w-full">
+                  <SelectTrigger className="input">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -435,20 +419,20 @@ export default function OwnerUsersPage() {
             )}
             {formRole === "artist" && (
               <>
+                <label className="field">
+                  <span>تخصص</span>
+                  <input className="input" value={formSpecialty} onChange={(e) => setFormSpecialty(e.target.value)} placeholder="مثلاً کاشت، طراحی" maxLength={100} />
+                </label>
                 <div>
-                  <label className="text-caption text-muted-foreground">تخصص</label>
-                  <Input value={formSpecialty} onChange={(e) => setFormSpecialty(e.target.value)} placeholder="مثلاً کاشت، طراحی" maxLength={100} className="mt-1" />
-                </div>
-                <div>
-                  <span className="text-caption text-muted-foreground">روزهای کاری</span>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5" role="group" aria-label="روزهای کاری">
+                  <span className="t-s">روزهای کاری</span>
+                  <div className="row" style={{ flexWrap: "wrap", gap: 8, marginTop: 8 }} role="group" aria-label="روزهای کاری">
                     {WEEKDAY_LABELS.map((label, day) => (
                       <button
                         key={day}
                         type="button"
                         aria-pressed={formWorkDays.includes(day)}
                         onClick={() => toggleWorkDay(day)}
-                        className={`h-9 rounded-full px-3 text-sm font-normal ${formWorkDays.includes(day) ? "bg-primary text-primary-foreground" : "border border-border bg-card text-muted-foreground"}`}
+                        className={`chip${formWorkDays.includes(day) ? " on" : ""}`}
                       >
                         {label}
                       </button>
@@ -457,15 +441,15 @@ export default function OwnerUsersPage() {
                 </div>
                 {activeServices.length > 0 && (
                   <div>
-                    <span className="text-caption text-muted-foreground">خدمات قابل ارائه</span>
-                    <div className="mt-1.5 space-y-1.5">
+                    <span className="t-s">خدمات قابل ارائه</span>
+                    <div style={{ display: "grid", gap: 4, marginTop: 8 }}>
                       {activeServices.map((s) => (
-                        <label key={s.id} className="flex items-center gap-2 text-sm text-foreground">
+                        <label key={s.id} className="row" style={{ gap: 10, minHeight: 44, fontSize: 15 }}>
                           <input
                             type="checkbox"
                             checked={formServiceIds.includes(s.id)}
                             onChange={() => toggleServiceId(s.id)}
-                            className="h-4 w-4 accent-primary"
+                            style={{ width: 20, height: 20, accentColor: "var(--pearl)" }}
                           />
                           {s.name}
                         </label>
@@ -475,39 +459,38 @@ export default function OwnerUsersPage() {
                 )}
               </>
             )}
-            <div className="space-y-2.5 rounded-none border border-border p-3">
-              <label className="flex items-center justify-between gap-2 text-sm text-foreground">
+            <div className="panel" style={{ display: "grid", gap: 4 }}>
+              <label className="row" style={{ justifyContent: "space-between", minHeight: 44, fontSize: 15 }}>
                 یادآوری پیامکی
                 <Switch checked={formSms} onCheckedChange={setFormSms} />
               </label>
-              <label className="flex items-center justify-between gap-2 text-sm text-foreground">
+              <label className="row" style={{ justifyContent: "space-between", minHeight: 44, fontSize: 15 }}>
                 پیشنهادها و تخفیف‌ها
                 <Switch checked={formOffers} onCheckedChange={setFormOffers} />
               </label>
             </div>
-            <div>
-              <label className="text-caption text-muted-foreground">یادداشت داخلی</label>
-              <Input value={formNote} onChange={(e) => setFormNote(e.target.value)} placeholder="فقط برای همکاران نمایش داده می‌شود" maxLength={500} className="mt-1" />
-            </div>
+            <label className="field">
+              <span>یادداشت داخلی</span>
+              <input className="input" value={formNote} onChange={(e) => setFormNote(e.target.value)} placeholder="فقط برای همکاران نمایش داده می‌شود" maxLength={500} />
+            </label>
             {modal === "add" && formRole === "owner" && (
-              <p className="text-caption text-muted-foreground rounded-none bg-muted/50 p-2">
+              <p className="t-s panel">
                 این شماره می‌تواند پس از دریافت کد پیامکی وارد پنل مدیر شود.
               </p>
             )}
             {formError && (
-              <div className="flex items-center gap-2 text-caption text-destructive">
-                <AlertTriangle className="h-4 w-4 shrink-0" /><span>{formError}</span>
-              </div>
+              <p className="t-s row" style={{ gap: 8, color: "var(--wine-hi)" }} role="alert">
+                <AlertTriangle size={16} strokeWidth={1.5} aria-hidden="true" style={{ flex: "none" }} /><span>{formError}</span>
+              </p>
             )}
-            <div className="flex gap-3 pt-2">
-              <Button size="lg" onClick={modal === "add" ? handleAdd : handleEdit} disabled={isSubmitting} className="flex-1">
+            <div className="row" style={{ gap: 10, marginTop: 4 }}>
+              <button type="button" className="btn pri" style={{ flex: 1 }} onClick={modal === "add" ? handleAdd : handleEdit} disabled={isSubmitting}>
                 {isSubmitting ? "در حال ذخیره..." : modal === "add" ? (formRole === "owner" ? "ایجاد مدیر" : "ایجاد مشتری") : "ذخیره"}
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => setModal(null)} className="flex-1">انصراف</Button>
+              </button>
+              <button type="button" className="btn gl" style={{ flex: 1 }} onClick={() => setModal(null)}>انصراف</button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+      </BottomSheet>
 
       {/* ─── Delete Confirmation ─── */}
       <AlertDialog open={modal === "delete"} onOpenChange={(open) => { if (!open) setModal(null); }}>
