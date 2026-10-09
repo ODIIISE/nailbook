@@ -1,14 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { SalonGuard } from "@/components/ui/salon-guard";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Plus, X, Trash2, ImagePlus, ChevronDown, ChevronUp, Check, Link2, Package } from "lucide-react";
 import Image from "next/image";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useSalon } from "@/lib/salon-context";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import type { Highlight, HighlightImage } from "@/lib/types";
@@ -190,140 +186,151 @@ export default function OwnerHighlightsPage() {
 
   return (
     <SalonGuard>
-    <div className="px-4 py-4 space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="page-gutter space-y-4 pb-8 pt-2">
+      <div className="row" style={{ justifyContent: "space-between" }}>
         <div>
-          <h2 className="text-lg font-normal text-foreground">هایلایت‌ها</h2>
-          <p className="text-caption text-muted-foreground mt-0.5">
-            {highlights.length} هایلایت · لینک خدمت و آپشن برای هر مدل
+          <h2 className="h-m">نمونه‌کارها</h2>
+          <p className="t-s num" style={{ marginTop: 2 }}>
+            {toPersianDigits(highlights.length)} مدل · لینک خدمت و آپشن برای هر مدل
           </p>
         </div>
-        <Button size="sm" onClick={() => setShowCreateModal(true)}>
-          <Plus className="h-4 w-4 ms-1" />
+        <button type="button" className="btn pri sm" onClick={() => setShowCreateModal(true)}>
+          <Plus size={16} strokeWidth={1.6} />
           جدید
-        </Button>
+        </button>
       </div>
 
       {highlights.length === 0 ? (
-        <Card className="p-8 text-center">
-          <p className="text-muted-foreground">هنوز هایلایتی اضافه نشده</p>
-          <Button size="sm" className="mt-3" onClick={() => setShowCreateModal(true)}>
-            <Plus className="h-4 w-4 ms-1" />
-            ایجاد هایلایت
-          </Button>
-        </Card>
+        <div className="panel center">
+          <p className="mute">هنوز مدلی اضافه نشده</p>
+          <button type="button" className="btn pri sm" style={{ marginTop: 14 }} onClick={() => setShowCreateModal(true)}>
+            <Plus size={16} strokeWidth={1.6} />
+            ایجاد مدل
+          </button>
+        </div>
       ) : (
-        <div className="space-y-3">
+        <div style={{ display: "grid", gap: 14 }}>
           {highlights.map((highlight) => {
             const isExpanded = expandedId === highlight.id;
             const linkedService = highlight.service_id ? serviceById.get(highlight.service_id) : undefined;
             return (
-              <Card key={highlight.id} className="overflow-hidden">
+              <div key={highlight.id} className="panel" style={{ padding: 0, overflow: "hidden" }}>
                 {/* Collapsed header — always visible */}
                 <button
                   onClick={() => toggleExpand(highlight)}
-                  className="w-full p-4 flex items-center gap-3 text-start hover:bg-muted"
+                  aria-expanded={isExpanded}
+                  className="row"
+                  style={{ width: "100%", padding: 16, textAlign: "start" }}
                 >
-                  <div className="relative w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0">
+                  <span style={{ position: "relative", width: 52, height: 52, borderRadius: 16, overflow: "hidden", background: "var(--bg3)", flex: "none" }}>
                     {highlight.cover_url ? (
-                      <Image src={highlight.cover_url} alt={highlight.name} fill unoptimized className="object-cover"
+                      <Image src={highlight.cover_url} alt={highlight.name} fill unoptimized style={{ objectFit: "cover" }}
                         onError={(event) => { event.currentTarget.style.display = "none"; }} />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-lg font-normal text-muted-foreground">
-                          {highlight.name.charAt(0)}
-                        </span>
-                      </div>
+                      <span className="center" style={{ display: "grid", placeItems: "center", height: "100%", fontSize: 20, color: "var(--faint)" }}>
+                        {highlight.name.charAt(0)}
+                      </span>
                     )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-normal text-foreground truncate">{highlight.name}</p>
-                    <p className="text-caption text-muted-foreground truncate">
-                      {highlight.images.length} تصویر
-                      {linkedService && (
-                        <span className="text-primary/80"> · {linkedService.name}</span>
+                  </span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: "block", fontSize: 16, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{highlight.name}</span>
+                    <span className="t-s num" style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {toPersianDigits(highlight.images.length)} تصویر
+                      {linkedService ? (
+                        <span className="pearl"> · {linkedService.name}</span>
+                      ) : (
+                        <span> · بدون خدمت</span>
                       )}
-                      {!linkedService && (
-                        <span className="text-muted-foreground"> · بدون خدمت</span>
-                      )}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
+                    </span>
+                  </span>
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`حذف ${highlight.name}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       void handleDelete(highlight.id);
                     }}
-                    className="text-destructive hover:text-destructive shrink-0"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.stopPropagation();
+                        void handleDelete(highlight.id);
+                      }
+                    }}
+                    className="iconbtn bare"
+                    style={{ flex: "none" }}
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                    <Trash2 size={17} strokeWidth={1.5} style={{ color: "var(--wine-hi)" }} />
+                  </span>
                   {isExpanded ? (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <ChevronUp size={18} strokeWidth={1.5} aria-hidden="true" style={{ color: "var(--faint)", flex: "none" }} />
                   ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <ChevronDown size={18} strokeWidth={1.5} aria-hidden="true" style={{ color: "var(--faint)", flex: "none" }} />
                   )}
                 </button>
 
                 {/* Expanded edit panel — inline */}
                 {isExpanded && expandedHighlight && (
-                  <div className="px-4 pb-4 space-y-4 border-t border-border/30">
+                  <div style={{ padding: "4px 16px 16px", display: "grid", gap: 16 }}>
                     {/* Name */}
-                    <div className="pt-3">
-                      <Label className="text-caption">نام</Label>
-                      <div className="flex gap-2 mt-1">
-                        <Input
+                    <div>
+                      <span className="t-s">نام</span>
+                      <div className="row" style={{ gap: 8, marginTop: 8 }}>
+                        <input
+                          className="input"
+                          style={{ flex: 1 }}
                           value={editName}
                           onChange={(e) => setEditName(e.target.value)}
-                          className="flex-1"
+                          aria-label="نام مدل"
                         />
-                        <Button
-                          size="sm"
+                        <button
+                          type="button"
+                          className="btn gl sm"
                           onClick={() => handleSaveName(expandedHighlight)}
                           disabled={editName.trim() === expandedHighlight.name}
                         >
                           ذخیره
-                        </Button>
+                        </button>
                       </div>
                     </div>
 
                     {/* Linked service */}
-                    <div>
-                      <Label className="text-caption flex items-center gap-1">
-                        <Link2 className="h-3.5 w-3.5" />
+                    <div className="field">
+                      <span className="row" style={{ gap: 6 }}>
+                        <Link2 size={14} strokeWidth={1.5} aria-hidden="true" />
                         خدمت مرتبط (قیمت و مدت از آن محاسبه می‌شود)
-                      </Label>
+                      </span>
                       <select
+                        className="input"
                         value={expandedHighlight.service_id ?? ""}
                         onChange={(e) => handleLinkService(expandedHighlight, e.target.value)}
-                        className="mt-1.5 h-10 w-full rounded-none border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                       >
                         <option value="">بدون خدمت — فقط نمایش مدل</option>
                         {activeServices.map((s) => (
                           <option key={s.id} value={s.id}>
-                            {s.name} · {toPersianDigits(s.duration_minutes)} دقیقه · {formatPrice(Number(s.price))} تومان
+                            {s.name} · {toPersianDigits(s.duration_minutes)} دقیقه · {formatPrice(Number(s.price))}
                           </option>
                         ))}
                       </select>
                       {activeServices.length === 0 && (
-                        <p className="text-small text-muted-foreground mt-1">
-                          ابتدا در «خدمات و آپشن‌ها» یک خدمت فعال بسازید.
+                        <p className="t-s" style={{ marginTop: 6 }}>
+                          ابتدا در «خدمات» یک خدمت فعال بسازید.
                         </p>
                       )}
                     </div>
 
                     {/* Linked addons — restricted to what the service actually offers */}
                     <div>
-                      <div className="flex items-center justify-between">
-                        <Label className="text-caption flex items-center gap-1">
-                          <Package className="h-3.5 w-3.5" />
-                          آپشن‌های این مدل (در مجموع قیمت و مدت محاسبه می‌شود)
-                        </Label>
+                      <div className="row" style={{ justifyContent: "space-between" }}>
+                        <span className="t-s row" style={{ gap: 6 }}>
+                          <Package size={14} strokeWidth={1.5} aria-hidden="true" />
+                          آپشن‌های این مدل
+                        </span>
                         {expandedHighlight.addon_ids.length > 0 && (
                           <button
                             type="button"
-                            className="text-small text-muted-foreground hover:text-destructive"
+                            className="t-s"
+                            style={{ color: "var(--wine-hi)" }}
                             onClick={() => {
                               const updated = { ...expandedHighlight, addon_ids: [] };
                               void updateHighlight(updated);
@@ -341,20 +348,20 @@ export default function OwnerHighlightsPage() {
                           : [];
                         if (!svc) {
                           return (
-                            <p className="text-small text-muted-foreground mt-1.5">
+                            <p className="t-s" style={{ marginTop: 8 }}>
                               ابتدا یک خدمت مرتبط انتخاب کنید؛ سپس آپشن‌های آن خدمت را برای این مدل برمی‌گزینید.
                             </p>
                           );
                         }
                         if (offered.length === 0) {
                           return (
-                            <p className="text-small text-muted-foreground mt-1.5">
-                              این خدمت آپشنی ندارد — در «خدمات و آپشن‌ها» آپشن به خدمت اضافه کنید.
+                            <p className="t-s" style={{ marginTop: 8 }}>
+                              این خدمت آپشنی ندارد — در «خدمات» آپشن به خدمت اضافه کنید.
                             </p>
                           );
                         }
                         return (
-                          <div className="flex flex-wrap gap-2 mt-2">
+                          <div className="row" style={{ flexWrap: "wrap", gap: 8, marginTop: 10 }}>
                             {offered.map((addon) => {
                               const on = expandedHighlight.addon_ids.includes(addon.id);
                               return (
@@ -362,16 +369,12 @@ export default function OwnerHighlightsPage() {
                                   key={addon.id}
                                   type="button"
                                   onClick={() => handleToggleLookAddon(expandedHighlight, addon.id)}
-                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-normal ${
-                                    on
-                                      ? "bg-primary text-primary-foreground"
-                                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                                  }`}
+                                  className={`chip num${on ? " on" : ""}`}
                                   aria-pressed={on}
                                 >
-                                  {on && <Check className="h-3 w-3" />}
+                                  {on && <Check size={14} strokeWidth={2} aria-hidden="true" />}
                                   {addon.name}
-                                  <span className={on ? "opacity-80" : "text-muted-foreground"}>
+                                  <span className="mute">
                                     +{toPersianDigits(addon.duration_minutes)}د · +{formatPrice(Number(addon.price))}
                                   </span>
                                 </button>
@@ -384,52 +387,54 @@ export default function OwnerHighlightsPage() {
 
                     {/* What the customer will see — price & duration */}
                     {preview && (preview.service || preview.addons.length > 0) && (
-                      <div className="rounded-none bg-muted/60 border border-border/40 px-4 py-3 space-y-1">
-                        <p className="text-small text-muted-foreground">نمایش به مشتری هنگام رزرو این مدل</p>
-                        <p className="text-sm font-normal text-foreground">
+                      <div className="panel">
+                        <p className="t-s">نمایش به مشتری هنگام رزرو این مدل</p>
+                        <p style={{ fontSize: 15, marginTop: 4 }}>
                           {preview.service?.name ?? "بدون خدمت"}
                           {preview.addons.length > 0 && (
-                            <span className="font-normal text-muted-foreground">
+                            <span className="mute">
                               {" "}· {preview.addons.map((a) => a.name).join("، ")}
                             </span>
                           )}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="t-s num" style={{ marginTop: 2 }}>
                           {toPersianDigits(preview.duration)} دقیقه ·{" "}
-                          <span className="font-normal text-foreground">{formatPrice(preview.price)} تومان</span>
+                          <span className="pearl">{formatPrice(preview.price)}</span>
                         </p>
                       </div>
                     )}
 
                     {/* Cover */}
                     <div>
-                      <Label className="text-caption">کاور</Label>
-                      <div className="mt-2 flex items-center gap-3">
-                        <div className="relative w-14 h-14 rounded-full overflow-hidden bg-muted shrink-0">
+                      <span className="t-s">کاور</span>
+                      <div className="row" style={{ gap: 12, marginTop: 8 }}>
+                        <span style={{ position: "relative", width: 56, height: 56, borderRadius: "50%", overflow: "hidden", background: "var(--bg3)", flex: "none" }}>
                           {coverPreview ? (
-                            <Image src={coverPreview} alt={expandedHighlight.name} fill unoptimized className="object-cover"
+                            <Image src={coverPreview} alt={expandedHighlight.name} fill unoptimized style={{ objectFit: "cover" }}
                               onError={(event) => {
                                 event.currentTarget.style.display = "none";
                               }} />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <ImagePlus className="h-5 w-5 text-muted-foreground" />
-                            </div>
+                            <span style={{ display: "grid", placeItems: "center", height: "100%" }}>
+                              <ImagePlus size={20} strokeWidth={1.4} aria-hidden="true" style={{ color: "var(--faint)" }} />
+                            </span>
                           )}
-                        </div>
-                        <Button variant="outline" size="sm"                          onClick={() => {
+                        </span>
+                        <button type="button" className="btn gl sm" onClick={() => {
                             if (isUploading) return;
                             coverInputHighlightIdRef.current = expandedHighlight.id;
                             coverInputRef.current?.click();
                           }}
                           disabled={isUploading}>
                           تغییر کاور
-                        </Button>
+                        </button>
                         <input
                           ref={coverInputRef}
                           type="file"
                           accept="image/*"
-                          className="hidden"
+                          style={{ display: "none" }}
+                          aria-hidden="true"
+                          tabIndex={-1}
                           onChange={(e) => {
                             const target = highlightsRef.current.find((h) => h.id === coverInputHighlightIdRef.current);
                             if (target) void handleAddCover(e, target);
@@ -441,26 +446,28 @@ export default function OwnerHighlightsPage() {
 
                     {/* Images */}
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <Label className="text-caption">تصاویر ({expandedHighlight.images.length})</Label>
-                        <Button
-                          variant="outline"
-                          size="sm"
+                      <div className="row" style={{ justifyContent: "space-between", marginBottom: 8 }}>
+                        <span className="t-s num">تصاویر ({toPersianDigits(expandedHighlight.images.length)})</span>
+                        <button
+                          type="button"
+                          className="btn gl sm"
                           onClick={() => {
                             imageInputHighlightIdRef.current = expandedHighlight.id;
                             fileInputRef.current?.click();
                           }}
                           disabled={isUploading}
                         >
-                          <ImagePlus className="h-4 w-4 ms-1" />
+                          <ImagePlus size={16} strokeWidth={1.5} />
                           {isUploading && uploadingHighlightId === expandedHighlight.id ? "آپلود..." : "افزودن"}
-                        </Button>
+                        </button>
                         <input
                           ref={fileInputRef}
                           type="file"
                           accept="image/*"
                           multiple
-                          className="hidden"
+                          style={{ display: "none" }}
+                          aria-hidden="true"
+                          tabIndex={-1}
                           onChange={(e) => {
                             const target = highlightsRef.current.find((h) => h.id === imageInputHighlightIdRef.current);
                             if (target) void handleAddImages(e, target);
@@ -470,28 +477,30 @@ export default function OwnerHighlightsPage() {
                       </div>
 
                       {expandedHighlight.images.length === 0 ? (
-                        <div className="text-center py-4 text-muted-foreground text-caption">
+                        <p className="empty">
                           هنوز تصویری اضافه نشده
-                        </div>
+                        </p>
                       ) : (
-                        <div className="grid grid-cols-3 gap-2">
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
                           {expandedHighlight.images.map((image, index) => (
-                            <div key={image.id} className="relative group aspect-square rounded-none overflow-hidden bg-muted">
+                            <div key={image.id} style={{ position: "relative", aspectRatio: "1", borderRadius: 14, overflow: "hidden", background: "var(--bg3)" }}>
                               <Image
                                 src={image.image_url}
                                 alt={`تصویر ${index + 1}`}
                                 fill
                                 unoptimized
-                                className="object-cover"
+                                style={{ objectFit: "cover" }}
                               />
                               <button
                                 onClick={() => handleRemoveImage(image.id)}
-                                className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100"
+                                aria-label={`حذف تصویر ${index + 1}`}
+                                className="iconbtn bare"
+                                style={{ position: "absolute", top: 4, insetInlineEnd: 4, background: "#00000088" }}
                               >
-                                <X className="h-3 w-3" />
+                                <X size={14} strokeWidth={2} />
                               </button>
-                              <span className="absolute bottom-1 left-1 text-small text-white bg-black/50 px-1.5 py-0.5 rounded-full">
-                                {index + 1}
+                              <span className="num" style={{ position: "absolute", bottom: 4, insetInlineStart: 4, fontSize: 11, background: "#00000088", borderRadius: 999, padding: "1px 8px" }}>
+                                {toPersianDigits(index + 1)}
                               </span>
                             </div>
                           ))}
@@ -500,43 +509,35 @@ export default function OwnerHighlightsPage() {
                     </div>
                   </div>
                 )}
-              </Card>
+              </div>
             );
           })}
         </div>
       )}
 
-      {/* Create modal */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>هایلایت جدید</DialogTitle>
-          </DialogHeader>
+      {/* Create sheet */}
+      <BottomSheet open={showCreateModal} onClose={() => setShowCreateModal(false)} title="مدل جدید">
+        <label className="field">
+          <span>نام مدل</span>
+          <input
+            className="input"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="مثلاً: فرنچ کلاسیک"
+            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+            autoFocus
+          />
+        </label>
 
-          <div className="space-y-4">
-            <div>
-              <Label className="text-caption">نام هایلایت</Label>
-              <Input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="مثلاً: نمونه کار"
-                className="mt-1"
-                onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                autoFocus
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <Button size="lg" onClick={handleCreate} className="flex-1" disabled={!newName.trim()}>
-                ایجاد
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => setShowCreateModal(false)} className="flex-1">
-                انصراف
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        <div className="row" style={{ gap: 10, marginTop: 18 }}>
+          <button type="button" className="btn pri" style={{ flex: 1 }} onClick={handleCreate} disabled={!newName.trim()}>
+            ایجاد
+          </button>
+          <button type="button" className="btn gl" style={{ flex: 1 }} onClick={() => setShowCreateModal(false)}>
+            انصراف
+          </button>
+        </div>
+      </BottomSheet>
     </div>
     </SalonGuard>
   );
