@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyStaff } from "@/lib/owner-auth";
+import { requireStaff, staffAuthError } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { resolveSalonId } from "@/lib/multi-tenant";
 
@@ -33,8 +33,8 @@ interface BlockedTimeItem {
 
 export async function GET(request: NextRequest) {
   try {
-    const staff = await verifyStaff(request, "schedule.edit");
-    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request, "schedule.edit");
+    if (!("staff" in auth)) return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
 
     const salonId = await resolveSalonId();
     const columns = "date_gregorian, start_time, end_time";
@@ -59,8 +59,8 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   let client;
   try {
-    const staff = await verifyStaff(request, "schedule.edit");
-    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request, "schedule.edit");
+    if (!("staff" in auth)) return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
 
     const { blockedTimes }: { blockedTimes?: BlockedTimeItem[] } = await request.json();
     if (!Array.isArray(blockedTimes)) {

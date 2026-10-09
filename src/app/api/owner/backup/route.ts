@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyStaff } from "@/lib/owner-auth";
+import { requireStaff, staffAuthError } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { resolveSalonId } from "@/lib/multi-tenant";
 
@@ -73,8 +73,9 @@ interface BackupData {
 // GET: Export all salon data as JSON backup
 export async function GET(request: NextRequest) {
   try {
-    const staff = await verifyStaff(request, "users.manage");
-    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request, "users.manage");
+    if (!("staff" in auth)) return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
+    const staff = auth.staff;
 
     const salonId = await resolveSalonId();
     const [salonInfo, services, addons, bookings, blockedTimes, users, highlights] = await Promise.all(
@@ -163,8 +164,8 @@ function validateAddon(a: unknown): a is BackupAddon {
 // POST: Restore from JSON backup (partial or full)
 export async function POST(request: NextRequest) {
   try {
-    const staff = await verifyStaff(request, "users.manage");
-    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request, "users.manage");
+    if (!("staff" in auth)) return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
 
     const salonId = await resolveSalonId();
     const { data, mode = "merge", confirmDelete = false } = await request.json() as { data?: BackupData; mode?: string; confirmDelete?: boolean };

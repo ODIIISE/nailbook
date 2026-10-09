@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyStaff } from "@/lib/owner-auth";
+import { requireStaff, staffAuthError } from "@/lib/owner-auth";
 import { fetchActivityLogs, getActivityCounts } from "@/lib/db/activity-log";
 
 export async function GET(request: NextRequest) {
   try {
-    const staff = await verifyStaff(request, "logs.view");
-    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request, "logs.view");
+    if (!("staff" in auth)) return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
 
     const { searchParams } = new URL(request.url);
     const eventType = searchParams.get("type") || "all";

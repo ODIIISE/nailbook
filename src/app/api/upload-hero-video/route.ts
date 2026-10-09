@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
-import { verifyOwner } from "@/lib/owner-auth";
+import { requireStaff, staffAuthError } from "@/lib/owner-auth";
 import { resolveSalonId } from "@/lib/multi-tenant";
 import { detectVideoType, videoExtensionFor } from "@/lib/upload-security";
 import { logActivity } from "@/lib/db/activity-log";
@@ -12,9 +12,9 @@ const MAX_SIZE = 25 * 1024 * 1024; // 25MB
 
 export async function POST(request: NextRequest) {
   try {
-    const owner = await verifyOwner(request);
-    if (!owner) {
-      return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request, "settings.edit");
+    if (!("staff" in auth)) {
+      return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
     }
 
     const formData = await request.formData();

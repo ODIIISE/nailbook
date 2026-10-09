@@ -65,27 +65,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Owner-flow gate: refuse to auto-create a row when /owner/login is
-    // the source. The pre-OTP table check in send-otp already rejected
-    // non-owners, but we double-down here in case the OTP was already
-    // issued (e.g. before this hardening shipped, or a developer hot-patch).
+    // Staff-flow gate: refuse to auto-create a row when /owner/login is
+    // the source, and refuse phones without any staff role. The pre-OTP
+    // table check in send-otp already rejected non-staff, but we double-down
+    // here in case the OTP was already issued.
     if (roleContext === "owner") {
       if (!user) {
         return NextResponse.json({ error: "شماره ثبت نشده" }, { status: 401 });
       }
-      const hasOwner =
-        (Array.isArray(user.roles) && user.roles.includes("owner")) ||
-        user.role === "owner";
-      if (!hasOwner) {
+      const roles = Array.isArray(user.roles) ? user.roles : [];
+      const hasStaff = roles.includes("owner") || roles.includes("manager") || roles.includes("artist")
+        || user.role === "owner";
+      if (!hasStaff) {
         void logActivity({
           eventType: "owner_login_denied",
           entityType: "user",
           entityId: user.id,
-          description: `تلاش ورود مدیر توسط ${user.name || user.phone} رد شد`,
+          description: `تلاش ورود به پنل توسط ${user.name || user.phone} رد شد`,
           metadata: { phone: normalized, reason: "verify_otp_role_mismatch" },
         });
         return NextResponse.json(
-          { error: "این شماره دسترسی مدیر ندارد" },
+          { error: "این شماره دسترسی ورود به پنل را ندارد" },
           { status: 403 }
         );
       }

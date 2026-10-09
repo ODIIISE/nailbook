@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyOwner } from "@/lib/owner-auth";
+import { requireStaff, staffAuthError } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { resolveSalonId } from "@/lib/multi-tenant";
 
@@ -100,9 +100,9 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    const owner = await verifyOwner(request);
-    if (!owner) {
-      return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request, "services.edit");
+    if (!("staff" in auth)) {
+      return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
     }
 
     const h = await request.json();
@@ -161,9 +161,9 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const owner = await verifyOwner(request);
-    if (!owner) {
-      return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request, "services.edit");
+    if (!("staff" in auth)) {
+      return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
     }
 
     const { searchParams } = new URL(request.url);

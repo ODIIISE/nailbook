@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyOwner, verifyStaff } from "@/lib/owner-auth";
+import { verifyOwner, requireStaff, staffAuthError } from "@/lib/owner-auth";
 import { verifyCustomerSessionWithVersion } from "@/lib/customer-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { resolveSalonId } from "@/lib/multi-tenant";
@@ -28,9 +28,13 @@ export async function PATCH(
       return NextResponse.json({ error: "شناسه نوبت نامعتبر است" }, { status: 400 });
     }
 
-    // Check if staff (owner/manager/artist). Staff keep the full override;
-    // customers may only cancel their own future reserved/confirmed bookings.
-    const staff = await verifyStaff(request);
+    // Staff (any role) keep the full override; otherwise the caller must own
+    // the booking. Anonymous is 401, authenticated-but-foreign is 403.
+    const auth = await requireStaff(request);
+    if (!("staff" in auth) && auth.status === 401) {
+      return NextResponse.json(staffAuthError(401), { status: 401 });
+    }
+    const staff = "staff" in auth ? auth.staff : null;
 
     // Get the booking within the current salon deployment when multi-tenant mode is enabled.
     const salonId = await resolveSalonId();
@@ -49,7 +53,7 @@ export async function PATCH(
     if (!staff) {
       const customerUserId = await verifyCustomerSessionWithVersion(request.cookies.get("session")?.value);
       if (!customerUserId || booking.user_id !== customerUserId) {
-        return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+        return NextResponse.json(staffAuthError(403), { status: 403 });
       }
     }
 

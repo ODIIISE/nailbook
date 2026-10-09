@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { sql, type VercelPoolClient } from "@vercel/postgres";
-import { verifyStaff } from "@/lib/owner-auth";
+import { requireStaff, staffAuthError } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { isValidIranianPhone, normalizeDigits } from "@/lib/digits";
 import { resolveSalonId } from "@/lib/multi-tenant";
@@ -132,8 +132,8 @@ function duplicateUserResponse(error: unknown) {
 
 export async function GET(request: NextRequest) {
   try {
-    const staff = await verifyStaff(request, "users.manage");
-    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request, "users.manage");
+    if (!("staff" in auth)) return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
 
     const salonId = await resolveSalonId();
     const hasRolesResult = await sql.query(
@@ -171,8 +171,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   let client: VercelPoolClient | null = null;
   try {
-    const staff = await verifyStaff(request, "users.manage");
-    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request, "users.manage");
+    if (!("staff" in auth)) return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
+    const staff = auth.staff;
 
     const body = await request.json() as {
       phone?: unknown; name?: unknown; role?: unknown;
@@ -352,8 +353,9 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const staff = await verifyStaff(request, "users.manage");
-    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request, "users.manage");
+    if (!("staff" in auth)) return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
+    const staff = auth.staff;
 
     const body = await request.json() as {
       userId?: unknown;
@@ -523,8 +525,9 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const staff = await verifyStaff(request, "users.manage");
-    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request, "users.manage");
+    if (!("staff" in auth)) return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
+    const staff = auth.staff;
 
     const { userId } = await request.json() as { userId?: unknown };
     if (typeof userId !== "string" || !userId) return NextResponse.json({ error: "شناسه کاربر الزامی است" }, { status: 400 });

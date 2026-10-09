@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyStaff, can } from "@/lib/owner-auth";
+import { requireStaff, staffAuthError, can } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { getSalonId } from "@/lib/multi-tenant";
 import { isValidSpecificDaysOff, isValidWorkingHours } from "@/lib/salon-settings";
@@ -34,10 +34,11 @@ function getSettingsTable() {
 
 export async function POST(request: NextRequest) {
   try {
-    const staff = await verifyStaff(request);
-    if (!staff) {
-      return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request);
+    if (!("staff" in auth)) {
+      return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
     }
+    const staff = auth.staff;
 
     const updates = await request.json();
 

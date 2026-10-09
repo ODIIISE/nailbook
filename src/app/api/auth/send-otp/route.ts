@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendOtp } from "@/lib/otp-service";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
 import { logActivity } from "@/lib/db/activity-log";
-import { phoneHasOwnerRole } from "@/lib/owner-auth";
+import { phoneHasStaffRole } from "@/lib/owner-auth";
 
 // In-memory per-IP+phone rate limiter for SMS-bomb protection.
 // Resets on every cold start (serverless) — a 15-min window keeps the attack
@@ -91,20 +91,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Owner flow gate: only actually send an OTP when the phone already has
-    // the owner role. The RESPONSE is uniform with the eligible path (same
-    // status and body shape) so this endpoint cannot be used to enumerate
-    // which Iranian phone numbers are salon owners.
+    // a staff role (owner/manager/artist). The RESPONSE is uniform with the
+    // eligible path (same status and body shape) so this endpoint cannot be
+    // used to enumerate which Iranian phone numbers are salon staff.
     if (roleContext === "owner") {
-      const ownerEligible = await phoneHasOwnerRole(normalized);
-      if (!ownerEligible) {
+      const staffEligible = await phoneHasStaffRole(normalized);
+      if (!staffEligible) {
         void logActivity({
           eventType: "owner_login_denied",
           entityType: "user",
           entityId: normalized,
           description: `تلاش ورود مدیر برای شماره ${normalized} رد شد`,
-          metadata: { phone: normalized, reason: "phone_not_owner" },
+          metadata: { phone: normalized, reason: "phone_not_staff" },
         });
-        console.warn("[send-otp] owner flow blocked for phone (not registered or not owner)", {
+        console.warn("[send-otp] owner flow blocked for phone (not registered or not staff)", {
           phone: normalized,
         });
         return NextResponse.json({ success: true });

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyStaff } from "@/lib/owner-auth";
+import { requireStaff, staffAuthError } from "@/lib/owner-auth";
 import { getMigrationStatus } from "@/lib/db/migrate";
 
 // GET: Check migration status (read-only — no write migrations via API)
 export async function GET(request: NextRequest) {
   try {
-    const staff = await verifyStaff(request, "users.manage");
-    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const auth = await requireStaff(request, "users.manage");
+    if (!("staff" in auth)) return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
 
     const status = await getMigrationStatus();
 
