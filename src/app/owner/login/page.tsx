@@ -3,18 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ShieldCheck, ArrowRight } from "lucide-react";
+import { ShieldCheck, ArrowRight, AlertCircle } from "lucide-react";
 import { PinInput } from "@/components/booking/pin-input";
-import { AuthCard, AuthCardRoot, AuthError } from "@/components/auth/auth-card";
 import { ResendOtpButton } from "@/components/auth/resend-otp-button";
 import { normalizeDigits, isValidIranianPhone, displayDigits } from "@/lib/digits";
 import { getReturnTo, clearReturnTo, countOwnerDrafts } from "@/lib/session-expiry";
 import { toast } from "sonner";
-
-const SALON_NAME = "استدیو تخصصی ناخن فورهند";
 
 type Step = "phone" | "otp";
 
@@ -24,6 +18,7 @@ export default function OwnerLoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<Step>("phone");
+  const [otpAttempt, setOtpAttempt] = useState(0);
 
   const handlePhoneSubmit = async () => {
     const normalized = normalizeDigits(phone);
@@ -69,6 +64,7 @@ export default function OwnerLoginPage() {
 
       if (!res.ok) {
         setError(data.error || "کد نادرست است");
+        setOtpAttempt((a) => a + 1);
         return;
       }
       // Prime localStorage so AuthProvider picks up the owner user
@@ -102,88 +98,91 @@ export default function OwnerLoginPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center px-4 py-8">
-      <AuthCardRoot className="w-full max-w-sm">
-          {step === "phone" && (
-          <AuthCard
-            icon={<ShieldCheck className="h-6 w-6" />}              title="ورود مدیر"
-                subtitle={SALON_NAME}
-          >
-            <div className="space-y-4">
-              <div>
-                <Label className="text-caption text-muted-foreground mb-1.5 block">
-                  شماره موبایل
-                </Label>
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handlePhoneSubmit()}
-                  className="h-14 text-left text-lg rounded-none"
-                  dir="ltr"
-                  placeholder="۰۹۱۲۱۲۳۴۵۶۷"
-                  autoFocus
-                />
-              </div>
-              <AuthError error={error} />
-              <Button
-                size="xl"
-                className="w-full rounded-none bg-foreground text-background hover:bg-foreground/90"
-                onClick={handlePhoneSubmit}
-                disabled={isLoading || !isValidIranianPhone(normalizeDigits(phone))}
-              >
-                {isLoading ? "در حال ارسال..." : "دریافت کد"}
-              </Button>
-            </div>
-          </AuthCard>
-        )}
+    <div className="mx-auto flex min-h-dvh w-full max-w-[var(--frame-max-w)] flex-col" style={{ padding: "10dvh 24px 32px" }}>
+      <div className="center" style={{ marginBottom: 34 }}>
+        <span className="nail" style={{ width: 64, height: 64, margin: "0 auto 16px" }}>
+          <ShieldCheck size={26} strokeWidth={1.3} aria-hidden="true" style={{ color: "var(--pearl)" }} />
+        </span>
+        <p className="eyebrow">FOREHAND · STUDIO</p>
+        <h1 className="h-l" style={{ marginTop: 8 }}>ورود مدیر</h1>
+      </div>
 
-        {step === "otp" && (
-          <AuthCard
-            icon={<ShieldCheck className="h-6 w-6" />}
-            title="کد ورود"
-            subtitle="کد ۶ رقمی پیامک‌شده را وارد کنید"
+      {step === "phone" && (
+        <div>
+          <p className="t-s center" style={{ marginBottom: 20 }}>کد ورود به شماره مدیر پیامک می‌شود.</p>
+          <input
+            className="input"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && !isLoading && void handlePhoneSubmit()}
+            placeholder="۰۹۱۲ ۰۰۰ ۰۰۰۰"
+            autoFocus
+            inputMode="numeric"
+            autoComplete="tel"
+            aria-label="شماره موبایل مدیر"
+            style={{ direction: "ltr", textAlign: "center", fontSize: 22, letterSpacing: ".08em", minHeight: 64 }}
+          />
+          {error && (
+            <p className="t-s row center" style={{ gap: 6, color: "var(--wine-hi)", marginTop: 10 }} role="alert">
+              <AlertCircle size={16} strokeWidth={1.5} aria-hidden="true" />
+              {error}
+            </p>
+          )}
+          <button
+            type="button"
+            className="btn pri block"
+            style={{ marginTop: 20 }}
+            onClick={() => void handlePhoneSubmit()}
+            disabled={isLoading || !isValidIranianPhone(normalizeDigits(phone))}
           >
-            <div className="space-y-5">
-              <div className="text-center">
-                <p
-                  className="inline-block text-body text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-full"
-                  dir="ltr"
-                >
-                  {displayDigits(phone)}
-                </p>
-              </div>
-              <PinInput length={6} onComplete={handleOtpSubmit} disabled={isLoading} />
-              <AuthError error={error} />
-              <ResendOtpButton
-                onResend={async () => {
-                  try {
-                    const res = await fetch("/api/auth/send-otp", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ phone: normalizeDigits(phone), roleContext: "owner" }),
-                    });
-                    if (!res.ok) {
-                      const data = await res.json().catch(() => ({}));
-                      setError(data.error || "خطا در ارسال مجدد کد");
-                    }
-                  } catch {
-                    setError("خطای سرور");
+            {isLoading ? "در حال ارسال..." : "دریافت کد"}
+          </button>
+        </div>
+      )}
+
+      {step === "otp" && (
+        <div>
+          <p className="t-s center" style={{ marginBottom: 6 }}>کد ۶ رقمی پیامک‌شده به</p>
+          <p className="center ltr num" style={{ fontSize: 17, marginBottom: 20 }}>{displayDigits(phone)}</p>
+          <div dir="ltr">
+            <PinInput key={otpAttempt} length={6} onComplete={(code) => void handleOtpSubmit(code)} disabled={isLoading} />
+          </div>
+          {error && (
+            <p className="t-s row center" style={{ gap: 6, color: "var(--wine-hi)", marginTop: 10 }} role="alert">
+              <AlertCircle size={16} strokeWidth={1.5} aria-hidden="true" />
+              {error}
+            </p>
+          )}
+          <div style={{ marginTop: 16, display: "grid", gap: 6 }}>
+            <ResendOtpButton
+              onResend={async () => {
+                try {
+                  const res = await fetch("/api/auth/send-otp", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phone: normalizeDigits(phone), roleContext: "owner" }),
+                  });
+                  if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    setError(data.error || "خطا در ارسال مجدد کد");
                   }
-                }}
-                disabled={isLoading}
-              />
-              <Button
-                variant="ghost"
-                className="w-full"
-                onClick={() => { setStep("phone"); setError(""); }}
-              >
-                <ArrowRight className="h-4 w-4 ms-2" />
-                تغییر شماره
-              </Button>
-            </div>
-          </AuthCard>
-        )}
-      </AuthCardRoot>
+                } catch {
+                  setError("خطای سرور");
+                }
+              }}
+              disabled={isLoading}
+            />
+            <button
+              type="button"
+              className="btn ghost sm"
+              onClick={() => { setStep("phone"); setError(""); }}
+            >
+              <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
+              تغییر شماره
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

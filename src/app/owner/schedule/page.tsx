@@ -37,7 +37,8 @@ export default function OwnerSchedulePage() {
 
   return (
     <SalonGuard>
-      <div className="px-4 py-4 space-y-4">
+      <div className="page-gutter space-y-4 pb-8 pt-2">
+        <h2 className="h-m">برنامه کاری</h2>
         <ScheduleManager
           workingHours={workingHours}
           specificDaysOff={specificDaysOff}

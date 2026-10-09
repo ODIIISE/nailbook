@@ -1,10 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Save, Copy, HelpCircle, Undo2, Plus } from "lucide-react";
 import {
@@ -114,14 +110,14 @@ function SettingRow({
   description?: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Label className="text-caption font-normal">{label}</Label>
+    <div style={{ display: "grid", gap: 8 }}>
+      <div className="row" style={{ gap: 8 }}>
+        <span style={{ fontSize: 14 }}>{label}</span>
         <Help text={help} />
       </div>
       {children}
       {description && (
-        <p className="text-small text-muted-foreground leading-relaxed">{description}</p>
+        <p className="t-s" style={{ lineHeight: 1.9 }}>{description}</p>
       )}
     </div>
   );
@@ -143,8 +139,9 @@ function NumberInput({
   unit?: string;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <Input
+    <div className="row" style={{ gap: 8 }}>
+      <input
+        className="timein num"
         type="number"
         min={min}
         max={max}
@@ -153,10 +150,9 @@ function NumberInput({
           const next = Number(e.target.value);
           if (Number.isFinite(next)) onChange(next);
         }}
-        className="w-20 text-center text-sm"
-        dir="ltr"
+        aria-label={unit}
       />
-      {unit && <span className="text-small text-muted-foreground">{unit}</span>}
+      {unit && <span className="t-s">{unit}</span>}
     </div>
   );
 }
@@ -180,18 +176,18 @@ function JalaliMonthGrid({
   const iranFirstDay = JS_TO_IRAN_DAY[firstDayJs];
 
   return (
-    <Card className="p-4">
-      <p className="text-sm font-normal text-foreground mb-2">
+    <section className="panel">
+      <p className="num" style={{ fontSize: 15, marginBottom: 8 }}>
         {getJalaliMonthName(month)} {toPersianDigits(year)}
       </p>
-      <div className="grid grid-cols-7 gap-1 mb-1">
+      <div className="cal" style={{ marginBottom: 4 }}>
         {PERSIAN_WEEKDAYS_SHORT.map((day) => (
-          <div key={day} className="text-center text-small font-normal text-muted-foreground py-1">
+          <div key={day} className="dow">
             {day}
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-1">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
         {Array.from({ length: iranFirstDay }).map((_, i) => (
           <div key={`empty-${i}`} />
         ))}
@@ -205,23 +201,29 @@ function JalaliMonthGrid({
           return (
             <button
               key={d}
+              type="button"
+              aria-pressed={isOff}
               onClick={() => onToggleDayOff(dateStr)}
-              className={`
-                min-h-11 rounded-none text-xs font-normal
-                ${isOff
-                  ? "bg-destructive text-destructive-foreground"
+              className="day num"
+              style={{
+                width: "100%",
+                maxWidth: 44,
+                height: 40,
+                fontSize: 14,
+                borderRadius: 12,
+                ...(isOff
+                  ? { background: "var(--wine)", color: "#fff" }
                   : isToday
-                    ? "bg-primary/10 text-primary ring-1 ring-primary/30"
-                    : "bg-secondary hover:bg-primary/10 text-foreground"
-                }
-              `}
+                    ? { background: "#e9dcc322", color: "var(--pearl)", boxShadow: "inset 0 0 0 1px #e9dcc355" }
+                    : {}),
+              }}
             >
               {toPersianDigits(d)}
             </button>
           );
         })}
       </div>
-    </Card>
+    </section>
   );
 }
 
@@ -302,21 +304,22 @@ function EnginePreview({
   const suggested = available.filter((s) => s.suggested);
 
   return (
-    <Card className="p-4">
-      <h3 className="font-normal text-foreground mb-1">پیش‌نمایش زنده</h3>
-      <p className="text-xs text-muted-foreground mb-4">
+    <section className="panel">
+      <h3 style={{ fontSize: 17, marginBottom: 2 }}>پیش‌نمایش زنده</h3>
+      <p className="t-s" style={{ marginBottom: 14 }}>
         مشتری با این تنظیمات (حتی ذخیره‌نشده)، این ساعت‌ها را می‌بیند.
       </p>
       {activeServices.length === 0 ? (
-        <p className="text-sm text-muted-foreground">خدمت فعالی برای پیش‌نمایش نیست.</p>
+        <p className="t-s">خدمت فعالی برای پیش‌نمایش نیست.</p>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="row" style={{ gap: 8 }}>
             <select
               value={service?.id || ""}
               onChange={(e) => setServiceId(e.target.value)}
               aria-label="خدمت پیش‌نمایش"
-              className="h-11 rounded-none border border-input bg-card px-2 text-sm"
+              className="input"
+              style={{ flex: 1 }}
             >
               {activeServices.map((s) => (
                 <option key={s.id} value={s.id}>{s.name}</option>
@@ -326,7 +329,8 @@ function EnginePreview({
               value={dayOffset}
               onChange={(e) => setDayOffset(Number(e.target.value))}
               aria-label="روز پیش‌نمایش"
-              className="h-11 rounded-none border border-input bg-card px-2 text-sm tabular-nums"
+              className="input num"
+              style={{ flex: 1 }}
             >
               {dayOptions.map((key, i) => (
                 <option key={key} value={i}>{formatDayOffChip(key)}</option>
@@ -334,27 +338,28 @@ function EnginePreview({
             </select>
           </div>
           {available.length === 0 ? (
-            <p className="mt-3 text-sm text-muted-foreground">در این روز ساعتی نمایش داده نمی‌شود.</p>
+            <p className="t-s" style={{ marginTop: 12 }}>در این روز ساعتی نمایش داده نمی‌شود.</p>
           ) : (
             <>
-              <div className="mt-3 grid grid-cols-4 gap-1.5" aria-label="پیش‌نمایش ساعت‌ها">
+              <div className="slots" style={{ marginTop: 12 }} aria-label="پیش‌نمایش ساعت‌ها">
                 {available.map((s) => (
                   <span
                     key={s.time}
-                    className={`flex h-10 items-center justify-center rounded-none border text-sm tabular-nums ${s.suggested ? "border-primary/60 bg-primary/5" : "border-border"}`}
+                    className={`slot num${s.suggested ? " sug" : ""}`}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 44, fontSize: 14 }}
                   >
                     {toPersianDigits(s.time)}
                   </span>
                 ))}
               </div>
-              <p className="mt-2 text-xs tabular-nums text-muted-foreground">
+              <p className="t-s num" style={{ marginTop: 8 }}>
                 {toPersianDigits(available.length)} ساعت، {toPersianDigits(suggested.length)} پیشنهادی
               </p>
             </>
           )}
         </>
       )}
-    </Card>
+    </section>
   );
 }
 
@@ -653,32 +658,31 @@ export function ScheduleManager({
   const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: "grid", gap: 22 }}>
       {/* Header */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="row" style={{ justifyContent: "space-between", gap: 8 }}>
         <div>
-          <h3 className="font-normal text-foreground">ساعات کاری</h3>
-          <p className="text-xs text-muted-foreground mt-1">
+          <h3 style={{ fontSize: 17 }}>ساعات کاری</h3>
+          <p className="t-s" style={{ marginTop: 4 }}>
             روزهای فعال و ساعت‌ها را تنظیم کنید
           </p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="row" style={{ gap: 8, flex: "none" }}>
           {hasChanges && (
-            <Button
-              size="sm"
-              variant="ghost"
+            <button
+              type="button"
+              className="btn ghost sm"
               onClick={discardChanges}
               disabled={isSaving}
-              className="text-muted-foreground"
             >
-              <Undo2 className="h-4 w-4 ms-1" />
+              <Undo2 size={16} strokeWidth={1.5} />
               انصراف
-            </Button>
+            </button>
           )}
-          <Button size="sm" onClick={handleSave} disabled={!hasChanges || isSaving} className="bg-foreground text-background hover:bg-foreground/90">
-            <Save className={`h-4 w-4 ms-1 ${isSaving ? "" : ""}`} />
+          <button type="button" className="btn pri sm" onClick={handleSave} disabled={!hasChanges || isSaving}>
+            <Save size={16} strokeWidth={1.5} />
             {isSaving ? "در حال ذخیره..." : "ذخیره"}
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -689,75 +693,73 @@ export function ScheduleManager({
           const isActive = dayHours !== null;
 
           return (
-            <Card key={day.key} className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
+            <section key={day.key} className="panel">
+              <div className="row" style={{ justifyContent: "space-between", marginBottom: isActive ? 12 : 0 }}>
+                <div className="row" style={{ gap: 12 }}>
                   <Switch checked={isActive} onCheckedChange={() => toggleDay(day.key)} />
-                  <span className="font-normal text-foreground">{day.label}</span>
+                  <span style={{ fontSize: 16 }}>{day.label}</span>
                 </div>
                 {isActive && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
+                  <button
+                    type="button"
+                    className="btn ghost sm"
                     onClick={() => applyToAll(day.key)}
-                    className="text-xs text-muted-foreground"
                   >
-                    <Copy className="h-3 w-3 ms-1" />
+                    <Copy size={15} strokeWidth={1.5} />
                     اعمال به همه
-                  </Button>
+                  </button>
                 )}
               </div>
 
               {isActive && dayHours && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-xs">شروع</Label>
-                    <Input
+                <div className="row" style={{ gap: 10 }}>
+                  <label className="field" style={{ flex: 1 }}>
+                    <span>شروع</span>
+                    <input
+                      className="timein"
                       type="time"
                       value={dayHours.open}
                       onChange={(e) => updateTime(day.key, "open", e.target.value)}
-                      className="mt-1 text-center"
-                      dir="ltr"
                     />
-                  </div>
-                  <div>
-                    <Label className="text-xs">پایان</Label>
-                    <Input
+                  </label>
+                  <label className="field" style={{ flex: 1 }}>
+                    <span>پایان</span>
+                    <input
+                      className="timein"
                       type="time"
                       value={dayHours.close}
                       onChange={(e) => updateTime(day.key, "close", e.target.value)}
-                      className="mt-1 text-center"
-                      dir="ltr"
                     />
-                  </div>
+                  </label>
                 </div>
               )}
               {isActive && dayHours && (dayHours.breaks || []).length > 0 && (
-                <div className="mt-2 space-y-2">
+                <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
                   {(dayHours.breaks || []).map((b, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <Input
+                    <div key={i} className="row" style={{ gap: 8 }}>
+                      <input
+                        className="timein"
+                        style={{ flex: 1 }}
                         type="time"
                         value={b.start}
                         onChange={(e) => updateBreak(day.key, i, "start", e.target.value)}
-                        className="text-center"
-                        dir="ltr"
                         aria-label="شروع استراحت"
                       />
-                      <span className="text-xs text-muted-foreground shrink-0">تا</span>
-                      <Input
+                      <span className="t-s" style={{ flex: "none" }}>تا</span>
+                      <input
+                        className="timein"
+                        style={{ flex: 1 }}
                         type="time"
                         value={b.end}
                         onChange={(e) => updateBreak(day.key, i, "end", e.target.value)}
-                        className="text-center"
-                        dir="ltr"
                         aria-label="پایان استراحت"
                       />
                       <button
                         type="button"
                         onClick={() => removeBreak(day.key, i)}
                         aria-label="حذف استراحت"
-                        className="h-11 px-3 shrink-0 rounded-none text-small text-destructive hover:bg-destructive/10"
+                        className="btn ghost sm"
+                        style={{ color: "var(--wine-hi)", flex: "none" }}
                       >
                         حذف
                       </button>
@@ -769,41 +771,38 @@ export function ScheduleManager({
                 <button
                   type="button"
                   onClick={() => addBreak(day.key)}
-                  className="mt-2 h-11 w-full rounded-none border border-dashed border-border text-small text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5"
+                  className="btn gl sm block"
+                  style={{ marginTop: 10, borderStyle: "dashed" }}
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus size={15} strokeWidth={1.5} />
                   افزودن استراحت روزانه
                 </button>
               )}
-            </Card>
+            </section>
           );
         })}
       </div>
 
       {/* ─── Section 2: Slot Engine ─── */}
-      <Card className="p-4">
-        <h3 className="font-normal text-foreground mb-1">تنظیمات نوبت‌دهی</h3>
-        <p className="text-xs text-muted-foreground mb-4">
+      <section className="panel">
+        <h3 style={{ fontSize: 17, marginBottom: 2 }}>تنظیمات نوبت‌دهی</h3>
+        <p className="t-s" style={{ marginBottom: 14 }}>
           فاصله ساعت‌ها و زمان بین رزروها
         </p>
-        <div className="space-y-5">
+        <div style={{ display: "grid", gap: 18 }}>
           <SettingRow
             label="فاصله نوبت‌ها"
             help="هر چند دقیقه یک ساعت نمایش داده شود. مثلاً ۱۵ یعنی ۱۲:۰۰، ۱۲:۱۵، ۱۲:۳۰..."
             description={`ساعت‌ها هر ${toPersianDigits(slotInterval)} دقیقه نمایش داده می‌شوند`}
           >
-            <div className="flex gap-1.5">
+            <div className="row" style={{ gap: 6 }}>
               {[5, 10, 15, 20, 30, 60].map((v) => (
                 <button
                   key={v}
+                  type="button"
+                  aria-pressed={slotInterval === v}
                   onClick={() => { setSlotInterval(v); markChanged(); }}
-                  className={`
-                    min-h-11 min-w-[44px] px-2 rounded-none text-caption font-normal
-                    ${slotInterval === v
-                      ? "bg-foreground text-background"
-                      : "bg-secondary text-foreground hover:bg-secondary/80"
-                    }
-                  `}
+                  className={`chip num${slotInterval === v ? " on" : ""}`}
                 >
                   {toPersianDigits(v)}
                 </button>
@@ -831,15 +830,15 @@ export function ScheduleManager({
             />
           </SettingRow>
         </div>
-      </Card>
+      </section>
 
       {/* ─── Section 3: Booking Policies ─── */}
-      <Card className="p-4">
-        <h3 className="font-normal text-foreground mb-1">سیاست‌های رزرو</h3>
-        <p className="text-xs text-muted-foreground mb-4">
+      <section className="panel">
+        <h3 style={{ fontSize: 17, marginBottom: 2 }}>سیاست‌های رزرو</h3>
+        <p className="t-s" style={{ marginBottom: 14 }}>
           مهلت لغو و حداقل زمان لازم برای ثبت رزرو
         </p>
-        <div className="space-y-5">
+        <div style={{ display: "grid", gap: 18 }}>
           <SettingRow
             label="مهلت لغو"
             help="مشتری فقط تا این زمان قبل از شروع نوبت می‌تواند لغو کند. صفر یعنی همیشه آزاد."
@@ -878,15 +877,15 @@ export function ScheduleManager({
             />
           </SettingRow>
         </div>
-      </Card>
+      </section>
 
       {/* ─── Section 4: Expansion ─── */}
-      <Card className="p-4">
-        <h3 className="font-normal text-foreground mb-1">ساعت اضافی</h3>
-        <p className="text-xs text-muted-foreground mb-4">
+      <section className="panel">
+        <h3 style={{ fontSize: 17, marginBottom: 2 }}>ساعت اضافی</h3>
+        <p className="t-s" style={{ marginBottom: 14 }}>
           باز شدن خودکار ساعت‌های بیشتر وقتی رزروها پر شود
         </p>
-        <div className="space-y-5">
+        <div style={{ display: "grid", gap: 18 }}>
           <SettingRow
             label="آستانه فعال‌سازی"
             help="وقتی درصد رزروهای یک روز از این عدد بیشتر شود، ساعت‌های اضافی باز می‌شوند."
@@ -934,27 +933,29 @@ export function ScheduleManager({
             </SettingRow>
           </div>
         </div>
-      </Card>
+      </section>
 
       {/* ─── Section 5: Smart Scheduling ─── */}
-      <Card className="p-4">
-        <h3 className="font-normal text-foreground mb-1">تنظیمات هوشمند</h3>
-        <p className="text-xs text-muted-foreground mb-4">
+      <section className="panel">
+        <h3 style={{ fontSize: 17, marginBottom: 2 }}>تنظیمات هوشمند</h3>
+        <p className="t-s" style={{ marginBottom: 14 }}>
           هوشمندسازی نمایش ساعت‌ها برای مشتریان
         </p>
-        <div className="space-y-5">
+        <div style={{ display: "grid", gap: 18 }}>
           <SettingRow
             label="روش پیشنهاد ساعت‌ها"
             help="حالت هوشمند، بهترین چند ساعت را با توجه به فاصله‌های خالی و چسبیدن به رزروهای موجود پیشنهاد می‌دهد. حالت قدیمی فقط منطق قبلی را حفظ می‌کند."
             description={optimizationMode === "hybrid" ? "پیشنهادها محدود، مرتب‌شده و همراه با دلیل هستند" : "منطق پیشنهاددهی قبلی بدون امتیازدهی استفاده می‌شود"}
           >
-            <div className="grid grid-cols-2 gap-2">
+            <div className="row" style={{ gap: 8 }}>
               {(["hybrid", "legacy"] as const).map((mode) => (
                 <button
                   key={mode}
                   type="button"
+                  aria-pressed={optimizationMode === mode}
                   onClick={() => { setOptimizationMode(mode); markChanged(); }}
-                  className={`h-10 rounded-none text-small font-normal ${optimizationMode === mode ? "bg-foreground text-background" : "bg-secondary text-foreground hover:bg-secondary/80"}`}
+                  className={`chip${optimizationMode === mode ? " on" : ""}`}
+                  style={{ flex: 1 }}
                 >
                   {mode === "hybrid" ? "هوشمند (پیشنهادی)" : "قدیمی"}
                 </button>
@@ -1016,10 +1017,10 @@ export function ScheduleManager({
 
           <div className="border-t border-border/30" />
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Label className="text-caption font-normal">تمدید ساعت کاری</Label>
+          <div style={{ display: "grid", gap: 8 }}>
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <div className="row" style={{ gap: 8 }}>
+                <span style={{ fontSize: 14 }}>تمدید ساعت کاری</span>
                 <Help text="اگر فعال شود، رزروها می‌توانند از ساعت پایان کاری فراتر بروند." />
               </div>
               <Switch
@@ -1027,15 +1028,16 @@ export function ScheduleManager({
                 onCheckedChange={(v) => { setAllowOverflow(v); markChanged(); }}
               />
             </div>
-            <p className="text-small text-muted-foreground leading-relaxed">
+            <p className="t-s" style={{ lineHeight: 1.9 }}>
               {allowOverflow
                 ? `رزروها می‌توانند تا ${toPersianDigits(overflowMinutes)} دقیقه بعد از پایان کار ادامه داشته باشند`
                 : "رزروها باید قبل از ساعت پایان کار تمام شوند"
               }
             </p>
             {allowOverflow && (
-              <div className="flex items-center gap-3 mt-2">
-                <Input
+              <div className="row" style={{ gap: 8 }}>
+                <input
+                  className="timein num"
                   type="number"
                   min={0}
                   max={120}
@@ -1045,15 +1047,14 @@ export function ScheduleManager({
                     const next = Number(e.target.value);
                     if (Number.isFinite(next)) { setOverflowMinutes(next); markChanged(); }
                   }}
-                  className="w-20 text-center text-sm"
-                  dir="ltr"
+                  aria-label="دقیقه تمدید"
                 />
-                <span className="text-small text-muted-foreground">دقیقه</span>
+                <span className="t-s">دقیقه</span>
               </div>
             )}
           </div>
         </div>
-      </Card>
+      </section>
 
       {/* ─── Section 6: Live Preview ─── */}
       {previewContext && (
@@ -1071,20 +1072,20 @@ export function ScheduleManager({
 
       {/* ─── Section 7: Days Off ─── */}
       <div>
-        <h3 className="font-normal text-foreground mb-1">روزهای تعطیل</h3>
-        <p className="text-xs text-muted-foreground mb-3">
+        <h3 style={{ fontSize: 17, marginBottom: 2 }}>روزهای تعطیل</h3>
+        <p className="t-s" style={{ marginBottom: 12 }}>
           روی روزها کلیک کنید تا تعطیل شوند
         </p>
 
         {pendingDayOff && (
-          <div className="mb-3 rounded-none border border-warning/40 bg-warning/10 p-3" role="alert">
-            <p className="text-sm font-normal">
+          <div className="panel" role="alert" style={{ marginBottom: 12, borderColor: "#d4b06a66" }}>
+            <p className="num" style={{ fontSize: 15 }}>
               این روز {toPersianDigits(dayBookingCounts[pendingDayOff] || 0)} نوبت فعال دارد
             </p>
-            <p className="mt-1 text-xs leading-6 text-muted-foreground">
+            <p className="t-s" style={{ marginTop: 4, lineHeight: 1.9 }}>
               نوبت‌ها لغو نمی‌شوند ولی روز برای رزرو جدید بسته می‌شود. بعد از تعطیل کردن با مشتری‌ها تماس بگیرید.
             </p>
-            <div className="mt-2.5 flex gap-2">
+            <div className="row" style={{ gap: 10, marginTop: 12 }}>
               <button
                 type="button"
                 onClick={() => {
@@ -1092,21 +1093,23 @@ export function ScheduleManager({
                   setPendingDayOff(null);
                   markChanged();
                 }}
-                className="h-11 flex-1 rounded-none bg-primary text-sm font-normal text-primary-foreground"
+                className="btn pri sm"
+                style={{ flex: 1 }}
               >
                 تعطیل شود
               </button>
               <button
                 type="button"
                 onClick={() => setPendingDayOff(null)}
-                className="h-11 flex-1 rounded-none border border-border text-sm font-normal"
+                className="btn gl sm"
+                style={{ flex: 1 }}
               >
                 انصراف
               </button>
             </div>
           </div>
         )}
-        <div className="space-y-4">
+        <div style={{ display: "grid", gap: 12 }}>
           <JalaliMonthGrid
             year={currentYear}
             month={currentMonth}
@@ -1122,23 +1125,25 @@ export function ScheduleManager({
         </div>
 
         {daysOff.length > 0 && (
-        <div className="mt-3">
-          <p className="text-xs text-muted-foreground mb-2">
+        <div style={{ marginTop: 12 }}>
+          <p className="t-s num" style={{ marginBottom: 8 }}>
             {toPersianDigits(daysOff.length)} روز تعطیل انتخاب شده
           </p>
-          <div className="flex flex-wrap gap-1">
+          <div className="row" style={{ flexWrap: "wrap", gap: 6 }}>
             {[...daysOff].sort().slice(0, 10).map((d) => (
               <button
                 key={d}
+                type="button"
                 onClick={() => toggleSpecificDayOff(d)}
                 title={d}
-                className="px-2 py-0.5 rounded-none text-small bg-destructive/10 text-destructive hover:bg-destructive/20"
+                className="chip num"
+                style={{ color: "var(--wine-hi)" }}
               >
                 {formatDayOffChip(d)} ×
               </button>
             ))}
               {daysOff.length > 10 && (
-                <span className="text-small text-muted-foreground self-center">
+                <span className="t-s num">
                   +{toPersianDigits(daysOff.length - 10)} مورد دیگر
                 </span>
               )}
@@ -1146,17 +1151,19 @@ export function ScheduleManager({
           </div>
         )}
         {daysOff.length > 0 && (
-          <div className="mt-3 space-y-2">
-            <p className="text-xs text-muted-foreground">دلیل تعطیلی (اختیاری)</p>
+          <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
+            <p className="t-s">دلیل تعطیلی (اختیاری)</p>
             {[...daysOff].sort().map((d) => (
-              <div key={d} className="flex items-center gap-2">
-                <span className="text-small text-foreground shrink-0 w-20">{formatDayOffChip(d)}</span>
-                <Input
+              <div key={d} className="row" style={{ gap: 8 }}>
+                <span className="t-s num" style={{ flex: "none", width: 84 }}>{formatDayOffChip(d)}</span>
+                <input
+                  className="input"
+                  style={{ flex: 1 }}
                   value={daysOffReasons[d] || ""}
                   onChange={(e) => setDayOffReason(d, e.target.value)}
                   placeholder="مثلاً تعطیلات رسمی"
                   maxLength={100}
-                  className="h-10"
+                  aria-label={`دلیل تعطیلی ${formatDayOffChip(d)}`}
                 />
               </div>
             ))}

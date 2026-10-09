@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { ActivityLog } from "@/components/owner/activity-log";
 import { SalonGuard } from "@/components/ui/salon-guard";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface ActivityLogEntry {
   id: string;
@@ -117,31 +116,30 @@ export default function ActivityPage() {
 
   return (
     <SalonGuard>
-      <div className="px-4 py-4">
-        <div className="mb-3 flex gap-2">
+      <div className="page-gutter space-y-3 pb-8 pt-2">
+        <h2 className="h-m">فعالیت‌ها</h2>
+        <div className="row" style={{ gap: 8 }}>
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="جستجو در فعالیت‌ها"
             aria-label="جستجو در فعالیت‌ها"
-            className="h-11 min-w-0 flex-1 rounded-none border border-input bg-card px-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
+            className="input"
+            style={{ flex: 1, minWidth: 0 }}
           />
           <button
             type="button"
             onClick={exportCsv}
             disabled={visibleLogs.length === 0}
-            className="h-11 shrink-0 rounded-none border border-border px-4 text-sm font-normal text-muted-foreground hover:text-foreground disabled:opacity-50"
+            className="btn gl sm"
+            style={{ flex: "none" }}
           >
             خروجی CSV
           </button>
         </div>
         {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-16 rounded-none" />
-            ))}
-          </div>
+          <div className="panel center">در حال بارگذاری...</div>
         ) : (
           <>
             <ActivityLog
@@ -155,7 +153,7 @@ export default function ActivityPage() {
                 type="button"
                 onClick={loadMore}
                 disabled={loadingMore}
-                className="w-full py-2.5 mt-3 rounded-none border border-border text-caption font-normal text-muted-foreground hover:bg-muted disabled:text-foreground/70 disabled:pointer-events-none"
+                className="btn gl block"
               >
                 {loadingMore ? "در حال بارگذاری…" : "نمایش لاگ‌های قدیمی‌تر"}
               </button>

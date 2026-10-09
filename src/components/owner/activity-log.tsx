@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Clock, Copy } from "lucide-react";
 import { toPersianDigits, gregorianToJalali, PERSIAN_MONTHS } from "@/lib/jalali";
 import { getActivityEventMeta } from "@/lib/design-tokens";
@@ -90,14 +90,14 @@ function groupByDate(logs: ActivityLogEntry[]): Map<string, ActivityLogEntry[]> 
 
 function MetadataDisplay({ metadata }: { metadata: Record<string, unknown> }) {
   const entries = Object.entries(metadata).filter(([, v]) => v !== null && v !== undefined && v !== "");
-  if (entries.length === 0) return <p className="text-small text-muted-foreground">اطلاعات اضافی موجود نیست</p>;
+  if (entries.length === 0) return <p className="t-s">اطلاعات اضافی موجود نیست</p>;
 
   return (
-    <div className="space-y-1.5">
+    <div>
       {entries.map(([key, value]) => (
-        <div key={key} className="flex items-center justify-between py-1 border-b border-border/60 last:border-0">
-          <span className="text-small text-muted-foreground">{key}</span>
-          <span className="text-small font-normal text-foreground" dir="ltr">{String(value)}</span>
+        <div key={key} className="sum">
+          <span className="mute">{key}</span>
+          <span className="ltr" style={{ fontSize: 14 }}>{String(value)}</span>
         </div>
       ))}
     </div>
@@ -109,24 +109,23 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
   const groupedLogs = useMemo(() => groupByDate(logs), [logs]);
 
   return (
-    <div className="space-y-3">
+    <div style={{ display: "grid", gap: 12 }}>
       {/* Filter tabs */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+      <div className="row" style={{ gap: 8, overflowX: "auto" }} role="group" aria-label="فیلتر فعالیت">
         {FILTER_TABS.map((tab) => {
           const count = counts[tab.key] || 0;
           return (
             <button
               key={tab.key}
+              type="button"
+              aria-pressed={activeFilter === tab.key}
               onClick={() => onFilterChange(tab.key)}
-              className={`px-3 py-1.5 rounded-full text-small font-normal whitespace-nowrap ${
-                activeFilter === tab.key
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-muted-foreground border border-border"
-              }`}
+              className={`chip num${activeFilter === tab.key ? " on" : ""}`}
+              style={{ flex: "none" }}
             >
               {tab.label}
               {count > 0 && (
-                <span className="text-small opacity-60 me-1">({toPersianDigits(count)})</span>
+                <span className="mute">({toPersianDigits(count)})</span>
               )}
             </button>
           );
@@ -135,37 +134,37 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
 
       {/* Log entries */}
       {logs.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <Clock className="h-8 w-8 mx-auto mb-2 opacity-30" />
-          <p className="text-caption">فعالیتی ثبت نشده</p>
+        <div className="panel center">
+          <Clock size={28} strokeWidth={1.2} aria-hidden="true" style={{ margin: "0 auto 8px", color: "var(--faint)" }} />
+          <p className="mute">فعالیتی ثبت نشده</p>
         </div>
       ) : (
         Array.from(groupedLogs.entries()).map(([dateKey, dateLogs]) => (
           <div key={dateKey}>
-            <p className="text-small font-normal text-muted-foreground mb-1 px-0.5">
+            <p className="t-s" style={{ marginBottom: 4 }}>
               {formatDate(dateLogs[0].created_at)}
             </p>
-            <div className="divide-y divide-border/60 bg-card border border-border overflow-hidden">
+            <div className="list">
               {dateLogs.map((log) => {
                 const config = getEventConfig(log.event_type);
                 return (
                   <button
                     key={log.id}
+                    type="button"
                     onClick={() => setSelectedLog(log)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-muted/50 text-start transition-colors"
+                    className="row"
+                    style={{ width: "100%", gap: 10, padding: "11px 0", textAlign: "start" }}
                   >
-                    <span className={`w-2 h-2 rounded-full shrink-0 ${config.dot}`} aria-hidden="true" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-small text-foreground truncate leading-tight">{log.description}</p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-small text-muted-foreground bg-muted px-1.5 py-0.5 rounded-none">
-                        {config.label}
-                      </span>
-                      <span className="text-small text-muted-foreground" dir="ltr">
-                        {formatTime(log.created_at)}
-                      </span>
-                    </div>
+                    <span className={config.dot} style={{ width: 8, height: 8, borderRadius: "50%", flex: "none" }} aria-hidden="true" />
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ display: "block", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{log.description}</span>
+                    </span>
+                    <span className="badge tone-mute" style={{ flex: "none" }}>
+                      {config.label}
+                    </span>
+                    <span className="t-s ltr num" style={{ flex: "none" }}>
+                      {formatTime(log.created_at)}
+                    </span>
                   </button>
                 );
               })}
@@ -174,64 +173,60 @@ export function ActivityLog({ logs, counts, onFilterChange, activeFilter }: Acti
         ))
       )}
 
-      {/* Detail Modal */}
-      <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-body">جزئیات فعالیت</DialogTitle>
-          </DialogHeader>
-          {selectedLog && (
-            <div className="space-y-4">
-              {/* Event + Entity badges */}
-              <div className="flex gap-2 flex-wrap">
-                <span className="text-small font-normal bg-primary/10 text-primary px-2 py-1 rounded-none">
-                  {getEventConfig(selectedLog.event_type).label}
+      {/* Detail Sheet */}
+      <BottomSheet open={!!selectedLog} onClose={() => setSelectedLog(null)} title="جزئیات فعالیت">
+        {selectedLog && (
+          <div style={{ display: "grid", gap: 14 }}>
+            {/* Event + Entity badges */}
+            <div className="row" style={{ flexWrap: "wrap", gap: 6 }}>
+              <span className="badge">
+                {getEventConfig(selectedLog.event_type).label}
+              </span>
+              <span className="badge tone-mute">
+                {selectedLog.entity_type}
+              </span>
+              {selectedLog.entity_id && (
+                <span className="badge tone-mute ltr">
+                  {selectedLog.entity_id.slice(0, 8)}...
                 </span>
-                <span className="text-small font-normal bg-muted text-muted-foreground px-2 py-1 rounded-none">
-                  {selectedLog.entity_type}
-                </span>
-                {selectedLog.entity_id && (
-                  <span className="text-small font-mono text-muted-foreground bg-muted px-2 py-1 rounded-none">
-                    {selectedLog.entity_id.slice(0, 8)}...
-                  </span>
-                )}
-              </div>
+              )}
+            </div>
 
-              {/* Description */}
-              <div>
-                <p className="text-small text-muted-foreground mb-1">توضیحات</p>
-                <p className="text-caption text-foreground leading-relaxed">{selectedLog.description}</p>
-              </div>
+            {/* Description */}
+            <div>
+              <p className="t-s">توضیحات</p>
+              <p style={{ fontSize: 15, lineHeight: 1.9, marginTop: 2 }}>{selectedLog.description}</p>
+            </div>
 
-              {/* Timestamp */}
-              <div className="flex items-center gap-2 text-small text-muted-foreground">
-                <Clock className="h-3.5 w-3.5" />
-                <span dir="ltr">{formatFullDate(selectedLog.created_at)}</span>
-              </div>
+            {/* Timestamp */}
+            <p className="t-s row num" style={{ gap: 8 }}>
+              <Clock size={15} strokeWidth={1.5} aria-hidden="true" />
+              <span className="ltr">{formatFullDate(selectedLog.created_at)}</span>
+            </p>
 
-              {/* Metadata */}
-              <div>
-                <p className="text-small text-muted-foreground mb-2">اطلاعات تکمیلی</p>
-                <div className="bg-muted/50 rounded-none p-3">
-                  <MetadataDisplay metadata={selectedLog.metadata} />
-                </div>
-              </div>
-
-              {/* Raw ID */}
-              <div className="flex items-center justify-between pt-2 border-t border-border/60">
-                <span className="text-small text-muted-foreground font-mono">{selectedLog.id}</span>
-                <button
-                  onClick={() => navigator.clipboard?.writeText(selectedLog.id)}
-                  className="text-small text-muted-foreground hover:text-foreground flex items-center gap-1"
-                >
-                  <Copy className="h-3 w-3" />
-                  کپی
-                </button>
+            {/* Metadata */}
+            <div>
+              <p className="t-s" style={{ marginBottom: 4 }}>اطلاعات تکمیلی</p>
+              <div className="panel">
+                <MetadataDisplay metadata={selectedLog.metadata} />
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+
+            {/* Raw ID */}
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <span className="t-s ltr" style={{ fontSize: 12 }}>{selectedLog.id}</span>
+              <button
+                type="button"
+                onClick={() => navigator.clipboard?.writeText(selectedLog.id)}
+                className="btn ghost sm"
+              >
+                <Copy size={15} strokeWidth={1.5} />
+                کپی
+              </button>
+            </div>
+          </div>
+        )}
+      </BottomSheet>
     </div>
   );
 }
