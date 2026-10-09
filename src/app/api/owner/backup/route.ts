@@ -4,6 +4,7 @@ import { requireStaff, staffAuthError } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { resolveSalonId } from "@/lib/multi-tenant";
 import { normalizeDaysOffReasons } from "@/lib/salon-settings";
+import { normalizeLacquer } from "@/lib/types";
 
 interface BackupService {
   id: string;
@@ -15,6 +16,7 @@ interface BackupService {
   sort_order?: number;
   addon_ids?: string[];
   priority_score?: number;
+  lacquer?: unknown;
 }
 
 interface BackupAddon {
@@ -87,7 +89,7 @@ export async function GET(request: NextRequest) {
     // Users export carries roles + profile columns when migrated; the base
     // list keeps pre-migration databases working.
     const usersBase = "id, phone, name, role, created_at";
-    const usersFull = `${usersBase}, roles, specialty, work_days, service_ids, sms_reminders, offers, note`;
+    const usersFull = `${usersBase}, roles, specialty, work_days, service_ids, sms_reminders, offers, note, lacquer`;
     const fetchUsers = async () => {
       try {
         return salonId
@@ -160,10 +162,10 @@ function validateBooking(b: unknown): b is BackupBooking {
   if (!booking.date_gregorian || !/^\d{4}-\d{2}-\d{2}$/.test(booking.date_gregorian)) return false;
   if (!booking.start_time || !/^\d{2}:\d{2}/.test(booking.start_time)) return false;
   if (!booking.end_time || !/^\d{2}:\d{2}/.test(booking.end_time)) return false;
-  // "no_show" is intentionally absent: the bookings_status_check constraint
-  // on production does not allow it, so restoring such a row would fail the
-  // whole transaction. Map it to the closest supported state instead.
-  const validStatuses = ["pending", "reserved", "confirmed", "completed", "cancelled", "in_progress"];
+  // "noshow" rides the bookings_status_check constraint (migration 029);
+  // anything outside the supported set would fail the whole transaction.
+  // Map unknown legacy values to the closest supported state instead.
+  const validStatuses = ["pending", "reserved", "confirmed", "completed", "cancelled", "in_progress", "noshow"];
   if (booking.status && !validStatuses.includes(booking.status)) return false;
   return true;
 }
@@ -222,6 +224,10 @@ export async function POST(request: NextRequest) {
     const results: string[] = [];
     const errors: string[] = [];
 
+    // Lacquer columns (migration 030) may be absent on older targets —
+    // probe once so restores omit them instead of failing per row.
+    const withServiceLacquer = (await tableColumns("services", ["lacquer"])).has("lacquer");
+
     // Restore services (with validation)
     if (data.services && Array.isArray(data.services)) {
       for (const s of data.services) {
@@ -230,17 +236,23 @@ export async function POST(request: NextRequest) {
           continue;
         }
         try {
+          // Lacquer rides only when the column exists (migration 030).
+          const svcCols = withServiceLacquer ? ", lacquer" : "";
+          const svcVals = (s: BackupService, base: unknown[]) =>
+            withServiceLacquer ? [...base, normalizeLacquer(s.lacquer)] : base;
           if (salonId) {
+            const base = [s.id, salonId, s.name, s.description || "", Math.max(5, Number(s.duration_minutes) || 45), Math.max(0, Number(s.price) || 0), s.is_active ?? true, Number(s.sort_order) || 0, JSON.stringify(s.addon_ids || []), Math.min(10, Math.max(1, Number(s.priority_score) || 5))];
             await sql.query(
-              `INSERT INTO services (id, salon_id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+              `INSERT INTO services (id, salon_id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score${svcCols})
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10${withServiceLacquer ? ", $11" : ""})
                ON CONFLICT (id) DO UPDATE SET
                  name = $3, description = $4, duration_minutes = $5, price = $6,
-                 is_active = $7, sort_order = $8, addon_ids = $9, priority_score = $10
+                 is_active = $7, sort_order = $8, addon_ids = $9, priority_score = $10${withServiceLacquer ? ", lacquer = $11" : ""}
                WHERE services.salon_id = EXCLUDED.salon_id`,
-              [s.id, salonId, s.name, s.description || "", Math.max(5, Number(s.duration_minutes) || 45), Math.max(0, Number(s.price) || 0), s.is_active ?? true, Number(s.sort_order) || 0, JSON.stringify(s.addon_ids || []), Math.min(10, Math.max(1, Number(s.priority_score) || 5))]
+              svcVals(s, base)
             );
           } else {
+            const base = [s.id, s.name, s.description || "", Math.max(5, Number(s.duration_minutes) || 45), Math.max(0, Number(s.price) || 0), s.is_active ?? true, Number(s.sort_order) || 0, JSON.stringify(s.addon_ids || []), Math.min(10, Math.max(1, Number(s.priority_score) || 5))];
             await sql`
               INSERT INTO services (id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score)
               VALUES (${s.id}, ${s.name}, ${s.description || ""}, ${Math.max(5, Number(s.duration_minutes) || 45)}, ${Math.max(0, Number(s.price) || 0)}, ${s.is_active ?? true}, ${Number(s.sort_order) || 0}, ${JSON.stringify(s.addon_ids || [])}, ${Math.min(10, Math.max(1, Number(s.priority_score) || 5))})
@@ -249,6 +261,9 @@ export async function POST(request: NextRequest) {
                 price = ${Math.max(0, Number(s.price) || 0)}, is_active = ${s.is_active ?? true}, sort_order = ${Number(s.sort_order) || 0},
                 addon_ids = ${JSON.stringify(s.addon_ids || [])}, priority_score = ${Math.min(10, Math.max(1, Number(s.priority_score) || 5))}
             `;
+            if (withServiceLacquer) {
+              await sql.query(`UPDATE services SET lacquer = $1 WHERE id = $2`, [normalizeLacquer(s.lacquer), s.id]);
+            }
           }
           results.push(`service:${s.id}`);
         } catch {

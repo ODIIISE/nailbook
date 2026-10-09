@@ -1,16 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { requireStaff, staffAuthError } from "@/lib/owner-auth";
+import { requireStaff, staffAuthError, isSalonArtist } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { resolveSalonId } from "@/lib/multi-tenant";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const HH_MM = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function isMissingColumn(error: unknown): boolean {
-  const code = (error as { code?: string })?.code;
-  const message = String((error as { message?: string })?.message || "");
-  return code === "42703" || /column .* does not exist/i.test(message);
+async function blockExtras(): Promise<Set<string>> {
+  try {
+    const { rows } = await sql.query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'blocked_times'
+       AND column_name IN ('reason', 'artist_id')`
+    );
+    return new Set(rows.map((r) => String(r.column_name)));
+  } catch {
+    return new Set();
+  }
 }
 
 function isValidBlockedTime(b: unknown): b is BlockedTimeItem {
@@ -20,7 +28,9 @@ function isValidBlockedTime(b: unknown): b is BlockedTimeItem {
     && typeof item.start_time === "string" && HH_MM.test(item.start_time)
     && typeof item.end_time === "string" && HH_MM.test(item.end_time)
     && item.end_time > item.start_time
-    && (item.reason === undefined || typeof item.reason === "string");
+    && (item.reason === undefined || typeof item.reason === "string")
+    && (item.artist_id === undefined || item.artist_id === null || item.artist_id === ""
+      || (typeof item.artist_id === "string" && UUID_RE.test(item.artist_id)));
 }
 
 interface BlockedTimeItem {
@@ -29,6 +39,8 @@ interface BlockedTimeItem {
   end_time: string;
   /** Free-text reason (migration 027). Optional; capped at 100 chars on write. */
   reason?: string;
+  /** Assigned artist (migration 028). Null/empty = whole salon. */
+  artist_id?: string | null;
 }
 
 export async function GET(request: NextRequest) {
@@ -37,20 +49,12 @@ export async function GET(request: NextRequest) {
     if (!("staff" in auth)) return NextResponse.json(staffAuthError(auth.status), { status: auth.status });
 
     const salonId = await resolveSalonId();
-    const columns = "date_gregorian, start_time, end_time";
-    try {
-      const result = salonId
-        ? await sql.query(`SELECT ${columns}, reason FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian`, [salonId])
-        : await sql`SELECT date_gregorian, start_time, end_time, reason FROM blocked_times ORDER BY date_gregorian`;
-      return NextResponse.json({ blockedTimes: result.rows });
-    } catch (error) {
-      // Pre-027 databases have no reason column — serve the base list.
-      if (!isMissingColumn(error)) throw error;
-      const result = salonId
-        ? await sql.query(`SELECT ${columns} FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian`, [salonId])
-        : await sql`SELECT date_gregorian, start_time, end_time FROM blocked_times ORDER BY date_gregorian`;
-      return NextResponse.json({ blockedTimes: result.rows });
-    }
+    const extras = await blockExtras();
+    const extraSelect = [...extras].map((c) => `, ${c}`).join("");
+    const result = salonId
+      ? await sql.query(`SELECT date_gregorian, start_time, end_time${extraSelect} FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian`, [salonId])
+      : await sql.query(`SELECT date_gregorian, start_time, end_time${extraSelect} FROM blocked_times ORDER BY date_gregorian`);
+    return NextResponse.json({ blockedTimes: result.rows });
   } catch {
     return NextResponse.json({ error: "خطا" }, { status: 500 });
   }
@@ -92,6 +96,13 @@ export async function PUT(request: NextRequest) {
     }
 
     const salonId = await resolveSalonId();
+    // Assigned artists must exist (checked outside the transaction).
+    for (const b of blockedTimes) {
+      const artistId = typeof b.artist_id === "string" && b.artist_id ? b.artist_id : null;
+      if (artistId && !(await isSalonArtist(artistId, salonId))) {
+        return NextResponse.json({ error: "هنرمند یافت نشد" }, { status: 400 });
+      }
+    }
     client = await sql.connect();
     await client.query("BEGIN");
 
@@ -111,24 +122,37 @@ export async function PUT(request: NextRequest) {
       salonId ? [salonId] : []
     );
 
-    // Reason column (migration 027) is absent until the runner applies it —
-    // omit it on old schemas instead of 500ing the whole save.
-    const { rows: reasonCols } = await client.query(
-      `SELECT 1 FROM information_schema.columns
-       WHERE table_schema = 'public' AND table_name = 'blocked_times' AND column_name = 'reason' LIMIT 1`
-    );
-    const hasReason = reasonCols.length > 0;
+    // Reason (027) and artist (028) columns are absent until the runner
+    // applies them — omit them on old schemas instead of 500ing the save.
+    // The slot engine treats every block as salon-wide regardless.
+    const extras = await blockExtras();
+    const hasReason = extras.has("reason");
+    const hasArtist = extras.has("artist_id");
 
     if (blockedTimes && blockedTimes.length > 0) {
       for (const b of blockedTimes) {
         const reason = typeof b.reason === "string" ? b.reason.trim().slice(0, 100) : "";
+        const artistId = typeof b.artist_id === "string" && b.artist_id ? b.artist_id : null;
+        const extraCols: string[] = [];
+        const extraVals: unknown[] = [];
+        if (hasReason) {
+          extraCols.push("reason");
+          extraVals.push(reason);
+        }
+        if (hasArtist) {
+          extraCols.push("artist_id");
+          extraVals.push(artistId);
+        }
+        const extraColsSql = extraCols.length ? `, ${extraCols.join(", ")}` : "";
+        const baseCount = salonId ? 4 : 3;
+        const extraPlaceholders = extraVals.map((_, i) => `, $${baseCount + i + 1}`).join("");
         await client.query(
           salonId
-            ? `INSERT INTO blocked_times (salon_id, date_gregorian, start_time, end_time${hasReason ? ", reason" : ""}) VALUES ($1, $2, $3, $4${hasReason ? ", $5" : ""})`
-            : `INSERT INTO blocked_times (date_gregorian, start_time, end_time${hasReason ? ", reason" : ""}) VALUES ($1, $2, $3${hasReason ? ", $4" : ""})`,
+            ? `INSERT INTO blocked_times (salon_id, date_gregorian, start_time, end_time${extraColsSql}) VALUES ($1, $2, $3, $4${extraPlaceholders})`
+            : `INSERT INTO blocked_times (date_gregorian, start_time, end_time${extraColsSql}) VALUES ($1, $2, $3${extraPlaceholders})`,
           salonId
-            ? hasReason ? [salonId, b.date_gregorian, b.start_time, b.end_time, reason] : [salonId, b.date_gregorian, b.start_time, b.end_time]
-            : hasReason ? [b.date_gregorian, b.start_time, b.end_time, reason] : [b.date_gregorian, b.start_time, b.end_time]
+            ? [salonId, b.date_gregorian, b.start_time, b.end_time, ...extraVals]
+            : [b.date_gregorian, b.start_time, b.end_time, ...extraVals]
         );
       }
     }

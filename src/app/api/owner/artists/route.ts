@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { requireStaff, staffAuthError } from "@/lib/owner-auth";
 import { resolveSalonId } from "@/lib/multi-tenant";
+import { normalizeLacquer } from "@/lib/types";
 
 /**
  * GET: staff-visible artist directory for booking assignment (manual
@@ -20,17 +21,18 @@ export async function GET(request: NextRequest) {
         name: typeof r.name === "string" && r.name.trim() ? r.name.trim() : "هنرمند",
         phone: typeof r.phone === "string" ? r.phone : "",
         specialty: typeof r.specialty === "string" ? r.specialty : "",
+        lacquer: normalizeLacquer(r.lacquer),
       }));
 
     try {
       const { rows } = salonId
         ? await sql.query(
-            `SELECT id, name, phone, specialty FROM users
+            `SELECT id, name, phone, specialty, lacquer FROM users
              WHERE salon_id = $1 AND roles @> ARRAY['artist']::TEXT[]
              ORDER BY name`,
             [salonId]
           )
-        : await sql`SELECT id, name, phone, specialty FROM users
+        : await sql`SELECT id, name, phone, specialty, lacquer FROM users
             WHERE roles @> ARRAY['artist']::TEXT[]
             ORDER BY name`;
       return NextResponse.json({ artists: serialize(rows) });

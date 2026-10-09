@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { getSalonId, resolveSalonId } from "@/lib/multi-tenant";
 import { normalizeDaysOffReasons, normalizeOptimizerSettings } from "@/lib/salon-settings";
+import { normalizeLacquer } from "@/lib/types";
 
 /**
  * Consolidated initial payload — /api/read/bootstrap?scope=home|all
@@ -226,6 +227,7 @@ function serializeServices(rows: Array<Record<string, unknown>>) {
     best_for: normalizeTextArray(s.best_for),
     icon_key: typeof s.icon_key === "string" && s.icon_key.length > 0 ? s.icon_key : null,
     is_popular: s.is_popular === true,
+    lacquer: normalizeLacquer(s.lacquer),
   }));
 }
 
@@ -233,9 +235,9 @@ async function loadServices(): Promise<unknown[] | null> {
   try {
     const salonId = await resolveSalonId();
     const scoped = salonId
-      ? sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, image_url, best_for, icon_key, is_popular
+      ? sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, image_url, best_for, icon_key, is_popular, lacquer
            FROM services WHERE salon_id = ${salonId} ORDER BY sort_order`
-      : sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, image_url, best_for, icon_key, is_popular
+      : sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, image_url, best_for, icon_key, is_popular, lacquer
            FROM services ORDER BY sort_order`;
     const { rows } = await scoped;
     return serializeServices(rows);
@@ -335,31 +337,28 @@ async function loadBookings(request: NextRequest): Promise<unknown[] | null> {
 async function loadBlockedTimes(): Promise<Array<Record<string, unknown>> | null> {
   try {
     const salonId = await resolveSalonId();
+    let extraSelect = "";
     try {
-      const { rows } = salonId
-        ? await sql.query(
-            `SELECT date_gregorian, start_time, end_time, reason
-             FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian`,
-            [salonId]
-          )
-        : await sql`SELECT date_gregorian, start_time, end_time, reason FROM blocked_times ORDER BY date_gregorian`;
-      return rows;
-    } catch (error) {
-      // Pre-027 databases have no reason column — serve the base list.
-      // Anything else (e.g. 22P02 on a slug SALON_ID) degrades to null so the
-      // client falls back to /api/read/blocked-times.
-      const code = (error as { code?: string })?.code;
-      const message = String((error as { message?: string })?.message || "");
-      if (code !== "42703" && !/column .* does not exist/i.test(message)) throw error;
-      const { rows } = salonId
-        ? await sql.query(
-            `SELECT date_gregorian, start_time, end_time
-             FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian`,
-            [salonId]
-          )
-        : await sql`SELECT date_gregorian, start_time, end_time FROM blocked_times ORDER BY date_gregorian`;
-      return rows;
+      const { rows: colRows } = await sql.query(
+        `SELECT column_name FROM information_schema.columns
+         WHERE table_schema = 'public' AND table_name = 'blocked_times'
+         AND column_name IN ('reason', 'artist_id')`
+      );
+      extraSelect = colRows.map((r) => `, ${String(r.column_name)}`).join("");
+    } catch {
+      /* catalog unreadable — serve the base list */
     }
+    const { rows } = salonId
+      ? await sql.query(
+          `SELECT date_gregorian, start_time, end_time${extraSelect}
+           FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian`,
+          [salonId]
+        )
+      : await sql.query(
+          `SELECT date_gregorian, start_time, end_time${extraSelect}
+           FROM blocked_times ORDER BY date_gregorian`
+        );
+    return rows;
   } catch {
     return null;
   }

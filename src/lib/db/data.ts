@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import type { SalonInfo, Service, Booking, Addon, Highlight, HighlightImage } from "../types";
 import { normalizeDaysOffReasons } from "../salon-settings";
+import { normalizeLacquer } from "../types";
 import { redirectAfterExpiry } from "../session-expiry";
 
 // All reads go through API routes (Vercel Postgres is server-side only)
@@ -62,6 +63,7 @@ function normalizeService(value: unknown): Service | null {
     best_for: normalizeTextArray(value.best_for),
     icon_key: typeof value.icon_key === "string" && value.icon_key.length > 0 ? value.icon_key : null,
     is_popular: normalizeBoolean(value.is_popular),
+    lacquer: normalizeLacquer(value.lacquer),
   };
 }
 
@@ -101,7 +103,7 @@ function normalizeBooking(value: unknown): Booking | null {
   // Drop it here rather than letting a malformed database row crash the page's
   // Jalali conversion during render.
   if (!dateGregorian) return null;
-  const validStatuses = ["pending", "reserved", "confirmed", "in_progress", "completed", "cancelled"] as const;
+  const validStatuses = ["pending", "reserved", "confirmed", "in_progress", "completed", "cancelled", "noshow"] as const;
   const status = validStatuses.includes(value.status as (typeof validStatuses)[number])
     ? (value.status as Booking["status"])
     : "pending";

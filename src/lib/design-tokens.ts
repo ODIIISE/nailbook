@@ -36,7 +36,7 @@ export const STATUS_CONFIG: Record<string, { label: string; color: string; bg: s
   in_progress: { label: "در حال انجام", color: "#B45309", bg: "#FFFBEB" },
   completed: { label: "انجام شده", color: "#7C3AED", bg: "#F5F3FF" },
   cancelled: { label: "لغو شده", color: "#B91C1C", bg: "#FEF2F2" },
-  no_show: { label: "حضور نیافت", color: "#B45309", bg: "#FFFBEB" },
+  noshow: { label: "حضور نیافت", color: "#B45309", bg: "#FFFBEB" },
 };
 
 /** Dark-mode text colors for the same statuses — the light hexes sit on the
@@ -49,7 +49,7 @@ export const STATUS_CONFIG_DARK: Record<string, { color: string; bg: string }> =
   in_progress: { color: "#FBBF24", bg: "#451A03" },
   completed: { color: "#A78BFA", bg: "#2E1065" },
   cancelled: { color: "#F87171", bg: "#450A0A" },
-  no_show: { color: "#FBBF24", bg: "#451A03" },
+  noshow: { color: "#FBBF24", bg: "#451A03" },
 };
 
 // ── Status Badge Classes (single source of truth for status pills) ──
@@ -62,7 +62,7 @@ export const statusBadgeClass: Record<string, string> = {
   in_progress: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
   completed: "bg-violet-500/10 text-violet-700 dark:text-violet-400",
   cancelled: "bg-destructive/10 text-destructive",
-  no_show: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  noshow: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
 };
 
 // ── Activity Log Event Meta (owner activity page) ──

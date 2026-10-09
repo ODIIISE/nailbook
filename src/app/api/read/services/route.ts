@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { resolveSalonId } from "@/lib/multi-tenant";
+import { normalizeLacquer } from "@/lib/types";
 
 function normalizeTextArray(value: unknown): string[] {
   if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string");
@@ -33,6 +34,7 @@ function serializeServices(rows: Array<Record<string, unknown>>) {
     best_for: normalizeTextArray(s.best_for),
     icon_key: typeof s.icon_key === "string" && s.icon_key.length > 0 ? s.icon_key : null,
     is_popular: s.is_popular === true,
+    lacquer: normalizeLacquer(s.lacquer),
   }));
 }
 
@@ -40,17 +42,17 @@ export async function GET() {
   try {
     const salonId = await resolveSalonId();
     const scoped = salonId
-      ? sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, image_url, best_for, icon_key, is_popular
+      ? sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, image_url, best_for, icon_key, is_popular, lacquer
            FROM services WHERE salon_id = ${salonId} ORDER BY sort_order`
-      : sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, image_url, best_for, icon_key, is_popular
+      : sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score, image_url, best_for, icon_key, is_popular, lacquer
            FROM services ORDER BY sort_order`;
     try {
       const { rows } = await scoped;
       return NextResponse.json(serializeServices(rows));
     } catch (error) {
-      // A deployment may be serving the new UI before migration 015 has been
-      // applied. Keep booking/service selection available with the base schema;
-      // the next migration adds the richer fields.
+      // A deployment may be serving the new UI before migrations have been
+      // applied. Keep booking/service selection available with the base
+      // schema; the next migration adds the richer fields.
       if (!isMissingColumn(error)) throw error;
       const { rows } = salonId
         ? await sql`SELECT id, name, description, duration_minutes, price, is_active, sort_order, addon_ids, priority_score

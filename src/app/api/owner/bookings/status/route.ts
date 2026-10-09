@@ -7,10 +7,11 @@ import { resolveSalonId } from "@/lib/multi-tenant";
 // Valid state transitions
 const VALID_TRANSITIONS: Record<string, string[]> = {
   pending: ["reserved", "confirmed", "cancelled"],
-  reserved: ["confirmed", "cancelled"],
-  confirmed: ["in_progress", "cancelled"],
-  in_progress: ["completed", "cancelled"],
+  reserved: ["confirmed", "cancelled", "noshow"],
+  confirmed: ["in_progress", "cancelled", "noshow"],
+  in_progress: ["completed", "cancelled", "noshow"],
   completed: [],
+  noshow: [],
   cancelled: ["reserved", "confirmed"],
 };
 
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "شناسه نوبت نامعتبر است" }, { status: 400 });
     }
 
-    const validStatuses = ["pending", "reserved", "confirmed", "in_progress", "completed", "cancelled"];
+    const validStatuses = ["pending", "reserved", "confirmed", "in_progress", "completed", "cancelled", "noshow"];
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: "وضعیت نامعتبر" }, { status: 400 });
     }

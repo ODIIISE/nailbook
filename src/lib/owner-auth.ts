@@ -252,6 +252,30 @@ export async function requireStaff(
 export function staffAuthError(status: 401 | 403): { error: string } {
   return { error: status === 403 ? "دسترسی ندارید" : "غیرمجاز" };
 }
+
+/** True iff the user exists in this salon and carries the artist role.
+ *  Runs outside booking transactions; falls back to existence-only on
+ *  pre-014 schemas without the roles column. */
+export async function isSalonArtist(artistId: string, salonId: string | null): Promise<boolean> {
+  try {
+    const { rows } = salonId
+      ? await sql`SELECT roles FROM users WHERE id = ${artistId} AND salon_id = ${salonId} LIMIT 1`
+      : await sql`SELECT roles FROM users WHERE id = ${artistId} LIMIT 1`;
+    if (!rows[0]) return false;
+    const roles = rows[0].roles;
+    if (Array.isArray(roles)) return roles.includes("artist");
+    if (typeof roles === "string") return /\bartist\b/.test(roles);
+    return false;
+  } catch (error) {
+    const code = (error as { code?: string })?.code;
+    const message = String((error as { message?: string })?.message || "");
+    if (code !== "42703" && !/column .* does not exist/i.test(message)) throw error;
+    const { rows } = salonId
+      ? await sql`SELECT id FROM users WHERE id = ${artistId} AND salon_id = ${salonId} LIMIT 1`
+      : await sql`SELECT id FROM users WHERE id = ${artistId} LIMIT 1`;
+    return rows.length > 0;
+  }
+}
 /**
  * Owner-only gate (legacy): prefer verifyStaff(request, perm) for new code.
  * Kept so existing /api/owner/* routes keep working untouched until they are

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { requireStaff, staffAuthError } from "@/lib/owner-auth";
+import { requireStaff, staffAuthError, isSalonArtist } from "@/lib/owner-auth";
 import { normalizeDigits } from "@/lib/digits";
 import { logActivity } from "@/lib/db/activity-log";
 import { resolveSalonId } from "@/lib/multi-tenant";
@@ -68,30 +68,6 @@ async function existingBookingExtras(): Promise<Set<string>> {
     return new Set(rows.map((r) => String(r.column_name)));
   } catch {
     return new Set();
-  }
-}
-
-/** True iff the user exists in this salon and carries the artist role.
- *  Runs outside the booking transaction; falls back to existence-only on
- *  pre-014 schemas without the roles column. */
-async function isSalonArtist(artistId: string, salonId: string | null): Promise<boolean> {
-  try {
-    const { rows } = salonId
-      ? await sql.query(`SELECT roles FROM users WHERE id = $1 AND salon_id = $2 LIMIT 1`, [artistId, salonId])
-      : await sql.query(`SELECT roles FROM users WHERE id = $1 LIMIT 1`, [artistId]);
-    if (!rows[0]) return false;
-    const roles = rows[0].roles;
-    if (Array.isArray(roles)) return roles.includes("artist");
-    if (typeof roles === "string") return /\bartist\b/.test(roles);
-    return false;
-  } catch (error) {
-    const code = (error as { code?: string })?.code;
-    const message = String((error as { message?: string })?.message || "");
-    if (code !== "42703" && !/column .* does not exist/i.test(message)) throw error;
-    const { rows } = salonId
-      ? await sql.query(`SELECT id FROM users WHERE id = $1 AND salon_id = $2 LIMIT 1`, [artistId, salonId])
-      : await sql.query(`SELECT id FROM users WHERE id = $1 LIMIT 1`, [artistId]);
-    return rows.length > 0;
   }
 }
 

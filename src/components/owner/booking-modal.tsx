@@ -57,7 +57,7 @@ const STATUS_ICONS: Record<string, typeof CheckCircle2> = {
   confirmed: CheckCircle2,
   completed: CheckCircle2,
   cancelled: XCircle,
-  no_show: AlertTriangle,
+  noshow: AlertTriangle,
   in_progress: Loader,
   pending: Clock,
 };

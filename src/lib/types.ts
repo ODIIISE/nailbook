@@ -12,6 +12,20 @@ export interface User {
   sms_reminders?: boolean;
   offers?: boolean;
   note?: string;
+  /** Signature color (migration 030, v-2 lacquer set). */
+  lacquer?: string;
+}
+
+/** v-2 lacquer (signature color) vocabulary for services and artists. */
+export const LACQUERS = ["pearl", "wine", "gold", "rose", "mocha", "nude", "ink"] as const;
+export type Lacquer = (typeof LACQUERS)[number];
+
+/** Unknown shapes fall back to pearl — a corrupt value must never break
+ *  a service list or artist directory. */
+export function normalizeLacquer(value: unknown): Lacquer {
+  return typeof value === "string" && (LACQUERS as readonly string[]).includes(value)
+    ? (value as Lacquer)
+    : "pearl";
 }
 
 export interface SalonInfo {
@@ -87,6 +101,8 @@ export interface Service {
   best_for: string[];
   icon_key?: string | null;
   is_popular?: boolean;
+  /** Signature color (migration 030, v-2 lacquer set). */
+  lacquer?: string;
 }
 
 export interface Booking {
@@ -100,7 +116,7 @@ export interface Booking {
   date_gregorian: string;
   start_time: string;
   end_time: string;
-  status: "pending" | "reserved" | "confirmed" | "in_progress" | "completed" | "cancelled";
+  status: "pending" | "reserved" | "confirmed" | "in_progress" | "completed" | "cancelled" | "noshow";
   phone_verified: boolean;
   paid: boolean;
   created_at: string;

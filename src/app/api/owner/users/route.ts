@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { sql, type VercelPoolClient } from "@vercel/postgres";
 import { requireStaff, staffAuthError } from "@/lib/owner-auth";
+import { normalizeLacquer } from "@/lib/types";
 import { logActivity } from "@/lib/db/activity-log";
 import { isValidIranianPhone, normalizeDigits } from "@/lib/digits";
 import { resolveSalonId } from "@/lib/multi-tenant";
@@ -36,8 +37,8 @@ function displayRole(row: { role?: unknown; roles?: unknown }): string {
   return isOwnerRole(row) ? "owner" : "customer";
 }
 
-/** Columns from migrations 025/026 — absent until the runner applies them. */
-const PROFILE_COLUMNS = ["specialty", "work_days", "service_ids", "sms_reminders", "offers", "note"] as const;
+/** Columns from migrations 025/026/030 — absent until the runner applies them. */
+const PROFILE_COLUMNS = ["specialty", "work_days", "service_ids", "sms_reminders", "offers", "note", "lacquer"] as const;
 
 async function existingProfileColumns(): Promise<Set<string>> {
   try {
@@ -100,7 +101,7 @@ async function writeProfileColumns(
   query: (text: string, values?: unknown[]) => Promise<unknown>,
   userId: string,
   profileCols: Set<string>,
-  profile: Partial<{ specialty: string; workDays: number[]; serviceIds: string[]; smsReminders: boolean; offers: boolean; note: string }>
+  profile: Partial<{ specialty: string; workDays: number[]; serviceIds: string[]; smsReminders: boolean; offers: boolean; note: string; lacquer: string }>
 ): Promise<void> {
   const sets: string[] = [];
   const params: unknown[] = [];
@@ -115,6 +116,7 @@ async function writeProfileColumns(
   push("sms_reminders", profile.smsReminders, false);
   push("offers", profile.offers, false);
   push("note", profile.note, false);
+  push("lacquer", profile.lacquer, false);
   if (sets.length === 0) return;
   params.push(userId);
   await query(`UPDATE users SET ${sets.join(", ")} WHERE id = $${params.length}`, params);
@@ -179,6 +181,7 @@ export async function POST(request: NextRequest) {
       phone?: unknown; name?: unknown; role?: unknown;
       specialty?: unknown; work_days?: unknown; service_ids?: unknown;
       sms_reminders?: unknown; offers?: unknown; note?: unknown;
+      lacquer?: unknown;
     };
     const normalized = typeof body.phone === "string" ? normalizeDigits(body.phone.trim()) : "";
     const name = typeof body.name === "string" ? body.name.trim().slice(0, 100) : "";
@@ -207,6 +210,7 @@ export async function POST(request: NextRequest) {
     const smsReminders = body.sms_reminders === undefined ? true : body.sms_reminders === true;
     const offers = body.offers === true;
     const note = typeof body.note === "string" ? body.note.trim().slice(0, 500) : "";
+    const lacquer = normalizeLacquer(body.lacquer);
 
     const salonId = await resolveSalonId();
     client = await sql.connect();
@@ -263,7 +267,7 @@ export async function POST(request: NextRequest) {
 
     const legacyRole = legacyRoleFor(role);
     const rolesArray = rolesFor(role);
-    const profile = { specialty, workDays, serviceIds: validServiceIds, smsReminders, offers, note };
+    const profile = { specialty, workDays, serviceIds: validServiceIds, smsReminders, offers, note, lacquer };
 
     let userId: string;
     if (existing) {
@@ -369,6 +373,7 @@ export async function PUT(request: NextRequest) {
       sms_reminders?: unknown;
       offers?: unknown;
       note?: unknown;
+      lacquer?: unknown;
     };
     const userId = typeof body.userId === "string" ? body.userId : "";
     if (!userId) return NextResponse.json({ error: "شناسه کاربر الزامی است" }, { status: 400 });
@@ -489,6 +494,7 @@ export async function PUT(request: NextRequest) {
         smsReminders: body.sms_reminders === undefined ? undefined : body.sms_reminders === true,
         offers: body.offers === undefined ? undefined : body.offers === true,
         note: note,
+        lacquer: body.lacquer === undefined ? undefined : normalizeLacquer(body.lacquer),
       }
     );
 

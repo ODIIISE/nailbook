@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
       case "no-show-rate": {
         const { rows } = await sql`
           SELECT COUNT(*) as total,
-            COUNT(*) FILTER (WHERE status = 'no_show') as no_shows,
-            ROUND(COUNT(*) FILTER (WHERE status = 'no_show')::numeric / NULLIF(COUNT(*), 0) * 100, 1) as rate
+            COUNT(*) FILTER (WHERE status = 'noshow') as no_shows,
+            ROUND(COUNT(*) FILTER (WHERE status = 'noshow')::numeric / NULLIF(COUNT(*), 0) * 100, 1) as rate
           FROM bookings b
           WHERE (${salonId} = '' OR b.salon_id = ${salonId})
           AND b.date_gregorian >= ${startDate}::date
