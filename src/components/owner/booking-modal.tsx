@@ -10,6 +10,7 @@ import { useIsDark } from "@/lib/hooks/use-is-dark";
 import { parseGregorianDateKey, getTehranDateKey } from "@/lib/time";
 import { generateTimeSlots, type WorkingHours } from "@/lib/slots";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Booking, Service, Addon } from "@/lib/types";
@@ -42,6 +43,10 @@ interface BookingModalProps {
   onTogglePaid: () => void;
   /** Hide the paid toggle when the viewer lacks bookings.paid (artists). */
   canTogglePaid?: boolean;
+  /** Assignable artists for the meta editor. Empty hides the artist picker. */
+  artists?: Array<{ id: string; name: string; specialty?: string }>;
+  /** Persist note/artist edits (PATCH meta). Absent hides the editor. */
+  onUpdateMeta?: (data: { artist_id: string | null; note: string }) => Promise<{ success: boolean; error?: string }>;
   onStatusChange: (status: string) => void;
   onDelete: (id: string) => void;
   onClose: () => void;
@@ -72,8 +77,37 @@ function statusColorFor(value: string, isDark: boolean): string {
   return config[value]?.color ?? STATUS_CONFIG[value]?.color ?? STATUS_CONFIG.pending.color;
 }
 
-export function BookingModal({ booking, services, addons, isPaid, customerHistory, rescheduleContext, onReschedule, onTogglePaid, canTogglePaid = true, onStatusChange, onDelete, onClose }: BookingModalProps) {
+export function BookingModal({ booking, services, addons, isPaid, customerHistory, rescheduleContext, onReschedule, onTogglePaid, canTogglePaid = true, artists = [], onUpdateMeta, onStatusChange, onDelete, onClose }: BookingModalProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [editingMeta, setEditingMeta] = useState(false);
+  const [metaArtistId, setMetaArtistId] = useState("");
+  const [metaNote, setMetaNote] = useState("");
+  const [metaError, setMetaError] = useState("");
+  const [metaSaving, setMetaSaving] = useState(false);
+  const canEditMeta = booking.status !== "cancelled" && booking.status !== "completed" && !!onUpdateMeta;
+
+  const startMetaEdit = () => {
+    setMetaArtistId(booking.artist_id ?? "");
+    setMetaNote(booking.note ?? "");
+    setMetaError("");
+    setEditingMeta(true);
+  };
+
+  const saveMetaEdit = async () => {
+    if (!onUpdateMeta || metaSaving) return;
+    setMetaSaving(true);
+    setMetaError("");
+    try {
+      const result = await onUpdateMeta({ artist_id: metaArtistId || null, note: metaNote.trim() });
+      if (result.success) {
+        setEditingMeta(false);
+      } else {
+        setMetaError(result.error || "به‌روزرسانی انجام نشد");
+      }
+    } finally {
+      setMetaSaving(false);
+    }
+  };
   const [rescheduling, setRescheduling] = useState(false);
   const [reschedDate, setReschedDate] = useState(() => booking.date_gregorian.split("T")[0]);
   const [reschedError, setReschedError] = useState("");
@@ -227,17 +261,82 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
             سابقه این مشتری: {toPersianDigits(customerHistory.completed)} نوبت انجام‌شده
           </p>
         )}
-        {(booking.artist_name || booking.note) && (
+        {(booking.artist_name || booking.note || canEditMeta) && (
           <div className="mt-2 mb-3 space-y-1">
-            {booking.artist_name && (
-              <p className="text-small text-muted-foreground">
-                هنرمند: <span className="text-foreground font-normal">{booking.artist_name}</span>
-              </p>
+            {!editingMeta && (
+              <>
+                {booking.artist_name && (
+                  <p className="text-small text-muted-foreground">
+                    هنرمند: <span className="text-foreground font-normal">{booking.artist_name}</span>
+                  </p>
+                )}
+                {booking.note && (
+                  <p className="text-small text-muted-foreground">
+                    یادداشت: <span className="text-foreground">{booking.note}</span>
+                  </p>
+                )}
+                {canEditMeta && (
+                  <button
+                    type="button"
+                    onClick={startMetaEdit}
+                    className="text-small text-primary hover:underline"
+                  >
+                    {booking.artist_name || booking.note ? "ویرایش هنرمند / یادداشت" : "افزودن هنرمند / یادداشت"}
+                  </button>
+                )}
+              </>
             )}
-            {booking.note && (
-              <p className="text-small text-muted-foreground">
-                یادداشت: <span className="text-foreground">{booking.note}</span>
-              </p>
+            {editingMeta && (
+              <div className="rounded-none border border-border p-3 space-y-3">
+                {artists.length > 0 && (
+                  <div>
+                    <label className="text-caption text-muted-foreground" htmlFor="bm-artist">هنرمند</label>
+                    <select
+                      id="bm-artist"
+                      value={metaArtistId || "none"}
+                      onChange={(e) => setMetaArtistId(e.target.value === "none" ? "" : e.target.value)}
+                      className="mt-1 h-11 w-full rounded-none border border-input bg-card px-3 text-sm"
+                    >
+                      <option value="none">بدون هنرمند</option>
+                      {artists.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.name}{a.specialty ? ` - ${a.specialty}` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <div>
+                  <label className="text-caption text-muted-foreground" htmlFor="bm-note">یادداشت داخلی</label>
+                  <Input
+                    id="bm-note"
+                    value={metaNote}
+                    onChange={(e) => setMetaNote(e.target.value)}
+                    placeholder="مثلاً حساسیت، درخواست خاص مشتری"
+                    maxLength={500}
+                    className="mt-1"
+                  />
+                </div>
+                {metaError && <p role="alert" className="text-small text-destructive">{metaError}</p>}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={saveMetaEdit}
+                    disabled={metaSaving}
+                    className="flex-1 h-11 rounded-none bg-primary text-sm font-normal text-primary-foreground disabled:opacity-50"
+                  >
+                    {metaSaving ? "در حال ذخیره..." : "ذخیره"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingMeta(false)}
+                    disabled={metaSaving}
+                    className="flex-1 h-11 rounded-none border border-border text-sm font-normal"
+                  >
+                    انصراف
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         )}

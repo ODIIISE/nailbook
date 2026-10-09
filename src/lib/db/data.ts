@@ -488,6 +488,25 @@ export async function rescheduleBooking(
   };
 }
 
+/** Owner meta edit (note / artist reassignment) via PATCH /api/owner/bookings. */
+export async function updateBookingMeta(
+  bookingId: string,
+  meta: { artist_id?: string | null; note?: string }
+): Promise<void> {
+  const res = await fetch("/api/owner/bookings", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ id: bookingId, ...meta }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده");
+  if (handleForbidden(res)) throw new Error("دسترسی ندارید");
+  if (!res.ok) {
+    throw new Error(isRecord(body) && typeof body.error === "string" ? body.error : "به‌روزرسانی نوبت انجام نشد");
+  }
+}
+
 export async function updateWorkingHours(workingHours: Record<string, unknown>, specificDaysOff: string[]) {
   const res = await fetch("/api/update-salon", {
     method: "POST",

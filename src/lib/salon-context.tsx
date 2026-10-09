@@ -23,6 +23,7 @@ import {
   insertOwnerBooking,
   cancelBooking as cancelBookingApi,
   rescheduleBooking as rescheduleBookingApi,
+  updateBookingMeta as updateBookingMetaApi,
   updateWorkingHours as saveWorkingHours,
   fetchHighlights,
   upsertHighlight,
@@ -58,6 +59,7 @@ interface SalonContextType {
   addOwnerBooking: (booking: Booking) => Promise<{ success: boolean; error?: string; id?: string; start_time?: string; end_time?: string }>;
   cancelBooking: (bookingId: string) => Promise<{ success: boolean; error?: string }>;
   rescheduleBooking: (bookingId: string, date_gregorian: string, start_time: string, end_time: string) => Promise<{ success: boolean; error?: string }>;
+  updateBookingMeta: (bookingId: string, meta: { artist_id?: string | null; note?: string }) => Promise<{ success: boolean; error?: string }>;
   refreshBookings: (scope?: "owner" | "default") => Promise<void>;
   addHighlight: (highlight: Highlight) => Promise<void>;
   updateHighlight: (highlight: Highlight) => Promise<void>;
@@ -105,6 +107,7 @@ const EMPTY_SALON_CONTEXT: SalonContextType = {
   addOwnerBooking: async () => ({ success: false }),
   cancelBooking: async () => ({ success: false }),
   rescheduleBooking: async () => ({ success: false }),
+  updateBookingMeta: async () => ({ success: false }),
   refreshBookings: async () => {},
   addHighlight: async () => {},
   updateHighlight: async () => {},
@@ -468,6 +471,34 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const handleUpdateBookingMeta = useCallback(async (
+    bookingId: string, meta: { artist_id?: string | null; note?: string }
+  ): Promise<{ success: boolean; error?: string }> => {
+    // Snapshot for rollback (same ref-first pattern as cancel/reschedule).
+    const original = bookingsRef.current.find((b) => b.id === bookingId);
+    setBookings((prev) => prev.map((b) => b.id === bookingId
+      ? {
+          ...b,
+          ...(meta.artist_id !== undefined ? { artist_id: meta.artist_id } : {}),
+          ...(meta.note !== undefined ? { note: meta.note } : {}),
+        }
+      : b));
+    try {
+      await updateBookingMetaApi(bookingId, meta);
+      // Reconcile (artist_name comes from the server JOIN) so the timeline
+      // cannot show a stale name until the next poll.
+      await refreshBookingsRef.current?.("owner");
+      return { success: true };
+    } catch (e) {
+      devLog("Failed to update booking meta:", e);
+      if (original) {
+        setBookings((prev) => prev.map((b) => b.id === bookingId
+          ? { ...b, artist_id: original.artist_id, note: original.note } : b));
+      }
+      return { success: false, error: e instanceof Error ? persianizeError(e, "به‌روزرسانی نوبت انجام نشد") : undefined };
+    }
+  }, []);
+
   const refreshBookings = useCallback(async (scope: "owner" | "default" = "default") => {
     const requestId = ++bookingsRequestRef.current;
     const data = await fetchBookings(scope);
@@ -733,6 +764,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
       addOwnerBooking: handleAddOwnerBooking,
       cancelBooking: handleCancelBooking,
       rescheduleBooking: handleRescheduleBooking,
+      updateBookingMeta: handleUpdateBookingMeta,
       refreshBookings: refreshBookings,
       addHighlight: handleAddHighlight,
       updateHighlight: handleUpdateHighlight,
@@ -755,6 +787,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
     handleAddOwnerBooking,
     handleCancelBooking,
     handleRescheduleBooking,
+    handleUpdateBookingMeta,
     refreshBookings,
     handleAddHighlight,
     handleUpdateHighlight,

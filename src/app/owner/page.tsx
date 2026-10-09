@@ -41,7 +41,7 @@ function OwnerDashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, isLoading: authLoading, hasPermission } = useAuth();
-  const { salon, loaded, bookings, services, addons, workingHours, blockedTimes, specificDaysOff, updateBlockedTimes, addOwnerBooking, cancelBooking, rescheduleBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
+  const { salon, loaded, bookings, services, addons, workingHours, blockedTimes, specificDaysOff, updateBlockedTimes, addOwnerBooking, cancelBooking, rescheduleBooking, updateBookingMeta, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
   const [showManualReserve, setShowManualReserve] = useState(false);
@@ -187,10 +187,10 @@ function OwnerDashboardContent() {
     return out;
   }, [bookings]);
 
-  /* Artist directory for manual-booking assignment. Loaded when the modal
-     opens so the timeline itself never waits on it. */
+  /* Artist directory for manual-booking assignment and booking meta edits.
+     Loaded when either surface opens so the timeline itself never waits. */
   useEffect(() => {
-    if (!showManualReserve) return;
+    if (!showManualReserve && !selectedBookingId) return;
     void (async () => {
       try {
         const res = await fetch("/api/owner/artists", { credentials: "include" });
@@ -202,7 +202,7 @@ function OwnerDashboardContent() {
         /* keep the previous list — the picker simply hides when empty */
       }
     })();
-  }, [showManualReserve]);
+  }, [showManualReserve, selectedBookingId]);
 
   const handleBlockTime = async (dateKey: string, startTime: string, endTime: string, reason: string) => {
     const saved = await updateBlockedTimes([
@@ -546,6 +546,8 @@ function OwnerDashboardContent() {
             await toggleBookingPaid(selectedBooking.id, !selectedBooking.paid);
           }}
           canTogglePaid={hasPermission("bookings.paid")}
+          artists={artists}
+          onUpdateMeta={(meta) => selectedBooking ? updateBookingMeta(selectedBooking.id, meta) : Promise.resolve({ success: false })}
           onStatusChange={async (status) => {
             await updateBookingStatus(selectedBooking.id, status);
           }}
