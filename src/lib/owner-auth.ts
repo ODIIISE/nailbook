@@ -129,10 +129,74 @@ async function getUserRoles(userId: string): Promise<string[] | null> {
 }
 
 /**
- * Return the owner user record iff the request carries a valid unified session
- * AND the user has "owner" in their roles array. Returns null on a normal
- * auth failure (no session, wrong role, missing user); throws on real DB errors
- * so the caller can surface a 500 instead of silently passing.
+ * Fixed role presets (no editable matrix): owner does everything, manager
+ * does everything except user administration, artist works only on bookings.
+ * One helper enforces it server-side so UI hiding is never the real gate.
+ */
+export const STAFF_ROLES = ["owner", "manager", "artist"] as const;
+export type StaffRole = (typeof STAFF_ROLES)[number];
+
+export const STAFF_PERMISSIONS = [
+  "timeline.all",
+  "bookings.manage",
+  "bookings.paid",
+  "schedule.edit",
+  "services.edit",
+  "users.manage",
+  "logs.view",
+  "settings.edit",
+] as const;
+export type StaffPermission = (typeof STAFF_PERMISSIONS)[number];
+
+const ROLE_PERMISSIONS: Record<StaffRole, ReadonlySet<StaffPermission>> = {
+  owner: new Set(STAFF_PERMISSIONS),
+  manager: new Set([
+    "timeline.all",
+    "bookings.manage",
+    "bookings.paid",
+    "schedule.edit",
+    "services.edit",
+    "logs.view",
+  ]),
+  artist: new Set(["bookings.manage"]),
+};
+
+export function staffRoles(roles: string[]): StaffRole[] {
+  return STAFF_ROLES.filter((r) => roles.includes(r));
+}
+
+export function can(roles: string[], permission: StaffPermission): boolean {
+  return staffRoles(roles).some((r) => ROLE_PERMISSIONS[r].has(permission));
+}
+
+export function isStaff(roles: string[]): boolean {
+  return staffRoles(roles).length > 0;
+}
+
+/**
+ * Staff gate for /api/owner/*: any owner/manager/artist session passes
+ * authentication; the optional permission narrows it. Returns null for both
+ * anonymous and unauthorized callers so routes keep their existing 401 shape.
+ */
+export async function verifyStaff(
+  request: { cookies: { get: (name: string) => { value: string } | undefined } },
+  permission?: StaffPermission
+): Promise<{ id: string; roles: string[] } | null> {
+  const sessionValue = request.cookies.get("session")?.value;
+  const userId = await verifyCustomerSessionWithVersion(sessionValue);
+  if (!userId) return null;
+
+  const roles = await getUserRoles(userId);
+  if (roles === null) return null;
+  if (!isStaff(roles)) return null;
+  if (permission && !can(roles, permission)) return null;
+
+  return { id: userId, roles };
+}
+/**
+ * Owner-only gate (legacy): prefer verifyStaff(request, perm) for new code.
+ * Kept so existing /api/owner/* routes keep working untouched until they are
+ * migrated to permission checks one by one.
  */
 export async function verifyOwner(
   request: { cookies: { get: (name: string) => { value: string } | undefined } }
