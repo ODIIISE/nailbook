@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyOwner } from "@/lib/owner-auth";
+import { verifyStaff } from "@/lib/owner-auth";
 import { normalizeDigits } from "@/lib/digits";
 import { logActivity } from "@/lib/db/activity-log";
 import { resolveSalonId } from "@/lib/multi-tenant";
@@ -12,6 +12,48 @@ import { resolveSlotInterval, resolveSlotBuffer } from "@/lib/salon-settings";
 function toMinutes(value: string): number {
   const [hours, minutes] = value.slice(0, 5).split(":").map(Number);
   return hours * 60 + minutes;
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** artist_id / note (migrations 025/026) are absent until the runner applies
+ *  them. Returns the subset that exists so writes omit the rest instead of
+ *  500ing on pre-migration databases. */
+async function existingBookingExtras(): Promise<Set<string>> {
+  try {
+    const { rows } = await sql.query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'bookings'
+       AND column_name IN ('artist_id', 'note')`
+    );
+    return new Set(rows.map((r) => String(r.column_name)));
+  } catch {
+    return new Set();
+  }
+}
+
+/** True iff the user exists in this salon and carries the artist role.
+ *  Runs outside the booking transaction; falls back to existence-only on
+ *  pre-014 schemas without the roles column. */
+async function isSalonArtist(artistId: string, salonId: string | null): Promise<boolean> {
+  try {
+    const { rows } = salonId
+      ? await sql.query(`SELECT roles FROM users WHERE id = $1 AND salon_id = $2 LIMIT 1`, [artistId, salonId])
+      : await sql.query(`SELECT roles FROM users WHERE id = $1 LIMIT 1`, [artistId]);
+    if (!rows[0]) return false;
+    const roles = rows[0].roles;
+    if (Array.isArray(roles)) return roles.includes("artist");
+    if (typeof roles === "string") return /\bartist\b/.test(roles);
+    return false;
+  } catch (error) {
+    const code = (error as { code?: string })?.code;
+    const message = String((error as { message?: string })?.message || "");
+    if (code !== "42703" && !/column .* does not exist/i.test(message)) throw error;
+    const { rows } = salonId
+      ? await sql.query(`SELECT id FROM users WHERE id = $1 AND salon_id = $2 LIMIT 1`, [artistId, salonId])
+      : await sql.query(`SELECT id FROM users WHERE id = $1 LIMIT 1`, [artistId]);
+    return rows.length > 0;
+  }
 }
 
 /**
@@ -28,14 +70,24 @@ function toMinutes(value: string): number {
 export async function POST(request: NextRequest) {
   let client;
   try {
-    const owner = await verifyOwner(request);
-    if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const staff = await verifyStaff(request, "bookings.manage");
+    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const body = await request.json();
     const { customer_name, customer_phone, service_id, date, date_gregorian, start_time, end_time } = body;
     const selectedAddonIds: string[] = Array.isArray(body.selected_addons)
       ? body.selected_addons.filter((id: unknown): id is string => typeof id === "string")
       : [];
+    // Artist assignment + internal note (migrations 025/026). Both optional;
+    // absent keeps the legacy unassigned / empty-note behavior.
+    const note = typeof body.note === "string" ? body.note.trim().slice(0, 500) : "";
+    let artistId: string | null = null;
+    if (body.artist_id !== undefined && body.artist_id !== null && body.artist_id !== "") {
+      artistId = String(body.artist_id);
+      if (!UUID_RE.test(artistId)) {
+        return NextResponse.json({ error: "هنرمند یافت نشد" }, { status: 400 });
+      }
+    }
 
     if (!customer_phone || !service_id || !date_gregorian || !start_time || !end_time) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
@@ -88,6 +140,9 @@ export async function POST(request: NextRequest) {
       if (addonResult.rows.length !== selectedAddonIds.length) {
         return NextResponse.json({ error: "آپشن انتخاب‌شده یافت نشد" }, { status: 400 });
       }
+    }
+    if (artistId && !(await isSalonArtist(artistId, salonId))) {
+      return NextResponse.json({ error: "هنرمند یافت نشد" }, { status: 400 });
     }
     // Manual bookings use the same salon schedule constraints as customer
     // bookings; only anti-spam/auth requirements differ.
@@ -221,23 +276,36 @@ export async function POST(request: NextRequest) {
 
     // Insert the booking
     const jalaliDate = date || date_gregorian;
+    // Skip the schema probe on the common path (no artist/note to store).
+    const extras = artistId || note ? await existingBookingExtras() : new Set<string>();
+    const extraCols: string[] = [];
+    const extraVals: unknown[] = [];
+    if (artistId && extras.has("artist_id")) {
+      extraCols.push("artist_id");
+      extraVals.push(artistId);
+    }
+    if (note && extras.has("note")) {
+      extraCols.push("note");
+      extraVals.push(note);
+    }
+    const extraColsSql = extraCols.length ? `, ${extraCols.join(", ")}` : "";
     const insertSql = salonId
       ? `INSERT INTO bookings (
           user_id, salon_id, customer_phone, customer_name, service_id,
           selected_addons, date, date_gregorian, start_time, end_time,
-          status, phone_verified, created_at, service_name, price_total
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::date, ($9 || ':00')::time, ($10 || ':00')::time, 'reserved', true, NOW(), $11, $12)`
+          status, phone_verified, created_at, service_name, price_total${extraColsSql}
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::date, ($9 || ':00')::time, ($10 || ':00')::time, 'reserved', true, NOW(), $11, $12${extraVals.map((_, i) => `, $${13 + i}`).join("")})`
       : `INSERT INTO bookings (
           user_id, customer_phone, customer_name, service_id,
           selected_addons, date, date_gregorian, start_time, end_time,
-          status, phone_verified, created_at, service_name, price_total
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, ($8 || ':00')::time, ($9 || ':00')::time, 'reserved', true, NOW(), $10, $11)`;
+          status, phone_verified, created_at, service_name, price_total${extraColsSql}
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, ($8 || ':00')::time, ($9 || ':00')::time, 'reserved', true, NOW(), $10, $11${extraVals.map((_, i) => `, $${12 + i}`).join("")})`;
     const { rows: inserted } = await client.query(
       `${insertSql}
        RETURNING id, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time`,
       salonId
-        ? [userId, salonId, phone, customer_name || "", service_id, JSON.stringify(selectedAddonIds), jalaliDate, date_gregorian, normStart, normEnd, serviceName, Math.round(priceTotal)]
-        : [userId, phone, customer_name || "", service_id, JSON.stringify(selectedAddonIds), jalaliDate, date_gregorian, normStart, normEnd, serviceName, Math.round(priceTotal)]
+        ? [userId, salonId, phone, customer_name || "", service_id, JSON.stringify(selectedAddonIds), jalaliDate, date_gregorian, normStart, normEnd, serviceName, Math.round(priceTotal), ...extraVals]
+        : [userId, phone, customer_name || "", service_id, JSON.stringify(selectedAddonIds), jalaliDate, date_gregorian, normStart, normEnd, serviceName, Math.round(priceTotal), ...extraVals]
     );
 
     await client.query("COMMIT");
@@ -249,7 +317,7 @@ export async function POST(request: NextRequest) {
       entityType: "booking",
       entityId: booking.id,
       description: `مدیر نوبت ${customer_name || phone} را ثبت کرد`,
-      metadata: { service_id, date_gregorian, start_time: normStart, end_time: normEnd, phone, manual: true },
+      metadata: { service_id, date_gregorian, start_time: normStart, end_time: normEnd, phone, manual: true, artist_id: artistId },
     });
 
     return NextResponse.json({
@@ -281,8 +349,8 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   let client;
   try {
-    const owner = await verifyOwner(request);
-    if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const staff = await verifyStaff(request, "bookings.manage");
+    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const body = await request.json();
     const { id, date_gregorian, start_time, end_time } = body;

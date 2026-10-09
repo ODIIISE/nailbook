@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyOwner } from "@/lib/owner-auth";
+import { verifyStaff } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { resolveSalonId } from "@/lib/multi-tenant";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const HH_MM = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
+
+function isMissingColumn(error: unknown): boolean {
+  const code = (error as { code?: string })?.code;
+  const message = String((error as { message?: string })?.message || "");
+  return code === "42703" || /column .* does not exist/i.test(message);
+}
 
 function isValidBlockedTime(b: unknown): b is BlockedTimeItem {
   const item = b as BlockedTimeItem;
@@ -13,26 +19,38 @@ function isValidBlockedTime(b: unknown): b is BlockedTimeItem {
     && typeof item.date_gregorian === "string" && ISO_DATE.test(item.date_gregorian)
     && typeof item.start_time === "string" && HH_MM.test(item.start_time)
     && typeof item.end_time === "string" && HH_MM.test(item.end_time)
-    && item.end_time > item.start_time;
+    && item.end_time > item.start_time
+    && (item.reason === undefined || typeof item.reason === "string");
 }
 
 interface BlockedTimeItem {
   date_gregorian: string;
   start_time: string;
   end_time: string;
+  /** Free-text reason (migration 027). Optional; capped at 100 chars on write. */
+  reason?: string;
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const owner = await verifyOwner(request);
-    if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const staff = await verifyStaff(request, "schedule.edit");
+    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const salonId = await resolveSalonId();
-    const result = salonId
-      ? await sql.query("SELECT date_gregorian, start_time, end_time FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian", [salonId])
-      : await sql`SELECT date_gregorian, start_time, end_time FROM blocked_times ORDER BY date_gregorian`;
-    const rows = result.rows;
-    return NextResponse.json({ blockedTimes: rows });
+    const columns = "date_gregorian, start_time, end_time";
+    try {
+      const result = salonId
+        ? await sql.query(`SELECT ${columns}, reason FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian`, [salonId])
+        : await sql`SELECT date_gregorian, start_time, end_time, reason FROM blocked_times ORDER BY date_gregorian`;
+      return NextResponse.json({ blockedTimes: result.rows });
+    } catch (error) {
+      // Pre-027 databases have no reason column — serve the base list.
+      if (!isMissingColumn(error)) throw error;
+      const result = salonId
+        ? await sql.query(`SELECT ${columns} FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian`, [salonId])
+        : await sql`SELECT date_gregorian, start_time, end_time FROM blocked_times ORDER BY date_gregorian`;
+      return NextResponse.json({ blockedTimes: result.rows });
+    }
   } catch {
     return NextResponse.json({ error: "خطا" }, { status: 500 });
   }
@@ -41,8 +59,8 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   let client;
   try {
-    const owner = await verifyOwner(request);
-    if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const staff = await verifyStaff(request, "schedule.edit");
+    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const { blockedTimes }: { blockedTimes?: BlockedTimeItem[] } = await request.json();
     if (!Array.isArray(blockedTimes)) {
@@ -93,15 +111,24 @@ export async function PUT(request: NextRequest) {
       salonId ? [salonId] : []
     );
 
+    // Reason column (migration 027) is absent until the runner applies it —
+    // omit it on old schemas instead of 500ing the whole save.
+    const { rows: reasonCols } = await client.query(
+      `SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'blocked_times' AND column_name = 'reason' LIMIT 1`
+    );
+    const hasReason = reasonCols.length > 0;
+
     if (blockedTimes && blockedTimes.length > 0) {
       for (const b of blockedTimes) {
+        const reason = typeof b.reason === "string" ? b.reason.trim().slice(0, 100) : "";
         await client.query(
           salonId
-            ? "INSERT INTO blocked_times (salon_id, date_gregorian, start_time, end_time) VALUES ($1, $2, $3, $4)"
-            : "INSERT INTO blocked_times (date_gregorian, start_time, end_time) VALUES ($1, $2, $3)",
+            ? `INSERT INTO blocked_times (salon_id, date_gregorian, start_time, end_time${hasReason ? ", reason" : ""}) VALUES ($1, $2, $3, $4${hasReason ? ", $5" : ""})`
+            : `INSERT INTO blocked_times (date_gregorian, start_time, end_time${hasReason ? ", reason" : ""}) VALUES ($1, $2, $3${hasReason ? ", $4" : ""})`,
           salonId
-            ? [salonId, b.date_gregorian, b.start_time, b.end_time]
-            : [b.date_gregorian, b.start_time, b.end_time]
+            ? hasReason ? [salonId, b.date_gregorian, b.start_time, b.end_time, reason] : [salonId, b.date_gregorian, b.start_time, b.end_time]
+            : hasReason ? [b.date_gregorian, b.start_time, b.end_time, reason] : [b.date_gregorian, b.start_time, b.end_time]
         );
       }
     }

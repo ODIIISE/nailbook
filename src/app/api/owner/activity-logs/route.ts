@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyOwner } from "@/lib/owner-auth";
+import { verifyStaff } from "@/lib/owner-auth";
 import { fetchActivityLogs, getActivityCounts } from "@/lib/db/activity-log";
 
 export async function GET(request: NextRequest) {
   try {
-    const owner = await verifyOwner(request);
-    if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const staff = await verifyStaff(request, "logs.view");
+    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
     const eventType = searchParams.get("type") || "all";

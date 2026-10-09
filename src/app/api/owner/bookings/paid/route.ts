@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyOwner } from "@/lib/owner-auth";
+import { verifyStaff } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { resolveSalonId } from "@/lib/multi-tenant";
 
 export async function POST(request: NextRequest) {
   try {
-    const owner = await verifyOwner(request);
-    if (!owner) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
+    const staff = await verifyStaff(request, "bookings.paid");
+    if (!staff) return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
 
     const { bookingId, paid } = await request.json();
     if (!bookingId || typeof paid !== "boolean") {

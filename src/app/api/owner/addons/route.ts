@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyOwner } from "@/lib/owner-auth";
+import { verifyStaff } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { resolveSalonId } from "@/lib/multi-tenant";
 
 export async function PUT(request: NextRequest) {
   try {
-    const owner = await verifyOwner(request);
-    if (!owner) {
+    const staff = await verifyStaff(request, "services.edit");
+    if (!staff) {
       return NextResponse.json({ error: "لطفاً دوباره وارد شوید" }, { status: 401 });
     }
 
