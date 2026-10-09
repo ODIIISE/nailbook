@@ -2,9 +2,8 @@
 
 import { Suspense, useState, useMemo, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { StatusPill } from "@/components/ui/status-pill";
+import { Seg } from "@/components/ui/seg";
 import { Timeline } from "@/components/owner/timeline";
 import { useAuth } from "@/lib/auth-context";
 import dynamic from "next/dynamic";
@@ -285,8 +284,8 @@ function OwnerDashboardContent() {
   // The redirect useEffect above handles navigation for bounced sessions.
   if (authLoading) {
     return (
-      <div className="px-4 py-4 space-y-4">
-        <div className=" text-muted-foreground text-center py-8">در حال بارگذاری...</div>
+      <div className="page-gutter py-6">
+        <div className="panel center">در حال بارگذاری...</div>
       </div>
     );
   }
@@ -295,160 +294,123 @@ function OwnerDashboardContent() {
   // null (the redirect effect above navigates away when it can).
   if (!user || !hasPermission("bookings.manage")) {
     return (
-      <div className="px-4 py-4">
-        <Card className="flex flex-col items-center gap-3 p-8 text-center">
-          <ShieldAlert className="h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
-          <p className="text-body font-normal text-foreground">دسترسی مدیریت بررسی نشد</p>
-          <p className="text-small text-muted-foreground">احراز هویت کامل نشد یا نشست منقضی شده است.</p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-1"
+      <div className="page-gutter py-6">
+        <div className="panel center">
+          <ShieldAlert size={28} strokeWidth={1.2} aria-hidden="true" style={{ margin: "0 auto 10px", color: "var(--faint)" }} />
+          <h3>دسترسی مدیریت بررسی نشد</h3>
+          <p className="t-s">احراز هویت کامل نشد یا نشست منقضی شده است.</p>
+          <button
+            type="button"
+            className="btn gl sm"
+            style={{ marginTop: 14 }}
             onClick={() => router.replace("/owner/login")}
           >
             ورود مدیر
-          </Button>
-        </Card>
+          </button>
+        </div>
       </div>
     );
   }
 
+  const selectedKey = getTehranDateKey(currentDate);
+  const overviewTitle = selectedKey === getTehranDateKey(new Date())
+    ? "نمای کلی امروز"
+    : (() => {
+        const j = gregorianToJalali(currentDate);
+        return `نمای کلی ${formatJalaliDate(j.jy, j.jm, j.jd)}`;
+      })();
+
   return (
     <SalonGuard>
-    <>
-      <div className="px-4 py-4 space-y-4">
+      <div className="page-gutter space-y-5 pb-8 pt-2">
         <JalaliCalendar
           selectedDate={currentDate}
           onSelectDate={setCurrentDate}
           showPast
         />
 
-        {/* Full date display */}
-        <div className="px-4 py-2">
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-caption text-muted-foreground">تاریخ:</span>
-            <span className="text-body-lg font-normal text-foreground">
-              {(() => {
-                const j = gregorianToJalali(currentDate);
-                return formatJalaliDate(j.jy, j.jm, j.jd);
-              })()}
-            </span>
-          </div>
-        </div>
+        <p className="t-s center" aria-live="polite">
+          {(() => {
+            const j = gregorianToJalali(currentDate);
+            return formatJalaliDate(j.jy, j.jm, j.jd);
+          })()}
+        </p>
 
-        {/* Today overview: revenue + count + next appointment, all in one compact strip. */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-caption font-normal text-foreground">
-              {(() => {
-                const selectedKey = getTehranDateKey(currentDate);
-                if (selectedKey === getTehranDateKey(new Date())) return "نمای کلی امروز";
-                const j = gregorianToJalali(currentDate);
-                return `نمای کلی ${formatJalaliDate(j.jy, j.jm, j.jd)}`;
-              })()}
-            </h2>
-            <Button
-              variant="ghost"
-              size="sm"
+        <section aria-label={overviewTitle}>
+          <div className="row" style={{ justifyContent: "space-between", marginBottom: 10 }}>
+            <h2 className="h-m">{overviewTitle}</h2>
+            <button
+              type="button"
+              className="btn ghost sm"
               onClick={() => setShowEarnings(true)}
-              className="gap-1 px-2 min-h-11 text-muted-foreground hover:text-foreground"
               aria-label="مشاهده جزئیات درآمد"
             >
-              <span className="text-small">جزئیات درآمد</span>
-              <ChevronLeft className="h-3.5 w-3.5" />
-            </Button>
+              جزئیات درآمد
+              <ChevronLeft size={16} strokeWidth={1.5} aria-hidden="true" />
+            </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            {/* Revenue (lead KPI) */}
-            <div className="space-y-0.5 text-start">
-              <p className="text-small text-muted-foreground font-normal">درآمد</p>
-              <p dir="ltr" className="text-h2 font-normal text-foreground tabular-nums tracking-tight leading-none">
-                {formatPrice(accounting.paid)}
-  </p>
+          <div className="kpi">
+            <div>
+              <b className="ltr num">{formatPrice(accounting.paid)}</b>
               {accounting.unpaid > 0 ? (
-                <p className="text-small text-destructive font-normal mt-0.5">
-                  {toPersianDigits(formatPrice(accounting.unpaid))} طلب
-                </p>
+                <span style={{ color: "var(--wine-hi)" }}>{formatPrice(accounting.unpaid)} طلب</span>
               ) : (
-                <p className="text-small text-muted-foreground mt-0.5">تسویه شده</p>
+                <span>تسویه شده</span>
               )}
             </div>
-
-            {/* Bookings count */}
-            <div className="space-y-0.5 text-start border-x border-border px-3">
-              <p className="text-small text-muted-foreground font-normal">نوبت</p>
-              <p dir="ltr" className="text-h2 font-normal text-foreground tabular-nums tracking-tight leading-none">
-                {toPersianDigits(todayStats.count)}
-  </p>
+            <div>
+              <b className="num">{toPersianDigits(todayStats.count)}</b>
               {todayStats.unpaidCount > 0 ? (
-                <p className="text-small text-destructive font-normal mt-0.5">
-                  {toPersianDigits(todayStats.unpaidCount)} پرداخت نشده
-                </p>
+                <span style={{ color: "var(--wine-hi)" }}>{toPersianDigits(todayStats.unpaidCount)} پرداخت نشده</span>
               ) : (
-                <p className="text-small text-muted-foreground mt-0.5">پرداخت‌ها کامل</p>
+                <span>پرداخت‌ها کامل</span>
               )}
             </div>
-
-            {/* Next appointment */}
-            <div className="space-y-0.5 text-start">
-              <p className="text-small text-muted-foreground font-normal">نوبت بعدی</p>
-              <p dir="ltr" className="text-h2 font-normal text-foreground tabular-nums tracking-tight leading-none">
-                {todayStats.nextBooking
-                  ? toPersianDigits(todayStats.nextBooking.start_time.slice(0, 5))
-                  : "—"}
-  </p>
-              <p className="text-small text-muted-foreground mt-0.5 truncate max-w-full">
-                {todayStats.nextBooking?.customer_name || "خالی"}
-              </p>
+            <div>
+              <b className="ltr num">
+                {todayStats.nextBooking ? toPersianDigits(todayStats.nextBooking.start_time.slice(0, 5)) : "—"}
+              </b>
+              <span>{todayStats.nextBooking?.customer_name || "نوبت بعدی خالی"}</span>
             </div>
           </div>
-        </Card>
+        </section>
 
-        {/* Primary timeline actions. Keep these close to the schedule so the
-            owner can add a booking or protect time without hunting in a menu. */}
         <div className="grid grid-cols-2 gap-2" role="group" aria-label="اقدامات برنامه روزانه">
-          <Button
+          <button
             type="button"
-            variant="default"
-            size="lg"
-            className="h-12 w-full rounded-none gap-2"
+            className="btn pri block"
             onClick={() => setShowManualReserve(true)}
             disabled={!loaded}
             aria-busy={!loaded}
           >
-            <Plus className="h-4 w-4" aria-hidden="true" />
+            <Plus size={17} strokeWidth={1.6} aria-hidden="true" />
             <span>{loaded ? "رزرو دستی" : "در حال بارگذاری..."}</span>
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            variant="outline"
-            size="lg"
-            className="h-12 w-full rounded-none gap-2 border-border bg-card hover:bg-muted"
+            className="btn gl block"
             onClick={() => setShowBlockTime(true)}
           >
-            <Ban className="h-4 w-4" aria-hidden="true" />
-            <span>افزودن زمان استراحت</span>
-          </Button>
+            <Ban size={17} strokeWidth={1.6} aria-hidden="true" />
+            <span>زمان استراحت</span>
+          </button>
         </div>
 
-        {/* Day capacity + day/list views (v-2 kv row + BookingList). */}
-        <div className="flex items-center justify-between gap-2" role="group" aria-label="نمای برنامه">
-          <p className="text-xs text-muted-foreground tabular-nums">
-            {toPersianDigits(dayBookings.length)} نوبت · {toPersianDigits(dayCapacity.awaiting)} منتظر تأیید · {toPersianDigits(dayCapacity.minutes)} دقیقه رزرو · {toPersianDigits(dayCapacity.pct)}٪ پر
+        <div className="row" style={{ justifyContent: "space-between" }}>
+          <p className="t-s num">
+            {toPersianDigits(dayBookings.length)} نوبت · {toPersianDigits(dayCapacity.awaiting)} منتظر تأیید · {toPersianDigits(dayCapacity.pct)}٪ پر
           </p>
-          <div className="flex gap-1.5">
-            {(["day", "list"] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                aria-pressed={timelineView === v}
-                onClick={() => setTimelineView(v)}
-                className={`h-11 rounded-full px-4 text-sm font-normal ${timelineView === v ? "bg-primary text-primary-foreground" : "border border-border bg-card text-muted-foreground"}`}
-              >
-                {v === "day" ? "تایم‌لاین" : "فهرست"}
-              </button>
-            ))}
+          <div style={{ flex: "none", width: "min(200px, 44%)" }}>
+            <Seg
+              value={timelineView}
+              onChange={setTimelineView}
+              label="نمای برنامه"
+              options={[
+                { value: "day", label: "تایم‌لاین" },
+                { value: "list", label: "فهرست" },
+              ]}
+            />
           </div>
         </div>
 
@@ -463,45 +425,46 @@ function OwnerDashboardContent() {
           addons={addons}
         />
         ) : (
-          <div className="rounded-none border border-border bg-card">
-            <div className="flex flex-wrap gap-1.5 border-b border-border p-3">
+          <section aria-label="فهرست نوبت‌ها">
+            <div className="row" style={{ flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
               {[["all", "همه"], ["reserved", "رزرو شده"], ["confirmed", "تأیید شده"], ["in_progress", "در حال انجام"], ["completed", "انجام شده"], ["cancelled", "لغو شده"]].map(([v, label]) => (
                 <button
                   key={v}
                   type="button"
                   aria-pressed={listFilter === v}
                   onClick={() => setListFilter(v)}
-                  className={`h-11 rounded-full px-3.5 text-xs font-normal ${listFilter === v ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground"}`}
+                  className={`chip${listFilter === v ? " on" : ""}`}
                 >
                   {label}
                 </button>
               ))}
             </div>
             {listBookings.length === 0 ? (
-              <p className="p-6 text-center text-sm text-muted-foreground">نوبتی برای نمایش نیست.</p>
+              <p className="empty">نوبتی برای نمایش نیست.</p>
             ) : (
-              <ul className="divide-y divide-border">
+              <ul className="list" style={{ listStyle: "none", margin: 0, padding: 0 }}>
                 {listBookings.map((b) => (
                   <li key={b.id}>
                     <button
                       type="button"
                       onClick={() => setSelectedBookingId(b.id)}
-                      className="flex w-full items-center gap-3 p-3 text-start"
+                      className="row"
+                      style={{ width: "100%", padding: "12px 0", textAlign: "start" }}
                       aria-label={`مشاهده نوبت ${b.customer_name}`}
                     >
-                      <span className="w-14 shrink-0 text-sm font-normal tabular-nums">{toPersianDigits(b.start_time.slice(0, 5))}</span>
-                      <span className="min-w-0 flex-1">
-                        <b className="block truncate text-sm font-normal">{b.customer_name}</b>
-                        <small className="mt-0.5 block truncate text-xs text-muted-foreground">{b.service?.name || "نامعلوم"}</small>
+                      <span className="ltr num" style={{ flex: "none", width: 52, fontSize: 15 }}>{toPersianDigits(b.start_time.slice(0, 5))}</span>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <b style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 400, fontSize: 15 }}>{b.customer_name}</b>
+                        <small className="mute" style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 13 }}>{b.service?.name || "نامعلوم"}</small>
                       </span>
                       <StatusPill status={b.status} />
-                      <span className="shrink-0 text-xs font-normal tabular-nums">{formatPrice(calculateBookingPrice(b, services, addons))}</span>
+                      <span className="num" style={{ flex: "none", fontSize: 13 }}>{formatPrice(calculateBookingPrice(b, services, addons))}</span>
                     </button>
                   </li>
                 ))}
               </ul>
             )}
-          </div>
+          </section>
         )}
 
 
@@ -600,7 +563,6 @@ function OwnerDashboardContent() {
           onClose={() => setShowEarnings(false)}
         />
       )}
-    </>
     </SalonGuard>
   );
 }

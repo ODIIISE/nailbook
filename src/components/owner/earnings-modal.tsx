@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Seg } from "@/components/ui/seg";
 import { formatPrice, toPersianDigits, getJalaliDate, jalaliToGregorian } from "@/lib/jalali";
 import { parseGregorianDateKey, getTehranDateKey } from "@/lib/time";
 import { calculateEarnings } from "@/lib/pricing";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Booking, Service, Addon } from "@/lib/types";
 
 interface EarningsModalProps {
@@ -67,82 +65,36 @@ export function EarningsModal({
   }, [bookings, services, addons, currentDate, period]);
 
   return (
-    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent
-        showCloseButton={false}
-        className="rounded-none p-6 max-h-[80vh] overflow-y-auto bg-card border border-border"
-      >
-        <DialogTitle className="text-h2 text-foreground">درآمد</DialogTitle>
+    <BottomSheet open onClose={onClose} title="درآمد">
+      <Seg
+        value={period}
+        onChange={setPeriod}
+        label="بازه درآمد"
+        options={[
+          { value: "day", label: "این روز" },
+          { value: "week", label: "این هفته" },
+          { value: "month", label: "این ماه" },
+        ]}
+      />
 
-        <div className="flex gap-2 mb-4">
-          {(["day", "week", "month"] as const).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`flex-1 h-9 rounded-full text-caption font-normal ${
-                period === p
-                  ? "bg-foreground text-background"
-                  : "border border-border text-foreground hover:bg-muted"
-              }`}
-            >
-              {p === "day" ? "این روز" : p === "week" ? "این هفته" : "این ماه"}
-            </button>
-          ))}
+      <div className="list" style={{ marginTop: 8 }}>
+        <div className="sum">
+          <span className="mute">پرداخت شده · <span className="num">{toPersianDigits(earnings.paidCount)}</span> نوبت</span>
+          <b className="num" style={{ fontWeight: 400, color: "var(--sage)" }}>{formatPrice(earnings.paid)}</b>
         </div>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 rounded-none bg-success/10">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-success" />
-              <span className="text-caption text-foreground">پرداخت شده</span>
-            </div>
-            <div className="text-start">
-              <p className="text-body font-normal text-success">
-                {formatPrice(earnings.paid)} تومان
-              </p>
-              <p className="text-small text-muted-foreground">
-                {toPersianDigits(earnings.paidCount)} نوبت
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-3 rounded-none bg-destructive/10">
-            <div className="flex items-center gap-2">
-              <TrendingDown className="h-4 w-4 text-destructive" />
-              <span className="text-caption text-foreground">پرداخت نشده</span>
-            </div>
-            <div className="text-start">
-              <p className="text-body font-normal text-destructive">
-                {formatPrice(earnings.unpaid)} تومان
-              </p>
-              <p className="text-small text-muted-foreground">
-                {toPersianDigits(earnings.unpaidCount)} نوبت
-              </p>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div className="flex items-center justify-between p-3 rounded-none bg-foreground/5">
-            <div className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-foreground" />
-              <span className="text-caption font-normal text-foreground">کل درآمد</span>
-            </div>
-            <div className="text-start">
-              <p className="text-body-lg font-normal text-foreground">
-                {formatPrice(earnings.total)} تومان
-              </p>
-              <p className="text-small text-muted-foreground">
-                {toPersianDigits(earnings.count)} نوبت
-              </p>
-            </div>
-          </div>
+        <div className="sum">
+          <span className="mute">پرداخت نشده · <span className="num">{toPersianDigits(earnings.unpaidCount)}</span> نوبت</span>
+          <b className="num" style={{ fontWeight: 400, color: "var(--wine-hi)" }}>{formatPrice(earnings.unpaid)}</b>
         </div>
+        <div className="sum">
+          <span>کل · <span className="num">{toPersianDigits(earnings.count)}</span> نوبت</span>
+          <b className="num pearl" style={{ fontWeight: 400, fontSize: 19 }}>{formatPrice(earnings.total)}</b>
+        </div>
+      </div>
 
-        <Button variant="outline" className="w-full mt-4" onClick={onClose}>
-          بستن
-        </Button>
-      </DialogContent>
-    </Dialog>
+      <button type="button" className="btn gl block" style={{ marginTop: 18 }} onClick={onClose}>
+        بستن
+      </button>
+    </BottomSheet>
   );
 }

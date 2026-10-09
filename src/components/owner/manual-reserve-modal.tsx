@@ -1,9 +1,6 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { normalizeDigits } from "@/lib/digits";
@@ -196,53 +193,52 @@ export function ManualReserveModal({
 
   return (
     <BottomSheet open={true} onClose={onClose} title="رزرو دستی">
-      <div className="space-y-3">
-        <div>
-          <Label className="text-caption" htmlFor="mr-name">نام مشتری</Label>
-          <Input id="mr-name"
+      <div>
+        <label className="field">
+          <span>نام مشتری</span>
+          <input className="input"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="نام (اختیاری)"
-            className="mt-1"
           />
-        </div>
+        </label>
 
-        <div>
-          <Label className="text-caption" htmlFor="mr-phone">شماره موبایل</Label>
-          <Input id="mr-phone"
+        <label className="field" style={{ marginTop: 14 }}>
+          <span>شماره موبایل</span>
+          <input className="input ltr"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="۰۹۱۲۱۲۳۴۵۶۷"
-            dir="ltr"
-            className="mt-1 text-left"
+            style={{ textAlign: "left" }}
           />
-          <p className="text-small text-muted-foreground mt-1">
-            اگر شماره جدید باشد، کاربر خودکار ساخته می‌شود
-          </p>
-          {suggestions.length > 0 && (
-            <div className="mt-1.5 overflow-hidden rounded-none border border-border" role="listbox" aria-label="مشتریان قبلی">
-              {suggestions.map((c) => (
-                <button
-                  key={c.phone}
-                  type="button"
-                  role="option"
-                  aria-selected="false"
-                  onClick={() => { setName(c.name); setPhone(c.phone); }}
-                  className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-start text-sm hover:bg-muted"
-                >
-                  <span className="font-normal">{c.name}</span>
-                  <span className="text-xs tabular-nums text-muted-foreground" dir="ltr">{toPersianDigits(c.phone)}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        </label>
+        <p className="t-s" style={{ marginTop: 6 }}>
+          اگر شماره جدید باشد، کاربر خودکار ساخته می‌شود
+        </p>
+        {suggestions.length > 0 && (
+          <div className="list" style={{ marginTop: 8 }} role="listbox" aria-label="مشتریان قبلی">
+            {suggestions.map((c) => (
+              <button
+                key={c.phone}
+                type="button"
+                role="option"
+                aria-selected="false"
+                onClick={() => { setName(c.name); setPhone(c.phone); }}
+                className="row"
+                style={{ width: "100%", padding: "11px 0", textAlign: "start" }}
+              >
+                <span style={{ flex: 1 }}>{c.name}</span>
+                <span className="t-s ltr num">{toPersianDigits(c.phone)}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
-        <div>
-          <Label className="text-caption" htmlFor="mr-service">خدمت</Label>
+        <div className="field" style={{ marginTop: 14 }}>
+          <span>خدمت</span>
           {activeServices.length > 0 ? (
             <Select value={resolvedServiceId} id="mr-service" onValueChange={(val) => handleServiceChange(val as string)}>
-              <SelectTrigger className="mt-1 w-full h-12 rounded-none border border-border bg-card px-3 text-body text-card-foreground" dir="rtl">
+              <SelectTrigger className="input" dir="rtl">
                 {/* Base UI renders the raw value when SelectValue has no child.
                     Provide the selected label explicitly so UUIDs never leak into the form. */}
                 <SelectValue placeholder="خدمت را انتخاب کنید">
@@ -261,42 +257,38 @@ export function ManualReserveModal({
               </SelectContent>
             </Select>
           ) : (
-            <div className="mt-1 rounded-none border border-border bg-muted/40 px-3 py-3 text-caption text-muted-foreground">
-              هنوز خدمتی برای رزرو فعال نشده است
-            </div>
+            <p className="empty">هنوز خدمتی برای رزرو فعال نشده است</p>
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label className="text-caption" htmlFor="mr-start">از ساعت</Label>
-            <Input
-              id="mr-start"
+        <div className="row" style={{ gap: 10, marginTop: 14 }}>
+          <label className="field" style={{ flex: 1 }}>
+            <span>از ساعت</span>
+            <input
+              className="input ltr"
               type="time"
               value={startTime}
               onChange={(e) => handleStartTimeChange(e.target.value)}
-              className="mt-1 text-center"
-              dir="ltr"
+              style={{ textAlign: "center" }}
             />
-          </div>
-          <div>
-            <Label className="text-caption" htmlFor="mr-end">تا ساعت</Label>
-            <Input
-              id="mr-end"
+          </label>
+          <label className="field" style={{ flex: 1 }}>
+            <span>تا ساعت</span>
+            <input
+              className="input ltr"
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="mt-1 text-center"
-              dir="ltr"
+              style={{ textAlign: "center" }}
             />
-          </div>
+          </label>
         </div>
 
         {artists.length > 0 && (
-          <div>
-            <Label className="text-caption" htmlFor="mr-artist">هنرمند</Label>
+          <div className="field" style={{ marginTop: 14 }}>
+            <span>هنرمند</span>
             <Select value={artistId || "none"} id="mr-artist" onValueChange={(val) => setArtistId(val === "none" ? "" : String(val))}>
-              <SelectTrigger className="mt-1 w-full h-12 rounded-none border border-border bg-card px-3 text-body text-card-foreground" dir="rtl">
+              <SelectTrigger className="input" dir="rtl">
                 <SelectValue placeholder="بدون هنرمند">
                   {(value) => {
                     const artist = artists.find((item) => item.id === value);
@@ -316,24 +308,23 @@ export function ManualReserveModal({
           </div>
         )}
 
-        <div>
-          <Label className="text-caption" htmlFor="mr-note">یادداشت داخلی (اختیاری)</Label>
-          <Input id="mr-note"
+        <label className="field" style={{ marginTop: 14 }}>
+          <span>یادداشت داخلی (اختیاری)</span>
+          <input className="input"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="مثلاً حساسیت، درخواست خاص مشتری"
             maxLength={500}
-            className="mt-1"
           />
-        </div>
+        </label>
 
         {selectedService && expectedEndTime && endTime !== expectedEndTime && (
-          <div className="rounded-none border border-border bg-muted/40 px-3 py-2 text-small text-muted-foreground flex items-center justify-between gap-2">
-            <span>برای رعایت تنظیمات سالن، ساعت پایان باید {toPersianDigits(expectedEndTime)} باشد</span>
+          <div className="panel" style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+            <span className="t-s">ساعت پایان باید <span className="ltr num">{toPersianDigits(expectedEndTime)}</span> باشد</span>
             <button
               type="button"
               onClick={() => setEndTime(expectedEndTime)}
-              className="text-caption font-normal text-primary shrink-0"
+              className="btn ghost sm"
             >
               اصلاح
             </button>
@@ -341,18 +332,18 @@ export function ManualReserveModal({
         )}
 
         {endTime && startTime && endTime <= startTime && (
-          <p role="alert" className="text-small text-destructive text-center">ساعت پایان باید بعد از ساعت شروع باشد</p>
+          <p role="alert" className="t-s center" style={{ color: "var(--wine-hi)", marginTop: 8 }}>ساعت پایان باید بعد از ساعت شروع باشد</p>
         )}
-        {submitError && <p role="alert" className="text-caption text-destructive text-center">{submitError}</p>}
+        {submitError && <p role="alert" className="t-s center" style={{ color: "var(--wine-hi)", marginTop: 8 }}>{submitError}</p>}
       </div>
 
-      <div className="flex gap-2 mt-5">
-        <Button onClick={handleSubmit} className="flex-1" disabled={!isValid || isSubmitting} aria-busy={isSubmitting}>
-          {isSubmitting ? "در حال ثبت..." : selectedService ? `ثبت رزرو · ${formatPrice(Number(selectedService.price))} تومان` : "ثبت رزرو"}
-        </Button>
-        <Button variant="outline" onClick={onClose} className="flex-1" disabled={isSubmitting}>
+      <div className="row" style={{ gap: 10, marginTop: 18 }}>
+        <button type="button" className="btn pri" style={{ flex: 1 }} onClick={handleSubmit} disabled={!isValid || isSubmitting} aria-busy={isSubmitting}>
+          {isSubmitting ? "در حال ثبت..." : selectedService ? `ثبت رزرو · ${formatPrice(Number(selectedService.price))}` : "ثبت رزرو"}
+        </button>
+        <button type="button" className="btn gl" style={{ flex: 1 }} onClick={onClose} disabled={isSubmitting}>
           انصراف
-        </Button>
+        </button>
       </div>
     </BottomSheet>
   );

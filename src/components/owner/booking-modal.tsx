@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { User, Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Trash2, AlertTriangle, CheckCircle2, XCircle, Loader, X } from "lucide-react";
+import { Phone, MessageSquare, Wrench, Calendar, Clock, DollarSign, Trash2, AlertTriangle, CheckCircle2, XCircle, Loader } from "lucide-react";
+import { Monogram } from "@/components/ui/nail";
 import { formatPrice, toPersianDigits, formatJalaliDateShort, gregorianToJalali, PERSIAN_MONTHS } from "@/lib/jalali";
 import { calculateBookingPrice } from "@/lib/pricing";
 import { STATUS_CONFIG, STATUS_CONFIG_DARK, themeColor } from "@/lib/design-tokens";
@@ -9,8 +10,7 @@ import { VALID_TRANSITIONS } from "@/lib/constants";
 import { useIsDark } from "@/lib/hooks/use-is-dark";
 import { parseGregorianDateKey, getTehranDateKey } from "@/lib/time";
 import { generateTimeSlots, type WorkingHours } from "@/lib/slots";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Booking, Service, Addon } from "@/lib/types";
@@ -203,56 +203,32 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
   /* Category icon tints: neutral tokens (same recipe as customer list rows);
      price keeps its semantic warning tint. Status colors stay categorical via
      design-tokens (STATUS_CONFIG). */
-  const addonColor = t("text-muted-foreground", "text-muted-foreground");
-  const phoneColor = t("text-muted-foreground", "text-muted-foreground");
-  const calendarColor = t("text-muted-foreground", "text-muted-foreground");
-  const priceColor = t("text-warning", "text-warning");
   const paidColor = t("text-success", "text-success");
   const deleteColor = t("text-destructive", "text-destructive");
   const deleteHover = t("text-destructive", "text-destructive");
-  const subtleBg = t("bg-black/[0.02]", "bg-white/[0.02]");
-  const subtleBg2 = t("bg-black/[0.03]", "bg-white/[0.03]");
-  const subtleBg3 = t("bg-black/[0.05]", "bg-white/[0.05]");
-  const subtleBorder = t("border-black/[0.06]", "border-white/[0.06]");
-  const subtleBorder2 = t("border-black/[0.04]", "border-white/[0.04]");
-  const textMuted = t("text-black/35", "text-white/35");
-  const textMuted2 = t("text-black/40", "text-white/40");
 
   return (
-    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent showCloseButton={false} className="max-w-[340px] bg-card">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3.5">
-          <div className="flex items-center gap-2">
-            <DialogTitle className="text-body-lg font-normal">جزئیات نوبت</DialogTitle>
-            <span className={`text-small font-normal text-muted-foreground ${subtleBg2} px-2 py-0.5 rounded-none`} dir="ltr">{shortId}</span>
-          </div>
-          <button onClick={onClose} aria-label="بستن" className={`tap-44 w-7 h-7 rounded-none ${subtleBg2} flex items-center justify-center`}>
-            <X className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-          </button>
-        </div>
-
+    <>
+    <BottomSheet open onClose={onClose} title="جزئیات نوبت" sub={<span className="ltr num t-s">{shortId}</span>}>
         {/* Customer */}
-        <div className={`flex items-center justify-between p-2.5 ${subtleBg} rounded-none mb-3`}>
-          <div className="flex items-center gap-2.5">
-            <div className={`w-9 h-9 rounded-none ${subtleBg3} flex items-center justify-center`}>
-              <User className={`h-4 w-4 ${textMuted}`} />
-            </div>
+        <div className="row" style={{ justifyContent: "space-between", padding: "2px 0 4px" }}>
+          <div className="row" style={{ gap: 10 }}>
+            <Monogram name={booking.customer_name} size={44} />
             <div>
-              <div className="text-caption font-normal">{booking.customer_name}</div>
-              <div className="text-small text-muted-foreground mt-px" dir="ltr">{toPersianDigits(booking.customer_phone)}</div>
+              <div style={{ fontSize: 16 }}>{booking.customer_name}</div>
+              <div className="t-s ltr num">{toPersianDigits(booking.customer_phone)}</div>
             </div>
           </div>
-          <div className="flex gap-1">
+          <div className="row" style={{ gap: 6 }}>
             <button onClick={() => window.open(`sms:${booking.customer_phone}`, "_self")}
               aria-label={`ارسال پیامک به ${booking.customer_name || booking.customer_phone}`}
-              className={`tap-44 w-8 h-8 rounded-none border ${subtleBorder} bg-card flex items-center justify-center`}>
-              <MessageSquare className={`h-3.5 w-3.5 ${addonColor}`} />
+              className="iconbtn bare">
+              <MessageSquare size={17} strokeWidth={1.5} />
             </button>
             <button onClick={() => window.open(`tel:${booking.customer_phone}`, "_self")}
               aria-label={`تماس با ${booking.customer_name || booking.customer_phone}`}
-              className={`tap-44 w-8 h-8 rounded-none border ${subtleBorder} bg-card flex items-center justify-center`}>
-              <Phone className={`h-3.5 w-3.5 ${phoneColor}`} />
+              className="iconbtn bare">
+              <Phone size={17} strokeWidth={1.5} />
             </button>
           </div>
         </div>
@@ -287,15 +263,14 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
               </>
             )}
             {editingMeta && (
-              <div className="rounded-none border border-border p-3 space-y-3">
+              <div className="panel" style={{ marginTop: 10 }}>
                 {artists.length > 0 && (
-                  <div>
-                    <label className="text-caption text-muted-foreground" htmlFor="bm-artist">هنرمند</label>
+                  <label className="field">
+                    <span>هنرمند</span>
                     <select
-                      id="bm-artist"
+                      className="input"
                       value={metaArtistId || "none"}
                       onChange={(e) => setMetaArtistId(e.target.value === "none" ? "" : e.target.value)}
-                      className="mt-1 h-11 w-full rounded-none border border-input bg-card px-3 text-sm"
                     >
                       <option value="none">بدون هنرمند</option>
                       {artists.map((a) => (
@@ -304,26 +279,26 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
                         </option>
                       ))}
                     </select>
-                  </div>
+                  </label>
                 )}
-                <div>
-                  <label className="text-caption text-muted-foreground" htmlFor="bm-note">یادداشت داخلی</label>
-                  <Input
-                    id="bm-note"
+                <label className="field" style={{ marginTop: 12 }}>
+                  <span>یادداشت داخلی</span>
+                  <input
+                    className="input"
                     value={metaNote}
                     onChange={(e) => setMetaNote(e.target.value)}
                     placeholder="مثلاً حساسیت، درخواست خاص مشتری"
                     maxLength={500}
-                    className="mt-1"
                   />
-                </div>
-                {metaError && <p role="alert" className="text-small text-destructive">{metaError}</p>}
-                <div className="flex gap-2">
+                </label>
+                {metaError && <p role="alert" className="t-s" style={{ color: "var(--wine-hi)", marginTop: 8 }}>{metaError}</p>}
+                <div className="row" style={{ gap: 10, marginTop: 14 }}>
                   <button
                     type="button"
                     onClick={saveMetaEdit}
                     disabled={metaSaving}
-                    className="flex-1 h-11 rounded-none bg-primary text-sm font-normal text-primary-foreground disabled:opacity-50"
+                    className="btn pri sm"
+                    style={{ flex: 1 }}
                   >
                     {metaSaving ? "در حال ذخیره..." : "ذخیره"}
                   </button>
@@ -331,7 +306,8 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
                     type="button"
                     onClick={() => setEditingMeta(false)}
                     disabled={metaSaving}
-                    className="flex-1 h-11 rounded-none border border-border text-sm font-normal"
+                    className="btn gl sm"
+                    style={{ flex: 1 }}
                   >
                     انصراف
                   </button>
@@ -342,61 +318,47 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
         )}
 
         {/* Details */}
-        <div className="mb-3">
-          <div className={`py-[7px] border-b ${subtleBorder2}`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <div className={`w-6 h-6 rounded-none ${subtleBg2} flex items-center justify-center`}>
-                  <Wrench className={`h-[11px] w-[11px] ${textMuted2}`} />
-                </div>
-                <span className="text-small font-normal">{booking.service?.name || "نامشخص"}</span>
-              </div>
-              {selectedAddons.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {selectedAddons.map((addon) => (
-                    <span key={addon!.id} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-none text-small font-normal`}
-                      style={{ backgroundColor: `${addonColor}` + "10", color: addonColor as string }}>
-                      {addon!.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
+        <div className="list" style={{ marginTop: 12 }}>
+          <div className="sum">
+            <span className="row" style={{ gap: 8 }}>
+              <Wrench size={15} strokeWidth={1.5} className="mute" />
+              {booking.service?.name || "نامشخص"}
+            </span>
+            {selectedAddons.length > 0 && (
+              <span className="row" style={{ gap: 6 }}>
+                {selectedAddons.map((addon) => (
+                  <span key={addon!.id} className="badge tone-mute">{addon!.name}</span>
+                ))}
+              </span>
+            )}
           </div>
 
           {/* Date & Time */}
-          <div className={`py-[7px] border-b ${subtleBorder2}`}>
-            <div className="flex items-center gap-1.5">
-              <div className={`w-6 h-6 rounded-none flex items-center justify-center`} style={{ backgroundColor: `${calendarColor}14` }}>
-                <Calendar className={`h-[11px] w-[11px]`} style={{ color: calendarColor as string }} />
-              </div>
-              <span className="text-small font-normal">{shortDate}</span>
-              <span className="text-small text-muted-foreground mx-1">•</span>
-              <Clock className="h-3 w-3 text-muted-foreground" />
-              <span className="text-small text-muted-foreground">{toPersianDigits(booking.start_time.slice(0, 5))} – {toPersianDigits(booking.end_time.slice(0, 5))}</span>
-              <span className="text-small text-muted-foreground ms-auto">{toPersianDigits(duration)} دقیقه</span>
-            </div>
+          <div className="sum">
+            <span className="row" style={{ gap: 8 }}>
+              <Calendar size={15} strokeWidth={1.5} className="mute" />
+              {shortDate}
+            </span>
+            <span className="t-s num">
+              {toPersianDigits(booking.start_time.slice(0, 5))} – {toPersianDigits(booking.end_time.slice(0, 5))} · {toPersianDigits(duration)} دقیقه
+            </span>
           </div>
 
           {/* Price */}
-          <div className="py-[7px]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <div className={`w-6 h-6 rounded-none flex items-center justify-center`} style={{ backgroundColor: `${priceColor}14` }}>
-                  <DollarSign className={`h-[11px] w-[11px]`} style={{ color: priceColor as string }} />
-                </div>
-                <span className="text-small font-normal">هزینه</span>
-              </div>
-              <span className="text-small font-normal" style={{ color: priceColor as string }}>{formatPrice(Number(price))} تومان</span>
-            </div>
+          <div className="sum">
+            <span className="row" style={{ gap: 8 }}>
+              <DollarSign size={15} strokeWidth={1.5} className="mute" />
+              هزینه
+            </span>
+            <b className="num" style={{ fontWeight: 400, color: "var(--gold)" }}>{formatPrice(Number(price))}</b>
           </div>
         </div>
 
         {/* Status + Paid Toggle */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="row" style={{ justifyContent: "space-between", marginTop: 14 }}>
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-none bg-muted text-small font-normal">
-              <statusConfig.Icon className="h-3.5 w-3.5" style={{ color: statusConfig.color }} />
+            <DropdownMenuTrigger className="chip">
+              <statusConfig.Icon size={15} strokeWidth={1.5} style={{ color: statusConfig.color }} />
               <span style={{ color: statusConfig.color }}>{statusConfig.label}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="min-w-[140px]">
@@ -435,28 +397,27 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="row" style={{ gap: 10, marginTop: 16 }}>
           {canReschedule && (
             <button onClick={() => { setRescheduling((v) => !v); setReschedError(""); }}
               aria-expanded={rescheduling}
-              className="flex-1 py-2.5 rounded-none text-small font-normal flex items-center justify-center gap-1.5 border border-border bg-card">
-              <Calendar className="h-3.5 w-3.5" />
+              className="btn gl sm"
+              style={{ flex: 1 }}>
+              <Calendar size={16} strokeWidth={1.5} />
               جابه‌جایی
             </button>
           )}
           <button onClick={() => setDeleteOpen(true)}
-            className={`flex-1 py-2.5 rounded-none text-small font-normal flex items-center justify-center gap-1.5`}
-            style={{ backgroundColor: `${deleteColor}14`, color: deleteColor as string }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = `${deleteColor}1F`)}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = `${deleteColor}14`)}>
-            <Trash2 className="h-3.5 w-3.5" />
+            className="btn danger sm"
+            style={{ flex: 1 }}>
+            <Trash2 size={16} strokeWidth={1.5} />
             حذف نوبت
           </button>
         </div>
 
         {canReschedule && rescheduling && (
-          <div className="mt-3 rounded-none border border-border p-3">
-            <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="panel" style={{ marginTop: 12 }}>
+            <div className="row" style={{ gap: 8, overflowX: "auto", paddingBottom: 10 }}>
               {reschedDays.map((key) => {
                 const j = gregorianToJalali(parseGregorianDateKey(key));
                 const sel = key === reschedDate;
@@ -467,25 +428,26 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
                     onClick={() => setReschedDate(key)}
                     aria-pressed={sel}
                     aria-label={`${toPersianDigits(j.jd)} ${PERSIAN_MONTHS[j.jm - 1]}`}
-                    className={`flex h-14 min-w-[52px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-none border px-2 text-xs font-normal ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}
+                    className={`chip${sel ? " on" : ""}`}
+                    style={{ flex: "none", flexDirection: "column", gap: 2, minHeight: 56, minWidth: 58 }}
                   >
-                    <span className="text-base leading-none">{toPersianDigits(j.jd)}</span>
-                    <span className={`text-micro leading-none ${sel ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{PERSIAN_MONTHS[j.jm - 1].slice(0, 5)}</span>
+                    <b className="num" style={{ fontWeight: 400, fontSize: 17 }}>{toPersianDigits(j.jd)}</b>
+                    <span className="mute" style={{ fontSize: 11 }}>{PERSIAN_MONTHS[j.jm - 1].slice(0, 5)}</span>
                   </button>
                 );
               })}
             </div>
             {reschedSlots.length === 0 ? (
-              <p className="py-3 text-center text-xs text-muted-foreground">در این روز ساعت آزادی نیست.</p>
+              <p className="empty">در این روز ساعت آزادی نیست.</p>
             ) : (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="slots">
                 {reschedSlots.map((s) => (
                   <button
                     key={s.time}
                     type="button"
                     disabled={isMoving}
                     onClick={() => handleMove(s.time)}
-                    className="flex h-11 items-center justify-center rounded-none border border-border bg-card text-sm font-normal tabular-nums disabled:opacity-50"
+                    className="slot num"
                   >
                     {toPersianDigits(s.time)}
                   </button>
@@ -493,18 +455,18 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
               </div>
             )}
             {reschedError && (
-              <p role="alert" className="mt-2 text-center text-xs text-destructive">{reschedError}</p>
+              <p role="alert" className="t-s center" style={{ color: "var(--wine-hi)", marginTop: 8 }}>{reschedError}</p>
             )}
           </div>
         )}
 
         {/* Created at */}
         {createdAtTime && (
-          <p className="text-small text-muted-foreground text-center mt-2">
+          <p className="t-s center" style={{ marginTop: 12 }}>
             ثبت‌شده در ساعت {createdAtTime}
           </p>
         )}
-      </DialogContent>
+      </BottomSheet>
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -531,6 +493,6 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Dialog>
+    </>
   );
 }

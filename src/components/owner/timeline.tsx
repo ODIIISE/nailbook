@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Card } from "@/components/ui/card";
 import { User, Ban, Clock, CreditCard, CheckCircle2, Loader, XCircle, Layers, DollarSign, Calendar, AlertTriangle } from "lucide-react";
 import { formatPrice, toPersianDigits } from "@/lib/jalali";
 import { getTehranNow } from "@/lib/time";
@@ -209,7 +208,7 @@ export function Timeline({
   const laneAssignments = useMemo(() => assignLanes(bookings), [bookings]);
 
   return (
-    <Card className="overflow-hidden">
+    <div className="overflow-hidden" style={{ border: "1px solid var(--line)", borderRadius: 18, background: "#ffffff06" }}>
       <div className="relative" style={{ height: totalHeight }}>
         {/* Hour labels */}
         {hourMarks.map((hour, i) => (
@@ -432,7 +431,7 @@ export function Timeline({
           </div>
         )}
       </div>
-    </Card>
+    </div>
   );
 }
 

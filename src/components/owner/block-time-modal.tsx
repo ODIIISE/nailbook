@@ -1,9 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { getIranWeekDay } from "@/lib/slots";
 import type { WorkingHours } from "@/lib/slots";
@@ -90,67 +87,63 @@ export function BlockTimeModal({ date, workingHours, onBlock, onCancel }: BlockT
 
   return (
     <BottomSheet open={true} onClose={onCancel} title="مسدود کردن زمان">
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div>
-          <Label className="text-sm" htmlFor="block-date">روز</Label>
+      <form onSubmit={handleSubmit}>
+        <label className="field">
+          <span>روز</span>
           <select
-            id="block-date"
+            className="input"
             value={dateKey}
             onChange={(e) => handleDateChange(e.target.value)}
-            className="mt-1 h-11 w-full rounded-none border border-input bg-card px-3 text-sm"
           >
             {dayOptions.map((d) => (
               <option key={d.key} value={d.key}>{d.label}</option>
             ))}
           </select>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label htmlFor="block-start" className="text-sm">از ساعت</Label>
-            <Input
-              id="block-start"
+        </label>
+        <div className="row" style={{ gap: 10, marginTop: 14 }}>
+          <label className="field" style={{ flex: 1 }}>
+            <span>از ساعت</span>
+            <input
+              className="input ltr"
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="mt-1 text-center"
-              dir="ltr"
+              style={{ textAlign: "center" }}
             />
-          </div>
-          <div>
-            <Label htmlFor="block-end" className="text-sm">تا ساعت</Label>
-            <Input
-              id="block-end"
+          </label>
+          <label className="field" style={{ flex: 1 }}>
+            <span>تا ساعت</span>
+            <input
+              className="input ltr"
               type="time"
               value={endTime}
               onChange={(e) => {
                 setEndTime(e.target.value);
                 setTimeError("");
               }}
-              className="mt-1 text-center"
-              dir="ltr"
+              style={{ textAlign: "center" }}
               aria-invalid={Boolean(timeError)}
             />
-          </div>
+          </label>
         </div>
-        {timeError && <p className="text-small text-destructive" role="alert">{timeError}</p>}
-        <div>
-          <Label htmlFor="block-reason" className="text-sm">دلیل (اختیاری)</Label>
-          <Input
-            id="block-reason"
+        {timeError && <p className="t-s" style={{ color: "var(--wine-hi)", marginTop: 8 }} role="alert">{timeError}</p>}
+        <label className="field" style={{ marginTop: 14 }}>
+          <span>دلیل (اختیاری)</span>
+          <input
+            className="input"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="مثلاً جلسه، مرخصی، تعمیرات"
             maxLength={100}
-            className="mt-1"
           />
-        </div>
-        <div className="flex gap-2">
-          <Button type="submit" size="lg" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-none">
+        </label>
+        <div className="row" style={{ gap: 10, marginTop: 18 }}>
+          <button type="submit" className="btn pri" style={{ flex: 1 }}>
             مسدود کن
-          </Button>
-          <Button type="button" size="lg" variant="outline" onClick={onCancel} className="flex-1">
+          </button>
+          <button type="button" className="btn gl" style={{ flex: 1 }} onClick={onCancel}>
             انصراف
-          </Button>
+          </button>
         </div>
       </form>
     </BottomSheet>
