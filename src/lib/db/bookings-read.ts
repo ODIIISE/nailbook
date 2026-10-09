@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyOwner } from "@/lib/owner-auth";
+import { verifyStaff, can } from "@/lib/owner-auth";
 import { verifyCustomerSessionWithVersion } from "@/lib/customer-auth";
 import { resolveSalonId } from "@/lib/multi-tenant";
 
@@ -12,6 +12,28 @@ import { resolveSalonId } from "@/lib/multi-tenant";
  */
 const ACTIVE_STATUSES = ["reserved", "confirmed", "in_progress"];
 
+/** artist_id / note (migrations 025/026) are absent until the runner applies
+ *  them. Reads try the full column list first and retry without the extras
+ *  on 42703 so pre-migration deployments keep serving instead of 500ing. */
+function isMissingColumn(error: unknown): boolean {
+  const code = (error as { code?: string })?.code;
+  const message = String((error as { message?: string })?.message || "");
+  return code === "42703" || /column .* does not exist/i.test(message);
+}
+
+async function queryBookings(
+  withExtras: string,
+  withoutExtras: string,
+  params: unknown[]
+): Promise<{ rows: { date_gregorian: string | null; [key: string]: unknown }[] }> {
+  try {
+    return await sql.query(withExtras, params);
+  } catch (error) {
+    if (!isMissingColumn(error)) throw error;
+    return await sql.query(withoutExtras, params);
+  }
+}
+
 function splitDateKeys<T extends { date_gregorian: string | null }>(rows: T[]): T[] {
   return rows.map((r) => ({
     ...r,
@@ -21,38 +43,79 @@ function splitDateKeys<T extends { date_gregorian: string | null }>(rows: T[]): 
 
 export async function readBookingsPayload(request: NextRequest): Promise<NextResponse> {
   try {
-    const owner = await verifyOwner(request);
+    const staff = await verifyStaff(request);
     const salonId = await resolveSalonId();
-    if (!owner && !salonId) {
+    if (!staff && !salonId) {
       return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
     }
+    // Owner + manager see the full timeline; artists see only their assigned
+    // bookings (artist_id match) below. Plain customers fall through to the
+    // availability + own-history merge.
+    const canSeeTimeline = staff !== null && can(staff.roles, "timeline.all");
 
     // Cursor pagination: `before` is a created_at ISO timestamp; responses
     // return rows older than it so the owner UI can page past the ceiling.
     const url = new URL(request.url);
     const beforeParam = url.searchParams.get("before");
     const limitParam = Number(url.searchParams.get("limit"));
-    const limit = owner
+    const limit = canSeeTimeline
       ? Number.isFinite(limitParam) && limitParam > 0 ? Math.min(Math.floor(limitParam), 1000) : 200
       : 1000;
 
-    if (owner) {
+    if (canSeeTimeline) {
       const params: unknown[] = salonId ? [salonId] : [];
       let beforeClause = "";
       if (beforeParam && !Number.isNaN(Date.parse(beforeParam))) {
         params.push(beforeParam);
         beforeClause = ` AND created_at < $${params.length}`;
       }
-      const result = await sql.query(
-        `SELECT id, service_id, selected_addons, customer_name, customer_phone,
+      const columns = `id, user_id, service_id, selected_addons, customer_name, customer_phone,
                 date, date_gregorian::text as date_gregorian, start_time, end_time, status, paid,
-                phone_verified, created_at, service_name, price_total
+                phone_verified, created_at, service_name, price_total`;
+      const result = await queryBookings(
+        `SELECT ${columns}, artist_id, note
+         FROM bookings
+         WHERE ${salonId ? "salon_id = $1 AND " : ""}date_gregorian >= (CURRENT_DATE - INTERVAL '30 days')${beforeClause}
+         ORDER BY created_at DESC
+         LIMIT ${limit}`,
+        `SELECT ${columns}
          FROM bookings
          WHERE ${salonId ? "salon_id = $1 AND " : ""}date_gregorian >= (CURRENT_DATE - INTERVAL '30 days')${beforeClause}
          ORDER BY created_at DESC
          LIMIT ${limit}`,
         params
       );
+      return NextResponse.json(splitDateKeys(result.rows));
+    }
+
+    if (staff) {
+      // Artist scope: assigned bookings only. No availability merge — the
+      // client already holds the public calendar from the bootstrap payload.
+      const params: unknown[] = salonId ? [salonId, staff.id] : [staff.id];
+      const idParam = salonId ? "$2" : "$1";
+      const columns = `id, user_id, service_id, selected_addons, customer_name, customer_phone,
+              date, date_gregorian::text as date_gregorian, start_time, end_time, status, paid,
+              phone_verified, created_at, service_name, price_total`;
+      const result = await queryBookings(
+        `SELECT ${columns}, artist_id, note
+         FROM bookings
+         WHERE ${salonId ? "salon_id = $1 AND " : ""}artist_id = ${idParam}
+           AND date_gregorian >= (CURRENT_DATE - INTERVAL '30 days')
+         ORDER BY date_gregorian, start_time
+         LIMIT 200`,
+        `SELECT ${columns}
+         FROM bookings
+         WHERE ${salonId ? "salon_id = $1 AND " : ""}artist_id = ${idParam}
+           AND date_gregorian >= (CURRENT_DATE - INTERVAL '30 days')
+         ORDER BY date_gregorian, start_time
+         LIMIT 200`,
+        params
+      ).catch((error) => {
+        // Pre-025 databases have no artist_id column at all — an artist login
+        // there has no assigned rows to show, which is an empty list, not a 500.
+        if (!isMissingColumn(error)) throw error;
+        return { rows: [] as { date_gregorian: string | null; [key: string]: unknown }[] };
+      });
       return NextResponse.json(splitDateKeys(result.rows));
     }
 
@@ -102,7 +165,15 @@ export async function readBookingsPayload(request: NextRequest): Promise<NextRes
       ownParams.push(salonId);
       ownSalonClause = ` AND salon_id = $${ownParams.length}`;
     }
-    const { rows: ownRows } = await sql.query(
+    const { rows: ownRows } = await queryBookings(
+      `SELECT id, user_id, service_id, selected_addons, customer_name, customer_phone,
+              date, date_gregorian::text as date_gregorian, start_time, end_time, status, paid,
+              phone_verified, created_at, service_name, price_total, artist_id, note
+       FROM bookings
+       WHERE (user_id = $1 OR customer_phone = $2)${ownSalonClause}
+         AND date_gregorian >= (CURRENT_DATE - INTERVAL '30 days')
+       ORDER BY created_at DESC
+       LIMIT 200`,
       `SELECT id, user_id, service_id, selected_addons, customer_name, customer_phone,
               date, date_gregorian::text as date_gregorian, start_time, end_time, status, paid,
               phone_verified, created_at, service_name, price_total

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { getSalonId } from "@/lib/multi-tenant";
-import { normalizeOptimizerSettings } from "@/lib/salon-settings";
+import { normalizeDaysOffReasons, normalizeOptimizerSettings } from "@/lib/salon-settings";
 
 export async function GET() {
   try {
@@ -25,6 +25,7 @@ export async function GET() {
                     early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
                     allow_overflow, overflow_minutes, specific_days_off,
                     optimization_mode, suggestion_limit, min_useful_gap_minutes,
+                    cancel_hours, lead_minutes, days_off_reasons,
                     splash_title, splash_slogan, splash_logo_url,
                     homepage_kicker, homepage_cta_label, homepage_micro, lookbook_title, booking_success_title
              FROM salons ${whereClause}`,
@@ -36,6 +37,7 @@ export async function GET() {
                    early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
                    allow_overflow, overflow_minutes, specific_days_off,
                    optimization_mode, suggestion_limit, min_useful_gap_minutes,
+                   cancel_hours, lead_minutes, days_off_reasons,
                    splash_title, splash_slogan, splash_logo_url,
                    homepage_kicker, homepage_cta_label, homepage_micro, lookbook_title, booking_success_title
             FROM salon_info LIMIT 1
@@ -154,6 +156,12 @@ export async function GET() {
       overflow_minutes: s.overflow_minutes ?? 0,
       ...optimizerSettings,
       specific_days_off: s.specific_days_off,
+      // Scheduling policy extras (migration 027). Pre-migration rows fall
+      // through the 42703 fallback above with these columns absent — the
+      // client normalizer applies the same defaults.
+      cancel_hours: Number.isFinite(Number(s.cancel_hours)) ? Number(s.cancel_hours) : 24,
+      lead_minutes: Number.isFinite(Number(s.lead_minutes)) ? Number(s.lead_minutes) : 30,
+      days_off_reasons: normalizeDaysOffReasons(s.days_off_reasons),
     });
   } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { getSalonId, resolveSalonId } from "@/lib/multi-tenant";
-import { normalizeOptimizerSettings } from "@/lib/salon-settings";
+import { normalizeDaysOffReasons, normalizeOptimizerSettings } from "@/lib/salon-settings";
 
 /**
  * Consolidated initial payload — /api/read/bootstrap?scope=home|all
@@ -57,6 +57,7 @@ async function loadSalon(): Promise<SalonLoad> {
                   early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
                   allow_overflow, overflow_minutes, specific_days_off,
                   optimization_mode, suggestion_limit, min_useful_gap_minutes,
+                  cancel_hours, lead_minutes, days_off_reasons,
                   splash_title, splash_slogan, splash_logo_url,
                   homepage_kicker, homepage_cta_label, homepage_micro, lookbook_title, booking_success_title
            FROM salons ${whereClause}`,
@@ -68,6 +69,7 @@ async function loadSalon(): Promise<SalonLoad> {
                  early_extra_hours, late_extra_hours, expand_threshold, proximity_window_hours,
                  allow_overflow, overflow_minutes, specific_days_off,
                  optimization_mode, suggestion_limit, min_useful_gap_minutes,
+                 cancel_hours, lead_minutes, days_off_reasons,
                  splash_title, splash_slogan, splash_logo_url,
                  homepage_kicker, homepage_cta_label, homepage_micro, lookbook_title, booking_success_title
           FROM salon_info LIMIT 1
@@ -191,6 +193,9 @@ function composeSalon(load: SalonLoad, homeGalleryUrls: Array<string | null>, he
     overflow_minutes: s.overflow_minutes ?? 0,
     ...optimizerSettings,
     specific_days_off: s.specific_days_off,
+    cancel_hours: Number.isFinite(Number(s.cancel_hours)) ? Number(s.cancel_hours) : 24,
+    lead_minutes: Number.isFinite(Number(s.lead_minutes)) ? Number(s.lead_minutes) : 30,
+    days_off_reasons: normalizeDaysOffReasons(s.days_off_reasons),
   };
 }
 
@@ -330,14 +335,31 @@ async function loadBookings(request: NextRequest): Promise<unknown[] | null> {
 async function loadBlockedTimes(): Promise<Array<Record<string, unknown>> | null> {
   try {
     const salonId = await resolveSalonId();
-    const { rows } = salonId
-      ? await sql.query(
-          `SELECT date_gregorian, start_time, end_time
-           FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian`,
-          [salonId]
-        )
-      : await sql`SELECT date_gregorian, start_time, end_time FROM blocked_times ORDER BY date_gregorian`;
-    return rows;
+    try {
+      const { rows } = salonId
+        ? await sql.query(
+            `SELECT date_gregorian, start_time, end_time, reason
+             FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian`,
+            [salonId]
+          )
+        : await sql`SELECT date_gregorian, start_time, end_time, reason FROM blocked_times ORDER BY date_gregorian`;
+      return rows;
+    } catch (error) {
+      // Pre-027 databases have no reason column — serve the base list.
+      // Anything else (e.g. 22P02 on a slug SALON_ID) degrades to null so the
+      // client falls back to /api/read/blocked-times.
+      const code = (error as { code?: string })?.code;
+      const message = String((error as { message?: string })?.message || "");
+      if (code !== "42703" && !/column .* does not exist/i.test(message)) throw error;
+      const { rows } = salonId
+        ? await sql.query(
+            `SELECT date_gregorian, start_time, end_time
+             FROM blocked_times WHERE salon_id = $1 ORDER BY date_gregorian`,
+            [salonId]
+          )
+        : await sql`SELECT date_gregorian, start_time, end_time FROM blocked_times ORDER BY date_gregorian`;
+      return rows;
+    }
   } catch {
     return null;
   }
