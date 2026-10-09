@@ -32,6 +32,10 @@ vi.mock("@/lib/anti-spam", () => ({
   checkAntiSpam: vi.fn(async () => ({ allowed: true })),
 }));
 
+vi.mock("@/lib/db/activity-log", () => ({
+  logActivity: vi.fn(),
+}));
+
 // Never let a stray env value turn resolveSalonId into a real DB lookup.
 beforeAll(() => {
   delete process.env.SALON_ID;
@@ -158,5 +162,66 @@ describe("createBooking validation ladder", () => {
       expect(error.code).toBe("SPAM_DETECTED");
       expect(error.message).toContain("۳ دقیقه");
     }
+  });
+
+  describe("minimum lead time", () => {
+    // Fake transactional client routing each query by its text. Salon row
+    // carries lead_minutes: 120 with Friday hours (2026-08-28 is a Friday).
+    function fakeClient() {
+      const salon = {
+        working_hours: { fri: { open: "09:00", close: "18:00" } },
+        specific_days_off: [],
+        allow_overflow: false,
+        overflow_minutes: 0,
+        slot_buffer_minutes: 0,
+        slot_interval_minutes: 15,
+        lead_minutes: 120,
+      };
+      return {
+        query: vi.fn(async (text: string) => {
+          if (text.includes("pg_advisory")) return { rows: [] };
+          if (text.includes("FROM services")) {
+            return { rows: [{ duration_minutes: 60, addon_ids: [], name: "کاشت", price: 500 }] };
+          }
+          if (text.includes("FROM salons") || text.includes("FROM salon_info")) return { rows: [salon] };
+          if (text.includes("FROM bookings")) return { rows: [] };
+          if (text.includes("FROM blocked_times")) return { rows: [] };
+          if (text.includes("INSERT INTO bookings")) {
+            return { rows: [{ id: "b-1", start_time: "12:30", end_time: "13:30" }] };
+          }
+          if (/^(BEGIN|COMMIT|ROLLBACK)/.test(text)) return { rows: [] };
+          throw new Error(`unexpected query: ${text.slice(0, 60)}`);
+        }),
+        release: vi.fn(),
+      };
+    }
+
+    async function withClient<T>(fn: () => Promise<T>): Promise<T> {
+      const { sql } = await import("@vercel/postgres");
+      vi.mocked(sql.connect).mockImplementationOnce(async () => fakeClient() as never);
+      return fn();
+    }
+
+    it("rejects same-day starts inside the lead window", async () => {
+      await withClient(async () => {
+        // Now is 10:00, lead is 120m: 10:30 < 12:00 → rejected.
+        await expect(createBooking(
+          { ...futureInput, date_gregorian: "2026-08-28", start_time: "10:30", end_time: "11:30" },
+          "user-1",
+          futureInput.phone
+        )).rejects.toMatchObject({ code: "TIME_IN_PAST" });
+      });
+    });
+
+    it("accepts same-day starts beyond the lead window", async () => {
+      await withClient(async () => {
+        const result = await createBooking(
+          { ...futureInput, date_gregorian: "2026-08-28", start_time: "12:30", end_time: "13:30" },
+          "user-1",
+          futureInput.phone
+        );
+        expect(result).toEqual({ id: "b-1", start_time: "12:30", end_time: "13:30" });
+      });
+    });
   });
 });

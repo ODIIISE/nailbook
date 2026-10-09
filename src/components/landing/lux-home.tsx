@@ -196,6 +196,7 @@ export function LuxHome() {
       optimization_mode: salon.optimization_mode,
       suggestion_limit: salon.suggestion_limit,
       min_useful_gap_minutes: salon.min_useful_gap_minutes,
+      lead_minutes: salon.lead_minutes,
     };
     let best: { date: Date; time: string } | null = null;
     for (const svc of active) {

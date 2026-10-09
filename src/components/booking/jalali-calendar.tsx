@@ -24,6 +24,7 @@ interface JalaliCalendarProps {
     optimization_mode?: "hybrid" | "legacy";
     suggestion_limit?: number;
     min_useful_gap_minutes?: number;
+    lead_minutes?: number;
   };
   workingHours?: WorkingHours;
   bookings?: Array<{ date_gregorian: string; start_time: string; end_time: string; status?: string }>;

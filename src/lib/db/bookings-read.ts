@@ -73,8 +73,9 @@ export async function readBookingsPayload(request: NextRequest): Promise<NextRes
                 date, date_gregorian::text as date_gregorian, start_time, end_time, status, paid,
                 phone_verified, created_at, service_name, price_total`;
       const result = await queryBookings(
-        `SELECT ${columns}, artist_id, note
+        `SELECT ${columns}, artist_id, note, artist_user.name AS artist_name
          FROM bookings
+         LEFT JOIN users AS artist_user ON artist_user.id = bookings.artist_id
          WHERE ${salonId ? "salon_id = $1 AND " : ""}date_gregorian >= (CURRENT_DATE - INTERVAL '30 days')${beforeClause}
          ORDER BY created_at DESC
          LIMIT ${limit}`,
@@ -97,8 +98,9 @@ export async function readBookingsPayload(request: NextRequest): Promise<NextRes
               date, date_gregorian::text as date_gregorian, start_time, end_time, status, paid,
               phone_verified, created_at, service_name, price_total`;
       const result = await queryBookings(
-        `SELECT ${columns}, artist_id, note
+        `SELECT ${columns}, artist_id, note, artist_user.name AS artist_name
          FROM bookings
+         LEFT JOIN users AS artist_user ON artist_user.id = bookings.artist_id
          WHERE ${salonId ? "salon_id = $1 AND " : ""}artist_id = ${idParam}
            AND date_gregorian >= (CURRENT_DATE - INTERVAL '30 days')
          ORDER BY date_gregorian, start_time
@@ -168,8 +170,10 @@ export async function readBookingsPayload(request: NextRequest): Promise<NextRes
     const { rows: ownRows } = await queryBookings(
       `SELECT id, user_id, service_id, selected_addons, customer_name, customer_phone,
               date, date_gregorian::text as date_gregorian, start_time, end_time, status, paid,
-              phone_verified, created_at, service_name, price_total, artist_id, note
+              phone_verified, created_at, service_name, price_total, artist_id, note,
+              artist_user.name AS artist_name
        FROM bookings
+       LEFT JOIN users AS artist_user ON artist_user.id = bookings.artist_id
        WHERE (user_id = $1 OR customer_phone = $2)${ownSalonClause}
          AND date_gregorian >= (CURRENT_DATE - INTERVAL '30 days')
        ORDER BY created_at DESC

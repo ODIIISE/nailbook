@@ -2,7 +2,7 @@ import { sql, VercelPoolClient } from "@vercel/postgres";
 import { logActivity } from "@/lib/db/activity-log";
 import { checkAntiSpam } from "@/lib/anti-spam";
 import { BookingError, createBookingError } from "./errors";
-import { gregorianToJalali } from "@/lib/jalali";
+import { gregorianToJalali, toPersianDigits } from "@/lib/jalali";
 import { parseGregorianDateKey, getTehranNow } from "@/lib/time";
 import type { BookingRequestInput } from "./schema";
 import { resolveSalonId } from "@/lib/multi-tenant";
@@ -24,6 +24,7 @@ interface SalonInfo {
   overflow_minutes?: number;
   slot_buffer_minutes?: number;
   slot_interval_minutes?: number;
+  lead_minutes?: number;
 }
 
 function normalizeTimes(input: BookingRequestInput) {
@@ -116,17 +117,28 @@ async function fetchAddonsDuration(
 
 async function fetchSalonInfo(client: VercelPoolClient): Promise<SalonInfo> {
   const salonId = await resolveSalonId();
-  const result = salonId
-    ? await client.query(
-        `SELECT working_hours, specific_days_off, allow_overflow, overflow_minutes, slot_buffer_minutes, slot_interval_minutes
-         FROM salons WHERE id = $1 LIMIT 1`,
-        [salonId]
-      )
-    : await client.query(
-        `SELECT working_hours, specific_days_off, allow_overflow, overflow_minutes, slot_buffer_minutes, slot_interval_minutes
-         FROM salon_info LIMIT 1`
-      );
-  return (result.rows[0] as SalonInfo) || {};
+  const withLead = salonId
+    ? `SELECT working_hours, specific_days_off, allow_overflow, overflow_minutes, slot_buffer_minutes, slot_interval_minutes, lead_minutes
+       FROM salons WHERE id = $1 LIMIT 1`
+    : `SELECT working_hours, specific_days_off, allow_overflow, overflow_minutes, slot_buffer_minutes, slot_interval_minutes, lead_minutes
+       FROM salon_info LIMIT 1`;
+  const withoutLead = salonId
+    ? `SELECT working_hours, specific_days_off, allow_overflow, overflow_minutes, slot_buffer_minutes, slot_interval_minutes
+       FROM salons WHERE id = $1 LIMIT 1`
+    : `SELECT working_hours, specific_days_off, allow_overflow, overflow_minutes, slot_buffer_minutes, slot_interval_minutes
+       FROM salon_info LIMIT 1`;
+  const params = salonId ? [salonId] : [];
+  try {
+    const result = await client.query(withLead, params);
+    return (result.rows[0] as SalonInfo) || {};
+  } catch (error) {
+    // Pre-027 schemas have no lead_minutes — serve without it (no lead gate).
+    const code = (error as { code?: string })?.code;
+    const message = String((error as { message?: string })?.message || "");
+    if (code !== "42703" && !/column .* does not exist/i.test(message)) throw error;
+    const result = await client.query(withoutLead, params);
+    return (result.rows[0] as SalonInfo) || {};
+  }
 }
 
 function validateEndTimeMatchesService(
@@ -359,6 +371,20 @@ export async function createBooking(
     // edits or service deletion must not rewrite history.
     const priceTotal = service.price + addons.priceTotal;
     const serviceName = service.name;
+
+    // Minimum lead time (migration 027): same-day starts sooner than
+    // now + lead are rejected authoritatively, matching the slot engine.
+    const leadMinutes = Math.max(0, Math.min(240, Math.floor(Number(salonInfo.lead_minutes) || 0)));
+    if (
+      leadMinutes > 0
+      && input.date_gregorian === tehranNow.dateKey
+      && parseMinutes(normStart) < tehranNow.minutes + leadMinutes
+    ) {
+      throw createBookingError(
+        "TIME_IN_PAST",
+        `رزرو باید حداقل ${toPersianDigits(leadMinutes)} دقیقه زودتر ثبت شود`
+      );
+    }
 
     validateEndTimeMatchesService(
       normStart,

@@ -474,6 +474,42 @@ describe("generateTimeSlots - Today Filtering", () => {
       expect(h).toBeGreaterThanOrEqual(10);
     }
   });
+
+  it("should hide same-day slots inside the lead window without touching other days", () => {
+    // getTehranNow returns 10:00 AM; lead 60 hides everything before 11:00.
+    const today = new Date(2026, 6, 14);
+    const slots = generateTimeSlots(
+      standardHours,
+      today,
+      30,
+      0,
+      15,
+      0,
+      [],
+      [],
+      { lead_minutes: 60 }
+    );
+
+    const byTime = new Map(slots.map((s) => [s.time, s]));
+    expect(byTime.get("10:00")?.available).toBe(false);
+    expect(byTime.get("10:30")?.available).toBe(false);
+    expect(byTime.get("11:00")?.available).toBe(true);
+
+    // Tomorrow is unaffected by the lead window.
+    const tomorrow = makeDate(3);
+    const tomorrowSlots = generateTimeSlots(
+      standardHours,
+      tomorrow,
+      30,
+      0,
+      15,
+      0,
+      [],
+      [],
+      { lead_minutes: 60 }
+    );
+    expect(tomorrowSlots.find((s) => s.time === "10:00")?.available).toBe(true);
+  });
 });
 
 describe("generateTimeSlots - Shift Expansion", () => {

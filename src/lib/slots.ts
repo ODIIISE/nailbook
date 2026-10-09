@@ -351,6 +351,10 @@ export function generateTimeSlots(
     optimization_mode?: "hybrid" | "legacy";
     suggestion_limit?: number;
     min_useful_gap_minutes?: number;
+    /** Minimum booking lead time in minutes (migration 027). Same-day slots
+     *  starting sooner than now + lead are unavailable. Staff surfaces omit
+     *  it (default 0) — the override applies to customers, not staff. */
+    lead_minutes?: number;
   } = {},
   specificDaysOff: string[] = []
 ): TimeSlot[] {
@@ -375,6 +379,10 @@ export function generateTimeSlots(
     : 120;
   const configuredOverflow = Number(config.overflow_minutes);
   const safeOverflow = Number.isFinite(configuredOverflow) && configuredOverflow >= 0 ? configuredOverflow : 0;
+  // Same clamp as the update-salon validator (0–240): corrupt values fall
+  // back to no lead time rather than hiding the whole day.
+  const configuredLead = Number(config.lead_minutes);
+  const safeLead = Number.isFinite(configuredLead) && configuredLead > 0 ? Math.min(Math.floor(configuredLead), 240) : 0;
   const cfg: EngineConfig = {
     resolution,
     buffer: safeBuffer,
@@ -463,7 +471,7 @@ export function generateTimeSlots(
     // Service can extend past shift end, but NOT past the hard limit (extra hours)
     // The API stores same-day HH:MM values and does not accept 24:00.
     if (slot.end > hardEndLimit || slot.end >= 24 * 60) continue;
-    if (isToday && m < nowMinutes) continue;
+    if (isToday && m < nowMinutes + safeLead) continue;
 
     candidates.push(slot);
   }
@@ -581,6 +589,7 @@ export function getNearestAvailableSlot(
     optimization_mode?: "hybrid" | "legacy";
     suggestion_limit?: number;
     min_useful_gap_minutes?: number;
+    lead_minutes?: number;
   } = {},
   specificDaysOff: string[] = []
 ): { date: Date; time: string } | null {

@@ -217,6 +217,7 @@ export function BookingFlow({ initialServiceId = null, initialAddons = null, loo
     optimization_mode: salon.optimization_mode,
     suggestion_limit: salon.suggestion_limit,
     min_useful_gap_minutes: salon.min_useful_gap_minutes,
+    lead_minutes: salon.lead_minutes,
   }), [salon]);
 
   const timeSlots = useMemo(() => {

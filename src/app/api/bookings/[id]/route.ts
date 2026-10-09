@@ -15,6 +15,23 @@ function minutesOfDay(timeText: string): number {
   return h * 60 + m;
 }
 
+/**
+ * Free-cancel window (migration 027): customers may cancel only while the
+ * booking starts more than cancel_hours away. Staff keep the override.
+ * Fail-open default 0 preserves the historic behavior on pre-027 schemas.
+ */
+async function getCancelHours(salonId: string | null): Promise<number> {
+  try {
+    const { rows } = salonId
+      ? await sql.query("SELECT cancel_hours FROM salons WHERE id = $1 LIMIT 1", [salonId])
+      : await sql`SELECT cancel_hours FROM salon_info LIMIT 1`;
+    const value = Number(rows[0]?.cancel_hours);
+    return Number.isFinite(value) && value > 0 ? Math.min(Math.floor(value), 72) : 0;
+  } catch {
+    return 0;
+  }
+}
+
 // PATCH: Cancel a booking (owner or the booking's user)
 export async function PATCH(
   request: NextRequest,
@@ -74,6 +91,18 @@ export async function PATCH(
         || (dateText === now.dateKey && minutesOfDay(String(booking.start_time)) < now.minutes)
       ) {
         return NextResponse.json({ error: "نوبت‌های گذشته قابل لغو نیستند" }, { status: 400 });
+      }
+      const cancelHours = await getCancelHours(salonId);
+      if (cancelHours > 0) {
+        const [y, mo, d] = dateText.split("-").map(Number);
+        const [sh, sm] = String(booking.start_time).slice(0, 5).split(":").map(Number);
+        // date_gregorian is a Tehran calendar date: shift back to UTC for an
+        // absolute comparison (fixed +3:30, no DST since 2022).
+        const startMs = Date.UTC(y, mo - 1, d, sh, sm) - 3.5 * 3600 * 1000;
+        const hoursLeft = (startMs - Date.now()) / 3600000;
+        if (hoursLeft < cancelHours) {
+          return NextResponse.json({ error: "مهلت لغو این نوبت گذشته است" }, { status: 409 });
+        }
       }
     }
 
