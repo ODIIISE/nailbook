@@ -16,6 +16,45 @@ function toMinutes(value: string): number {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** Minimal queryable surface shared by pooled and transactional clients. */
+interface BookingMetaClient {
+  query: (text: string, values?: unknown[]) => Promise<{ rows: Array<{ column_name?: unknown }> }>;
+}
+
+/**
+ * Persist a note and/or artist assignment. Only provided keys are written
+ * and only when the columns exist (migrations 025/026) — a no-op otherwise,
+ * so pre-migration databases never 500.
+ */
+async function applyBookingMeta(
+  target: BookingMetaClient,
+  opts: { id: string; salonId: string | null; note: string | undefined; artistId: string | null | undefined }
+): Promise<void> {
+  if (opts.note === undefined && opts.artistId === undefined) return;
+  const { rows: colRows } = await target.query(
+    `SELECT column_name FROM information_schema.columns
+     WHERE table_schema = 'public' AND table_name = 'bookings'
+     AND column_name IN ('artist_id', 'note')`
+  );
+  const cols = new Set(colRows.map((r) => String(r.column_name)));
+  const sets: string[] = [];
+  const vals: unknown[] = [opts.id];
+  if (opts.salonId) vals.push(opts.salonId);
+  if (opts.note !== undefined && cols.has("note")) {
+    vals.push(opts.note);
+    sets.push(`note = $${vals.length}`);
+  }
+  if (opts.artistId !== undefined && cols.has("artist_id")) {
+    vals.push(opts.artistId);
+    sets.push(`artist_id = $${vals.length}`);
+  }
+  if (sets.length === 0) return;
+  await target.query(
+    `UPDATE bookings SET ${sets.join(", ")} WHERE id = $1${opts.salonId ? " AND salon_id = $2" : ""}`,
+    vals
+  );
+}
+
 /** artist_id / note (migrations 025/026) are absent until the runner applies
  *  them. Returns the subset that exists so writes omit the rest instead of
  *  500ing on pre-migration databases. */
@@ -354,25 +393,50 @@ export async function PATCH(request: NextRequest) {
 
     const body = await request.json();
     const { id, date_gregorian, start_time, end_time } = body;
-    if (!id || !date_gregorian || !start_time || !end_time) {
+    if (!id) {
       return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
 
-    const normStart = String(start_time).slice(0, 5);
-    const normEnd = String(end_time).slice(0, 5);
-    if (toMinutes(normEnd) <= toMinutes(normStart)) {
+    // Optional meta update (migrations 025/026): internal note and/or artist
+    // reassignment, alone or alongside a move. Absent keys keep stored
+    // values; explicit null unassigns the artist.
+    const isMove = date_gregorian !== undefined && start_time !== undefined && end_time !== undefined;
+    const isPartialMove = !isMove && (date_gregorian !== undefined || start_time !== undefined || end_time !== undefined);
+    const hasNote = body.note !== undefined;
+    const hasArtist = body.artist_id !== undefined && body.artist_id !== "";
+    if (isPartialMove || (!isMove && !hasNote && !hasArtist)) {
+      return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
+    }
+    if (hasNote && typeof body.note !== "string") {
+      return NextResponse.json({ error: "یادداشت نامعتبر است" }, { status: 400 });
+    }
+    const note = hasNote ? (body.note as string).trim().slice(0, 500) : undefined;
+    let newArtistId: string | null | undefined;
+    if (hasArtist) {
+      if (body.artist_id !== null && !UUID_RE.test(String(body.artist_id))) {
+        return NextResponse.json({ error: "هنرمند یافت نشد" }, { status: 400 });
+      }
+      newArtistId = body.artist_id === null ? null : String(body.artist_id);
+    }
+
+    const normStart = isMove ? String(start_time).slice(0, 5) : "";
+    const normEnd = isMove ? String(end_time).slice(0, 5) : "";
+    if (isMove && toMinutes(normEnd) <= toMinutes(normStart)) {
       return NextResponse.json({ error: "ساعت پایان باید بعد از ساعت شروع باشد" }, { status: 400 });
     }
 
-    const parsedDate = parseGregorianDateKey(String(date_gregorian));
+    const parsedDate = isMove ? parseGregorianDateKey(String(date_gregorian)) : null;
     if (
-      !Number.isFinite(parsedDate.getTime())
-      || parsedDate.toISOString().slice(0, 10) !== String(date_gregorian)
+      isMove && (!parsedDate || !Number.isFinite(parsedDate.getTime())
+      || parsedDate.toISOString().slice(0, 10) !== String(date_gregorian))
     ) {
       return NextResponse.json({ error: "تاریخ نامعتبر است" }, { status: 400 });
     }
 
     const salonId = await resolveSalonId();
+    if (newArtistId && !(await isSalonArtist(newArtistId, salonId))) {
+      return NextResponse.json({ error: "هنرمند یافت نشد" }, { status: 400 });
+    }
 
     // Load the booking to move (service/addons define the expected duration).
     const existingResult = salonId
@@ -386,7 +450,44 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "نوبت یافت نشد" }, { status: 404 });
     }
     if (existing.status === "cancelled" || existing.status === "completed") {
-      return NextResponse.json({ error: "این نوبت قابل جابه‌جایی نیست" }, { status: 409 });
+      return NextResponse.json({ error: "این نوبت قابل ویرایش نیست" }, { status: 409 });
+    }
+
+    if (!isMove) {
+      // Meta-only update: note and/or artist reassignment, no slot checks.
+      client = await sql.connect();
+      await client.query("BEGIN");
+      const rawDay = existing.date_gregorian as unknown;
+      const lockDate = rawDay instanceof Date
+        ? rawDay.toISOString().slice(0, 10)
+        : String(rawDay).slice(0, 10);
+      await client.query(
+        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+        [`${salonId ?? "legacy"}:${lockDate}`]
+      );
+      const lockedResult = salonId
+        ? await client.query(`SELECT id, status FROM bookings WHERE id = $1 AND salon_id = $2 FOR UPDATE`, [id, salonId])
+        : await client.query(`SELECT id, status FROM bookings WHERE id = $1 FOR UPDATE`, [id]);
+      const locked = lockedResult.rows[0];
+      if (!locked) {
+        await client.query("ROLLBACK");
+        return NextResponse.json({ error: "نوبت یافت نشد" }, { status: 404 });
+      }
+      if (locked.status === "cancelled" || locked.status === "completed") {
+        await client.query("ROLLBACK");
+        return NextResponse.json({ error: "این نوبت قابل ویرایش نیست" }, { status: 409 });
+      }
+      await applyBookingMeta(client, { id, salonId, note, artistId: newArtistId });
+      await client.query("COMMIT");
+
+      logActivity({
+        eventType: "booking_updated",
+        entityType: "booking",
+        entityId: id,
+        description: `مدیر نوبت را به‌روزرسانی کرد`,
+        metadata: { date_gregorian: lockDate, artist_id: newArtistId ?? undefined },
+      });
+      return NextResponse.json({ success: true, booking_id: id });
     }
 
     // Same duration math as POST: the move preserves the booked length.
@@ -502,6 +603,9 @@ export async function PATCH(request: NextRequest) {
            RETURNING id, TO_CHAR(date_gregorian, 'YYYY-MM-DD') as date_gregorian, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time`,
       salonId ? [id, date_gregorian, normStart, normEnd, salonId] : [id, date_gregorian, normStart, normEnd]
     );
+
+    // A move may carry a note/artist update with it.
+    await applyBookingMeta(client, { id, salonId, note, artistId: newArtistId });
 
     await client.query("COMMIT");
 
