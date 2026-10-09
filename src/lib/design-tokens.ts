@@ -97,6 +97,20 @@ export function getActivityEventMeta(eventType: string): { dot: string; label: s
   return activityEventMeta.system;
 }
 
+// ── Lacquer gradients (signature colors, migration 030) ──
+// [from, to] gradient stops per lacquer key. Single source for Nail,
+// Monogram, and service/artist identity treatments.
+export const LACQUER_GRADIENTS = {
+  pearl: ["#f3e8d6", "#cdb497"],
+  wine: ["#8c2a3a", "#4a1019"],
+  gold: ["#e8cf96", "#a9813f"],
+  rose: ["#d9aa9a", "#9c6b5d"],
+  mocha: ["#8a6a55", "#3e2c21"],
+  nude: ["#e7c8b4", "#b38e78"],
+  ink: ["#3a302b", "#14100e"],
+} as const;
+export type Lacquer = keyof typeof LACQUER_GRADIENTS;
+
 // ── Theme-aware helper ──
 export function themeColor(light: string, dark: string, isDark: boolean): string {
   return isDark ? dark : light;

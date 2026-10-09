@@ -1,41 +1,17 @@
 @import "tailwindcss";
 @import "shadcn/tailwind.css";
+@import "https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap";
 
 @custom-variant dark (&:is(.dark *));
 
 /* ── Font ── */
 
-/* Estedad FD variable — primary Persian/UI face (wght 100-900, Farsi-digit variant).
-   Vazirmatn kept below as fallback (also covers the swap window). */
-@font-face {
-  font-family: 'Estedad';
-  src: url('https://cdn.jsdelivr.net/gh/aminabedi68/Estedad@v7.3/fonts/webfonts/variable/Estedad-FD%5BKSHD%2Cwght%5D.woff2') format('woff2-variations');
-  font-weight: 100 900;
-  font-display: swap;
-}
-
+/* Vazirmatn variable — the single voice (thin weights carry hierarchy).
+   Estedad retired with the monochrome system. */
 @font-face {
   font-family: 'Vazirmatn';
   src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2') format('woff2');
   font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Vazirmatn';
-  src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Vazirmatn';
-  src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Vazirmatn';
-  src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-ExtraBold.woff2') format('woff2');
-  font-weight: 800;
   font-display: swap;
 }
 
@@ -44,7 +20,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Estedad', 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Vazirmatn', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
   --font-mono: 'SF Mono', SFMono-Regular, Consolas, monospace;
   --color-ring: var(--ring);
   --color-input: var(--input);
@@ -70,14 +46,14 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
-  /* ── Shape system: two families only ──
-     PILL (rounded-full, 999px): primary CTAs, chips, tags, badges, avatars,
-     dots, switch. Everything else is a sharp rectangle (0px) — no ladder,
-     no arbitrary values, no directional feet. */
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
+  /* ── Shape system ──
+     Pill (999px): CTAs, chips, tags, badges, avatars, dots, switches,
+     toasts, mobile nav. Soft rects: panel 22, sheet top 32, input 16,
+     slots 16, drawers square. */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 24px;
 
   /* ── Form Field Heights ── */
   --field-xs: 32px;
@@ -88,10 +64,6 @@
 
   /* ── Component Heights ── */
   --btn-xs: 28px;
-  /* AUDIT-013: 32px icon buttons (shared header toggle + menu, dialog/sheet
-     closes, owner row actions) failed the 44px touch minimum. 44px visual is
-     proportionate at header scale and keeps every icon-sm consumer compliant
-     without a class-by-class sweep. */
   --btn-sm: 44px;
   --btn-md: 36px;
   --btn-lg: 40px;
@@ -100,69 +72,62 @@
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
   /* ══════════════════════════════════════════════════════════════
-     TOKEN ARCHITECTURE — semantic tokens → component tokens.
-     PALETTE = STOCK ASTRYX NEUTRAL (registered via astryx.theme in
-     package.json): every value in the two blocks below mirrors
-     @astryxdesign/theme-neutral's compiled defaults — light here,
-     dark in .dark. Update both blocks together with the theme;
-     never reference raw hex from components; never add a parallel
+     STUDIO THEME (v3) — warm dark cinematic. Single theme: :root and
+     .dark carry identical values so every `dark:` variant keeps working.
+     Layer 1 primitives → Layer 2 semantic (below) → Layer 3 component.
+     Never reference raw hex from components; never add a parallel
      token vocabulary.
      ══════════════════════════════════════════════════════════════ */
 
-  /* ── SEMANTIC — purpose tokens; the ONLY layer components may use ── */
-  /* Astryx neutral · light values */
-  --background: #f1f1f1;
-  --foreground: #000000;
-  --card: #ffffff;
-  --card-foreground: #000000;
-  --popover: #ffffff;
-  --popover-foreground: #000000;
-  --primary: #1b1b1b;
-  --primary-foreground: #ffffff;
-  --secondary: #f1f1f1;
-  --secondary-foreground: #000000;
-  --muted: #f1f1f1;
-  /* Astryx --color-text-secondary (#474747): 8.2:1 on body/muted, 9.3:1 on card. */
-  --muted-foreground: #474747;
-  --accent: #ffffff;
-  --accent-foreground: #000000;
-  --accent-soft: #f1f1f1;
-  /* Pairs with accent-soft at 8.2:1. */
-  --accent-foreground-soft: #474747;
-  /* Astryx status colors (text-safe light weights): error/success/warning. */
-  --destructive: #76000c;
-  --success: #00490b;
-  --warning: #4b3900;
-  /* Solid destructive fills: Astryx --color-on-error (white on #76000c = 11.8:1). */
-  --destructive-foreground: #ffffff;
-  /* Astryx status accent blue (same hue as the focus ring). */
-  --accent-now: #0074e2;
-  /* Danger text on near-black cards (menu logout). Only valid on dark. */
-  --destructive-on-dark: #ff8a80;
-  /* Borders: natural hairlines — visible on every surface, never bold.
-     Deliberately above Astryx stock (black @8%): 8% renders near-invisible
-     on warm paper and on small controls. 12% light / 14% dark is the
-     quiet-visible line; --border-strong serves selected/emphasis edges. */
-  --border: #0000001f;
-  --input: #0000001f;
-  /* Emphasis edge: selected controls, dropzones, highlighted rows. */
-  --border-strong: #00000030;
-  /* Focus ring: Astryx status-fill-accent blue — 4.05:1 on background (≥3:1). */
-  --ring: #0074e2;
+  /* ── LAYER 1 · primitives ── */
+  --bg: #12100e;
+  --bg2: #1a1613;
+  --bg3: #221d19;
+  --ink: #efe7db;
+  --pearl: #e9dcc3;
+  --rose: #c7a08e;
+  --wine: #8c2a3a;
+  --wine-hi: #d0687a;
+  --gold: #d4b06a;
+  --sage: #a9b79a;
+  --mute: rgba(239, 231, 219, 0.62);
+  --faint: rgba(239, 231, 219, 0.38);
+  --line: rgba(239, 231, 219, 0.09);
+  --line2: rgba(239, 231, 219, 0.16);
+  --glass: rgba(32, 27, 23, 0.56);
+
+  /* ── LAYER 2 · semantic — the ONLY layer components may use ── */
+  --background: #12100e;
+  --foreground: #efe7db;
+  --card: #1a1613;
+  --card-foreground: #efe7db;
+  --popover: #1a1613;
+  --popover-foreground: #efe7db;
+  --primary: #e9dcc3;
+  --primary-foreground: #1b1511;
+  --secondary: #221d19;
+  --secondary-foreground: #efe7db;
+  --muted: #221d19;
+  --muted-foreground: rgba(239, 231, 219, 0.62);
+  --accent: #d4b06a;
+  --accent-foreground: #1b1511;
+  --accent-soft: rgba(212, 176, 106, 0.12);
+  --accent-foreground-soft: #e6c88a;
+  --destructive: #d0687a;
+  --success: #a9b79a;
+  --warning: #d4b06a;
+  --destructive-foreground: #1b1511;
+  --accent-now: #d0687a;
+  --destructive-on-dark: #f2c3cb;
+  --border: rgba(239, 231, 219, 0.09);
+  --input: rgba(239, 231, 219, 0.16);
+  --border-strong: rgba(239, 231, 219, 0.16);
+  --ring: #e9dcc3;
 
   /* ── ASTRYX TOKEN BRIDGE ── */
-  /* Stock Astryx components resolve their palette from --color-* variables that
-     @astryxdesign/core/astryx.css declares inside @layer theme. This unlayered
-     block wins over that layer and re-points the accent family at the app's own
-     semantic tokens, so a migrated component sits beside the legacy UI with the
-     same colors in both modes: one palette, no per-component overrides, no copy
-     of the values (var(--primary) and var(--primary-foreground) flip under
-     .dark on their own). Without it Astryx falls back to its stock accent blue
-     and its dark accent (#2694FE) is only 3.1:1 against white label text.
-     The list grows as more components are migrated. */
   --color-accent: var(--primary);
   --color-on-accent: var(--primary-foreground);
   --color-accent-muted: var(--accent-soft);
@@ -170,30 +135,27 @@
   --color-icon-accent: var(--primary);
 
   /* ── LAYOUT ── */
-  /* Phone-frame width: fill narrow phones fully, cap on wide phones/desktop. */
   --frame-max-w: min(100vw, 480px);
-  /* The one page gutter (§28). Full-bleed sections opt out deliberately. */
   --page-gutter: 1.25rem;
 
-  /* ── ELEVATION — flat system. No shadows anywhere: separation comes from
-     1px borders and surface contrast only. The tokens below exist solely so
-     legacy `shadow-*` classes resolve to nothing during migration. ── */
+  /* ── ELEVATION — glass + borders + tonal contrast ── */
   --shadow-xs: none;
   --shadow-card: none;
   --shadow-elevated: none;
-  --shadow-floating: none;
+  --shadow-floating: 0 -30px 80px rgba(0, 0, 0, 0.6);
 
-  /* ── LAYER 2 · MOTION — instant/micro/standard/expressive/editorial (§20) ── */
-  /* Functional screens use instant/micro/standard only (§21). */
+  /* ── LAYER 2 · MOTION ── */
+  --spring: cubic-bezier(0.3, 1.6, 0.5, 1);
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --duration-instant: 60ms;
   --duration-micro: 150ms;
   --duration-standard: 240ms;
   --duration-expressive: 450ms;
   --duration-editorial: 900ms;
-  --ease-standard: cubic-bezier(0.22, 0.9, 0.28, 1);
-  --ease-spring: cubic-bezier(0.34, 1.55, 0.44, 1);
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.3, 1.6, 0.5, 1);
 
-  /* ── LAYER 2 · Z-INDEX — semantic layering (§33). Never invent raw z values. ── */
+  /* ── LAYER 2 · Z-INDEX ── */
   --z-base: 0;
   --z-sticky: 10;
   --z-header: 40;
@@ -204,92 +166,93 @@
   --z-dialog: 80;
   --z-toast: 90;
   --z-critical: 100;
-  /* Editorial homepage shell (fixed viewport surface) */
   --z-editorial: 40;
+  --sa-b: env(safe-area-inset-bottom, 0px);
+  --sa-t: env(safe-area-inset-top, 0px);
 
-  /* ── LAYER 3 · COMPONENT TOKENS (semantic-mapped) ── */
-  /* Sharp rectangles by default: --radius 0 collapses the whole ladder.
-     Pills (rounded-full) are the only curve, granted by role — never by size. */
-  --radius: 0px;
-  --button-primary-bg: var(--primary);
-  --button-primary-text: var(--primary-foreground);
-  --input-bg: transparent;
+  /* ── LAYER 3 · COMPONENT TOKENS ── */
+  --radius: 16px;
+  --button-primary-bg: linear-gradient(135deg, #f3e8d2, #d9c6a4 60%, #cdb28f);
+  --button-primary-text: #1b1511;
+  --input-bg: rgba(239, 231, 219, 0.04);
   --input-border: var(--input);
   --input-focus-ring: var(--ring);
-  /* Component-scope focus radius (§ base focus-visible). Keep single source. */
-  --focus-radius: 0px;
+  --focus-radius: 12px;
   --dialog-bg: var(--popover);
   --toast-bg: var(--popover);
   --toast-border: var(--border);
-  /* Booking surfaces */
   --booking-cta-bg: var(--card);
   --booking-cta-border: var(--border);
   --booking-cta-fg: var(--foreground);
-  /* Astryx --color-overlay: light #00000080. */
-  --booking-sheet-scrim: rgba(0, 0, 0, 0.5);
+  --booking-sheet-scrim: rgba(6, 5, 4, 0.62);
 }
 
-/* ── Astryx neutral · dark values — remaps semantic tokens only ── */
+/* ── Sole theme: .dark mirrors :root exactly ── */
 .dark {
   color-scheme: dark;
-  --background: #1b1b1b;
-  --foreground: #ffffff;
-  --card: #1b1b1b;
-  --card-foreground: #ffffff;
-  --popover: #1b1b1b;
-  --popover-foreground: #ffffff;
-  --primary: #f1f1f1;
-  --primary-foreground: #111111;
-  --secondary: #262626;
-  --secondary-foreground: #ffffff;
-  --muted: #262626;
-  --muted-foreground: #9e9e9e;
-  --accent: #262626;
-  --accent-foreground: #ffffff;
-  --accent-soft: #262626;
-  --accent-foreground-soft: #9e9e9e;
-  --destructive: #ffc4be;
-  --success: #a4d6a3;
-  --warning: #f8d36a;
-  --destructive-foreground: #111111;
-  --accent-now: #6d9cfe;
-  /* Dark-side natural hairline (white @14%): matches the light 12% step —
-     white needs a touch more alpha to read the same on near-black. */
-  --border: #ffffff24;
-  --input: #ffffff24;
-  /* Emphasis edge: selected controls, dropzones, highlighted rows. */
-  --border-strong: #ffffff3d;
-  --ring: #6d9cfe;
-
-  /* Booking surface tokens (semantic aliases) */
+  --background: #12100e;
+  --foreground: #efe7db;
+  --card: #1a1613;
+  --card-foreground: #efe7db;
+  --popover: #1a1613;
+  --popover-foreground: #efe7db;
+  --primary: #e9dcc3;
+  --primary-foreground: #1b1511;
+  --secondary: #221d19;
+  --secondary-foreground: #efe7db;
+  --muted: #221d19;
+  --muted-foreground: rgba(239, 231, 219, 0.62);
+  --accent: #d4b06a;
+  --accent-foreground: #1b1511;
+  --accent-soft: rgba(212, 176, 106, 0.12);
+  --accent-foreground-soft: #e6c88a;
+  --destructive: #d0687a;
+  --success: #a9b79a;
+  --warning: #d4b06a;
+  --destructive-foreground: #1b1511;
+  --accent-now: #d0687a;
+  --destructive-on-dark: #f2c3cb;
+  --border: rgba(239, 231, 219, 0.09);
+  --input: rgba(239, 231, 219, 0.16);
+  --border-strong: rgba(239, 231, 219, 0.16);
+  --ring: #e9dcc3;
   --booking-cta-bg: var(--card);
   --booking-cta-border: var(--border);
   --booking-cta-fg: var(--foreground);
-  /* Astryx --color-overlay: dark #000000CC. */
-  --booking-sheet-scrim: rgba(0, 0, 0, 0.8);
-
-  /* Dark stays flat too — depth comes from --border-strong edges, not halos. */
+  --booking-sheet-scrim: rgba(6, 5, 4, 0.62);
   --shadow-xs: none;
   --shadow-card: none;
   --shadow-elevated: none;
-  --shadow-floating: none;
+  --shadow-floating: 0 -30px 80px rgba(0, 0, 0, 0.6);
 }
 
-
-/* ── Reduced motion (§40): reduce transforms/parallax/loops, keep feedback.
-    Scoped to elements opting into the motion system (Editorial mode); the
-    rest of the app is motion-free by default and needs no override. */
+/* ── Reduced motion: kill loops/parallax/springs, keep opacity feedback ── */
 @media (prefers-reduced-motion: reduce) {
-  [data-motion] *,
-  [data-motion] *::before,
-  [data-motion] *::after {
-    animation-duration: 0.01ms;
-    animation-iteration-count: 1;
-    transition-duration: 0.01ms;
+  .beam,
+  .grain {
+    animation: none !important;
   }
-  [data-motion] [data-motion-persist] {
-    animation-duration: 0.01ms;
-    transition-duration: 0.01ms;
+  .pressable:active:not(:disabled) {
+    transform: none;
+  }
+  .step-enter-fwd,
+  .step-enter-back,
+  .reveal-item {
+    animation: fadeOnly var(--duration-standard) var(--ease-standard) both;
+  }
+  .reveal-item {
+    animation-delay: 0ms;
+  }
+  .now-pulse {
+    animation: none;
+  }
+}
+@keyframes fadeOnly {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -299,18 +262,13 @@
   * {
     @apply border-border outline-ring/50;
   }
-  /* Native-feel: paint background on html so the FOUC flash matches
-     the brand before React mounts. Also locks body overscroll so the
-     background does not rubber-band when scrolling past edges. */
   html {
     @apply font-sans bg-background;
     direction: rtl;
     overscroll-behavior: none;
     text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
-    /* Persian-first: Estedad (FD variable) with Vazirmatn fallback everywhere.
-       font-synthesis:none prevents fake italic/bold slants. */
-    font-family: 'Estedad', 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Vazirmatn', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     font-kerning: normal;
@@ -319,12 +277,10 @@
     @apply bg-background text-foreground antialiased;
     min-height: 100dvh;
     overflow-x: hidden;
-    /* Inner scroll containers restore their own overscroll-y via the
-       .native-scroll opt-in class. This prevents the page background
-       from rubber-banding like a web page when scrolling lists. */
+    font-weight: 300;
+    font-size: 16px;
     overscroll-behavior-y: none;
   }
-  /* Opt-in class for elements that need native scroll feel back. */
   .native-scroll {
     overscroll-behavior-y: auto;
     overscroll-behavior-x: none;
@@ -334,11 +290,24 @@
     outline-offset: 2px;
     border-radius: var(--focus-radius);
   }
-  button, a, [role="button"] {
+  button,
+  a,
+  [role="button"] {
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     user-select: none;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
   }
   ::selection {
     background: var(--primary);
@@ -346,189 +315,1291 @@
   }
 }
 
-/* ── Bottom-sheet motion (system-owned; motion-governance allows raw CSS here).
-     Interruptible transitions (never keyframes): the sheet re-targets from its
-     live position when toggled mid-flight. Enter 240ms ease-out, exit 150ms —
-     the system answers fast. Same translateY path both directions. */
-.sheet-overlay {
-  opacity: 0;
-  transition: opacity var(--duration-micro) var(--ease-standard);
+/* ══════════════════════════════════════════════════════════════
+   STUDIO KIT — the component vocabulary (same names as v2).
+   ══════════════════════════════════════════════════════════════ */
+
+.ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
 }
-.sheet-overlay[data-open="true"] {
-  opacity: 1;
+.num {
+  font-feature-settings: "tnum";
 }
-.sheet-panel {
-  transform: translateY(100%);
-  transition: transform var(--duration-standard) var(--ease-standard);
+.mute {
+  color: var(--mute);
 }
-.sheet-panel[data-open="true"] {
-  transform: none;
-  /* Enter runs on mount (no JS frame-flip needed): backwards fill applies the
-     from-frame only during the run, then hands control back to the transition
-     so exit/interrupt stay live-retargeted. */
-  animation: sheetEnter var(--duration-standard) var(--ease-standard) backwards;
+.faint {
+  color: var(--faint);
 }
-@keyframes sheetEnter {
-  from { transform: translateY(100%); }
+.pearl {
+  color: var(--pearl);
 }
-.sheet-panel[data-closing="true"] {
-  transition-duration: var(--duration-micro);
+.eyebrow {
+  font-size: 14px;
+  letter-spacing: 0.28em;
+  color: var(--faint);
+  direction: ltr;
+  font-weight: 300;
 }
-/* ── Sheet light island: every bottom sheet is a white surface with black
-     elements, floating over the dark app. Scoped tokens (not overrides) so
-     token-driven components — cards, buttons, inputs, pills — resolve
-     correctly inside sheets with zero per-component exceptions. Text that
-     sits on black cards uses text-card-foreground (white in every theme). */
-.sheet-light {
-  --background: #ffffff;
-  --foreground: #161616;
-  --card: #161616;
-  --card-foreground: #ffffff;
-  --popover: #ffffff;
-  --popover-foreground: #161616;
-  --primary: #161616;
-  --primary-foreground: #ffffff;
-  --secondary: #f0f0f0;
-  --secondary-foreground: #161616;
-  --muted: #f0f0f0;
-  --muted-foreground: #5c5c5c;
-  --accent: #f0f0f0;
-  --accent-foreground: #161616;
-  --accent-soft: #e8e8e8;
-  --accent-foreground-soft: #4a4a4a;
-  --border: #0000001f;
-  --input: #0000001f;
-  --border-strong: #00000030;
-  --destructive: #c81e1e;
-  --destructive-foreground: #ffffff;
-  --destructive-on-dark: #ff8a80;
-  --success: #00490b;
-  --warning: #4b3900;
-  --ring: #0074e2;
-  background: #ffffff;
-  color: #161616;
-  border: 1px solid #161616;
+.h-xl {
+  font-size: 44px;
+  line-height: 1.25;
+  font-weight: 100;
 }
-/* Round icon controls become black discs with white glyphs on sheets. */
-.sheet-light .icon-btn {
-  background: #161616;
-  border-color: #161616;
-  color: #ffffff;
+.h-l {
+  font-size: 32px;
+  line-height: 1.35;
+  font-weight: 100;
 }
-.sheet-light .icon-btn:hover {
-  background: #2e2e2e;
+.h-m {
+  font-size: 22px;
+  line-height: 1.5;
+  font-weight: 200;
 }
-@media (prefers-reduced-motion: reduce) {
-  .sheet-overlay,
-  .sheet-panel {
-    transition-duration: 0.01ms;
+.t-s {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--mute);
+}
+
+/* ── Atmosphere (CSS-only; grain is inline SVG, never hotlinked) ── */
+.grain {
+  position: absolute;
+  inset: -50%;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  animation: grain 1.2s steps(6) infinite;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+@keyframes grain {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-3%, 2%);
+  }
+  40% {
+    transform: translate(2%, -3%);
+  }
+  60% {
+    transform: translate(-2%, -1%);
+  }
+  80% {
+    transform: translate(3%, 3%);
+  }
+  to {
+    transform: translate(0);
+  }
+}
+.vig {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55));
+}
+.beam {
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  width: 140%;
+  height: 90%;
+  translate: -50% 0;
+  z-index: 2;
+  opacity: 0.5;
+  filter: blur(30px);
+  pointer-events: none;
+  background: conic-gradient(
+    from 180deg at 50% 0%,
+    transparent 42%,
+    rgba(233, 220, 195, 0.14) 47%,
+    transparent 51%,
+    rgba(233, 220, 195, 0.08) 55%,
+    transparent 60%
+  );
+  animation: sway 14s ease-in-out infinite alternate;
+  transform-origin: 50% 0;
+}
+@keyframes sway {
+  0% {
+    rotate: -5deg;
+  }
+  to {
+    rotate: 5deg;
   }
 }
 
-/* ── Backdrop accent (monochromatic, calm) ── */
-
-.gradient-bg {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 28px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 300;
+  white-space: nowrap;
+  transition:
+    transform 0.35s var(--spring),
+    opacity 0.2s,
+    background 0.3s,
+    box-shadow 0.3s;
+}
+.btn:active {
+  transform: scale(0.95);
+}
+.btn.pri {
+  background: linear-gradient(135deg, #f3e8d2, #d9c6a4 60%, #cdb28f);
+  color: #1b1511;
+  box-shadow:
+    0 10px 40px #e9dcc338,
+    inset 0 1px #fff9;
+  font-weight: 400;
+}
+.btn.pri:hover {
+  box-shadow:
+    0 14px 50px #e9dcc352,
+    inset 0 1px #fff9;
+}
+.btn.gl {
+  background: var(--glass);
+  border: 1px solid var(--line2);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+}
+.btn.gl:hover {
+  background: #342c2699;
+}
+.btn.ghost {
+  color: var(--mute);
+}
+.btn.ghost:hover {
+  color: var(--ink);
+}
+.btn.danger {
+  background: #8c2a3a38;
+  border: 1px solid rgba(208, 104, 122, 0.35);
+  color: #f2c3cb;
+}
+.btn.sm {
+  min-height: 44px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+.btn.block {
+  width: 100%;
+}
+.btn[disabled] {
+  opacity: 0.32;
   pointer-events: none;
-  background: var(--background);
+}
+.iconbtn {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--glass);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition:
+    transform 0.3s var(--spring),
+    background 0.3s;
+}
+.iconbtn:hover {
+  background: #342c26b3;
+}
+.iconbtn:active {
+  transform: scale(0.9);
+}
+.iconbtn.bare {
+  background: none;
+  border-color: transparent;
+  backdrop-filter: none;
+}
+.iconbtn.bare:hover {
+  background: #efe7db0f;
 }
 
-/* ── Surface (flat: borders + contrast only, never shadows) ── */
-
+/* ── Surfaces ── */
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  border-radius: 24px;
+}
+.panel {
+  background: linear-gradient(180deg, #efe7db09, #efe7db04);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+}
 .surface {
   background: var(--card);
   border: 1px solid var(--border);
 }
-
 .surface-strong {
   background: var(--card);
   border: 1px solid var(--border-strong);
 }
-
 .surface-floating {
   background: var(--popover);
   border: 1px solid var(--border);
 }
 
-/* Legacy alias used across the codebase */
-.glass {
-  background: var(--card);
-  border: 1px solid var(--border);
+/* ── Chip / badge ── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line2);
+  font-size: 14px;
+  transition: all 0.3s var(--spring);
+  background: #ffffff05;
+}
+.chip:active {
+  transform: scale(0.95);
+}
+.chip.on {
+  background: var(--pearl);
+  color: #1b1511;
+  border-color: var(--pearl);
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 14px;
+  line-height: 1;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.badge i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.tone-pearl {
+  color: var(--pearl);
+  background: #e9dcc314;
+  border-color: #e9dcc329;
+}
+.tone-gold {
+  color: #e6c88a;
+  background: #d4b06a1a;
+  border-color: #d4b06a38;
+}
+.tone-sage {
+  color: #bfcdb0;
+  background: #a9b79a1a;
+  border-color: #a9b79a33;
+}
+.tone-wine {
+  color: #eaa0ad;
+  background: #8c2a3a33;
+  border-color: #d0687a47;
+}
+.tone-rose {
+  color: #e3bfb1;
+  background: #c7a08e1a;
+  border-color: #c7a08e38;
+}
+.tone-mute {
+  color: var(--faint);
+  background: #efe7db0a;
+  border-color: var(--line);
 }
 
-/* ── Clean Slate: Removed paper theme styles ── */
+/* ── Fields ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.field > span {
+  font-size: 14px;
+  color: var(--mute);
+}
+.input {
+  min-height: 52px;
+  width: 100%;
+  padding: 0 18px;
+  border-radius: 16px;
+  background: #efe7db0a;
+  border: 1px solid var(--line2);
+  font-size: 16px;
+  transition:
+    border-color 0.25s,
+    background 0.25s;
+}
+textarea.input {
+  padding: 14px 18px;
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.8;
+}
+.input:focus {
+  outline: none;
+  border-color: #e9dcc380;
+  background: #efe7db0f;
+}
+.input::placeholder {
+  color: var(--faint);
+}
+select.input {
+  appearance: none;
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--mute) 50%),
+    linear-gradient(135deg, var(--mute) 50%, transparent 50%);
+  background-position:
+    20px 50%,
+    26px 50%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+select.input option {
+  background: #1c1714;
+}
+.timein {
+  min-height: 44px;
+  width: 88px;
+  padding: 0 10px;
+  text-align: center;
+  text-align-last: center;
+  font-feature-settings: "tnum";
+  border-radius: 12px;
+  background: #efe7db0a;
+  border: 1px solid var(--line2);
+  direction: ltr;
+  color-scheme: dark;
+}
+.sw {
+  width: 52px;
+  height: 32px;
+  border-radius: 999px;
+  background: #efe7db24;
+  position: relative;
+  flex: none;
+  transition: background 0.3s;
+}
+.sw:after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #efe7db;
+  transition: transform 0.45s var(--spring);
+}
+.sw.on {
+  background: #b9a27e;
+}
+.sw.on:after {
+  transform: translate(-20px);
+}
+.seg {
+  display: flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: #ffffff09;
+  border: 1px solid var(--line);
+  position: relative;
+}
+.seg button {
+  flex: 1;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  position: relative;
+  font-size: 14px;
+  color: var(--mute);
+  transition: color 0.3s;
+  white-space: nowrap;
+}
+.seg button.on {
+  color: var(--ink);
+}
+.seg .knob {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #e9dcc31f;
+  box-shadow: inset 0 0 0 1px #e9dcc329;
+  z-index: -1;
+}
+.seg button span {
+  position: relative;
+  z-index: 1;
+}
 
-/* ── Typography ── */
+/* ── Overlays: scrim / sheet / drawer / toast ── */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: #0605049e;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.sheet {
+  position: fixed;
+  z-index: 61;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin-inline: auto;
+  width: 100%;
+  max-width: 640px;
+  max-height: 94dvh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 32px 32px 0 0;
+  background: linear-gradient(180deg, #26201bf5, #14110efb);
+  border-top: 1px solid rgba(233, 220, 195, 0.16);
+  box-shadow: 0 -30px 80px #0009;
+  direction: rtl;
+}
+.sheet.tall {
+  height: 94dvh;
+}
+.grab {
+  width: 44px;
+  height: 4px;
+  border-radius: 9px;
+  background: #efe7db40;
+  margin: 10px auto 0;
+  flex: none;
+}
+.sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px 8px;
+  flex: none;
+}
+.sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 24px calc(var(--sa-b) + 24px);
+  scrollbar-width: none;
+}
+.sheet-body::-webkit-scrollbar {
+  display: none;
+}
+.drawer {
+  position: fixed;
+  z-index: 61;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: min(440px, 100%);
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #241e1af7, #120f0dfc);
+  border-inline-start: 1px solid var(--line2);
+  box-shadow: -30px 0 80px #0000008c;
+  direction: rtl;
+}
+.drawer.left {
+  right: auto;
+  left: 0;
+  border-inline-start: 0;
+  border-inline-end: 1px solid var(--line2);
+}
+.drawer-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px 12px;
+}
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 24px 24px;
+  scrollbar-width: thin;
+}
+.drawer-foot {
+  padding: 16px 24px calc(var(--sa-b) + 20px);
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 12px;
+}
+.toast {
+  position: fixed;
+  z-index: 100;
+  top: calc(var(--sa-t) + 16px);
+  left: 50%;
+  translate: -50% 0;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  direction: rtl;
+  max-width: calc(100% - 32px);
+}
+
+/* ── Nail / monogram ── */
+.nail {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: linear-gradient(160deg, #ffffff0f, #ffffff04);
+  border: 1px solid var(--line);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.list > * + * {
+  border-top: 1px solid var(--line);
+}
+.sum {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 14px 0;
+}
+.sum + .sum {
+  border-top: 1px solid var(--line);
+}
+.empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--mute);
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+/* ── Calendar / slots ── */
+.cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  justify-items: center;
+}
+.cal .dow {
+  font-size: 14px;
+  color: var(--faint);
+  height: 32px;
+  display: grid;
+  place-items: center;
+}
+.day {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  position: relative;
+  transition:
+    transform 0.3s var(--spring),
+    background 0.3s,
+    color 0.3s;
+}
+.day:hover {
+  background: #efe7db0f;
+}
+.day:active {
+  transform: scale(0.88);
+}
+.day[disabled] {
+  opacity: 0.22;
+  pointer-events: none;
+}
+.day.sel {
+  background: var(--pearl);
+  color: #1b1511;
+}
+.day.today:after {
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.8;
+}
+.day.off {
+  color: var(--wine-hi);
+}
+.day.picked {
+  background: #8c2a3a59;
+  color: #f2c3cb;
+}
+.slots {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.slot {
+  min-height: 48px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  font-size: 16px;
+  background: #ffffff05;
+  position: relative;
+  transition: all 0.3s var(--spring);
+}
+.slot:hover {
+  border-color: var(--line2);
+  background: #ffffff0a;
+}
+.slot:active {
+  transform: scale(0.94);
+}
+.slot.sug {
+  border-color: #d4b06a66;
+  background: radial-gradient(120% 120% at 50% 0%, rgba(212, 176, 106, 0.16), transparent 70%);
+}
+.slot.sug:before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: 9px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 10px var(--gold);
+}
+.slot.sel {
+  background: var(--pearl);
+  color: #1b1511;
+  border-color: var(--pearl);
+}
+@media (min-width: 640px) {
+  .slots {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .beam,
+  .grain {
+    animation: none !important;
+  }
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Console: shell / nav / tables / timeline ── */
+.con {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  background:
+    radial-gradient(80% 60% at 85% 0%, rgba(233, 220, 195, 0.06), transparent 60%),
+    linear-gradient(180deg, #14110f, #0f0d0b);
+}
+.side {
+  width: 260px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 18px 20px;
+  border-inline-end: 1px solid var(--line);
+  background: #100d0b99;
+}
+.side .brand {
+  direction: ltr;
+  text-align: right;
+  padding: 0 10px 26px;
+  color: var(--pearl);
+  font-weight: 200;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.side .brand small {
+  display: block;
+  font-size: 14px;
+  letter-spacing: 0.38em;
+  color: var(--faint);
+  margin-top: 8px;
+}
+.nav-i {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: 14px;
+  font-size: 15px;
+  color: var(--mute);
+  transition: color 0.25s;
+}
+.nav-i:hover,
+.nav-i.on {
+  color: var(--ink);
+}
+.nav-i .pill {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: #e9dcc314;
+  box-shadow: inset 0 0 0 1px #e9dcc31f;
+  z-index: -1;
+}
+.nav-i .cnt {
+  margin-inline-start: auto;
+}
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  isolation: isolate;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 32px 0;
+  flex: none;
+}
+.page {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 32px 40px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(239, 231, 219, 0.15) transparent;
+}
+.page-h {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 6px 0 22px;
+}
+.page-h h1 {
+  font-size: 34px;
+  font-weight: 100;
+  line-height: 1.2;
+}
+.page-h .grow {
+  flex: 1;
+}
+.mob-nav {
+  display: none;
+}
+.tabs {
+  display: inline-flex;
+}
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.tbl th {
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--faint);
+  text-align: right;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.tbl td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.tbl tbody tr {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.tbl tbody tr:hover {
+  background: #efe7db08;
+}
+.tbl.perm td,
+.tbl.perm th {
+  text-align: center;
+}
+.tbl.perm td:first-child,
+.tbl.perm th:first-child {
+  text-align: right;
+}
+.tbl.perm tbody tr {
+  cursor: default;
+}
+.kv {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  font-size: 15px;
+  color: var(--mute);
+}
+.kv b {
+  font-weight: 300;
+  color: var(--ink);
+}
+.dstrip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 2px 10px;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+.dstrip::-webkit-scrollbar {
+  display: none;
+}
+.dcell {
+  flex: none;
+  width: 58px;
+  padding: 10px 0 9px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  text-align: center;
+  transition: all 0.3s var(--spring);
+  position: relative;
+  scroll-snap-align: center;
+  background: #ffffff04;
+}
+.dcell:hover {
+  border-color: var(--line2);
+}
+.dcell.sel {
+  background: var(--pearl);
+  color: #1b1511;
+  border-color: var(--pearl);
+}
+.dcell .wd {
+  font-size: 14px;
+  opacity: 0.6;
+}
+.dcell .dn {
+  font-size: 20px;
+  font-weight: 200;
+  line-height: 1.3;
+}
+.dcell .fb {
+  height: 3px;
+  margin: 6px 12px 0;
+  border-radius: 3px;
+  background: #efe7db1a;
+  overflow: hidden;
+}
+.dcell .fb i {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  border-radius: 3px;
+}
+.dcell.sel .fb {
+  background: #1b151126;
+}
+.dcell.sel .fb i {
+  background: #8c2a3a;
+}
+.dcell.off .dn {
+  color: var(--wine-hi);
+}
+.dcell.sel.off .dn {
+  color: #8c2a3a;
+}
+.dcell.today:after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  translate: -50% 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--wine-hi);
+}
+.tl-wrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: #ffffff03;
+  max-height: calc(100dvh - 300px);
+  min-height: 420px;
+  position: relative;
+  scrollbar-width: thin;
+}
+.tl {
+  position: relative;
+  display: grid;
+}
+.tl-head {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: grid;
+  background: #14110ff0;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.tl-head > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  min-width: 0;
+}
+.tl-gut {
+  position: sticky;
+  right: 0;
+  z-index: 5;
+  background: #120f0df5;
+}
+.tl-hour {
+  position: absolute;
+  right: 0;
+  left: 0;
+  font-size: 14px;
+  color: var(--faint);
+  padding-inline-end: 10px;
+  text-align: left;
+  translate: 0 -50%;
+}
+.tl-lane {
+  position: relative;
+  border-inline-start: 1px solid var(--line);
+  cursor: copy;
+}
+.tl-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid rgba(239, 231, 219, 0.05);
+}
+.tl-line.h {
+  border-top-color: #efe7db17;
+}
+.tl-closed {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: #00000047;
+}
+.tl-hatch {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  border-radius: 10px;
+  background: repeating-linear-gradient(-45deg, rgba(239, 231, 219, 0.07) 0 6px, transparent 6px 12px);
+  border: 1px dashed rgba(239, 231, 219, 0.14);
+  font-size: 14px;
+  color: var(--faint);
+  padding: 4px 10px;
+  overflow: hidden;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.tl-hatch.brk {
+  background: repeating-linear-gradient(-45deg, rgba(212, 176, 106, 0.07) 0 4px, transparent 4px 9px);
+  border-color: #d4b06a2e;
+  cursor: default;
+}
+.bk {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  border-radius: 14px;
+  padding: 8px 12px;
+  text-align: right;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid var(--line2);
+  background: #e9dcc312;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  z-index: 2;
+}
+.bk:hover {
+  z-index: 3;
+  box-shadow: 0 12px 30px #00000073;
+}
+.bk .t {
+  font-size: 14px;
+  color: var(--mute);
+}
+.bk .n {
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bk .s {
+  font-size: 14px;
+  color: var(--mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bk.reserved {
+  border-style: dashed;
+  border-color: #e9dcc359;
+  background: #e9dcc30d;
+}
+.bk.confirmed {
+  background: linear-gradient(160deg, #d4b06a33, #d4b06a12);
+  border-color: #d4b06a59;
+}
+.bk.completed {
+  background: #a9b79a17;
+  border-color: #a9b79a38;
+  opacity: 0.8;
+}
+.bk.noshow {
+  background: #8c2a3a38;
+  border-color: #d0687a59;
+}
+.bk.cancelled {
+  opacity: 0.55;
+}
+.bk .acc {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 3px;
+}
+.now {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-top: 1.5px solid var(--wine-hi);
+}
+.now.first:before {
+  content: "";
+  position: absolute;
+  right: -5px;
+  top: -5px;
+  width: 9px;
+  height: 9px;
+  border-radius: 9px;
+  background: var(--wine-hi);
+  box-shadow: 0 0 #d0687a99;
+  animation: nowp 2s infinite;
+}
+@keyframes nowp {
+  0% {
+    box-shadow: 0 0 #d0687a80;
+  }
+  70% {
+    box-shadow: 0 0 0 10px #d0687a00;
+  }
+  to {
+    box-shadow: 0 0 #d0687a00;
+  }
+}
+.ghost-slot {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  border-radius: 12px;
+  border: 1px dashed rgba(233, 220, 195, 0.4);
+  background: #e9dcc30d;
+  pointer-events: none;
+  font-size: 14px;
+  padding: 4px 10px;
+  color: var(--pearl);
+  z-index: 1;
+}
+.daybar {
+  position: relative;
+  height: 10px;
+  border-radius: 10px;
+  background: #efe7db0f;
+  overflow: hidden;
+}
+.daybar i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 10px;
+}
+.swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 36px;
+  border: 2px solid transparent;
+  transition: transform 0.3s var(--spring);
+}
+.swatch.on {
+  border-color: var(--pearl);
+  transform: scale(1.1);
+}
+.savebar {
+  position: sticky;
+  bottom: 16px;
+  z-index: 20;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px 12px 12px;
+  border-radius: 999px;
+  width: fit-content;
+  margin-inline: auto;
+  background: #201b17e6;
+  border: 1px solid var(--line2);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 50px #00000080;
+}
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.tbl.perm td,
+.tbl.perm th {
+  text-align: center;
+}
+.tbl.perm td:first-child,
+.tbl.perm th:first-child {
+  text-align: right;
+}
+.tbl.perm tbody tr {
+  cursor: default;
+}
+@media (max-width: 1023px) {
+  .side {
+    display: none;
+  }
+  .topbar {
+    padding: calc(var(--sa-t) + 14px) 18px 0;
+  }
+  .page {
+    padding: 8px 18px calc(var(--sa-b) + 110px);
+  }
+  .page-h h1 {
+    font-size: 28px;
+  }
+  .mob-nav {
+    display: flex;
+    position: absolute;
+    z-index: 30;
+    left: 12px;
+    right: 12px;
+    bottom: calc(var(--sa-b) + 12px);
+    height: 66px;
+    border-radius: 999px;
+    padding: 6px;
+    background: #181411d1;
+    border: 1px solid var(--line);
+    backdrop-filter: blur(28px) saturate(1.4);
+    box-shadow: 0 20px 50px #00000080;
+  }
+  .mob-nav .nav-i {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 0;
+    font-size: 14px;
+    min-height: 52px;
+    border-radius: 999px;
+  }
+  .mob-nav .nav-i .pill {
+    border-radius: 999px;
+  }
+  .tl-wrap {
+    max-height: none;
+    min-height: 0;
+  }
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+  .tbl .hide-m {
+    display: none;
+  }
+}
+
+/* ── Type scale (thin voice) ── */
 
 @layer utilities {
-  /* The one page gutter (§28): page-level horizontal padding for scroll
-     containers, headers, footers, forms. Full-bleed sections opt out. */
   .page-gutter {
     padding-inline: var(--page-gutter);
   }
-  /* Thin scale: every role one step lighter than a standard grotesk scale.
-     Hierarchy survives through size + spacing, not weight. */
   .text-display {
-    font-size: 28px;
-    line-height: 1.15;
-    font-weight: 600;
-    letter-spacing: -0.02em;
+    font-size: 44px;
+    line-height: 1.25;
+    font-weight: 100;
   }
   .text-h1 {
-    font-size: 24px;
-    line-height: 1.2;
-    font-weight: 600;
-    letter-spacing: -0.015em;
+    font-size: 32px;
+    line-height: 1.35;
+    font-weight: 100;
   }
   .text-h2 {
-    font-size: 20px;
-    line-height: 1.25;
-    font-weight: 500;
-    letter-spacing: -0.01em;
+    font-size: 22px;
+    line-height: 1.5;
+    font-weight: 200;
   }
   .text-h3 {
     font-size: 16px;
-    line-height: 1.35;
-    font-weight: 500;
+    line-height: 1.5;
+    font-weight: 300;
   }
   .text-body-lg {
     font-size: 16px;
-    line-height: 1.6;
-    font-weight: 400;
+    line-height: 1.9;
+    font-weight: 300;
   }
   .text-body {
     font-size: 14px;
-    line-height: 1.55;
-    font-weight: 350;
+    line-height: 1.7;
+    font-weight: 300;
   }
   .text-caption {
     font-size: 12px;
     line-height: 1.45;
     font-weight: 400;
   }
-  /* Micro: the absolute minimum — non-interactive metadata only
-     (badges, kickers, weekday initials). Content text stays ≥ 12px.
-     Kickers: use .text-kicker — never hand-write tracking-[N em]. */
   .text-micro {
     font-size: 11px;
     line-height: 1.4;
     font-weight: 500;
   }
-  /* All-caps eyebrow/kicker for Latin metadata (HISTORY, ACCOUNT, …).
-     Pages previously hand-rolled text-micro + font-extrabold + tracking-[0.24em]. */
   .text-kicker {
     font-size: 11px;
     line-height: 1.4;
     font-weight: 600;
     letter-spacing: 0.24em;
   }
-  /* 44px square header control (back / edit / cancel). Replaces the
-     copy-pasted `flex h-11 w-11 … border-border bg-card shadow-sm` block
-     that appeared on ~12 pages. Color intentionally not set so pages can
-     override with text-muted-foreground. Works on <button> and <Link>. */
+  .text-small {
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 350;
+  }
   .icon-btn {
     display: inline-flex;
     width: 44px;
@@ -538,13 +1609,14 @@
     justify-content: center;
     border-radius: 9999px;
     border: 1px solid var(--border);
-    background: var(--card);
+    background: var(--glass);
+    color: var(--foreground);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
   .icon-btn:hover {
-    background: var(--muted);
+    background: #342c26b3;
   }
-  /* Invisible 44px hit-area expansion for small (28–32px) corner buttons —
-     keeps the visual size, extends the touch target (P5). */
   .tap-44 {
     position: relative;
   }
@@ -553,100 +1625,102 @@
     position: absolute;
     inset: -8px;
   }
-  .text-small {
-    font-size: 12px;
-    line-height: 1.4;
-    font-weight: 350;
-  }
-  /* ── Atelier motion (AUDIT-014) ──
-     Governed feedback layer for app routes (booking, owner, customer). All
-     durations/easings come from the design-system tokens; everything is
-     transform/opacity-only (compositor-friendly) and the entire layer is
-     disabled under prefers-reduced-motion below. Opt-in per element via
-     these classes; the motion-governance test whitelists this file. */
-
-  /* Press twin: instant acknowledgement while the finger is down (E.
-     Kowalski's press-ability). Pairs with haptic.tap() call sites. */
+  /* ── Governed feedback layer ── */
   .pressable {
-    transition: transform var(--duration-micro) var(--ease-standard),
+    transition:
+      transform var(--duration-micro) var(--ease-standard),
       opacity var(--duration-micro) var(--ease-standard);
   }
   .pressable:active:not(:disabled) {
     transform: scale(0.98);
     opacity: 0.9;
   }
-  /* Slightly softer for large surfaces (cards, sheets) so they don't dip. */
   .pressable-soft:active:not(:disabled) {
     transform: scale(0.995);
   }
-
-  /* Directional step transitions: RTL-aware. Forward enters from the
-     inline-start edge, back from inline-end (reverse). Applied to the
-     booking flow's step sections alongside the existing opacity swap. */
-  .step-enter-fwd { animation: stepInFwd var(--duration-standard) var(--ease-standard) both; }
-  .step-enter-back { animation: stepInBack var(--duration-standard) var(--ease-standard) both; }
+  .step-enter-fwd {
+    animation: stepInFwd var(--duration-standard) var(--ease-standard) both;
+  }
+  .step-enter-back {
+    animation: stepInBack var(--duration-standard) var(--ease-standard) both;
+  }
   @keyframes stepInFwd {
-    from { opacity: 0; transform: translateX(24px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+      opacity: 0;
+      transform: translateX(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
   @keyframes stepInBack {
-    from { opacity: 0; transform: translateX(-24px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+      opacity: 0;
+      transform: translateX(-24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-
-  /* Reveal: staggered entrance for lists that render as a set (service
-     cards, timeline cards). Index supplied via --stagger-i. */
   .reveal-item {
     animation: revealIn var(--duration-standard) var(--ease-standard) both;
     animation-delay: calc(var(--stagger-i, 0) * 40ms);
   }
   @keyframes revealIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-
-  /* State cross-fade: for elements whose color/border expresses a state
-     flip the user just caused (status pills, paid dots). */
   .state-fade {
-    transition: background-color var(--duration-micro) var(--ease-standard),
+    transition:
+      background-color var(--duration-micro) var(--ease-standard),
       color var(--duration-micro) var(--ease-standard),
       border-color var(--duration-micro) var(--ease-standard);
   }
-
-  /* Live cue for the timeline now-dot: quiet 2s pulse, pauses for
-     reduced-motion users via the global override. */
   .now-pulse {
     animation: nowPulse 2.4s var(--ease-standard) infinite;
   }
   @keyframes nowPulse {
-    0%, 100% { opacity: 0.55; }
-    50% { opacity: 1; }
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
   }
-
-/* Reduced-motion overrides for the Atelier layer (P8: reduce movement,
-   keep feedback): transform/loop motion off, opacity feedback stays. */
-@media (prefers-reduced-motion: reduce) {
-  .pressable, .pressable-soft {
-    transition: opacity var(--duration-micro) var(--ease-standard);
+  @media (prefers-reduced-motion: reduce) {
+    .pressable,
+    .pressable-soft {
+      transition: opacity var(--duration-micro) var(--ease-standard);
+    }
+    .pressable:active:not(:disabled),
+    .pressable-soft:active:not(:disabled) {
+      transform: none;
+    }
+    .step-enter-fwd,
+    .step-enter-back,
+    .reveal-item {
+      animation: fadeOnly var(--duration-standard) var(--ease-standard) both;
+    }
+    .reveal-item {
+      animation-delay: 0ms;
+    }
+    .now-pulse {
+      animation: none;
+    }
   }
-  .pressable:active:not(:disabled), .pressable-soft:active:not(:disabled) {
-    transform: none;
-  }
-  .step-enter-fwd, .step-enter-back, .reveal-item {
-    animation: fadeOnly var(--duration-standard) var(--ease-standard) both;
-  }
-  .reveal-item { animation-delay: 0ms; }
-  .now-pulse { animation: none; }
-}
-@keyframes fadeOnly {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 }
 
 /* ── Animations ── */
-/* ── Skeleton ── */
+/* ── Skeleton (warm) ── */
 
 .skeleton {
   background: linear-gradient(
@@ -656,17 +1730,23 @@
     color-mix(in oklab, var(--muted) 80%, transparent) 75%
   );
   background-size: 200% 100%;
-  border-radius: 0;
+  border-radius: 12px;
 }
-
-
 
 /* ── Shadow utilities (re-bound to working tokens) ── */
 
-.shadow-card { box-shadow: var(--shadow-card); }
-.shadow-elevated { box-shadow: var(--shadow-elevated); }
-.shadow-floating { box-shadow: var(--shadow-floating); }
-.shadow-xs { box-shadow: var(--shadow-xs); }
+.shadow-card {
+  box-shadow: var(--shadow-card);
+}
+.shadow-elevated {
+  box-shadow: var(--shadow-elevated);
+}
+.shadow-floating {
+  box-shadow: var(--shadow-floating);
+}
+.shadow-xs {
+  box-shadow: var(--shadow-xs);
+}
 
 /* ── Scrollbar ── */
 
@@ -678,73 +1758,11 @@
   display: none;
 }
 
-/* ── Slot States ── */
-
-.slot-booked {
-  position: relative;
-  background: var(--muted);
-  border: 1px solid var(--border);
-  opacity: 0.5;
-}
-
-.slot-booked::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 4px,
-    var(--muted-foreground) 4px,
-    var(--muted-foreground) 5px
-  );
-  opacity: 0.15;
-  border-radius: inherit;
-}
-
-.bg-hatched {
-  position: relative;
-  background: var(--muted);
-  border: 1px solid var(--border);
-  background-image: repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 3px,
-    var(--muted-foreground) 3px,
-    var(--muted-foreground) 4px
-  );
-  background-size: 8px 8px;
-}
-
 /* Touch: never double-tap zoom on controls. */
-button, a, input, select, textarea { touch-action: manipulation; }
-
-/* ── Prototype motion (isolated /prototypes/* harness only; deleted with it).
-     Raw CSS lives here — never in prototype files — because the
-     motion-governance test allows raw motion only in the system, Editorial
-     mode, and stock primitives. Sheet rise (ease-out, sub-300ms) and picker
-     chrome transitions; variant swaps stay instant by design. */
-.proto-sheet {
-  animation: pv-rise var(--duration-standard) var(--ease-standard) backwards;
-}
-@keyframes pv-rise {
-  from { transform: translateY(100%); }
-}
-.proto-scrim {
-  animation: pv-fade var(--duration-micro) var(--ease-standard) backwards;
-}
-@keyframes pv-fade {
-  from { opacity: 0; }
-}
-.proto-picker[data-ready] .proto-picker-highlight {
-  transition:
-    transform 250ms cubic-bezier(0.23, 1, 0.32, 1),
-    width 250ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-.proto-picker-item {
-  transition: color 150ms ease-out;
-}
-@media (prefers-reduced-motion: reduce) {
-  .proto-sheet, .proto-scrim { animation-duration: 0.01ms; }
-  .proto-picker[data-ready] .proto-picker-highlight { transition: none; }
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
 }

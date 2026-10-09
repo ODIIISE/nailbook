@@ -4,23 +4,21 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  // Sharp by default; only primary CTAs (default/paper) and round icon
-  // targets are pills — every other variant is a sharp rectangle in all
-  // states (hover/active/disabled inherit the variant radius).
-  "group/button inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-sm font-normal whitespace-nowrap outline-none select-none transition-transform duration-[var(--duration-micro)] ease-[var(--ease-standard)] focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring active:not-aria-[haspopup]:scale-[0.97] aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 " +
-    // Disabled: tinted, quiet, still legible (~7:1) — the old opacity-50
-    // collapsed text to ~1.9:1. Hover never grows a shadow (touch-first).
+  // Studio: every button is a pill. Primary is the pearl gradient
+  // (--button-primary-bg); glass/ghost/danger follow the v2 kit.
+  // Disabled stays tinted and legible — never opacity-50 text collapse.
+  "group/button inline-flex shrink-0 items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-normal whitespace-nowrap outline-none select-none transition-transform duration-[var(--duration-micro)] ease-[var(--ease-standard)] focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring active:not-aria-[haspopup]:scale-[0.97] aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 " +
     "disabled:pointer-events-none disabled:border-transparent disabled:bg-primary/15 disabled:text-foreground/70",
   {
     variants: {
       variant: {
-        default: "rounded-full bg-primary text-primary-foreground hover:bg-primary/85",
+        default: "bg-[var(--button-primary-bg)] text-[var(--button-primary-text)] hover:brightness-105 font-normal",
         outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "border-[var(--line2)] bg-[var(--glass)] backdrop-blur-xl hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+          "text-muted-foreground hover:text-foreground hover:bg-muted aria-expanded:bg-muted aria-expanded:text-foreground",
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",

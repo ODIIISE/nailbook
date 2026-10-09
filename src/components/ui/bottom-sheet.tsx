@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode, type TransitionEvent } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { X } from "lucide-react";
 import { useFocusTrap } from "@/lib/hooks/use-focus-trap";
 
@@ -9,41 +10,26 @@ interface BottomSheetProps {
   onClose: () => void;
   onClosed?: () => void;
   title: string;
+  sub?: ReactNode;
   children: ReactNode;
   /* Persian-first app: the sheet is always RTL unless a caller overrides.
-   * Without this, sheets opened from inside LTR islands (homepage editorial
-   * shell) inherit dir="ltr" and every logical property, icon order and text
-   * alignment flips. */
+   * Without this, sheets opened from inside LTR islands inherit dir="ltr"
+   * and every logical property flips. */
   dir?: "rtl" | "ltr";
-  /* "auto" grows with content (menus, short forms). "full" pins the panel to
-   * 88dvh so children with absolute/flex-fill layouts (booking flow steps,
-   * sticky footers) get a definite height — otherwise they collapse to zero
-   * and the sheet renders empty. */
+  /* "auto" grows with content. "full" pins the panel to 94dvh so children
+   * with absolute/flex-fill layouts get a definite height. */
   size?: "auto" | "full";
 }
 
-/* White bottom sheet (sheet-light island: white surface, black elements) —
- * mounted through both phases so open AND close animate.
- * Enter: overlay fades 150ms, panel rises 240ms ease-out. Exit: both snap shut
- * in 150ms along the same path (spatial consistency). Interruptible: toggling
- * mid-flight re-targets the live transition, never restarts a keyframe.
- * Phase state uses render-adjust (never setState-in-effect); the exit phase
- * ends on transitionend. Glass surface with solid fallback under
- * prefers-reduced-transparency. */
-export function BottomSheet({ open, onClose, onClosed, title, children, dir = "rtl", size = "auto" }: BottomSheetProps) {
+/* Studio bottom sheet: dark glass panel, grab handle, spring rise,
+ * drag-to-dismiss. Focus trap + Escape + scroll lock preserved. */
+export function BottomSheet({ open, onClose, onClosed, title, sub, children, dir = "rtl", size = "auto" }: BottomSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
-
-  const [prevOpen, setPrevOpen] = useState(open);
-  const [leaving, setLeaving] = useState(false);
-  if (prevOpen !== open) {
-    setPrevOpen(open);
-    setLeaving(prevOpen && !open);
-  }
-  const visible = open || leaving;
-  useFocusTrap(sheetRef, visible);
+  const controls = useDragControls();
+  useFocusTrap(sheetRef, open);
 
   useEffect(() => {
-    if (!visible) return;
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -54,52 +40,58 @@ export function BottomSheet({ open, onClose, onClosed, title, children, dir = "r
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
     };
-  }, [visible, onClose]);
-
-  const endLeave = (e: TransitionEvent<HTMLDivElement>) => {
-    if (e.propertyName !== "transform" || e.target !== e.currentTarget) return;
-    if (!leaving) return;
-    setLeaving(false);
-    onClosed?.();
-  };
-
-  if (!visible) return null;
+  }, [open, onClose]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center"
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      dir={dir}
-    >
-      <div
-        className="sheet-overlay absolute inset-0 bg-black/40"
-        data-open={open}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div
-        ref={sheetRef}
-        className={`sheet-panel sheet-light relative z-10 flex w-full max-w-[var(--frame-max-w)] flex-col border-t pb-[env(safe-area-inset-bottom)] text-popover-foreground ${size === "full" ? "h-[88dvh]" : "max-h-[88dvh]"}`}
-        data-open={open}
-        data-closing={leaving}
-        onTransitionEnd={endLeave}
-      >
-        <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/30" aria-hidden="true" />
-        <div className="flex items-center justify-between border-b px-4 py-3">
-          <h2 className="text-h3 leading-snug">{title}</h2>
-          <button
-            type="button"
+    <AnimatePresence onExitComplete={onClosed}>
+      {open && (
+        <>
+          <motion.div
+            className="scrim"
             onClick={onClose}
-            aria-label="بستن"
-            className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-hidden="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
+          />
+          <motion.div
+            ref={sheetRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
+            dir={dir}
+            className={`sheet${size === "full" ? " tall" : ""}`}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", stiffness: 300, damping: 36 }}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.6 }}
+            dragListener={false}
+            dragControls={controls}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 140 || info.velocity.y > 700) onClose();
+            }}
           >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="native-scroll min-h-0 flex-1 overflow-y-auto p-3">{children}</div>
-      </div>
-    </div>
+            <div
+              onPointerDown={(e) => controls.start(e)}
+              style={{ padding: "4px 0 6px", cursor: "grab", touchAction: "none", flex: "none" }}
+            >
+              <div className="grab" aria-hidden="true" />
+            </div>
+            <div className="sheet-head">
+              <h2 className="h-m" style={{ flex: 1 }}>{title}</h2>
+              {sub}
+              <button type="button" className="iconbtn bare" onClick={onClose} aria-label="بستن">
+                <X className="h-5 w-5" strokeWidth={1.5} />
+              </button>
+            </div>
+            <div className="sheet-body">{children}</div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

@@ -258,7 +258,7 @@ describe("Atelier motion + toast diet (AUDIT-014)", () => {
     // token-driven: the motion block references the design-system tokens
     expect(globals).toMatch(/var\(--duration-micro\) var\(--ease-standard\)/);
     // reduced-motion override: transforms dropped, feedback kept
-    expect(globals).toMatch(/\.now-pulse \{ animation: none; \}/);
+    expect(globals).toMatch(/\.now-pulse\s*\{\s*animation:\s*none;\s*\}/);
   });
 
   it("booking flow: direction-aware steps + press feedback + stagger", () => {

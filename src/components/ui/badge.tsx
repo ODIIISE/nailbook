@@ -3,9 +3,8 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  // Non-interactive element: no focus styles. Weight capped at 600 by the
-  // typography roles; text-caption (12/500) + slight tracking reads premium.
-  // Pill family: badges are pills, never rectangles.
+  // Non-interactive element: no focus styles. Pill family, never rectangles.
+  // Tone variants map the v2 signature tones (dot + tinted shell).
   "inline-flex items-center rounded-full border px-2.5 py-0.5 text-caption tracking-[0.01em]",
   {
     variants: {
@@ -15,6 +14,12 @@ const badgeVariants = cva(
         destructive: "border-transparent bg-destructive/10 text-destructive",
         outline: "text-foreground",
         success: "border-transparent bg-success/10 text-success",
+        pearl: "tone-pearl",
+        gold: "tone-gold",
+        sage: "tone-sage",
+        wine: "tone-wine",
+        rose: "tone-rose",
+        mute: "tone-mute",
       },
     },
     defaultVariants: {

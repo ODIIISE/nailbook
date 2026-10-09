@@ -1,76 +1,56 @@
-> ⚠️ **DEPRECATED**: This document describes a paper-blue (#2888d0) design system that no longer reflects the actual implementation. The live app uses a monochromatic Clean Slate theme (#0A0A0A + cool grays). See `src/app/globals.css` and `src/lib/design-tokens.ts` for the source of truth.
-
 ---
 name: NailBook
-description: Persian-first nail salon booking app with a clean, high-contrast aesthetic
+description: Persian-first nail salon booking app — warm dark cinematic Studio theme
 colors:
-  background: "#FFFFFF"
-  foreground: "#0A0A0A"
-  card: "#FFFFFF"
-  card-foreground: "#0A0A0A"
-  popover: "#FFFFFF"
-  popover-foreground: "#0A0A0A"
-  primary: "#0A0A0A"
-  primary-foreground: "#FFFFFF"
-  secondary: "#F5F5F5"
-  secondary-foreground: "#0A0A0A"
-  muted: "#F5F5F5"
-  muted-foreground: "#737373"
-  accent: "#0A0A0A"
-  accent-foreground: "#FFFFFF"
-  destructive: "#DC2626"
-  success: "#16A34A"
-  border: "#E5E5E5"
-  input: "#F5F5F5"
-  ring: "#0A0A0A"
+  background: "#12100e"
+  foreground: "#efe7db"
+  card: "#1a1613"
+  card-foreground: "#efe7db"
+  popover: "#1a1613"
+  popover-foreground: "#efe7db"
+  primary: "#e9dcc3"
+  primary-foreground: "#1b1511"
+  secondary: "#221d19"
+  secondary-foreground: "#efe7db"
+  muted: "#221d19"
+  muted-foreground: "#9e9384"
+  accent: "#d4b06a"
+  accent-foreground: "#1b1511"
+  destructive: "#d0687a"
+  success: "#a9b79a"
+  border: "#efe7db17"
+  input: "#efe7db29"
+  ring: "#e9dcc3"
 typography:
   display:
-    fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
-    fontSize: "34px"
-    fontWeight: 800
-    lineHeight: "1.08"
-    letterSpacing: "-0.025em"
-  headline:
-    fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
-    fontSize: "24px"
-    fontWeight: 700
-    lineHeight: "1.2"
-    letterSpacing: "-0.015em"
-  title:
-    fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
-    fontSize: "20px"
-    fontWeight: 700
+    fontFamily: "Vazirmatn, system-ui, sans-serif"
+    fontSize: "44px"
+    fontWeight: 100
     lineHeight: "1.25"
-    letterSpacing: "-0.01em"
-  subtitle:
-    fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
-    fontSize: "17px"
-    fontWeight: 600
-    lineHeight: "1.3"
-  body-lg:
-    fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
-    fontSize: "17px"
-    fontWeight: 400
-    lineHeight: "1.6"
+  headline:
+    fontFamily: "Vazirmatn, system-ui, sans-serif"
+    fontSize: "32px"
+    fontWeight: 100
+    lineHeight: "1.35"
+  title:
+    fontFamily: "Vazirmatn, system-ui, sans-serif"
+    fontSize: "22px"
+    fontWeight: 200
+    lineHeight: "1.5"
   body:
-    fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
-    fontSize: "15px"
-    fontWeight: 400
-    lineHeight: "1.55"
+    fontFamily: "Vazirmatn, system-ui, sans-serif"
+    fontSize: "14px"
+    fontWeight: 300
+    lineHeight: "1.7"
   caption:
-    fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
-    fontSize: "13px"
-    fontWeight: 500
-    lineHeight: "1.4"
-  small:
-    fontFamily: "Vazirmatn, -apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif"
+    fontFamily: "Vazirmatn, system-ui, sans-serif"
     fontSize: "12px"
     fontWeight: 400
-    lineHeight: "1.4"
+    lineHeight: "1.45"
 rounded:
-  sm: "10px"
-  md: "14px"
-  lg: "18px"
+  sm: "12px"
+  md: "16px"
+  lg: "22px"
   xl: "24px"
   "3xl": "32px"
 spacing:
@@ -80,132 +60,51 @@ spacing:
   xl: "32px"
 components:
   button-primary:
-    backgroundColor: "var(--foreground)"
-    textColor: "var(--background)"
-    rounded: "18px"
-    padding: "12px 24px"
+    backgroundColor: "linear-gradient(135deg,#f3e8d2,#d9c6a4 60%,#cdb28f)"
+    textColor: "#1b1511"
+    rounded: "999px"
+    padding: "0 28px"
   button-ghost:
     backgroundColor: "transparent"
-    textColor: "var(--foreground)"
-    rounded: "18px"
-    padding: "12px 24px"
+    textColor: "var(--mute)"
+    rounded: "999px"
+    padding: "0 28px"
   card:
     backgroundColor: "var(--card)"
     textColor: "var(--card-foreground)"
-    rounded: "18px"
+    rounded: "22px"
     padding: "16px"
     border: "1px solid var(--border)"
   input:
-    backgroundColor: "var(--input)"
+    backgroundColor: "#efe7db0a"
     textColor: "var(--foreground)"
-    rounded: "14px"
-    padding: "10px 14px"
+    rounded: "16px"
+    padding: "0 18px"
 ---
 
-# Design System: NailBook
+# Design System: NailBook — Studio (v3)
+
+> The full specification lives in `DESIGN-SYSTEM.md`. This file is the
+> machine-readable summary. Source of truth is always `src/app/globals.css`.
 
 ## Overview
 
-NailBook uses a **Clean Slate** visual language: a minimal, high-contrast black-and-white system that keeps attention on the content. It is intentionally neutral so that salon photos, service images, and status colors stand out.
-
-**Key Characteristics:**
-- Pure white background in light mode, pure black in dark mode.
-- Near-black/white foregrounds for maximum readability.
-- Subtle elevation through light shadows and borders.
-- RTL-first Persian layout.
-- Generous rounded corners and comfortable touch targets.
+NailBook uses a **warm dark cinematic** visual language: deep espresso
+surfaces, cream ink, pearl/gold accents, glass blur, spring motion. One theme
+for customer, owner, and homepage. Persian-first RTL, thin Vazirmatn voice.
 
 ## Colors
 
-The palette is intentionally small. Almost everything derives from the CSS variables in `globals.css`.
+- **Background** (`#12100e`) / surfaces `#1a1613` / `#221d19`: layered depth.
+- **Foreground** (`#efe7db` cream): primary text. Muted tier `rgba(239,231,219,.62)`.
+- **Primary pearl** (`#e9dcc3` on `#1b1511`): main actions, focus rings.
+- **Gold** (`#d4b06a`): accent, suggestions, key figures. **Wine** (`#8c2a3a`/`#d0687a`): danger, no-show. **Sage** (`#a9b79a`): success. **Rose** (`#c7a08e`): tertiary.
+- **Border** hairlines `rgba(239,231,219,.09)`, strong `.16`.
 
-### Neutral
-- **Background** (`#FFFFFF` light / `#000000` dark): Page background.
-- **Foreground** (`#0A0A0A` light / `#FAFAFA` dark): Primary text, icons, primary buttons.
-- **Card** (`#FFFFFF` light / `#0A0A0A` dark): Card and elevated surface backgrounds.
-- **Muted** (`#F5F5F5` light / `#171717` dark): Secondary backgrounds, disabled states.
-- **Muted Foreground** (`#737373` light / `#A3A3A3` dark): Secondary text, captions, placeholders.
-- **Border** (`#E5E5E5` light / `#262626` dark): Dividers, input borders, card borders.
+## Named Rules
 
-### Semantic
-- **Primary / Foreground**: Main actions, focus rings, active nav items.
-- **Destructive** (`#DC2626` / `#EF4444`): Errors, cancellations, delete actions.
-- **Success** (`#16A34A` / `#22C55E`): Confirmations, paid status, success toasts.
+**The Variable-First Rule.** Always use `bg-background`, `text-foreground`, `border-border`, kit classes (`.btn`, `.chip`, `.panel`). Never hardcode hex in components.
 
-### Named Rules
-**The Variable-First Rule.** Always use `bg-foreground`, `text-background`, `border-border`, etc. Never hardcode `bg-white`, `text-white`, `bg-black`, or `text-black`.
+**The Contrast Rule.** Cream-on-espresso pairings hold AA; status is never color-alone (tone badge + label).
 
-**The Contrast Rule.** Foreground and background maintain high contrast in both modes. Decorative gradients should not reduce readability.
-
-## Typography
-
-**Font:** Vazirmatn (with system fallback stack)
-
-### Hierarchy
-- **Display** (800, 34px): Hero headlines.
-- **Headline** (700, 24px): Page/section titles.
-- **Title** (700, 20px): Card titles, modal headers.
-- **Subtitle** (600, 17px): Section subheadings.
-- **Body-LG** (400, 17px): Large reading text, stat values.
-- **Body** (400, 15px): Primary reading text.
-- **Caption** (500, 13px): Labels, metadata.
-- **Small** (400, 12px): Footnotes, dense metadata. 12px is the floor — never smaller on mobile.
-
-## Layout
-
-Mobile-first, single-column layout constrained to `max-w-lg` (512 px). Content centers on wider screens. RTL is set at the HTML level (`dir="rtl"`). Use logical CSS utilities (`ps/pe`, `ms/me`) for automatic mirroring.
-
-## Elevation & Depth
-
-Elevation is conveyed through subtle shadows and 1 px borders, not heavy drop shadows. The scale has three levels:
-
-- **Card**: `0 1px 2px rgba(0,0,0,0.04)`
-- **Elevated**: `0 4px 12px rgba(0,0,0,0.08)`
-- **Floating**: `0 8px 24px rgba(0,0,0,0.12)`
-
-## Shapes
-
-Generous, consistent rounding:
-
-- **Small** (10px): badges, chips
-- **Medium** (14px): inputs, buttons
-- **Large** (18px): cards (default)
-- **XL** (24px): modals, hero cards
-- **3XL** (32px): avatars, circular elements
-
-## Components
-
-### Buttons
-- Primary CTA: `bg-foreground text-background` with full rounding.
-- Secondary actions: `variant="outline"` or `variant="ghost"`.
-- Destructive actions: red-tinted.
-
-### Cards
-- Background: `var(--card)`
-- Border: `1px solid var(--border)`
-- Shadow: `var(--shadow-card)`
-- Border radius: `18px`
-
-### Inputs
-- Background: `var(--input)`
-- Border: `1px solid var(--border)`
-- Focus ring: `var(--ring)`
-
-## Dark Mode
-
-Dark mode is controlled by the `dark` class on `<html>`. Components should use CSS variables or Tailwind `dark:` variants. For JavaScript that depends on the current mode, use `useIsDark()`.
-
-## Do's and Don'ts
-
-### Do
-- Use CSS variables and `dark:` variants for theme-aware colors.
-- Keep touch targets at least 44 × 44 px.
-- Use Vazirmatn for all text.
-- Respect RTL with logical properties.
-- Test both light and dark modes.
-
-### Don't
-- Use hardcoded `bg-white`, `text-white`, `bg-black`, or `text-black`.
-- Read `document.documentElement.classList.contains("dark")` directly without reactivity.
-- Use colored shadows or heavy drop shadows in dark mode.
-- Introduce new accent colors without updating the design tokens.
+**The Honesty Rule.** No rendered data without a backend field. No fake states, no demo actions, no hotlinked demo assets (grain is inline SVG).

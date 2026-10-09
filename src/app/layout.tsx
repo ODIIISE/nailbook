@@ -4,10 +4,9 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Providers } from "./providers";
 // Astryx CSS must load before globals.css: reset.css declares the canonical
 // @layer order (reset, astryx-base, astryx-theme), and astryx.css sets :root
-// custom properties (--color-accent, --color-success, …) that globals.css
-// re-declares unlayered — unlayered always wins, so the app theme keeps
-// precedence everywhere regardless of chunk load order. Used by the
-// /astryx-preview route; remove these imports if that route goes away.
+// custom properties that globals.css re-declares unlayered — unlayered always
+// wins, so the app theme keeps precedence everywhere regardless of chunk
+// load order.
 import "./astryx-layers.css";
 import "@astryxdesign/core/reset.css";
 import "@astryxdesign/core/astryx.css";
@@ -42,10 +41,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  // <meta name="theme-color"> cannot read CSS variables — #1b1b1b is the
-  // documented mirror of the Astryx neutral body, the app's single (dark-only)
-  // palette. Update together with globals.css and public/manifest.json.
-  themeColor: "#1b1b1b",
+  // <meta name="theme-color"> cannot read CSS variables — #12100e mirrors the
+  // Studio background. Update together with globals.css and manifest.json.
+  themeColor: "#12100e",
   viewportFit: "cover",
 };
 
@@ -62,10 +60,9 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
-        {/* Preload the Persian webfont faces (raw @font-face in globals.css) so
-            text never flashes in a fallback font. Estedad FD is the primary
-            variable face. */}
-        <link rel="preload" href="https://cdn.jsdelivr.net/gh/aminabedi68/Estedad@v7.3/fonts/webfonts/variable/Estedad-FD%5BKSHD%2Cwght%5D.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        {/* Preload the Persian variable face (raw @font-face in globals.css)
+            so text never flashes in a fallback font. */}
+        <link rel="preload" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         {/* Homepage hero: the first-frame poster preloads with the HTML so the
             backdrop paints instantly; the clip itself streams via the video
             element (preload="auto") and dissolves in on first frame. (A

@@ -1,5 +1,6 @@
 "use client";
 
+import { MotionConfig } from "framer-motion";
 import { InternationalizationProvider } from "@astryxdesign/core/i18n";
 import { SalonProvider } from "@/lib/salon-context";
 import { AuthProvider } from "@/lib/auth-context";
@@ -14,6 +15,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
        strings against this context (Persian via faOverrides) and mirror layout
        from the DOM `dir="rtl"` that layout.tsx already sets. */
     <InternationalizationProvider locale="fa" overrides={faOverrides}>
+      {/* Global reduced-motion contract: every framer-motion animation below
+         degrades to opacity-only when the OS requests it. */}
+      <MotionConfig reducedMotion="user">
       <TooltipProvider>
         <AuthProvider>
           <SalonProvider>
@@ -22,10 +26,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <MenuProvider>
               {children}
               <MenuSheet />
-            </MenuProvider>
-          </SalonProvider>
-        </AuthProvider>
+          </MenuProvider>
+        </SalonProvider>
+      </AuthProvider>
       </TooltipProvider>
+      </MotionConfig>
     </InternationalizationProvider>
   );
 }

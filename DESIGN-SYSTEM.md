@@ -1,15 +1,16 @@
-# Forehand Design System — V2 Specification
+# Forehand Design System — V3 Specification (Studio)
 
-> One system, two experience modes: **Atelier** (functional) and **Editorial** (brand). 
-> Persian-first, RTL-native, motion-aware, token-driven.
-> **Source of truth:** `src/app/globals.css` (tokens), `src/lib/design-tokens.ts` (categorical), `src/components/ui/` (primitives), `src/lib/motion-governance.test.ts` (enforcement).
+> One warm-dark cinematic system for every route. Persian-first, RTL-native,
+> motion-rich, token-driven.
+> **Source of truth:** `src/app/globals.css` (tokens + kit classes),
+> `src/lib/design-tokens.ts` (categorical), `src/components/ui/` (primitives),
+> `src/lib/motion-governance.test.ts` + `src/lib/contrast-governance.test.ts` (enforcement).
+> Reference: v2 prototype (`forehand-v-2.html`) — flows, composition, and feel.
+> Backend stays real (OTP auth, APIs, permission matrix); only the expression changed.
 
-> **⚠ Palette update:** the color palette is now the **stock Astryx neutral theme**
-> (`astryx.theme: @astryxdesign/theme-neutral` in `package.json`). The semantic
-> blocks in `src/app/globals.css` (`:root` light + `.dark`) mirror its compiled
-> defaults one-to-one — update them together with the theme. The espresso/gold
-> Editorial palette is retired. Everything else in this document (structure,
-> motion, RTL, governance) still applies.
+> **Supersedes:** the Astryx-neutral monochrome system (v2 spec) and the
+> espresso/gold Editorial split. There is one theme now — warm dark — shared
+> by customer, owner, and homepage alike. No light mode, no mode islands.
 
 ---
 
@@ -18,13 +19,12 @@
 ```
 FOREHAND DESIGN SYSTEM
 ├── CORE         tokens · layout · grid · responsive · motion · a11y · RTL
-├── COMPONENTS   Button · Input · Select · Dialog · Sheet · Toast · Card · …
-├── MODES        Atelier (light/dark) · Editorial (homepage & brand moments)
+├── COMPONENTS   Btn · IconBtn · Chip · Badge · Field/Input · Switch · Seg ·
+│                Sheet · Drawer · Toast · Calendar · Slots · Table · Timeline
+├── SCREENS      customer (booking/auth/receipt/menu) · console (timeline/…
 ├── CONTENT      UX-writing voice + patterns
 └── GOVERNANCE   change control, drift gates, QA checklists
 ```
-
-The homepage is the flagship **Editorial** expression — an approved, frozen visual reference. It is not a "hack" or an "exception": it is a mode of the same system, and this document describes it that way.
 
 ---
 
@@ -33,7 +33,8 @@ The homepage is the flagship **Editorial** expression — an approved, frozen vi
 Defined in `globals.css`. Values flow one direction only:
 
 ```
-LAYER 1 primitives (raw)   --espresso-900 · --cream-50 · --night-600 · --red-600 …
+LAYER 1 primitives (raw)   --bg · --ink · --pearl · --rose · --wine · --gold ·
+                           --sage · --line · --glass …
         ↓
 LAYER 2 semantic (purpose) --background · --foreground · --card · --primary ·
                            --muted · --accent · --border · --ring · --shadow-* ·
@@ -45,212 +46,213 @@ LAYER 3 component          --button-primary-bg · --input-focus-ring ·
 
 Rules:
 - Components reference **semantic or component tokens only** — never primitives, never raw hex.
-- Experience modes remap **Layer 2** only. Dark mode and Editorial are remappings, not new vocabularies.
-- Never add a parallel token system (`--lux-*`, `--page-*`, `--fh-*` are all banned patterns going forward).
-- Primitive scales: `--cream-*` (light surfaces), `--espresso-*` (ink), `--night-*` (dark surfaces), `--red/green/amber/blue-*` (feedback).
+- The v2 kit classes (`.btn`, `.chip`, `.badge`, `.field`, `.slot`, …) live in
+  `globals.css` as the system — they are the vocabulary, not overrides.
+- Never add a parallel token system (`--lux-*`, `--page-*`, `--fh-*` stay banned).
+- Primitive scales: `--bg*` (surfaces), `--ink/--pearl` (ink), `--rose/--wine`
+  (signal), `--gold` (accent), `--sage` (success).
 
-### Semantic tokens — Astryx neutral Light (`:root`, kept in sync, unreachable in-app)
+### Semantic tokens (sole theme — warm dark, `:root` and `.dark` identical)
 
-`--background: #f1f1f1` · `--foreground: #000000` · `--card/popover: #fff` · `--primary: #000000` · `--secondary/muted: #f1f1f1` · `--muted-foreground: #474747` · `--accent: #fff` · `--accent-soft: #f1f1f1` · `--accent-foreground-soft: #474747` · `--destructive: #76000c` · `--success: #00490b` · `--warning: #4b3900` · `--border/input: #0000001f` · `--border-strong: #00000030` · `--ring: #0074e2`
+`--background: #12100e` · `--foreground: #efe7db` · `--card/popover: #1a1613`
+· `--primary: #e9dcc3` (pearl) · `--primary-foreground: #1b1511`
+· `--secondary/muted: #221d19` · `--muted-foreground: rgba(239,231,219,.62)`
+· `--accent: #d4b06a` (gold) · `--destructive: #d0687a` · `--success: #a9b79a`
+· `--warning: #d4b06a` · `--border/input: rgba(239,231,219,.09)`
+· `--border-strong: rgba(239,231,219,.16)` · `--ring: #e9dcc3`
+· glass: `rgba(32,27,23,.56)` + blur(20-24px) saturate(1.3)
 
-### Semantic tokens — Astryx neutral Dark (`.dark`, the shipped theme)
+### Lacquer vocabulary (signature colors, `LACQUERS` in `types.ts`)
 
-`--background: #1b1b1b` · `--foreground: #ffffff` · `--card/popover: #1b1b1b` · `--primary: #f1f1f1` · `--secondary/muted: #262626` · `--muted-foreground: #9e9e9e` · `--accent: #262626` · `--accent-soft: #262626` · `--accent-foreground-soft: #9e9e9e` · `--destructive: #ffc4be` · `--success: #a4d6a3` · `--warning: #f8d36a` · `--border/input: #ffffff24` · `--border-strong: #ffffff3d` · `--ring: #6d9cfe`
+`pearl/wine/gold/rose/mocha/nude/ink` — service + artist identity (gradients,
+monograms). Stored per row (`lacquer`, migration 030), validated at the API
+boundary, never hardcoded in components: map through `design-tokens.ts`.
 
-### Sheet island (`.sheet-light` — white surface, black elements)
+### Booking status tones
 
-Every bottom sheet re-maps the layer: `--background/popover: #ffffff` · `--foreground: #161616` · `--card: #161616` · `--card-foreground: #ffffff` · `--primary: #161616` · `--primary-foreground: #ffffff` · `--muted: #f0f0f0` · `--muted-foreground: #5c5c5c` · `--border/input: #0000001f` · `--destructive: #c81e1e` · `--destructive-on-dark: #ff8a80` (danger text on black cards) · `--success: #00490b` · `--warning: #4b3900` · `--ring: #0074e2`. Text on black cards uses `text-card-foreground` (+ `/60` dims); selected-on-black uses card-foreground fills — never scoped `--primary`, which reads as the sheet's black CTA fill.
-
-### Editorial mode
-
-The Editorial surface (homepage) carries its own scoped composition tokens inside `lux-home.module.css` (espresso `#171310`, gold `#e2bd97`, champagne `#f2cdad`, cream `#e8e0d5`). They are **mode-local by design** (§ Homepage CSS isolation) — they never enter `globals.css` and never leak into other routes. Where a future Editorial moment needs a shared capability, it is added to Layer 2/3 globally with a generic name, not a homepage name.
+reserved = pearl dashed · confirmed = gold · completed = sage · cancelled = mute
+· noshow = wine · in_progress = gold. Always color + text (+ icon where
+needed), never color alone.
 
 ---
 
 ## 3. Typography
 
-**One functional family: Estedad FD** (variable 100–900, Farsi digits), preloaded. Vazirmatn fallback. No Latin display fonts in Atelier mode. `font-synthesis: none` globally.
-
-### Functional type roles (utilities in globals.css)
+**One family: Vazirmatn variable** (100–900), preloaded. Thin voice — hierarchy
+through size + spacing, never weight.
 
 | Role | Class | Size/Weight/LH | Use |
 |---|---|---|---|
-| Display | `.text-display` | 28px · 600 · 1.15 | Hero-less page headlines |
-| H1 | `.text-h1` | 24px · 600 · 1.2 | Page titles |
-| H2 | `.text-h2` | 20px · 500 · 1.25 | Section/card titles |
-| H3 | `.text-h3` | 16px · 500 · 1.35 | Item titles |
-| Body L | `.text-body-lg` | 16px · 400 · 1.6 | Important reading text |
-| Body | `.text-body` | 14px · 350 · 1.55 | Default |
+| Display | `.text-display` | 44px · 100 · 1.25 | Brand headlines |
+| H1 | `.text-h1` | 32px · 100 · 1.35 | Page titles |
+| H2 | `.text-h2` | 22px · 200 · 1.5 | Section/drawer titles |
+| H3 | `.text-h3` | 16px · 300 · 1.5 | Item titles |
+| Body L | `.text-body-lg` | 16px · 300 · 1.9 | Important reading text |
+| Body | `.text-body` | 14px · 300 · 1.7 | Default (mute tier) |
 | Caption | `.text-caption` | 12px · 400 · 1.45 | Labels, metadata |
-| Small | `.text-small` | 12px · 350 · 1.4 | Content floor — never smaller for readable text |
-| Micro | `.text-micro` | 11px · 500 · 1.4 | Non-interactive metadata only (badges, kickers, weekday initials, tracking codes) — never body, buttons, or inputs |
-
-### Editorial typography
-
-Editorial moments may use display faces (Great Vibes script, Playfair Display) and larger scales — **scoped to Editorial surfaces only**. Script typography is a controlled accent: never body, form, or button typography. The homepage's type treatment is approved and frozen.
+| Small | `.text-small` | 12px · 350 · 1.4 | Content floor |
+| Micro | `.text-micro` | 11px · 500 · 1.4 | Non-interactive metadata only |
+| Kicker | `.text-kicker` | 11px · 600 · 1.4 + ls | Latin eyebrow metadata |
 
 ### Persian/RTL rules
 
-- Logical properties only: `ps/pe`, `ms/me`, `inset-inline`, `text-align: start/end`. Physical `pl/pr/ml/mr` banned.
-- Persian digits via `toPersianDigits`/`displayDigits`; Jalali dates via `src/lib/jalali.ts`.
-- `dir="ltr"` islands for phone numbers, times, tracking codes, Latin brand names.
+- Logical properties only (`ps/pe`, `ms/me`, `inset-inline`, `start/end`).
+- Persian digits via `toPersianDigits`/`displayDigits`; Jalali via `src/lib/jalali.ts`.
+- `dir="ltr"` islands for phones, times, codes, Latin brand names.
+- Latin display lines (wordmarks, kickers) use `letter-spacing` + thin weights.
 
 ---
 
 ## 4. Layout, grid, gutter
 
-- **Frame:** `--frame-max-w: min(100vw, 480px)` — phone-frame, centered on desktop. Owner/admin render in the same frame.
-- **Gutter:** `--page-gutter: 1.25rem` — consumed via the `.page-gutter` utility (logical `padding-inline`). Page headers/footers/scroll containers use it; full-bleed sections opt out deliberately.
-- **Containers (semantic roles):** `full` (fill frame), `reading` (narrow text), `form` (single-column forms), `dashboard` (owner data pages). Do not invent per-page arbitrary widths.
-- **Grid:** `minmax`/`auto-fit` with `grid-cols-{2,3,4}` responsive collapse. Avoid fixed pixel column widths.
-- **Safe areas:** `env(safe-area-inset-*)` on fixed headers, navs, sheets, footers.
-- **Scrolling:** the app scrolls normally. Only the homepage is viewport-locked (its own container — never `html/body`).
+- **Frame:** `--frame-max-w: min(100vw, 480px)` phone-frame, centered. Owner
+  console: sidebar ≥1024px, bottom pill nav below (v2 `.con/.side/.mob-nav`).
+- **Gutter:** `--page-gutter: 1.25rem` via `.page-gutter` (logical padding).
+- **Containers:** `full` · `reading` · `form` · `dashboard`. No per-page widths.
+- **Grid:** `minmax`/`auto-fit`, responsive collapse. No fixed pixel columns.
+- **Safe areas:** `env(safe-area-inset-*)` on fixed chrome, sheets, drawers.
+- **Scrolling:** app scrolls normally; homepage alone is viewport-locked.
+- **Fixed media frames** (`aspect-ratio` + `object-fit: cover`) — intrinsic
+  dimensions never drive layout.
 
 ---
 
-## 5. Shape, borders, flatness
+## 5. Shape, borders, elevation
 
-Sharp rectangles + pills. No shadows anywhere, no arbitrary radii:
-
-- **Pill** (`rounded-full`): primary CTAs (`button default/paper`), chips, tags, badges/status pills, icon buttons, avatars, dots, switch, spinners. Everything else is sharp.
-- **Rectangle** (`--radius: 0`, whole ladder 0): cards, inputs, sheets, dialogs, dropdowns, tooltips, tab segments, selection boxes — in **every state** (hover/active/disabled/invalid inherit the variant shape; focus ring `--focus-radius: 0`).
-- **Borders:** 1px hairlines everywhere — never 2px+ except functional rings (spinners, selected checkboxes, dashed dropzones). `--border` is the natural default: black @12% light (`#0000001f`), white @14% dark (`#ffffff24`). `--border-strong` (black @19% / white @24%) is reserved for selected/emphasis edges. No decorative border stacking.
-- **Flat:** `--shadow-*` tokens are `none`; `shadow-*` classes are banned. Separation comes from borders + surface contrast only. Sheets are solid white (`.sheet-light` island), not glass.
-- **Type voice:** thin — every role one step lighter than a standard scale (display/h1 600, h2/h3 500, body 350, caption 400, micro 500 floor). Inline `font-*` follows the same shift (extrabold→bold→semibold→medium→normal).
-- **Accessibility:** `contrast-governance.test.ts` enforces AA on all three surfaces (light/dark/sheet) **plus every interactive state** — icon glyphs on card and hover fill, primary/destructive hover and disabled, CTA chips, sheet dim text. A new variant or state without a matrix row fails review.
+- **Pill** (`rounded-full`): CTAs, chips, tags, badges, icon buttons, avatars,
+  dots, switches, toasts, savebar, mobile nav.
+- **Soft rects:** cards/panels `22px`, sheets `32px` top, inputs `16px`,
+  slots `16px`, drawers square, tables plain. One scale, no arbitrary radii.
+- **Borders:** 1px hairlines (`--line`), `--line2` for emphasis. Dashed =
+  reserved/blocked semantics only.
+- **Elevation:** glass blur + borders + tonal contrast. Shadows only as
+  functional scrims (sheet/drawer drop shadows); decorative `shadow-*` banned.
+- **Atmosphere** (brand moments only): grain (inline SVG turbulence — never
+  hotlinked), vignette + beam gradients in pure CSS.
 
 ---
 
 ## 6. Motion system
 
-Motion is allowed and tokenized. The more functional the screen, the more restrained the motion.
+Spring-led, physics-feeling, GPU-only (`transform`/`opacity`).
 
-| Token | Range | Use |
+| Token | Value | Use |
 |---|---|---|
-| `--duration-instant` | ~60ms | State swaps, toggles |
-| `--duration-micro` | ~150ms | Hovers, presses, small reveals |
-| `--duration-standard` | ~240ms | Panels, sheets, fades |
-| `--duration-expressive` | ~450ms | Feature emphasis |
-| `--duration-editorial` | ~900ms | Homepage choreography |
+| `--spring` | `cubic-bezier(.3,1.6,.5,1)` | presses, toggles, chips, entrances |
+| `--ease` | `cubic-bezier(.2,.8,.2,1)` | fades, sheets, drawers |
+| `--duration-micro` | ~150ms | hovers, presses |
+| `--duration-standard` | ~240ms | panels, sheets |
+| `--duration-expressive` | ~450ms | feature emphasis |
 
-Easings: `--ease-standard` (calm out), `--ease-spring` (playful press). All motion uses `transform`/`opacity`; layout properties are never animated.
-
-**Governance (enforced by `motion-governance.test.ts`):**
-1. No animation libraries (`framer-motion`, `tw-animate-css`) anywhere.
-2. Raw CSS motion (`transition:`/`animation:`/`@keyframes`) exists only in: `globals.css` (system), Editorial homepage files, and stock `ui/` primitives.
-3. App-level CSS must use `--duration-*`/`--ease-*` tokens — no raw durations.
-4. `prefers-reduced-motion` reduces transforms/parallax/loops while keeping feedback (Editorial implements this; the system pattern lives in globals).
-
-The homepage's existing motion is approved and unchanged (§22).
+- Library: `framer-motion` (`AnimatePresence`, springs, `layoutId`, drag
+  sheets) — adopted from v2; the motion-governance test allowlists it plus
+  system CSS. No other animation libraries.
+- Rules: layout properties never animated; lists stagger ≤50ms steps;
+  `prefers-reduced-motion` kills loops/parallax/springs, keeps opacity feedback.
+- Haptics pair with presses (`haptic.tap()` at call sites).
 
 ---
 
 ## 7. Z-index layers
 
-`--z-base 0 · sticky 10 · header 40 · dropdown 50 · popover 60 · sheet 70 · dialog 80 · toast 90 · critical 100`. Raw `z-index: 9999` is a code-review reject. The Editorial homepage shell uses `--z-editorial: 40` (fixed surface, same band as headers).
+`--z-base 0 · sticky 10 · header 40 · dropdown 50 · popover 60 · sheet 70 ·
+dialog 80 · toast 90 · critical 100`. Grain/vignette sit under content;
+scrims 60, sheets/drawers 61, confirms 80–81. Raw `z-index: 9999` is rejected.
 
 ---
 
-## 8. Components (primitives in `src/components/ui/`)
+## 8. Components (`src/components/ui/` + kit)
 
-shadcn structure on `@base-ui/react`: Button, Card, Input, Label, Select, Switch, Tabs, Badge, Separator, Skeleton, Tooltip, Dialog, AlertDialog, Sheet, Drawer, BottomSheet, DropdownMenu, Sonner.
+Kit classes in `globals.css` are the API (same names as v2): `.btn`
+(`.pri/.gl/.ghost/.danger/.sm/.block`) · `.iconbtn` (44px circle)
+· `.chip` (+`.on`) · `.badge` (+`.tone-*`) · `.field/.input/textarea/select`
+· `.timein` · `.sw` switch · `.seg` segmented · `.scrim/.sheet/.drawer/.toast`
+· `.nail` tile · `.cal/.day` · `.slots/.slot` (+`.sug/.sel`) · `.tbl`
+· `.dstrip/.dcell` · `.tl` timeline + `.bk` cards + `.now` · `.savebar`
+· `.panel/.glass` · `.kv/.sum` rows · `.empty` · `.grid2`.
 
 Conventions:
-- **Button:** variants primary/outline/secondary/ghost/destructive/link · sizes xs–2xl from `--btn-*` ladder · full-width CTA `h-12`/`h-14` · loading = spinner + text label, never spinner alone.
-- **Input:** sizes from `--field-*` ladder (default xl) · focus ring `--input-focus-ring` · invalid state via `aria-invalid`.
-- **Card:** flat 1px `--border` (or `--border-strong` for emphasis); use for grouping, selection, preview — not decoration. Avoid nesting.
-- **Overlays:** focus trap, Escape, backdrop dismissal, scroll lock, focus restore. `BottomSheet` for focused mobile tasks; `Dialog` for confirmation.
-- **Round icon button:** 44px minimum touch target.
-- Do **not** create mode-duplicated components (`LuxButton`). One Button; the mode changes tokens/treatment. Conversely, do not force the homepage's editorial composition into generic component APIs — composition wrappers over shared primitives are fine (§49–50).
+- React wrappers (Sheet, Drawer, Toast host, Confirm, Badge, Switch, Seg,
+  JalaliCalendar) compose the classes; no per-screen re-styling.
+- Button: full-width CTA `min-height 52px`; loading = spinner + label.
+- Input: `min-height 52px`, 16px text (no iOS zoom), focus = pearl border.
+- Overlays: focus trap, Escape, backdrop dismissal, scroll lock, focus restore.
+- One component per concept — no mode forks, no `Lux*` duplicates.
 
 ---
 
 ## 9. States
 
-Common: default · hover · focus-visible · pressed · selected · disabled · loading · empty · error · success.
-Booking: available · selected · reserved · confirmed · completed · cancelled · no-show — from `statusBadgeClass` (`design-tokens.ts`), always color + text (+ icon where needed), never color alone.
-Data patterns: loading (Skeleton in `loading.tsx`) · empty (named, intentional) · partial · error (retry) · offline · permission. Customer surfaces degrade gracefully when owner data is missing.
+Common: default · hover · focus-visible · pressed · selected · disabled ·
+loading · empty · error · success. Booking: available · selected · reserved ·
+confirmed · in_progress · completed · cancelled · noshow (+ blocked/closed).
+Data: Skeleton loading · named intentional empty states · partial · error with
+retry · offline · permission (StaffGate denied card, no fake logout).
 
 ---
 
-## 10. Experience modes
+## 10. Screens
 
-| | Atelier | Editorial |
-|---|---|---|
-| Used by | owner/admin, forms, operations, data pages | homepage, portfolio, campaigns |
-| Themes | light + dark | espresso/gold (self-contained) |
-| Motion | instant/micro/standard only | expressive/editorial allowed |
-| Typography | Estedad functional scale | + display faces, script accents |
-| Surfaces | cards, tables, sheets | open, composition-led, restrained |
-| Density | optimized for speed/accuracy | optimized for emotion/trust |
-
-Same tokens, same primitives, same a11y — different controlled expression. Owner/admin must never inherit editorial decoration; editorial must never break system rules (contrast, targets, focus).
+Customer: menu drawer · auth sheet (OTP: phone → code → name) · 4-step booking
+(service → artist → time → review) · ticket receipt · my bookings (cancel
+window enforced) · profile + prefs · services menu · lookbook story viewer.
+Owner console: sidebar/mob-nav shell · staff login · timeline (day grid with
+artist lanes + list) · schedule (week/off/engine) · services · users + roles
+matrix · activity logs · settings. Homepage: frozen composition; buttons, chips
+and plaques aligned to v3 tokens.
 
 ---
 
 ## 11. Responsive foundation
 
-**Test targets:** 375 · 390 · 430 · 768 · 1024 · 1280 · 1440 (widths) and 667 · 740 · 844 · 932 (heights) — targets, not hardcoded breakpoints.
-
-- **Width changes structure** (columns, navigation); **height changes density** (spacing, image height, gaps — never uniform scaling).
-- Fluid first: `clamp()`, `min()/max()`, `minmax`, `aspect-ratio`, `dvh`, `env()`. Media queries only for genuine structural changes.
-- Homepage: one-viewport (100dvh) with `grid-template-rows: auto minmax(0,1fr) auto`; height compression order = empty space → image height → gaps → CTA → decorative → typography (last).
-- Fixed frames for media (`aspect-ratio` + `object-fit: cover`) — intrinsic dimensions never drive layout.
+Targets: 375 · 390 · 430 · 768 · 1024 · 1280 · 1440 (widths), 667 · 740 ·
+844 · 932 (heights). Width changes structure, height changes density. Fluid
+first (`clamp/min/max/minmax/aspect-ratio/dvh/env`); media queries for
+structural change only (console sidebar at 1024px, slot columns at 640px).
 
 ---
 
 ## 12. Accessibility
 
-- 44px minimum touch targets (smaller visible icons inside larger hit areas allowed).
-- Visible `focus-visible` ring (`--ring`); never remove without replacement.
-- Dialogs: focus trap, Escape, backdrop dismissal, focus restore.
-- Contrast AA in both themes; status never by color alone.
-- `prefers-reduced-motion`: reduce transforms/parallax/loops, keep feedback.
-- Semantic HTML; buttons for behavior, links for navigation (`tel:`, external URLs unintercepted).
-- RTL verified, not assumed: logical properties, mirrored icons, mixed-script lines, `dir="ltr"` islands.
+44px targets · visible pearl `focus-visible` ring · dialog/sheet/confirm
+semantics · contrast AA on the warm palette (governance matrix) · status never
+color-alone · reduced-motion support · semantic HTML, links for navigation
+(`tel:`, maps, Instagram unintercepted) · RTL verified at both widths.
 
 ---
 
 ## 13. UX writing
 
-Voice: calm, warm, confident, refined, concise, human. No sales-heavy, corporate, or cute phrasing.
-
-- Primary CTA: «رزرو نوبت» · Secondary: «مشاهده نمونه کارها»
-- Errors: what happened + how to fix («شماره وارد‌شده معتبر نیست»)
-- Empty states: honest, never fake ("هنوز نمونه‌کاری ثبت نشده است")
-- Approved product copy is data (`salon.*` owner fields) — never hardcode customer-facing strings.
+Calm, warm, confident, concise. Primary CTA «رزرو نوبت» · errors say what
+happened + how to fix · empty states honest, never fake · approved copy stays
+data-driven (`salon.*` owner fields).
 
 ---
 
 ## 14. Governance
 
-Before adding anything, ask:
-- **Token:** does an existing one solve this?
-- **Component:** can an existing one take this variant?
-- **Breakpoint:** does the fluid system actually fail?
-- **Color:** semantic or merely decorative?
-- **Motion:** what UX purpose does it serve?
-
-Change classes: **A** required (architecture/function) → do · **B** safe refactor (same appearance) → do · **C** visual improvement → don't (separate task) · **D** new feature → don't.
+Ask first: existing token? existing component/variant? fluid system enough?
+semantic color? motion purpose?
+Change classes: **A** required → do · **B** safe refactor → do ·
+**C** visual improvement → don't · **D** new feature → don't.
 
 ### Do / Don't
-
-- DO use semantic tokens. DON'T hardcode hex in components.
+- DO use semantic tokens + kit classes. DON'T hardcode hex or invent vocabularies.
 - DO use logical properties. DON'T patch with negative margins or `!important`.
 - DO use `.page-gutter` and the frame. DON'T invent per-page widths.
 - DO use `--z-*` layers. DON'T write raw z-index values.
-- DO keep Editorial styles scoped to Editorial files. DON'T let them leak into booking/owner.
-- DO keep one component per concept. DON'T fork components per mode.
-- DO capture the homepage baseline before touching its styles. DON'T redesign the approved homepage.
+- DO keep grain/beam/vignette CSS-only and local. DON'T hotlink demo assets.
+- DO keep one component per concept. DON'T fork per screen.
+- DO enforce permission gates server-side; UI hiding is presentation.
+- DON'T render data without a backend field (no ratings, no fake states).
 
 ### QA checklist
-
-1. `npm run check` + `npm run check:build` green.
-2. Homepage geometry diff vs baseline (5 viewports) — zero drift.
-3. Real browser: ~390px + ≥1280px, light + dark, RTL correct, zero console errors.
-4. Booking flow end-to-end; owner settings (gallery/phone/instagram/address) still function.
-5. Motion governance tests pass; reduced-motion spot check.
+1. `npm run check` + `npm run build` green.
+2. Real browser (Edge): ~390px + ≥1280px, RTL correct, zero console errors.
+3. Booking end-to-end; owner console every tab; staff roles (artist sees own lane).
+4. Governance tests pass; reduced-motion spot check.
+5. No `framer-motion` outside UI components; no raw durations off-token.
 
 ---
 
-*This document derives from the code. When tokens change in `globals.css`, update this spec and `docs/design-system.html` together.*
+*This document derives from the code. When tokens change in `globals.css`, update this spec together.*
