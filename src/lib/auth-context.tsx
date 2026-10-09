@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { normalizeDigits, isValidIranianPhone } from "@/lib/digits";
+import { can as canPermission, type StaffPermission } from "@/lib/staff-permissions";
 
 export interface AuthUser {
   id: string;
@@ -20,6 +21,8 @@ interface AuthContextType {
   logout: () => void;
   isOwner: boolean;
   hasRole: (role: "customer" | "owner") => boolean;
+  /** Staff permission check against the user's roles (UI hiding only). */
+  hasPermission: (permission: StaffPermission) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -189,9 +192,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isOwner = Boolean(user?.roles?.includes("owner"));
   const hasRole = useCallback((role: "customer" | "owner") => Boolean(user?.roles?.includes(role)), [user]);
+  const hasPermission = useCallback(
+    (permission: StaffPermission) => canPermission(user?.roles, permission),
+    [user]
+  );
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, sendOtp, verifyOtp, updateProfile, logout, isOwner, hasRole }}>
+    <AuthContext.Provider value={{ user, isLoading, sendOtp, verifyOtp, updateProfile, logout, isOwner, hasRole, hasPermission }}>
       {children}
     </AuthContext.Provider>
   );

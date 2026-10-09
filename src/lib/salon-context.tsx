@@ -31,6 +31,7 @@ import {
   deleteHighlightImage,
   uploadHighlightImage as uploadImage,
   handleAuthExpiry,
+  handleForbidden,
 } from "@/lib/db/data";
 
 interface SalonContextType {
@@ -371,6 +372,10 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         setBlockedTimes(prevBlocks);
         return { success: false, error: "نشست منقضی شده" };
       }
+      if (handleForbidden(res)) {
+        setBlockedTimes(prevBlocks);
+        return { success: false, error: "دسترسی ندارید" };
+      }
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         const error = body.error || "خطا در ذخیره زمان‌های استراحت";
@@ -525,6 +530,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify(updates),
       });
       if (handleAuthExpiry(res)) throw new Error("نشست منقضی شده است");
+      if (handleForbidden(res)) throw new Error("دسترسی ندارید");
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         // Surface the server's precise validation message (e.g. close < open)
@@ -638,7 +644,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId, paid }),
       });
-      if (handleAuthExpiry(res)) {
+      if (handleAuthExpiry(res) || handleForbidden(res)) {
         setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, paid: !paid } : b)));
         return;
       }
@@ -672,7 +678,7 @@ export function SalonProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId, status }),
       });
-      if (handleAuthExpiry(res)) {
+      if (handleAuthExpiry(res) || handleForbidden(res)) {
         if (originalStatus) {
           setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: originalStatus as Booking["status"] } : b)));
         }

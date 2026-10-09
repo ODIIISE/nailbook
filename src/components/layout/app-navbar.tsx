@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMenu } from "./menu-context";
+import { useAuth } from "@/lib/auth-context";
+import { can, isStaff, type StaffPermission } from "@/lib/staff-permissions";
 import { haptic } from "@/lib/haptics";
 
 // Customer icons — outline (default) + solid (active)
@@ -30,6 +32,8 @@ interface NavItem {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   activeIcon: ComponentType<SVGProps<SVGSVGElement>>;
   label: string;
+  /** Staff-only destinations hide without this (server stays the real gate). */
+  permission?: StaffPermission;
 }
 
 interface AppNavbarProps {
@@ -43,17 +47,22 @@ const defaultCustomerItems: NavItem[] = [
 ];
 
 const defaultOwnerItems: NavItem[] = [
-  { path: "/owner", icon: GridOutline, activeIcon: GridSolid, label: "زمان‌بندی" },
-  { path: "/owner/schedule", icon: ClockOutline, activeIcon: ClockSolid, label: "ساعات" },
-  { path: "/owner/activity", icon: ChartOutline, activeIcon: ChartSolid, label: "تاریخچه" },
+  // The timeline is the bookings surface — every staff role manages bookings.
+  { path: "/owner", icon: GridOutline, activeIcon: GridSolid, label: "زمان‌بندی", permission: "bookings.manage" },
+  { path: "/owner/schedule", icon: ClockOutline, activeIcon: ClockSolid, label: "ساعات", permission: "schedule.edit" },
+  { path: "/owner/activity", icon: ChartOutline, activeIcon: ChartSolid, label: "تاریخچه", permission: "logs.view" },
 ];
 
 export function AppNavbar({ items }: AppNavbarProps) {
   const pathname = usePathname();
   const { openMenu } = useMenu();
+  const { user } = useAuth();
 
   const isOwner = pathname.startsWith("/owner");
-  const navItems = items ?? (isOwner ? defaultOwnerItems : defaultCustomerItems);
+  const ownerItems = isStaff(user?.roles)
+    ? defaultOwnerItems.filter((item) => !item.permission || can(user?.roles, item.permission))
+    : defaultOwnerItems;
+  const navItems = items ?? (isOwner ? ownerItems : defaultCustomerItems);
 
   return (
     <nav

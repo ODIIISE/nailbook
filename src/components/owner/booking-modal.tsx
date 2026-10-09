@@ -40,6 +40,8 @@ interface BookingModalProps {
   };
   onReschedule?: (date_gregorian: string, start_time: string, end_time: string) => Promise<{ success: boolean; error?: string }>;
   onTogglePaid: () => void;
+  /** Hide the paid toggle when the viewer lacks bookings.paid (artists). */
+  canTogglePaid?: boolean;
   onStatusChange: (status: string) => void;
   onDelete: (id: string) => void;
   onClose: () => void;
@@ -70,7 +72,7 @@ function statusColorFor(value: string, isDark: boolean): string {
   return config[value]?.color ?? STATUS_CONFIG[value]?.color ?? STATUS_CONFIG.pending.color;
 }
 
-export function BookingModal({ booking, services, addons, isPaid, customerHistory, rescheduleContext, onReschedule, onTogglePaid, onStatusChange, onDelete, onClose }: BookingModalProps) {
+export function BookingModal({ booking, services, addons, isPaid, customerHistory, rescheduleContext, onReschedule, onTogglePaid, canTogglePaid = true, onStatusChange, onDelete, onClose }: BookingModalProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [rescheduling, setRescheduling] = useState(false);
   const [reschedDate, setReschedDate] = useState(() => booking.date_gregorian.split("T")[0]);
@@ -303,6 +305,7 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {canTogglePaid && (
           <button
             onClick={() => runMutation(onTogglePaid)}
             disabled={isMutating}
@@ -315,6 +318,7 @@ export function BookingModal({ booking, services, addons, isPaid, customerHistor
               <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-background ${isPaid ? "end-0.5" : "end-[18px]"}`} />
             </div>
           </button>
+          )}
         </div>
 
         {/* Actions */}

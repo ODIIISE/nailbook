@@ -238,6 +238,20 @@ export function handleAuthExpiry(res: Response): boolean {
   return true;
 }
 
+/**
+ * 403 (authenticated but forbidden) is NOT expiry: toast the denial and stay
+ * put. Without this, a staff member touching a surface outside their role
+ * gets the expired-session toast plus a logout redirect.
+ */
+export function handleForbidden(res: Response): boolean {
+  if (res.status !== 403) return false;
+  toast.error("دسترسی ندارید", {
+    description: "این عمل برای نقش شما مجاز نیست",
+    duration: 2500,
+  });
+  return true;
+}
+
 export type BlockedTime = { date_gregorian: string; start_time: string; end_time: string; reason?: string };
 
 export type BootstrapPayload = {

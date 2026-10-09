@@ -39,7 +39,7 @@ import { toast } from "sonner";
 function OwnerDashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user, isLoading: authLoading, hasRole } = useAuth();
+  const { user, isLoading: authLoading, hasPermission } = useAuth();
   const { salon, loaded, bookings, services, addons, workingHours, blockedTimes, specificDaysOff, updateBlockedTimes, addOwnerBooking, cancelBooking, rescheduleBooking, refreshBookings, toggleBookingPaid, updateBookingStatus } = useSalon();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockTime, setShowBlockTime] = useState(false);
@@ -48,8 +48,10 @@ function OwnerDashboardContent() {
   const selectedBooking = useMemo(() => bookings.find((b) => b.id === selectedBookingId) || null, [bookings, selectedBookingId]);
   const [showEarnings, setShowEarnings] = useState(false);
 
-  // Owner-route guard: even though /api/owner/* endpoints check the DB, the
-  // page itself should bounce a customer session before rendering the layout.
+  // Staff-route guard: even though /api/owner/* endpoints check the DB, the
+  // page itself should bounce a non-staff session before rendering the layout.
+  // Every staff role manages bookings, so bookings.manage is the entry test;
+  // finer permissions gate individual surfaces (StaffGate) and actions.
   // Depends directly on user/authLoading (no useRef one-shot) so a slow
   // /api/auth/me response still gets re-evaluated when the role arrives later.
   useEffect(() => {
@@ -58,11 +60,11 @@ function OwnerDashboardContent() {
       router.replace("/owner/login");
       return;
     }
-    if (!hasRole("owner")) {
+    if (!hasPermission("bookings.manage")) {
       toast.error("دسترسی به بخش مدیریت ندارید");
       router.replace("/login");
     }
-  }, [authLoading, user, hasRole, router]);
+  }, [authLoading, user, hasPermission, router]);
 
   // Show welcome toast on first login (use ref to prevent re-trigger)
   const welcomeShown = useRef(false);
@@ -268,7 +270,7 @@ function OwnerDashboardContent() {
   // Never render a silent blank frame: if the session/role check failed or is
   // still unconfirmed, show an explicit state with a way forward instead of
   // null (the redirect effect above navigates away when it can).
-  if (!user || !hasRole("owner")) {
+  if (!user || !hasPermission("bookings.manage")) {
     return (
       <div className="px-4 py-4">
         <Card className="flex flex-col items-center gap-3 p-8 text-center">
@@ -519,6 +521,7 @@ function OwnerDashboardContent() {
           onTogglePaid={async () => {
             await toggleBookingPaid(selectedBooking.id, !selectedBooking.paid);
           }}
+          canTogglePaid={hasPermission("bookings.paid")}
           onStatusChange={async (status) => {
             await updateBookingStatus(selectedBooking.id, status);
           }}

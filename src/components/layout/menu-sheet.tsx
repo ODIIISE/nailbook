@@ -19,6 +19,7 @@ import {
   Users,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { isStaff } from "@/lib/staff-permissions";
 import { useSalon } from "@/lib/salon-context";
 import { useMenu } from "./menu-context";
 import { haptic } from "@/lib/haptics";
@@ -294,19 +295,29 @@ function CustomerContent({ onRequestLogout }: { onRequestLogout: () => void }) {
 }
 
 function OwnerContent({ onRequestLogout }: { onRequestLogout: () => void }) {
+  const { hasPermission } = useAuth();
+  // Staff see the management section filtered to their permissions —
+  // artists (bookings only) get the account card and site links alone.
+  const showServices = hasPermission("services.edit");
+  const showUsers = hasPermission("users.manage");
+  const showSettings = hasPermission("settings.edit");
   return (
     <>
       <OwnerAccountCard />
       {/* Primary owner destinations (داشبورد، ساعات، تاریخچه) live in the
       bottom navbar — the menu carries only secondary management surfaces
       (specs/001-two-tier-navigation). */}
-      <p className="mt-3 mb-1 px-3 text-micro font-normal text-muted-foreground">مدیریت</p>
-      <div className="space-y-1">
-        <MenuLink href="/owner/services" icon={<Scissors className="h-4 w-4" />} label="خدمات" />
-        <MenuLink href="/owner/users" icon={<Users className="h-4 w-4" />} label="مشتری‌ها" />
-        <MenuLink href="/owner/highlights" icon={<Images className="h-4 w-4" />} label="نمونه‌کارها" />
-        <MenuLink href="/owner/settings" icon={<Settings className="h-4 w-4" />} label="تنظیمات سالن" />
-      </div>
+      {(showServices || showUsers || showSettings) && (
+        <>
+          <p className="mt-3 mb-1 px-3 text-micro font-normal text-muted-foreground">مدیریت</p>
+          <div className="space-y-1">
+            {showServices && <MenuLink href="/owner/services" icon={<Scissors className="h-4 w-4" />} label="خدمات" />}
+            {showUsers && <MenuLink href="/owner/users" icon={<Users className="h-4 w-4" />} label="مشتری‌ها" />}
+            {showServices && <MenuLink href="/owner/highlights" icon={<Images className="h-4 w-4" />} label="نمونه‌کارها" />}
+            {showSettings && <MenuLink href="/owner/settings" icon={<Settings className="h-4 w-4" />} label="تنظیمات سالن" />}
+          </div>
+        </>
+      )}
       <Separator className="my-4" />
       <div className="space-y-1">
         <MenuLink href="/" icon={<Globe className="h-4 w-4" />} label="مشاهده سایت مشتری" />
@@ -339,7 +350,7 @@ export function MenuSheet() {
     setConfirmLogout(false);
   }
 
-  const role = !user ? "guest" : isOwner ? "owner" : "customer";
+  const role = !user ? "guest" : isOwner ? "owner" : isStaff(user.roles) ? "staff" : "customer";
 
   const handleLogout = async () => {
     setConfirmLogout(false);
@@ -358,10 +369,10 @@ export function MenuSheet() {
         <nav aria-label="منوی اصلی">
           {role === "guest" && <GuestContent />}
           {role === "customer" && <CustomerContent onRequestLogout={() => setConfirmLogout(true)} />}
-          {role === "owner" && <OwnerContent onRequestLogout={() => setConfirmLogout(true)} />}
+          {(role === "owner" || role === "staff") && <OwnerContent onRequestLogout={() => setConfirmLogout(true)} />}
         </nav>
 
-        {role !== "owner" && (
+        {(role === "guest" || role === "customer") && (
           <div className="mt-4 border-t border-border py-2 text-center">
             <Link
               href="/owner/login"
