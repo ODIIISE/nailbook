@@ -1,9 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifyOwner } from "@/lib/owner-auth";
+import { verifyStaff, can } from "@/lib/owner-auth";
 import { logActivity } from "@/lib/db/activity-log";
 import { getSalonId } from "@/lib/multi-tenant";
 import { isValidSpecificDaysOff, isValidWorkingHours } from "@/lib/salon-settings";
+
+/* Copy/brand fields need settings.edit; hours, days off and engine tunables
+   need schedule.edit — so managers can run the schedule without touching
+   brand copy, and artists can touch neither. */
+const SETTINGS_EDIT_FIELDS = new Set([
+  "name", "description", "slogan", "phone", "address", "city", "instagram_handle", "portrait_image_url",
+  "hero_image_url", "logo_url", "splash_title", "splash_slogan", "splash_logo_url",
+  "home_gallery_urls", "hero_video_url",
+  "homepage_kicker", "homepage_cta_label", "homepage_micro", "lookbook_title", "booking_success_title",
+  "working_hours_text",
+]);
+const SCHEDULE_EDIT_FIELDS = new Set([
+  "working_hours", "specific_days_off", "days_off_reasons",
+  "slot_buffer_minutes", "slot_interval_minutes",
+  "early_extra_hours", "late_extra_hours",
+  "expand_threshold", "proximity_window_hours",
+  "allow_overflow", "overflow_minutes",
+  "optimization_mode", "suggestion_limit", "min_useful_gap_minutes",
+  "cancel_hours", "lead_minutes",
+]);
 
 const SALON_INFO_TABLE = "salon_info";
 const SALONS_TABLE = "salons";
@@ -14,8 +34,8 @@ function getSettingsTable() {
 
 export async function POST(request: NextRequest) {
   try {
-    const owner = await verifyOwner(request);
-    if (!owner) {
+    const staff = await verifyStaff(request);
+    if (!staff) {
       return NextResponse.json({ error: "غیرمجاز" }, { status: 401 });
     }
 
@@ -29,18 +49,31 @@ export async function POST(request: NextRequest) {
       "hero_video_url",
       "homepage_kicker", "homepage_cta_label", "homepage_micro", "lookbook_title", "booking_success_title",
       "working_hours_text",
-      "working_hours", "specific_days_off",
+      "working_hours", "specific_days_off", "days_off_reasons",
       "slot_buffer_minutes", "slot_interval_minutes",
       "early_extra_hours", "late_extra_hours",
       "expand_threshold", "proximity_window_hours",
       "allow_overflow", "overflow_minutes",
       "optimization_mode", "suggestion_limit", "min_useful_gap_minutes",
+      "cancel_hours", "lead_minutes",
     ]);
 
     // Strip unknown fields
     const safeUpdates: Record<string, unknown> = {};
     for (const key of Object.keys(updates)) {
       if (ALLOWED_FIELDS.has(key)) safeUpdates[key] = updates[key];
+    }
+
+    // Per-field authorization: brand copy needs settings.edit, schedule and
+    // engine need schedule.edit. A manager saving hours must not smuggle copy.
+    if (Object.keys(safeUpdates).some((k) => SETTINGS_EDIT_FIELDS.has(k)) && !can(staff.roles, "settings.edit")) {
+      return NextResponse.json({ error: "غیرمجاز" }, { status: 403 });
+    }
+    if (Object.keys(safeUpdates).some((k) => SCHEDULE_EDIT_FIELDS.has(k)) && !can(staff.roles, "schedule.edit")) {
+      return NextResponse.json({ error: "غیرمجاز" }, { status: 403 });
+    }
+    if (Object.keys(safeUpdates).length === 0) {
+      return NextResponse.json({ error: "غیرمجاز" }, { status: 403 });
     }
 
     // Validate numeric fields and coerce to proper numbers
@@ -54,6 +87,8 @@ export async function POST(request: NextRequest) {
       { key: "overflow_minutes", min: 0, max: 120 },
       { key: "suggestion_limit", min: 1, max: 10 },
       { key: "min_useful_gap_minutes", min: 0, max: 180 },
+      { key: "cancel_hours", min: 0, max: 72 },
+      { key: "lead_minutes", min: 0, max: 240 },
     ];
     if (safeUpdates.optimization_mode !== undefined && safeUpdates.optimization_mode !== "hybrid" && safeUpdates.optimization_mode !== "legacy") {
       return NextResponse.json({ error: "حالت هوشمندسازی نامعتبر است" }, { status: 400 });
@@ -101,6 +136,16 @@ export async function POST(request: NextRequest) {
     }
     if (safeUpdates.specific_days_off !== undefined && !isValidSpecificDaysOff(safeUpdates.specific_days_off)) {
       return NextResponse.json({ error: "روزهای تعطیل نامعتبر است" }, { status: 400 });
+    }
+    // Days-off reasons ride alongside the date list ({date: reason}, both
+    // capped) so readers of specific_days_off never break.
+    if (safeUpdates.days_off_reasons !== undefined) {
+      const r = safeUpdates.days_off_reasons;
+      const ok = r && typeof r === "object" && !Array.isArray(r)
+        && Object.entries(r).every(([k, v]) =>
+          /^\d{4}-\d{2}-\d{2}$/.test(k) && typeof v === "string" && v.length <= 100
+          && Object.keys(r as object).length <= 366);
+      if (!ok) return NextResponse.json({ error: "دلیل تعطیلی نامعتبر است" }, { status: 400 });
     }
 
     const configuredSalonId = getSalonId();
@@ -221,6 +266,15 @@ export async function POST(request: NextRequest) {
       }
       if (safeUpdates.min_useful_gap_minutes !== undefined) {
         await client.query(updateSql("min_useful_gap_minutes"), [safeUpdates.min_useful_gap_minutes, salonId]);
+      }
+      if (safeUpdates.cancel_hours !== undefined) {
+        await client.query(updateSql("cancel_hours"), [safeUpdates.cancel_hours, salonId]);
+      }
+      if (safeUpdates.lead_minutes !== undefined) {
+        await client.query(updateSql("lead_minutes"), [safeUpdates.lead_minutes, salonId]);
+      }
+      if (safeUpdates.days_off_reasons !== undefined) {
+        await client.query(updateSql("days_off_reasons"), [JSON.stringify(safeUpdates.days_off_reasons), salonId]);
       }
 
       await client.query("COMMIT");
