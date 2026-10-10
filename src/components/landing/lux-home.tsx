@@ -416,7 +416,7 @@ export function LuxHome() {
                     <span className={styles.lookThumb}>
                       {h.cover_url && (
                         // eslint-disable-next-line @next/next/no-img-element -- cover thumbnails inside the Lux sheet
-                        <img src={h.cover_url} alt={h.name} loading="lazy" />
+                        <img src={h.cover_url} alt={h.name} loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                       )}
                     </span>
                     <span className={styles.lookName}>{h.name}</span>

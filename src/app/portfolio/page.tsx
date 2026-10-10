@@ -49,6 +49,7 @@ export default function PortfolioPage() {
                       alt={h.name}
                       loading="lazy"
                       decoding="async"
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
                     />
                   ) : null}
                   <span>{h.name}</span>
