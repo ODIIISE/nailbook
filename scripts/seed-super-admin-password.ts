@@ -29,10 +29,14 @@ async function hashPin(pin: string): Promise<string> {
   const SALT_LENGTH = 16;
   const KEY_LENGTH = 64;
   const ITERATIONS = 100000;
+  // One salt, used for both derivation and storage — verifyPin recomputes
+  // with the stored salt, so generating two different salts (as this helper
+  // previously did) produces a hash that can never verify.
+  const salt = crypto.randomBytes(SALT_LENGTH).toString("hex");
   return new Promise((resolve, reject) => {
-    crypto.pbkdf2(pin, crypto.randomBytes(SALT_LENGTH).toString("hex"), ITERATIONS, KEY_LENGTH, "sha256", (err, derived) => {
+    crypto.pbkdf2(pin, salt, ITERATIONS, KEY_LENGTH, "sha256", (err, derived) => {
       if (err) reject(err);
-      else resolve(crypto.randomBytes(SALT_LENGTH).toString("hex") + ":" + derived.toString("hex"));
+      else resolve(salt + ":" + derived.toString("hex"));
     });
   });
 }
